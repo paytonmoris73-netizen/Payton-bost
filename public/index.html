@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BunnyX – AI Coding System Prompt</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: #2a2a35;
+      --accent: #7c6af7;
+      --accent2: #a78bfa;
+      --text: #e8e8f0;
+      --muted: #888899;
+      --success: #34d399;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo {
+      font-size: 2.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 0.4rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 860px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.4rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-copy {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.45rem 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-copy:hover { background: var(--accent2); }
+    .btn-copy:active { transform: scale(0.97); }
+    .btn-copy.copied { background: var(--success); color: #000; }
+
+    .prompt-content {
+      padding: 1.6rem;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.84rem;
+      line-height: 1.75;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 70vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .prompt-content::-webkit-scrollbar { width: 6px; }
+    .prompt-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .stats {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-top: 1.6rem;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 1.2rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+
+    .loading { color: var(--muted); padding: 2rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">BunnyX</div>
+    <p class="tagline">The Ultimate AI Coding System Prompt</p>
+  </header>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">System Prompt</span>
+      <button class="btn-copy" id="copyBtn" onclick="copyPrompt()">Copy Prompt</button>
+    </div>
+    <div class="prompt-content" id="promptContent">
+      <span class="loading">Loading...</span>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <script>
+    let promptText = '';
+
+    async function loadPrompt() {
+      const res = await fetch('/prompt');
+      const data = await res.json();
+      promptText = data.content;
+      document.getElementById('promptContent').textContent = promptText;
+
+      const words = promptText.trim().split(/\s+/).length;
+      const chars = promptText.length;
+      const lines = promptText.split('\n').length;
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat"><div class="stat-value">${chars.toLocaleString()}</div><div class="stat-label">Characters</div></div>
+        <div class="stat"><div class="stat-value">${words.toLocaleString()}</div><div class="stat-label">Words</div></div>
+        <div class="stat"><div class="stat-value">${lines.toLocaleString()}</div><div class="stat-label">Lines</div></div>
+      `;
+    }
+
+    async function copyPrompt() {
+      await navigator.clipboard.writeText(promptText);
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy Prompt';
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+
+    loadPrompt();
+  </script>
+</body>
+</html>

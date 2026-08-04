@@ -1,0 +1,12 @@
+{
+  "name": "bunnyx-prompt-app",
+  "version": "1.0.0",
+  "description": "BunnyX AI Coding System Prompt web app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
