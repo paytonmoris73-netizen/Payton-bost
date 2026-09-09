@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tic-Tac-Toe — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 96px);
+    grid-template-rows: repeat(3, 96px);
+    gap: 8px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  .cell {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    font-size: 2.6rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .cell.x { color: #22d3ee; }
+  .cell.o { color: #fbbf24; }
+  .cell.win { background: #14532d; border-color: #34d399; }
+  .modeRow { margin-bottom: 10px; }
+  select {
+    font-size: 1rem;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+  @media (max-width: 380px) {
+    .board { grid-template-columns: repeat(3, 78px); grid-template-rows: repeat(3, 78px); }
+    .cell { font-size: 2.1rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>⭕ Tic-Tac-Toe</h1>
+
+    <div class="modeRow">
+      <select id="mode">
+        <option value="pvp">2 Players</option>
+        <option value="cpu">Vs Computer</option>
+      </select>
+    </div>
+
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="xScore">0</div><div class="label">X wins</div></div>
+      <div class="stat"><div class="num" id="oScore">0</div><div class="label">O wins</div></div>
+      <div class="stat"><div class="num" id="draws">0</div><div class="label">Draws</div></div>
+    </div>
+
+    <div class="board" id="board"></div>
+    <p id="status" style="font-weight:700; min-height:1.4em;">X's turn</p>
+    <button class="btn" id="resetBtn">New Round</button>
+  </div>
+
+<script>
+const boardEl = document.getElementById('board');
+const statusEl = document.getElementById('status');
+const modeEl = document.getElementById('mode');
+const xScoreEl = document.getElementById('xScore');
+const oScoreEl = document.getElementById('oScore');
+const drawsEl = document.getElementById('draws');
+
+const lines = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+];
+
+let cells, turn, over, xScore = 0, oScore = 0, draws = 0;
+
+function build() {
+  cells = Array(9).fill('');
+  turn = 'X';
+  over = false;
+  statusEl.textContent = "X's turn";
+  boardEl.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.i = i;
+    cell.addEventListener('click', () => play(i));
+    boardEl.appendChild(cell);
+  }
+}
+
+function render() {
+  [...boardEl.children].forEach((el, i) => {
+    el.textContent = cells[i];
+    el.className = 'cell' + (cells[i] === 'X' ? ' x' : cells[i] === 'O' ? ' o' : '');
+  });
+}
+
+function checkWin() {
+  for (const line of lines) {
+    const [a, b, c] = line;
+    if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) return line;
+  }
+  return null;
+}
+
+function play(i) {
+  if (over || cells[i]) return;
+  cells[i] = turn;
+  render();
+
+  const winLine = checkWin();
+  if (winLine) {
+    winLine.forEach(idx => boardEl.children[idx].classList.add('win'));
+    statusEl.textContent = `${turn} wins! 🎉`;
+    over = true;
+    if (turn === 'X') { xScore++; xScoreEl.textContent = xScore; }
+    else { oScore++; oScoreEl.textContent = oScore; }
+    return;
+  }
+  if (cells.every(c => c)) {
+    statusEl.textContent = "It's a draw!";
+    over = true;
+    draws++;
+    drawsEl.textContent = draws;
+    return;
+  }
+
+  turn = turn === 'X' ? 'O' : 'X';
+  statusEl.textContent = `${turn}'s turn`;
+
+  if (!over && modeEl.value === 'cpu' && turn === 'O') {
+    setTimeout(cpuMove, 400);
+  }
+}
+
+function cpuMove() {
+  if (over) return;
+  const empty = cells.map((c, i) => c ? -1 : i).filter(i => i >= 0);
+
+  // try to win
+  for (const i of empty) {
+    cells[i] = 'O';
+    if (checkWin()) { cells[i] = ''; play(i); return; }
+    cells[i] = '';
+  }
+  // try to block
+  for (const i of empty) {
+    cells[i] = 'X';
+    if (checkWin()) { cells[i] = ''; play(i); return; }
+    cells[i] = '';
+  }
+  // take center, then random
+  if (empty.includes(4)) { play(4); return; }
+  play(empty[Math.floor(Math.random() * empty.length)]);
+}
+
+document.getElementById('resetBtn').onclick = build;
+modeEl.onchange = build;
+build();
+</script>
+</body>
+</html>

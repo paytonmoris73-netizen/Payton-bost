@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Snake — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  #board {
+    background: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    display: block;
+    margin: 16px auto;
+    touch-action: none;
+  }
+  .pad {
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    grid-template-rows: repeat(3, 56px);
+    gap: 6px;
+    justify-content: center;
+    margin: 8px auto;
+  }
+  .pad button {
+    font-size: 1.4rem;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🐍 Snake</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="score">0</div><div class="label">Score</div></div>
+      <div class="stat"><div class="num" id="best">0</div><div class="label">Best</div></div>
+    </div>
+    <canvas id="board" width="400" height="400"></canvas>
+    <div>
+      <button class="btn" id="startBtn">Start</button>
+      <button class="btn secondary" id="pauseBtn">Pause</button>
+    </div>
+    <p style="color:#94a3b8; font-size:0.85rem;">Use arrow keys / WASD, or the pad below on touch devices.</p>
+    <div class="pad">
+      <span></span>
+      <button id="up">↑</button>
+      <span></span>
+      <button id="left">←</button>
+      <span></span>
+      <button id="right">→</button>
+      <span></span>
+      <button id="down">↓</button>
+      <span></span>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+const cell = 20;
+const cols = canvas.width / cell;
+const rows = canvas.height / cell;
+
+let snake, dir, nextDir, food, score, best, running, paused, loopId;
+
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+best = Number(localStorage.getItem('snakeBest') || 0);
+bestEl.textContent = best;
+
+function reset() {
+  snake = [{x: 8, y: 10}, {x: 7, y: 10}, {x: 6, y: 10}];
+  dir = {x: 1, y: 0};
+  nextDir = {x: 1, y: 0};
+  score = 0;
+  scoreEl.textContent = score;
+  placeFood();
+  paused = false;
+}
+
+function placeFood() {
+  let valid = false;
+  while (!valid) {
+    food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+    valid = !snake.some(s => s.x === food.x && s.y === food.y);
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(food.x * cell + 2, food.y * cell + 2, cell - 4, cell - 4);
+
+  snake.forEach((s, i) => {
+    ctx.fillStyle = i === 0 ? '#22d3ee' : '#a78bfa';
+    ctx.fillRect(s.x * cell + 1, s.y * cell + 1, cell - 2, cell - 2);
+  });
+}
+
+function step() {
+  if (paused) return;
+  dir = nextDir;
+  const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+  if (head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows || snake.some(s => s.x === head.x && s.y === head.y)) {
+    gameOver();
+    return;
+  }
+
+  snake.unshift(head);
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    scoreEl.textContent = score;
+    placeFood();
+  } else {
+    snake.pop();
+  }
+  draw();
+}
+
+function gameOver() {
+  clearInterval(loopId);
+  running = false;
+  if (score > best) {
+    best = score;
+    bestEl.textContent = best;
+    localStorage.setItem('snakeBest', best);
+  }
+  ctx.fillStyle = 'rgba(15,23,42,0.85)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#f1f5f9';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 10);
+  ctx.font = '16px sans-serif';
+  ctx.fillText('Score: ' + score, canvas.width / 2, canvas.height / 2 + 20);
+}
+
+function setDir(x, y) {
+  if (dir.x === -x && dir.y === -y) return;
+  nextDir = { x, y };
+}
+
+document.addEventListener('keydown', e => {
+  const map = {
+    ArrowUp: [0, -1], w: [0, -1], W: [0, -1],
+    ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
+    ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0],
+    ArrowRight: [1, 0], d: [1, 0], D: [1, 0],
+  };
+  if (map[e.key]) {
+    e.preventDefault();
+    setDir(...map[e.key]);
+  }
+});
+
+document.getElementById('up').onclick = () => setDir(0, -1);
+document.getElementById('down').onclick = () => setDir(0, 1);
+document.getElementById('left').onclick = () => setDir(-1, 0);
+document.getElementById('right').onclick = () => setDir(1, 0);
+
+document.getElementById('startBtn').onclick = () => {
+  clearInterval(loopId);
+  reset();
+  draw();
+  running = true;
+  loopId = setInterval(step, 110);
+};
+
+document.getElementById('pauseBtn').onclick = () => {
+  if (!running) return;
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
+};
+
+reset();
+draw();
+</script>
+</body>
+</html>

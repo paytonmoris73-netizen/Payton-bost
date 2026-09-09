@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Math Blitz — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .question {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin: 24px 0;
+  }
+  #answer {
+    font-size: 1.4rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #f1f5f9;
+    width: 140px;
+    text-align: center;
+  }
+  .feedback {
+    min-height: 1.6em;
+    font-weight: 700;
+    margin-top: 10px;
+  }
+  .feedback.good { color: #34d399; }
+  .feedback.bad { color: #f87171; }
+  #level {
+    font-size: 1.4rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>➗ Math Blitz</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="score">0</div><div class="label">Score</div></div>
+      <div class="stat"><div class="num" id="time">60</div><div class="label">Seconds</div></div>
+      <div class="stat"><div class="num" id="best">0</div><div class="label">Best</div></div>
+    </div>
+
+    <div id="pre">
+      <p style="color:#94a3b8;">Choose a difficulty and answer as many problems as you can in 60 seconds.</p>
+      <select id="level">
+        <option value="easy">Easy (+ / −)</option>
+        <option value="medium">Medium (+ / − / ×)</option>
+        <option value="hard">Hard (+ / − / × / ÷)</option>
+      </select>
+      <br /><br />
+      <button class="btn" id="startBtn">Start Blitz</button>
+    </div>
+
+    <div id="game" style="display:none;">
+      <div class="question" id="question">—</div>
+      <input id="answer" type="number" inputmode="numeric" autocomplete="off" />
+      <br />
+      <button class="btn" id="submitBtn">Submit</button>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+
+<script>
+const scoreEl = document.getElementById('score');
+const timeEl = document.getElementById('time');
+const bestEl = document.getElementById('best');
+const questionEl = document.getElementById('question');
+const answerEl = document.getElementById('answer');
+const feedbackEl = document.getElementById('feedback');
+const pre = document.getElementById('pre');
+const game = document.getElementById('game');
+
+let score, timeLeft, timer, current;
+
+bestEl.textContent = localStorage.getItem('mathBlitzBest') || 0;
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function nextQuestion() {
+  const level = document.getElementById('level').value;
+  let a, b, op, answer;
+  const ops = level === 'easy' ? ['+', '-'] : level === 'medium' ? ['+', '-', '×'] : ['+', '-', '×', '÷'];
+  op = ops[randInt(0, ops.length - 1)];
+
+  if (op === '+') {
+    a = randInt(1, 50); b = randInt(1, 50); answer = a + b;
+  } else if (op === '-') {
+    a = randInt(1, 50); b = randInt(1, a); answer = a - b;
+  } else if (op === '×') {
+    a = randInt(2, 12); b = randInt(2, 12); answer = a * b;
+  } else {
+    b = randInt(2, 12); answer = randInt(2, 12); a = b * answer;
+  }
+
+  current = answer;
+  questionEl.textContent = `${a} ${op} ${b} = ?`;
+  answerEl.value = '';
+  answerEl.focus();
+}
+
+function submit() {
+  if (timeLeft <= 0) return;
+  const val = Number(answerEl.value);
+  if (answerEl.value !== '' && val === current) {
+    score++;
+    scoreEl.textContent = score;
+    feedbackEl.textContent = '✅ Correct!';
+    feedbackEl.className = 'feedback good';
+  } else {
+    feedbackEl.textContent = `❌ Answer was ${current}`;
+    feedbackEl.className = 'feedback bad';
+  }
+  nextQuestion();
+}
+
+function endGame() {
+  clearInterval(timer);
+  game.style.display = 'none';
+  pre.style.display = 'block';
+  questionEl.textContent = '—';
+  const best = Number(localStorage.getItem('mathBlitzBest') || 0);
+  if (score > best) {
+    localStorage.setItem('mathBlitzBest', score);
+    bestEl.textContent = score;
+  }
+  feedbackEl.textContent = '';
+  document.getElementById('startBtn').textContent = `Play Again (last score: ${score})`;
+}
+
+document.getElementById('startBtn').onclick = () => {
+  score = 0;
+  timeLeft = 60;
+  scoreEl.textContent = score;
+  timeEl.textContent = timeLeft;
+  feedbackEl.textContent = '';
+  pre.style.display = 'none';
+  game.style.display = 'block';
+  nextQuestion();
+  clearInterval(timer);
+  timer = setInterval(() => {
+    timeLeft--;
+    timeEl.textContent = timeLeft;
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+};
+
+document.getElementById('submitBtn').onclick = submit;
+answerEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') submit();
+});
+</script>
+</body>
+</html>

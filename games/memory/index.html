@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Memory Match — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 80px);
+    gap: 10px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  .tile {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .tile.flipped, .tile.matched {
+    background: #334155;
+  }
+  .tile.matched {
+    background: #14532d;
+    border-color: #34d399;
+    cursor: default;
+  }
+  @media (max-width: 420px) {
+    .board { grid-template-columns: repeat(4, 64px); }
+    .tile { width: 64px; height: 64px; font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🧠 Memory Match</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="moves">0</div><div class="label">Moves</div></div>
+      <div class="stat"><div class="num" id="pairs">0/8</div><div class="label">Pairs</div></div>
+      <div class="stat"><div class="num" id="best">–</div><div class="label">Best moves</div></div>
+    </div>
+    <div class="board" id="board"></div>
+    <button class="btn" id="restartBtn">New Game</button>
+    <p id="winMsg" style="color:#34d399; font-weight:700; min-height: 1.4em;"></p>
+  </div>
+
+<script>
+const icons = ['🍎','🚀','🎈','🐳','🌟','🎸','🍩','🦊'];
+const boardEl = document.getElementById('board');
+const movesEl = document.getElementById('moves');
+const pairsEl = document.getElementById('pairs');
+const bestEl = document.getElementById('best');
+const winMsg = document.getElementById('winMsg');
+
+let cards, flipped, matched, moves, lock;
+
+const best = localStorage.getItem('memoryBest');
+if (best) bestEl.textContent = best;
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function build() {
+  cards = shuffle([...icons, ...icons]);
+  flipped = [];
+  matched = new Set();
+  moves = 0;
+  lock = false;
+  movesEl.textContent = moves;
+  pairsEl.textContent = `0/${icons.length}`;
+  winMsg.textContent = '';
+
+  boardEl.innerHTML = '';
+  cards.forEach((icon, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.dataset.index = i;
+    tile.textContent = '';
+    tile.addEventListener('click', () => flip(i, tile));
+    boardEl.appendChild(tile);
+  });
+}
+
+function flip(i, tile) {
+  if (lock || tile.classList.contains('matched') || tile.classList.contains('flipped')) return;
+  tile.classList.add('flipped');
+  tile.textContent = cards[i];
+  flipped.push({ i, tile });
+
+  if (flipped.length === 2) {
+    moves++;
+    movesEl.textContent = moves;
+    lock = true;
+    const [a, b] = flipped;
+    if (cards[a.i] === cards[b.i]) {
+      a.tile.classList.add('matched');
+      b.tile.classList.add('matched');
+      matched.add(a.i);
+      matched.add(b.i);
+      pairsEl.textContent = `${matched.size / 2}/${icons.length}`;
+      flipped = [];
+      lock = false;
+      if (matched.size === cards.length) {
+        winMsg.textContent = `🎉 Solved in ${moves} moves!`;
+        const prevBest = Number(localStorage.getItem('memoryBest') || Infinity);
+        if (moves < prevBest) {
+          localStorage.setItem('memoryBest', moves);
+          bestEl.textContent = moves;
+        }
+      }
+    } else {
+      setTimeout(() => {
+        a.tile.classList.remove('flipped');
+        b.tile.classList.remove('flipped');
+        a.tile.textContent = '';
+        b.tile.textContent = '';
+        flipped = [];
+        lock = false;
+      }, 750);
+    }
+  }
+}
+
+document.getElementById('restartBtn').onclick = build;
+build();
+</script>
+</body>
+</html>
