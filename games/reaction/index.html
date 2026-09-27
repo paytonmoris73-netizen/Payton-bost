@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reaction Timer — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  #pad {
+    width: 280px; height: 280px;
+    border-radius: 20px;
+    margin: 24px auto;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 800;
+    cursor: pointer;
+    background: #334155;
+    color: #f1f5f9;
+    text-align: center;
+    padding: 20px;
+  }
+  #pad.wait { background: #7f1d1d; }
+  #pad.go { background: #14532d; }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>⚡ Reaction Timer</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="last">–</div><div class="label">Last (ms)</div></div>
+      <div class="stat"><div class="num" id="best">–</div><div class="label">Best (ms)</div></div>
+    </div>
+    <div id="pad">Click to start</div>
+  </div>
+<script>
+const pad = document.getElementById('pad');
+const lastEl = document.getElementById('last');
+const bestEl = document.getElementById('best');
+
+let best = Number(localStorage.getItem('reactionBest') || 0);
+if (best) bestEl.textContent = best;
+
+let state = 'idle';
+let timeout, startTime;
+
+pad.addEventListener('click', () => {
+  if (state === 'idle') {
+    state = 'waiting';
+    pad.className = 'wait';
+    pad.textContent = 'Wait for green...';
+    const delay = 1000 + Math.random() * 3000;
+    timeout = setTimeout(() => {
+      state = 'ready';
+      pad.className = 'go';
+      pad.textContent = 'Click now!';
+      startTime = Date.now();
+    }, delay);
+  } else if (state === 'waiting') {
+    clearTimeout(timeout);
+    state = 'idle';
+    pad.className = '';
+    pad.textContent = 'Too soon! Click to try again';
+  } else if (state === 'ready') {
+    const reaction = Date.now() - startTime;
+    lastEl.textContent = reaction;
+    if (!best || reaction < best) {
+      best = reaction;
+      bestEl.textContent = best;
+      localStorage.setItem('reactionBest', best);
+    }
+    state = 'idle';
+    pad.className = '';
+    pad.textContent = `${reaction} ms — click to try again`;
+  }
+});
+</script>
+</body>
+</html>

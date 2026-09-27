@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rock Paper Scissors — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .choices { display: flex; justify-content: center; gap: 16px; margin: 24px 0; flex-wrap: wrap; }
+  .choice {
+    font-size: 2.6rem;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 18px 22px;
+    cursor: pointer;
+  }
+  .choice:hover { border-color: var(--accent); }
+  .arena { display: flex; justify-content: center; gap: 40px; align-items: center; margin: 20px 0; }
+  .arena .you, .arena .cpu { font-size: 3.5rem; }
+  .vs { color: #94a3b8; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>✊ Rock Paper Scissors</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="wins">0</div><div class="label">Wins</div></div>
+      <div class="stat"><div class="num" id="losses">0</div><div class="label">Losses</div></div>
+      <div class="stat"><div class="num" id="ties">0</div><div class="label">Ties</div></div>
+    </div>
+    <div class="arena">
+      <div class="you" id="youIcon">❔</div>
+      <div class="vs">VS</div>
+      <div class="cpu" id="cpuIcon">❔</div>
+    </div>
+    <p id="result" style="font-weight:700; font-size:1.2rem; min-height:1.6em;"></p>
+    <div class="choices">
+      <div class="choice" data-c="rock">🪨</div>
+      <div class="choice" data-c="paper">📄</div>
+      <div class="choice" data-c="scissors">✂️</div>
+    </div>
+  </div>
+<script>
+const icons = { rock: '🪨', paper: '📄', scissors: '✂️' };
+const beats = { rock: 'scissors', paper: 'rock', scissors: 'paper' };
+const winsEl = document.getElementById('wins');
+const lossesEl = document.getElementById('losses');
+const tiesEl = document.getElementById('ties');
+const resultEl = document.getElementById('result');
+const youIcon = document.getElementById('youIcon');
+const cpuIcon = document.getElementById('cpuIcon');
+
+let wins = 0, losses = 0, ties = 0;
+
+document.querySelectorAll('.choice').forEach(el => {
+  el.addEventListener('click', () => play(el.dataset.c));
+});
+
+function play(you) {
+  const options = Object.keys(icons);
+  const cpu = options[Math.floor(Math.random()*3)];
+  youIcon.textContent = icons[you];
+  cpuIcon.textContent = icons[cpu];
+
+  if (you === cpu) {
+    ties++;
+    resultEl.textContent = "It's a tie!";
+    resultEl.style.color = '#fbbf24';
+  } else if (beats[you] === cpu) {
+    wins++;
+    resultEl.textContent = 'You win! 🎉';
+    resultEl.style.color = '#34d399';
+  } else {
+    losses++;
+    resultEl.textContent = 'Computer wins!';
+    resultEl.style.color = '#f87171';
+  }
+  winsEl.textContent = wins;
+  lossesEl.textContent = losses;
+  tiesEl.textContent = ties;
+}
+</script>
+</body>
+</html>

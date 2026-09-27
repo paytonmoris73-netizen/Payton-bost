@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Whack-a-Mole — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 12px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  .hole {
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .hole.up { background: #334155; }
+  @media (max-width: 380px) {
+    .grid { grid-template-columns: repeat(3, 80px); grid-template-rows: repeat(3, 80px); }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🔨 Whack-a-Mole</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="score">0</div><div class="label">Score</div></div>
+      <div class="stat"><div class="num" id="time">30</div><div class="label">Seconds</div></div>
+      <div class="stat"><div class="num" id="best">0</div><div class="label">Best</div></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <button class="btn" id="startBtn">Start</button>
+  </div>
+<script>
+const gridEl = document.getElementById('grid');
+const scoreEl = document.getElementById('score');
+const timeEl = document.getElementById('time');
+const bestEl = document.getElementById('best');
+let best = Number(localStorage.getItem('moleBest') || 0);
+bestEl.textContent = best;
+
+let holes = [];
+for (let i = 0; i < 9; i++) {
+  const h = document.createElement('div');
+  h.className = 'hole';
+  gridEl.appendChild(h);
+  holes.push(h);
+  h.addEventListener('click', () => whack(i));
+}
+
+let score, timeLeft, active, popTimer, gameTimer, running;
+
+function popRandom() {
+  holes.forEach(h => { h.classList.remove('up'); h.textContent = ''; });
+  active = Math.floor(Math.random() * 9);
+  holes[active].classList.add('up');
+  holes[active].textContent = '🐹';
+}
+
+function whack(i) {
+  if (!running) return;
+  if (i === active) {
+    score++;
+    scoreEl.textContent = score;
+    holes[i].classList.remove('up');
+    holes[i].textContent = '💥';
+    active = -1;
+    setTimeout(() => { if (holes[i]) holes[i].textContent = ''; }, 150);
+  }
+}
+
+function start() {
+  score = 0; timeLeft = 30; running = true;
+  scoreEl.textContent = score; timeEl.textContent = timeLeft;
+  clearInterval(popTimer); clearInterval(gameTimer);
+  popTimer = setInterval(popRandom, 750);
+  popRandom();
+  gameTimer = setInterval(() => {
+    timeLeft--;
+    timeEl.textContent = timeLeft;
+    if (timeLeft <= 0) end();
+  }, 1000);
+}
+
+function end() {
+  running = false;
+  clearInterval(popTimer); clearInterval(gameTimer);
+  holes.forEach(h => { h.classList.remove('up'); h.textContent = ''; });
+  if (score > best) { best = score; bestEl.textContent = best; localStorage.setItem('moleBest', best); }
+}
+
+document.getElementById('startBtn').onclick = start;
+</script>
+</body>
+</html>

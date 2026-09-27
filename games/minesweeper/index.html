@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minesweeper — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(10, 32px);
+    grid-template-rows: repeat(10, 32px);
+    gap: 3px;
+    justify-content: center;
+    margin: 16px auto;
+  }
+  .cell {
+    width: 32px;
+    height: 32px;
+    background: #334155;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cell.open { background: #1e293b; cursor: default; }
+  .cell.mine { background: #7f1d1d; }
+  .cell.flag { background: #92400e; }
+  .c1 { color: #60a5fa; } .c2 { color: #34d399; } .c3 { color: #f87171; }
+  .c4 { color: #a78bfa; } .c5 { color: #fbbf24; } .c6 { color: #22d3ee; }
+  @media (max-width: 400px) {
+    .grid { grid-template-columns: repeat(10, 28px); grid-template-rows: repeat(10, 28px); }
+    .cell { width: 28px; height: 28px; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>💣 Minesweeper</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="mines">15</div><div class="label">Mines left</div></div>
+      <div class="stat"><div class="num" id="best">–</div><div class="label">Best time</div></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p id="status" style="font-weight:700; min-height:1.4em;"></p>
+    <button class="btn" id="restartBtn">New Game</button>
+    <p style="color:#94a3b8; font-size:0.85rem;">Click to reveal. Right-click (or long-press) to flag a mine.</p>
+  </div>
+<script>
+const SIZE = 10, MINES = 15;
+const gridEl = document.getElementById('grid');
+const minesEl = document.getElementById('mines');
+const statusEl = document.getElementById('status');
+const bestEl = document.getElementById('best');
+
+const best = localStorage.getItem('minesweeperBest');
+if (best) bestEl.textContent = best + 's';
+
+let board, opened, flagged, over, startTime, timerInt;
+
+function build() {
+  board = Array.from({length: SIZE}, () => Array(SIZE).fill(0));
+  opened = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
+  flagged = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
+  over = false;
+  startTime = null;
+  clearInterval(timerInt);
+  statusEl.textContent = '';
+  minesEl.textContent = MINES;
+
+  let placed = 0;
+  while (placed < MINES) {
+    const r = Math.floor(Math.random()*SIZE), c = Math.floor(Math.random()*SIZE);
+    if (board[r][c] !== 'M') { board[r][c] = 'M'; placed++; }
+  }
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+    if (board[r][c] === 'M') continue;
+    let count = 0;
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+      const nr=r+dr, nc=c+dc;
+      if (nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]==='M') count++;
+    }
+    board[r][c] = count;
+  }
+
+  gridEl.innerHTML = '';
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.addEventListener('click', () => reveal(r,c));
+    cell.addEventListener('contextmenu', e => { e.preventDefault(); toggleFlag(r,c); });
+    gridEl.appendChild(cell);
+  }
+}
+
+function cellEl(r,c) { return gridEl.children[r*SIZE+c]; }
+
+function toggleFlag(r,c) {
+  if (over || opened[r][c]) return;
+  flagged[r][c] = !flagged[r][c];
+  const el = cellEl(r,c);
+  el.classList.toggle('flag', flagged[r][c]);
+  el.textContent = flagged[r][c] ? '🚩' : '';
+  minesEl.textContent = MINES - flagged.flat().filter(Boolean).length;
+}
+
+function reveal(r,c) {
+  if (over || flagged[r][c] || opened[r][c]) return;
+  if (!startTime) {
+    startTime = Date.now();
+    timerInt = setInterval(() => {}, 1000);
+  }
+  floodOpen(r,c);
+  checkWin();
+}
+
+function floodOpen(r,c) {
+  if (r<0||r>=SIZE||c<0||c>=SIZE||opened[r][c]||flagged[r][c]) return;
+  opened[r][c] = true;
+  const el = cellEl(r,c);
+  el.classList.add('open');
+
+  if (board[r][c] === 'M') {
+    el.classList.add('mine');
+    el.textContent = '💣';
+    gameOver(false);
+    return;
+  }
+  if (board[r][c] > 0) {
+    el.textContent = board[r][c];
+    el.classList.add('c'+board[r][c]);
+    return;
+  }
+  for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+    if (dr||dc) floodOpen(r+dr, c+dc);
+  }
+}
+
+function checkWin() {
+  let openCount = opened.flat().filter(Boolean).length;
+  if (openCount === SIZE*SIZE - MINES) gameOver(true);
+}
+
+function gameOver(won) {
+  over = true;
+  clearInterval(timerInt);
+  const elapsed = startTime ? Math.round((Date.now()-startTime)/1000) : 0;
+  if (won) {
+    statusEl.textContent = `🎉 You win in ${elapsed}s!`;
+    statusEl.style.color = '#34d399';
+    const prevBest = Number(localStorage.getItem('minesweeperBest') || Infinity);
+    if (elapsed < prevBest) {
+      localStorage.setItem('minesweeperBest', elapsed);
+      bestEl.textContent = elapsed + 's';
+    }
+    for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+      if (board[r][c]==='M') { cellEl(r,c).textContent = '🚩'; }
+    }
+  } else {
+    statusEl.textContent = '💥 Boom! Game over.';
+    statusEl.style.color = '#f87171';
+    for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+      if (board[r][c]==='M') { cellEl(r,c).classList.add('open','mine'); cellEl(r,c).textContent = '💣'; }
+    }
+  }
+}
+
+document.getElementById('restartBtn').onclick = build;
+build();
+</script>
+</body>
+</html>

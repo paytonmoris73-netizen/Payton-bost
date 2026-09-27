@@ -5,6 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Study Hall Arcade</title>
 <link rel="stylesheet" href="style.css" />
+<style>
+  .filterRow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 18px 0;
+  }
+  .filterRow button {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .filterRow button.active {
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    color: #0f172a;
+    font-weight: 700;
+    border-color: transparent;
+  }
+  #search {
+    display: block;
+    margin: 0 auto 8px;
+    width: 100%;
+    max-width: 320px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #f1f5f9;
+    font-size: 0.95rem;
+  }
+  .card { display: flex; }
+  .card[hidden] { display: none; }
+</style>
 </head>
 <body>
   <div class="topbar">
@@ -15,40 +53,160 @@
   <main>
     <div class="hero">
       <h1>Take a brain break</h1>
-      <p>Four quick, school-friendly games. Everything runs in your browser — no accounts, no downloads, no tracking.</p>
+      <p>16 quick, school-friendly games. Everything runs in your browser — no accounts, no downloads, no tracking.</p>
     </div>
 
-    <div class="grid">
-      <a class="card" href="snake/index.html">
+    <input id="search" type="text" placeholder="Search games..." />
+    <div class="filterRow" id="filters">
+      <button data-cat="all" class="active">All</button>
+      <button data-cat="arcade">Arcade</button>
+      <button data-cat="puzzle">Puzzle</button>
+      <button data-cat="word">Word &amp; Brain</button>
+      <button data-cat="party">2-Player</button>
+    </div>
+
+    <div class="grid" id="grid">
+      <a class="card" data-cat="arcade" href="snake/index.html">
         <div class="icon">🐍</div>
         <h3>Snake</h3>
         <p>Classic grid snake. Eat the dot, grow longer, don't hit the walls or yourself.</p>
         <span class="play">Play now →</span>
       </a>
 
-      <a class="card" href="memory/index.html">
+      <a class="card" data-cat="puzzle word" href="memory/index.html">
         <div class="icon">🧠</div>
         <h3>Memory Match</h3>
         <p>Flip cards and find every matching pair in as few moves as you can.</p>
         <span class="play">Play now →</span>
       </a>
 
-      <a class="card" href="quiz/index.html">
+      <a class="card" data-cat="word" href="quiz/index.html">
         <div class="icon">➗</div>
         <h3>Math Blitz</h3>
         <p>60 seconds, as many quick arithmetic questions as you can answer.</p>
         <span class="play">Play now →</span>
       </a>
 
-      <a class="card" href="tictactoe/index.html">
+      <a class="card" data-cat="party" href="tictactoe/index.html">
         <div class="icon">⭕</div>
         <h3>Tic-Tac-Toe</h3>
         <p>Play against a friend, or challenge a computer opponent.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="arcade" href="breakout/index.html">
+        <div class="icon">🧱</div>
+        <h3>Brick Breaker</h3>
+        <p>Bounce the ball, smash every brick, don't let it fall past your paddle.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="puzzle" href="2048/index.html">
+        <div class="icon">🔢</div>
+        <h3>2048</h3>
+        <p>Slide matching tiles together to build your way up to 2048.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="arcade" href="whackamole/index.html">
+        <div class="icon">🔨</div>
+        <h3>Whack-a-Mole</h3>
+        <p>Quick reflexes — tap the mole before it disappears.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="word" href="scramble/index.html">
+        <div class="icon">🔤</div>
+        <h3>Word Scramble</h3>
+        <p>Unscramble school-themed vocabulary words before your streak breaks.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="word" href="typing/index.html">
+        <div class="icon">⌨️</div>
+        <h3>Typing Speed Test</h3>
+        <p>Type the passage as fast and accurately as you can. Track your WPM.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="party puzzle" href="connectfour/index.html">
+        <div class="icon">🔴</div>
+        <h3>Connect Four</h3>
+        <p>Drop discs to connect four in a row. 2-player or vs. computer.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="puzzle" href="minesweeper/index.html">
+        <div class="icon">💣</div>
+        <h3>Minesweeper</h3>
+        <p>Clear the grid without triggering a hidden mine.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="arcade word" href="simon/index.html">
+        <div class="icon">🎵</div>
+        <h3>Simon Says</h3>
+        <p>Watch the pattern, repeat it back, and see how many rounds you can remember.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="party" href="rps/index.html">
+        <div class="icon">✊</div>
+        <h3>Rock Paper Scissors</h3>
+        <p>The classic hand-game, against the computer.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="word" href="hangman/index.html">
+        <div class="icon">🎯</div>
+        <h3>Hangman</h3>
+        <p>Guess the school-themed word one letter at a time before you run out of tries.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="arcade" href="reaction/index.html">
+        <div class="icon">⚡</div>
+        <h3>Reaction Timer</h3>
+        <p>Test how fast your reflexes really are, in milliseconds.</p>
+        <span class="play">Play now →</span>
+      </a>
+
+      <a class="card" data-cat="puzzle" href="sliding/index.html">
+        <div class="icon">🧩</div>
+        <h3>Sliding Puzzle</h3>
+        <p>Slide the numbered tiles back into order, one move at a time.</p>
         <span class="play">Play now →</span>
       </a>
     </div>
   </main>
 
   <footer>Built for study hall &middot; Have fun, then get back to homework 📚</footer>
+
+<script>
+const search = document.getElementById('search');
+const filters = document.getElementById('filters');
+const cards = [...document.querySelectorAll('.card')];
+let activeCat = 'all';
+
+function applyFilter() {
+  const term = search.value.trim().toLowerCase();
+  cards.forEach(card => {
+    const cats = card.dataset.cat.split(' ');
+    const matchesCat = activeCat === 'all' || cats.includes(activeCat);
+    const matchesTerm = !term || card.textContent.toLowerCase().includes(term);
+    card.hidden = !(matchesCat && matchesTerm);
+  });
+}
+
+filters.addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  [...filters.children].forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  activeCat = e.target.dataset.cat;
+  applyFilter();
+});
+
+search.addEventListener('input', applyFilter);
+</script>
 </body>
 </html>

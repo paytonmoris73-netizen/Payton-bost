@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simon Says — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .pad {
+    display: grid;
+    grid-template-columns: repeat(2, 110px);
+    grid-template-rows: repeat(2, 110px);
+    gap: 8px;
+    justify-content: center;
+    margin: 20px auto;
+  }
+  .btnpad {
+    border-radius: 16px;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.1s;
+  }
+  .btnpad.lit { opacity: 1; box-shadow: 0 0 20px currentColor; }
+  #g { background: #16a34a; color: #16a34a; border-top-left-radius: 60px; }
+  #r { background: #dc2626; color: #dc2626; border-top-right-radius: 60px; }
+  #y { background: #ca8a04; color: #ca8a04; border-bottom-left-radius: 60px; }
+  #b { background: #2563eb; color: #2563eb; border-bottom-right-radius: 60px; }
+  @media (max-width: 380px) {
+    .pad { grid-template-columns: repeat(2, 90px); grid-template-rows: repeat(2, 90px); }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🎵 Simon Says</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="round">0</div><div class="label">Round</div></div>
+      <div class="stat"><div class="num" id="best">0</div><div class="label">Best</div></div>
+    </div>
+    <div class="pad">
+      <div class="btnpad" id="g"></div>
+      <div class="btnpad" id="r"></div>
+      <div class="btnpad" id="y"></div>
+      <div class="btnpad" id="b"></div>
+    </div>
+    <p id="status" style="font-weight:700; min-height:1.4em;">Press Start</p>
+    <button class="btn" id="startBtn">Start</button>
+  </div>
+<script>
+const order = ['g','r','y','b'];
+const pads = Object.fromEntries(order.map(id => [id, document.getElementById(id)]));
+const roundEl = document.getElementById('round');
+const bestEl = document.getElementById('best');
+const statusEl = document.getElementById('status');
+
+let best = Number(localStorage.getItem('simonBest') || 0);
+bestEl.textContent = best;
+
+let sequence, userIndex, accepting;
+
+function flash(id, duration = 400) {
+  return new Promise(resolve => {
+    pads[id].classList.add('lit');
+    setTimeout(() => { pads[id].classList.remove('lit'); resolve(); }, duration);
+  });
+}
+
+async function playSequence() {
+  accepting = false;
+  statusEl.textContent = 'Watch...';
+  await new Promise(r => setTimeout(r, 500));
+  for (const id of sequence) {
+    await flash(id, 400);
+    await new Promise(r => setTimeout(r, 180));
+  }
+  accepting = true;
+  userIndex = 0;
+  statusEl.textContent = 'Your turn!';
+}
+
+function nextRound() {
+  sequence.push(order[Math.floor(Math.random()*4)]);
+  roundEl.textContent = sequence.length;
+  playSequence();
+}
+
+function press(id) {
+  if (!accepting) return;
+  flash(id, 200);
+  if (id !== sequence[userIndex]) {
+    fail();
+    return;
+  }
+  userIndex++;
+  if (userIndex === sequence.length) {
+    accepting = false;
+    setTimeout(nextRound, 600);
+  }
+}
+
+function fail() {
+  accepting = false;
+  statusEl.textContent = `Game over — reached round ${sequence.length}`;
+  if (sequence.length - 1 > best) {
+    best = sequence.length - 1;
+    bestEl.textContent = best;
+    localStorage.setItem('simonBest', best);
+  }
+}
+
+order.forEach(id => pads[id].addEventListener('click', () => press(id)));
+
+document.getElementById('startBtn').onclick = () => {
+  sequence = [];
+  roundEl.textContent = 0;
+  nextRound();
+};
+</script>
+</body>
+</html>

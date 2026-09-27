@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hangman — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  #word { font-size: 2.2rem; font-weight: 800; letter-spacing: 8px; margin: 20px 0; }
+  .keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 480px; margin: 0 auto; }
+  .key {
+    width: 36px; height: 40px;
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; cursor: pointer;
+  }
+  .key.used { opacity: 0.35; cursor: default; }
+  .key.correct { background: #14532d; border-color: #34d399; }
+  .key.wrong { background: #7f1d1d; border-color: #f87171; }
+  #hangArt { font-size: 3rem; min-height: 3.6rem; }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🎯 Hangman</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="wins">0</div><div class="label">Wins</div></div>
+      <div class="stat"><div class="num" id="losses">0</div><div class="label">Losses</div></div>
+      <div class="stat"><div class="num" id="misses">6</div><div class="label">Guesses left</div></div>
+    </div>
+    <div id="hangArt">🙂</div>
+    <p style="color:#94a3b8; font-size:0.85rem;" id="hint"></p>
+    <div id="word"></div>
+    <div class="keyboard" id="keyboard"></div>
+    <br />
+    <button class="btn" id="newBtn">New Word</button>
+  </div>
+<script>
+const words = [
+  ['SCIENCE','a school subject about the natural world'],
+  ['LIBRARY','a place full of books'],
+  ['PENCIL','used for writing and erasing'],
+  ['HOMEWORK','you do it after school'],
+  ['TEACHER','leads the classroom'],
+  ['NOTEBOOK','you write notes in it'],
+  ['GEOGRAPHY','study of maps and places'],
+  ['CALCULATOR','helps with math'],
+  ['LANGUAGE','how people communicate'],
+  ['HISTORY','study of the past'],
+  ['CHEMISTRY','study of substances and reactions'],
+  ['ALGEBRA','math with letters and numbers'],
+];
+
+const stages = ['🙂','😟','😧','😢','😰','😵','💀'];
+const wordEl = document.getElementById('word');
+const hintEl = document.getElementById('hint');
+const hangArt = document.getElementById('hangArt');
+const keyboardEl = document.getElementById('keyboard');
+const missesEl = document.getElementById('misses');
+const winsEl = document.getElementById('wins');
+const lossesEl = document.getElementById('losses');
+
+let wins = 0, losses = 0;
+let word, hint, guessed, misses, over;
+
+function build() {
+  const [w, h] = words[Math.floor(Math.random()*words.length)];
+  word = w; hint = h;
+  guessed = new Set();
+  misses = 0;
+  over = false;
+  missesEl.textContent = 6 - misses;
+  hangArt.textContent = stages[0];
+  hintEl.textContent = 'Hint: ' + hint;
+  renderWord();
+  renderKeyboard();
+}
+
+function renderWord() {
+  wordEl.textContent = word.split('').map(l => guessed.has(l) ? l : '_').join(' ');
+}
+
+function renderKeyboard() {
+  keyboardEl.innerHTML = '';
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i);
+    const key = document.createElement('div');
+    key.className = 'key';
+    key.textContent = letter;
+    key.addEventListener('click', () => guess(letter));
+    keyboardEl.appendChild(key);
+  }
+}
+
+function guess(letter) {
+  if (over || guessed.has(letter)) return;
+  guessed.add(letter);
+  const keyEls = [...keyboardEl.children];
+  const keyEl = keyEls.find(k => k.textContent === letter);
+  keyEl.classList.add('used');
+
+  if (word.includes(letter)) {
+    keyEl.classList.add('correct');
+    renderWord();
+    if (word.split('').every(l => guessed.has(l))) {
+      over = true;
+      wins++;
+      winsEl.textContent = wins;
+      hintEl.textContent = '🎉 You got it! The word was ' + word;
+    }
+  } else {
+    keyEl.classList.add('wrong');
+    misses++;
+    missesEl.textContent = 6 - misses;
+    hangArt.textContent = stages[misses];
+    if (misses >= 6) {
+      over = true;
+      losses++;
+      lossesEl.textContent = losses;
+      wordEl.textContent = word.split('').join(' ');
+      hintEl.textContent = '💀 Out of guesses! The word was ' + word;
+    }
+  }
+}
+
+document.getElementById('newBtn').onclick = build;
+build();
+</script>
+</body>
+</html>

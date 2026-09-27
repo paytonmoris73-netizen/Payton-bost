@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Connect Four — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .board {
+    display: inline-grid;
+    grid-template-columns: repeat(7, 48px);
+    grid-template-rows: repeat(6, 48px);
+    gap: 6px;
+    background: #1e3a8a;
+    padding: 10px;
+    border-radius: 12px;
+    margin: 16px auto;
+  }
+  .cell {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #0f172a;
+    cursor: pointer;
+  }
+  .cell.r { background: #f87171; }
+  .cell.y { background: #fbbf24; }
+  select { font-size: 1rem; padding: 8px 12px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #f1f5f9; }
+  @media (max-width: 400px) {
+    .board { grid-template-columns: repeat(7, 38px); grid-template-rows: repeat(6, 38px); }
+    .cell { width: 38px; height: 38px; }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🔴 Connect Four</h1>
+    <select id="mode">
+      <option value="pvp">2 Players</option>
+      <option value="cpu">Vs Computer</option>
+    </select>
+    <div class="board" id="board"></div>
+    <p id="status" style="font-weight:700; min-height:1.4em;">Red's turn</p>
+    <button class="btn" id="resetBtn">New Game</button>
+  </div>
+<script>
+const ROWS = 6, COLS = 7;
+const boardEl = document.getElementById('board');
+const statusEl = document.getElementById('status');
+const modeEl = document.getElementById('mode');
+let grid, turn, over, cells;
+
+function build() {
+  grid = Array.from({length: ROWS}, () => Array(COLS).fill(''));
+  turn = 'r';
+  over = false;
+  statusEl.textContent = "Red's turn";
+  boardEl.innerHTML = '';
+  cells = [];
+  for (let r = 0; r < ROWS; r++) {
+    const row = [];
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.addEventListener('click', () => drop(c));
+      boardEl.appendChild(cell);
+      row.push(cell);
+    }
+    cells.push(row);
+  }
+}
+
+function render() {
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      cells[r][c].className = 'cell' + (grid[r][c] ? ' ' + grid[r][c] : '');
+}
+
+function lowestEmptyRow(c) {
+  for (let r = ROWS - 1; r >= 0; r--) if (!grid[r][c]) return r;
+  return -1;
+}
+
+function checkWin(g, color) {
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (g[r][c] !== color) continue;
+    const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+    for (const [dr,dc] of dirs) {
+      let count = 1;
+      for (let i = 1; i < 4; i++) {
+        const nr = r + dr*i, nc = c + dc*i;
+        if (nr>=0 && nr<ROWS && nc>=0 && nc<COLS && g[nr][nc]===color) count++;
+        else break;
+      }
+      if (count === 4) return true;
+    }
+  }
+  return false;
+}
+
+function drop(c, color) {
+  if (over) return;
+  const player = color || turn;
+  if (!color && modeEl.value === 'cpu' && turn !== 'r') return;
+  const r = lowestEmptyRow(c);
+  if (r === -1) return;
+  grid[r][c] = player;
+  render();
+
+  if (checkWin(grid, player)) {
+    statusEl.textContent = (player === 'r' ? 'Red' : 'Yellow') + ' wins! 🎉';
+    over = true;
+    return;
+  }
+  if (grid.every(row => row.every(v => v))) {
+    statusEl.textContent = "It's a draw!";
+    over = true;
+    return;
+  }
+
+  turn = turn === 'r' ? 'y' : 'r';
+  statusEl.textContent = (turn === 'r' ? "Red's" : "Yellow's") + ' turn';
+
+  if (modeEl.value === 'cpu' && turn === 'y' && !over) {
+    setTimeout(cpuMove, 400);
+  }
+}
+
+function cpuMove() {
+  const options = [];
+  for (let c = 0; c < COLS; c++) if (lowestEmptyRow(c) !== -1) options.push(c);
+
+  for (const c of options) {
+    const r = lowestEmptyRow(c);
+    grid[r][c] = 'y';
+    if (checkWin(grid, 'y')) { grid[r][c] = ''; drop(c, 'y'); return; }
+    grid[r][c] = '';
+  }
+  for (const c of options) {
+    const r = lowestEmptyRow(c);
+    grid[r][c] = 'r';
+    if (checkWin(grid, 'r')) { grid[r][c] = ''; drop(c, 'y'); return; }
+    grid[r][c] = '';
+  }
+  const center = options.includes(3) ? 3 : options[Math.floor(Math.random()*options.length)];
+  drop(center, 'y');
+}
+
+document.getElementById('resetBtn').onclick = build;
+modeEl.onchange = build;
+build();
+</script>
+</body>
+</html>

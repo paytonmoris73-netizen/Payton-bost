@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Word Scramble — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  #scrambled {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: 6px;
+    margin: 24px 0;
+    color: var(--accent2);
+  }
+  #answer {
+    font-size: 1.3rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #f1f5f9;
+    width: 220px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .feedback { min-height: 1.6em; font-weight: 700; margin-top: 10px; }
+  .feedback.good { color: #34d399; }
+  .feedback.bad { color: #f87171; }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🔤 Word Scramble</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="score">0</div><div class="label">Score</div></div>
+      <div class="stat"><div class="num" id="streak">0</div><div class="label">Streak</div></div>
+      <div class="stat"><div class="num" id="best">0</div><div class="label">Best streak</div></div>
+    </div>
+    <div id="scrambled">—</div>
+    <p style="color:#94a3b8; font-size:0.85rem;" id="hint"></p>
+    <input id="answer" autocomplete="off" placeholder="type the word" />
+    <br /><br />
+    <button class="btn" id="submitBtn">Submit</button>
+    <button class="btn secondary" id="skipBtn">Skip</button>
+    <div class="feedback" id="feedback"></div>
+  </div>
+<script>
+const words = [
+  ['PENCIL','something you write with'],
+  ['SCIENCE','subject with experiments'],
+  ['LIBRARY','full of books'],
+  ['PLANET','Earth is one'],
+  ['HISTORY','study of the past'],
+  ['BACKPACK','you carry books in it'],
+  ['TRIANGLE','three-sided shape'],
+  ['COMPUTER','you might be reading this on one'],
+  ['RECESS','break time at school'],
+  ['ALPHABET','A to Z'],
+  ['FRACTION','half or a quarter'],
+  ['WEATHER','rain, snow, or sun'],
+  ['JOURNAL','a diary or log'],
+  ['MUSEUM','a place with exhibits'],
+  ['CALENDAR','shows the days of the year'],
+  ['KEYBOARD','used to type'],
+  ['MOUNTAIN','tall landform'],
+  ['CHEMISTRY','study of substances'],
+  ['GRAMMAR','rules of language'],
+  ['VOCABULARY','a set of known words'],
+];
+
+const scrambledEl = document.getElementById('scrambled');
+const hintEl = document.getElementById('hint');
+const answerEl = document.getElementById('answer');
+const feedbackEl = document.getElementById('feedback');
+const scoreEl = document.getElementById('score');
+const streakEl = document.getElementById('streak');
+const bestEl = document.getElementById('best');
+
+let current, score = 0, streak = 0;
+let best = Number(localStorage.getItem('scrambleBest') || 0);
+bestEl.textContent = best;
+
+function shuffleWord(w) {
+  let arr = w.split('');
+  let scrambled;
+  do {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    scrambled = arr.join('');
+  } while (scrambled === w);
+  return scrambled;
+}
+
+function next() {
+  current = words[Math.floor(Math.random() * words.length)];
+  scrambledEl.textContent = shuffleWord(current[0]).split('').join(' ');
+  hintEl.textContent = 'Hint: ' + current[1];
+  answerEl.value = '';
+  feedbackEl.textContent = '';
+  answerEl.focus();
+}
+
+function submit() {
+  const val = answerEl.value.trim().toUpperCase();
+  if (val === current[0]) {
+    score += 10;
+    streak++;
+    scoreEl.textContent = score;
+    streakEl.textContent = streak;
+    feedbackEl.textContent = '✅ Correct!';
+    feedbackEl.className = 'feedback good';
+    if (streak > best) { best = streak; bestEl.textContent = best; localStorage.setItem('scrambleBest', best); }
+    setTimeout(next, 700);
+  } else {
+    streak = 0;
+    streakEl.textContent = streak;
+    feedbackEl.textContent = '❌ Try again!';
+    feedbackEl.className = 'feedback bad';
+  }
+}
+
+document.getElementById('submitBtn').onclick = submit;
+document.getElementById('skipBtn').onclick = () => { streak = 0; streakEl.textContent = streak; next(); };
+answerEl.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+
+next();
+</script>
+</body>
+</html>

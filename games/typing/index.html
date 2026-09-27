@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Typing Speed Test — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  #passage {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: left;
+    margin: 16px 0;
+  }
+  #passage span.correct { color: #34d399; }
+  #passage span.wrong { color: #f87171; text-decoration: underline; }
+  #passage span.current { background: #334155; border-radius: 3px; }
+  textarea {
+    width: 100%;
+    max-width: 100%;
+    font-size: 1.1rem;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #f1f5f9;
+    resize: none;
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>⌨️ Typing Speed Test</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="wpm">0</div><div class="label">WPM</div></div>
+      <div class="stat"><div class="num" id="acc">100%</div><div class="label">Accuracy</div></div>
+      <div class="stat"><div class="num" id="best">0</div><div class="label">Best WPM</div></div>
+    </div>
+    <div id="passage"></div>
+    <textarea id="input" rows="3" placeholder="Start typing here to begin..."></textarea>
+    <br /><br />
+    <button class="btn" id="restartBtn">New Passage</button>
+  </div>
+<script>
+const passages = [
+  "The quiet library was the best place to finish homework before the bell rang.",
+  "Every good scientist keeps careful notes during each step of an experiment.",
+  "Practice a little every day and hard subjects start to feel much easier.",
+  "The field trip to the museum taught the whole class about ancient history.",
+  "A balanced breakfast helps you focus during your first class of the day.",
+  "Group projects work best when everyone shares the tasks fairly.",
+  "The coach reminded the team that consistent practice beats natural talent.",
+  "Reading a chapter before class makes the discussion much easier to follow.",
+];
+
+const passageEl = document.getElementById('passage');
+const inputEl = document.getElementById('input');
+const wpmEl = document.getElementById('wpm');
+const accEl = document.getElementById('acc');
+const bestEl = document.getElementById('best');
+
+let best = Number(localStorage.getItem('typingBest') || 0);
+bestEl.textContent = best;
+
+let text, startTime, finished;
+
+function renderPassage(typed) {
+  passageEl.innerHTML = text.split('').map((ch, i) => {
+    let cls = '';
+    if (i < typed.length) cls = typed[i] === ch ? 'correct' : 'wrong';
+    else if (i === typed.length) cls = 'current';
+    return `<span class="${cls}">${ch === ' ' ? '&nbsp;' : ch}</span>`;
+  }).join('');
+}
+
+function start() {
+  text = passages[Math.floor(Math.random() * passages.length)];
+  inputEl.value = '';
+  startTime = null;
+  finished = false;
+  wpmEl.textContent = 0;
+  accEl.textContent = '100%';
+  renderPassage('');
+  inputEl.disabled = false;
+  inputEl.focus();
+}
+
+inputEl.addEventListener('input', () => {
+  if (finished) return;
+  if (!startTime) startTime = Date.now();
+  const typed = inputEl.value;
+  renderPassage(typed);
+
+  let correctChars = 0;
+  for (let i = 0; i < typed.length; i++) if (typed[i] === text[i]) correctChars++;
+  const acc = typed.length ? Math.round((correctChars / typed.length) * 100) : 100;
+  accEl.textContent = acc + '%';
+
+  const minutes = (Date.now() - startTime) / 60000;
+  const wpm = minutes > 0 ? Math.round((typed.length / 5) / minutes) : 0;
+  wpmEl.textContent = wpm;
+
+  if (typed === text) {
+    finished = true;
+    inputEl.disabled = true;
+    if (wpm > best) { best = wpm; bestEl.textContent = best; localStorage.setItem('typingBest', best); }
+  }
+});
+
+document.getElementById('restartBtn').onclick = start;
+start();
+</script>
+</body>
+</html>

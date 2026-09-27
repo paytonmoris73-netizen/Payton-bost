@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sliding Puzzle — Study Hall Arcade</title>
+<link rel="stylesheet" href="../style.css" />
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 80px);
+    grid-template-rows: repeat(4, 80px);
+    gap: 6px;
+    justify-content: center;
+    margin: 20px auto;
+    background: #1e293b;
+    padding: 8px;
+    border-radius: 12px;
+    width: fit-content;
+  }
+  .tile {
+    background: #334155;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; font-weight: 800;
+    cursor: pointer;
+  }
+  .tile.empty { background: transparent; cursor: default; }
+  @media (max-width: 380px) {
+    .grid { grid-template-columns: repeat(4, 64px); grid-template-rows: repeat(4, 64px); }
+    .tile { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <a class="back-link" href="../index.html">← Back to arcade</a>
+    <h1>🧩 Sliding Puzzle</h1>
+    <div class="scoreboard">
+      <div class="stat"><div class="num" id="moves">0</div><div class="label">Moves</div></div>
+      <div class="stat"><div class="num" id="best">–</div><div class="label">Best moves</div></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p id="msg" style="font-weight:700; color:#34d399; min-height:1.4em;"></p>
+    <button class="btn" id="shuffleBtn">Shuffle</button>
+  </div>
+<script>
+const gridEl = document.getElementById('grid');
+const movesEl = document.getElementById('moves');
+const bestEl = document.getElementById('best');
+const msgEl = document.getElementById('msg');
+const SIZE = 4;
+
+let tiles, moves, over;
+const best = localStorage.getItem('slidingBest');
+if (best) bestEl.textContent = best;
+
+function solved() {
+  return Array.from({length: SIZE*SIZE - 1}, (_, i) => i + 1).concat([0]);
+}
+
+function render() {
+  gridEl.innerHTML = '';
+  tiles.forEach((v, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile' + (v === 0 ? ' empty' : '');
+    tile.textContent = v === 0 ? '' : v;
+    tile.addEventListener('click', () => move(i));
+    gridEl.appendChild(tile);
+  });
+}
+
+function move(i) {
+  if (over) return;
+  const empty = tiles.indexOf(0);
+  const r1 = Math.floor(i/SIZE), c1 = i%SIZE;
+  const r2 = Math.floor(empty/SIZE), c2 = empty%SIZE;
+  if (Math.abs(r1-r2) + Math.abs(c1-c2) === 1) {
+    [tiles[i], tiles[empty]] = [tiles[empty], tiles[i]];
+    moves++;
+    movesEl.textContent = moves;
+    render();
+    checkWin();
+  }
+}
+
+function checkWin() {
+  if (tiles.join(',') === solved().join(',')) {
+    over = true;
+    msgEl.textContent = `🎉 Solved in ${moves} moves!`;
+    const prevBest = Number(localStorage.getItem('slidingBest') || Infinity);
+    if (moves < prevBest) {
+      localStorage.setItem('slidingBest', moves);
+      bestEl.textContent = moves;
+    }
+  }
+}
+
+function isSolvable(arr) {
+  const flat = arr.filter(v => v !== 0);
+  let inversions = 0;
+  for (let i = 0; i < flat.length; i++)
+    for (let j = i+1; j < flat.length; j++)
+      if (flat[i] > flat[j]) inversions++;
+  const emptyRow = Math.floor(arr.indexOf(0) / SIZE);
+  const emptyRowFromBottom = SIZE - emptyRow;
+  if (SIZE % 2 === 1) return inversions % 2 === 0;
+  return (emptyRowFromBottom % 2 === 0) === (inversions % 2 === 1);
+}
+
+function shuffle() {
+  let arr;
+  do {
+    arr = solved();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  } while (!isSolvable(arr) || arr.join(',') === solved().join(','));
+  tiles = arr;
+  moves = 0;
+  over = false;
+  movesEl.textContent = moves;
+  msgEl.textContent = '';
+  render();
+}
+
+document.getElementById('shuffleBtn').onclick = shuffle;
+shuffle();
+</script>
+</body>
+</html>
