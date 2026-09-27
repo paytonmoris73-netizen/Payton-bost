@@ -93,42 +93,45 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
 
   if (loading) return <div className="page"><div className="spinner" /></div>;
 
+  const firstName = user.name.split(" ")[0];
+
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <div className="page-title">Hi, {user.name.split(" ")[0]} 👋</div>
-          <div className="page-subtitle">{user.title}</div>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-        <div className="clock-widget">
-          <div className="clock-label">{clocked ? "Currently Working" : "Not Clocked In"}</div>
-          <div className={`clock-time${clocked ? " active" : ""}`}>
-            {clocked ? fmtTimer(elapsed) : "--:--:--"}
+      {/* Premium hero — clock + welcome */}
+      <div style={{ background: clocked ? "linear-gradient(135deg,#059669 0%,#10b981 100%)" : "linear-gradient(135deg,#5b6af0 0%,#8b5cf6 100%)", borderRadius: 20, padding: "32px", marginBottom: 24, color: "#fff", transition: "background 0.6s" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.75, marginBottom: 6 }}>Welcome back</div>
+            <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 4 }}>{firstName}</div>
+            <div style={{ fontSize: 14, opacity: 0.8 }}>{user.title}</div>
           </div>
-          <div className="clock-btn-wrap">
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: "0.05em", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
+              {clocked ? fmtTimer(elapsed) : "--:--:--"}
+            </div>
+            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6, fontWeight: 600 }}>
+              {clocked && clockEntry ? `Since ${fmtTime(clockEntry.clockIn)}` : "Not clocked in"}
+            </div>
+          </div>
+          <div>
             {clocked ? (
-              <button className="clock-btn out" onClick={handleClockOut} disabled={actionLoading}>
+              <button onClick={handleClockOut} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "rgba(255,255,255,0.2)", border: "2px solid rgba(255,255,255,0.4)", color: "#fff", letterSpacing: "0.02em" }}>
                 {actionLoading ? "…" : "Clock Out"}
               </button>
             ) : (
-              <button className="clock-btn in" onClick={handleClockIn} disabled={actionLoading}>
+              <button onClick={handleClockIn} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "#fff", border: "none", color: "#5b6af0", letterSpacing: "0.02em" }}>
                 {actionLoading ? "…" : "Clock In"}
               </button>
             )}
           </div>
-          {clocked && clockEntry && (
-            <div className="clock-since">Since {fmtTime(clockEntry.clockIn)}</div>
-          )}
         </div>
+      </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <StatCard label="Today" value={fmt(stats?.todayHours ?? 0)} color={clocked ? "green" : undefined} />
-          <StatCard label="This Week" value={fmt(stats?.weekHours ?? 0)} color="blue" />
-          <StatCard label="Week Pay" value={money(stats?.weekPay ?? 0)} sub={stats?.hourlyRate ? `$${stats.hourlyRate}/hr` : "Rate not set"} color="orange" />
-        </div>
+      <div className="stats-grid" style={{ marginBottom: 24 }}>
+        <StatCard label="Today" value={fmt(stats?.todayHours ?? 0)} color={clocked ? "green" : undefined} />
+        <StatCard label="This Week" value={fmt(stats?.weekHours ?? 0)} color="blue" />
+        <StatCard label="This Month" value={fmt(stats?.monthHours ?? 0)} />
+        <StatCard label="Week Pay" value={money(stats?.weekPay ?? 0)} sub={stats?.hourlyRate ? `$${stats.hourlyRate}/hr` : "Rate not set"} color="orange" />
       </div>
 
       <div className="card">

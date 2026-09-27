@@ -18,6 +18,7 @@ import { MyPaymentsPage } from "./pages/MyPaymentsPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
+import { BillingPage } from "./pages/BillingPage";
 
 const AUTH_KEY = "workbase_uid";
 
@@ -99,6 +100,7 @@ export default function App() {
       {page === "employee-jobs" && <MyJobsPage user={user} />}
       {page === "employee-payments" && <MyPaymentsPage user={user} />}
       {page === "employee-announcements" && <AnnouncementsPage user={user} />}
+      {page === "owner-billing" && <BillingPage />}
     </Layout>
   );
 }

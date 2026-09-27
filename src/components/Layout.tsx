@@ -23,6 +23,7 @@ const ownerNav: NavItem[] = [
   { page: "owner-expenses",       label: "Expenses",        icon: <ExpenseIcon /> },
   { page: "owner-analytics",      label: "Analytics",       icon: <ChartIcon /> },
   { page: "owner-announcements",  label: "Announcements",   icon: <MegaphoneIcon /> },
+  { page: "owner-billing",        label: "Plan & Billing",  icon: <BillingIcon /> },
 ];
 
 const employeeNav: NavItem[] = [
@@ -113,4 +114,7 @@ function ExpenseIcon() {
 }
 function MegaphoneIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 10V6l9-4v12L2 10z" strokeLinejoin="round" /><path d="M2 10h2v3H2" strokeLinejoin="round" /><circle cx="13.5" cy="8" r="1.5" /></svg>;
+}
+function BillingIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="4" width="14" height="9" rx="1.5" /><path d="M1 7.5h14" /><path d="M4 11h2M9 11h3" strokeLinecap="round" /></svg>;
 }

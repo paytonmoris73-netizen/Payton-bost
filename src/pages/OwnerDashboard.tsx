@@ -3,6 +3,13 @@ import { api } from "../lib/api";
 import type { User, UserWithStats } from "../lib/types";
 import { StatCard } from "../components/StatCard";
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 interface Props {
   user: User;
 }
@@ -22,7 +29,7 @@ function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function OwnerDashboard({ user: _user }: Props) {
+export function OwnerDashboard({ user }: Props) {
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,14 +55,34 @@ export function OwnerDashboard({ user: _user }: Props) {
   const totalWeekHours = team.reduce((s, u) => s + u.weekHours, 0);
   const totalWeekPay = team.reduce((s, u) => s + u.weekPay, 0);
 
+  const owedTotal = team.reduce((s, u) => s + Math.max(0, u.totalOwed), 0);
+
   return (
     <div className="page">
-      <div className="page-header">
+      {/* Welcome banner */}
+      <div style={{ background: "linear-gradient(135deg,#5b6af0 0%,#8b5cf6 100%)", borderRadius: 16, padding: "28px 32px", marginBottom: 28, color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
         <div>
-          <div className="page-title">Dashboard</div>
-          <div className="page-subtitle">Live overview of your team</div>
+          <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.75, marginBottom: 4 }}>{greeting()}</div>
+          <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 4 }}>{user.name}</div>
+          <div style={{ fontSize: 14, opacity: 0.8 }}>{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</div>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={load}>↻ Refresh</button>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 28, fontWeight: 800 }}>{clockedIn}</div>
+            <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>Working Now</div>
+          </div>
+          <div style={{ width: 1, background: "rgba(255,255,255,0.2)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 28, fontWeight: 800 }}>{totalEmployees}</div>
+            <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>Employees</div>
+          </div>
+          <div style={{ width: 1, background: "rgba(255,255,255,0.2)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 28, fontWeight: 800 }}>{fmt(totalWeekHours)}</div>
+            <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>Week Hours</div>
+          </div>
+        </div>
+        <button className="btn btn-ghost btn-sm" style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff" }} onClick={load}>↻ Refresh</button>
       </div>
 
       <div className="stats-grid">
@@ -63,12 +90,15 @@ export function OwnerDashboard({ user: _user }: Props) {
         <StatCard label="Clocked In" value={clockedIn} sub="working right now" color="green" />
         <StatCard label="Week Hours" value={fmt(totalWeekHours)} sub="total this week" color="blue" />
         <StatCard label="Week Payroll" value={money(totalWeekPay)} sub="estimated this week" color="orange" />
+        <StatCard label="Outstanding" value={money(owedTotal)} sub="owed to team" color="orange" />
       </div>
 
       <div className="card">
         <div className="card-header">
-          <span className="card-title">Team Status</span>
-          <span className="text-muted">{loading ? "Loading…" : `${team.length} members`}</span>
+          <span className="card-title">Live Team Status</span>
+          <span style={{ fontSize: 12, background: clockedIn > 0 ? "rgba(16,185,129,0.12)" : "var(--surface-2)", color: clockedIn > 0 ? "var(--success)" : "var(--text-muted)", padding: "3px 10px", borderRadius: 20, fontWeight: 600 }}>
+            {loading ? "Loading…" : clockedIn > 0 ? `${clockedIn} active` : "All out"}
+          </span>
         </div>
         {loading ? (
           <div style={{ padding: 40, textAlign: "center" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>

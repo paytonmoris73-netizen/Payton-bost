@@ -97,6 +97,7 @@ export type Page =
   | "owner-payments"
   | "owner-expenses"
   | "owner-announcements"
+  | "owner-billing"
   | "employee-dashboard"
   | "employee-jobs"
   | "employee-time"
