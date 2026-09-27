@@ -51,6 +51,8 @@ let killedPids: number[] = [];
 let gamePid: number | null = null;
 let vpnProc: ChildProcess | null = null;
 let activeVpnId: string | null = null;
+let originalDisplay: { width: number; height: number; refresh: number } | null = null;
+let stretchActive = false;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function isWindows() { return process.platform === "win32"; }
@@ -139,6 +141,65 @@ function setPriority(pid: number, level: "high" | "normal" | "low"): void {
   } catch { /* ignore permission errors */ }
 }
 
+// ── Display / stretch resolution helpers ─────────────────────────────────────
+function getDisplayInfo(): { width: number; height: number; refresh: number } {
+  try {
+    if (isWindows()) {
+      const raw = execSync(
+        `powershell -c "Add-Type -AssemblyName System.Windows.Forms; $s=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds; Write-Output \"$($s.Width) $($s.Height) 60\""`,
+        { encoding: "utf8" }
+      ).trim();
+      const [w, h, r] = raw.split(/\s+/).map(Number);
+      return { width: w || 1920, height: h || 1080, refresh: r || 60 };
+    } else {
+      const raw = execSync("xrandr --current | grep '\\*' | head -1", { encoding: "utf8" }).trim();
+      const m = raw.match(/(\d+)x(\d+)\s+([\d.]+)\*/);
+      if (m) return { width: parseInt(m[1]), height: parseInt(m[2]), refresh: Math.round(parseFloat(m[3])) };
+    }
+  } catch { /* fallback */ }
+  return { width: 1920, height: 1080, refresh: 60 };
+}
+
+function applyResolution(width: number, height: number): boolean {
+  try {
+    if (isWindows()) {
+      const ps = [
+        "Add-Type -TypeDefinition @'",
+        "using System;using System.Runtime.InteropServices;",
+        "public class RC {",
+        "  [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Ansi)]",
+        "  public struct DM {",
+        "    [MarshalAs(UnmanagedType.ByValTStr,SizeConst=32)]public string dmDeviceName;",
+        "    public short dmSpecVersion,dmDriverVersion,dmSize,dmDriverExtra;",
+        "    public int dmFields,dmPositionX,dmPositionY,dmDisplayOrientation,dmDisplayFixedOutput;",
+        "    public short dmColor,dmDuplex,dmYResolution,dmTTOption,dmCollate;",
+        "    [MarshalAs(UnmanagedType.ByValTStr,SizeConst=32)]public string dmFormName;",
+        "    public short dmLogPixels;public int dmBitsPerPel,dmPelsWidth,dmPelsHeight,dmDisplayFlags,dmDisplayFrequency;",
+        "    public int dmICMMethod,dmICMIntent,dmMediaType,dmDitherType,dmReserved1,dmReserved2,dmPanningWidth,dmPanningHeight;",
+        "  }",
+        "  [DllImport(\"user32.dll\")]public static extern int ChangeDisplaySettings(ref DM d,int f);",
+        "  [DllImport(\"user32.dll\")]public static extern bool EnumDisplaySettings(string n,int m,ref DM d);",
+        "  public static int Set(int w,int h){",
+        "    var d=new DM();d.dmSize=(short)System.Runtime.InteropServices.Marshal.SizeOf(d);",
+        "    EnumDisplaySettings(null,-1,ref d);d.dmPelsWidth=w;d.dmPelsHeight=h;d.dmFields=0x180000;",
+        "    return ChangeDisplaySettings(ref d,1);",
+        "  }",
+        "}",
+        "'@ -Language CSharp",
+        `[RC]::Set(${width}, ${height})`,
+      ].join("\n");
+      const tmpPs = path.join(__dirname, "..", "~res_change.ps1");
+      writeFileSync(tmpPs, ps, "utf8");
+      execSync(`powershell -ExecutionPolicy Bypass -File "${tmpPs}"`, { stdio: "ignore" });
+      try { (existsSync(tmpPs)) && execSync(`del "${tmpPs}"`, { stdio: "ignore" }); } catch { /* */ }
+      return true;
+    } else {
+      execSync(`xrandr -s ${width}x${height}`, { stdio: "ignore" });
+      return true;
+    }
+  } catch { return false; }
+}
+
 // ── VPN helpers ───────────────────────────────────────────────────────────────
 function loadVpns(): any[] {
   if (!existsSync(VPN_STORE)) return [];
@@ -214,6 +275,42 @@ boosterRouter.post("/unboost", (_req, res) => {
   killedPids = [];
   boosting = false;
   res.json({ ok: true });
+});
+
+// Display / Stretch Resolution
+boosterRouter.get("/display", (_req, res) => {
+  const current = getDisplayInfo();
+  res.json({ current, original: originalDisplay, stretchActive });
+});
+
+boosterRouter.post("/display/apply", (req, res) => {
+  const { width, height } = req.body;
+  if (!width || !height || isNaN(width) || isNaN(height)) {
+    res.status(400).json({ error: "width and height required" }); return;
+  }
+  if (!originalDisplay) {
+    originalDisplay = getDisplayInfo();
+  }
+  const ok = applyResolution(Number(width), Number(height));
+  if (ok) {
+    stretchActive = true;
+    res.json({ ok: true, applied: { width, height }, original: originalDisplay });
+  } else {
+    res.status(500).json({ error: "Failed to apply resolution — admin rights required" });
+  }
+});
+
+boosterRouter.post("/display/restore", (_req, res) => {
+  if (!originalDisplay) { res.json({ ok: true, note: "nothing to restore" }); return; }
+  const ok = applyResolution(originalDisplay.width, originalDisplay.height);
+  if (ok) {
+    stretchActive = false;
+    const restored = originalDisplay;
+    originalDisplay = null;
+    res.json({ ok: true, restored });
+  } else {
+    res.status(500).json({ error: "Failed to restore resolution" });
+  }
 });
 
 // VPN

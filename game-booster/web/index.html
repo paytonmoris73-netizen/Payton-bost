@@ -483,6 +483,29 @@ input[type="checkbox"]:checked::after {
 .cfg-row { display: flex; gap: 8px; align-items: center; }
 .cfg-name { flex: 1; font-size: 12px; color: var(--fg3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ── Stretch res presets grid ── */
+.stretch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.stretch-preset {
+  background: var(--input);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--fg2);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  line-height: 1.4;
+}
+.stretch-preset:hover { background: var(--hover); border-color: var(--purple); color: var(--purple); }
+.stretch-preset.applied { background: rgba(139,92,246,.12); border-color: var(--purple); color: var(--purple); }
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--card); }
@@ -525,6 +548,7 @@ input[type="checkbox"]:checked::after {
   <nav class="nav">
     <button class="nav-btn active" onclick="switchTab('boost')">⚡&nbsp; Boost</button>
     <button class="nav-btn" onclick="switchTab('vpn')">🔒&nbsp; VPN</button>
+    <button class="nav-btn" onclick="switchTab('stretch')">📐&nbsp; Stretch Res</button>
   </nav>
 
   <div class="pages">
@@ -633,6 +657,75 @@ input[type="checkbox"]:checked::after {
       </div>
     </div>
 
+    <!-- Stretch Res Page -->
+    <div class="page" id="page-stretch">
+
+      <!-- Current + status -->
+      <div class="card">
+        <div class="card-header">
+          <span>📐</span>
+          <span class="card-title">STRETCH RESOLUTION</span>
+          <div style="flex:1"></div>
+          <span class="badge" id="stretchBadge" style="background:rgba(139,92,246,.1);color:var(--purple);border-color:rgba(139,92,246,.35)">INACTIVE</span>
+        </div>
+        <div style="font-size:12px;color:var(--fg2);line-height:1.6">
+          Apply a non-native (4:3) resolution <em>for your game only</em>. Your desktop restores automatically when you click Restore.
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--fg3)" id="stretchCurrentLbl">Current: detecting…</div>
+      </div>
+
+      <!-- Presets -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">4:3 PRESETS</span>
+        </div>
+        <div class="stretch-grid" id="stretchGrid">
+          <button class="stretch-preset" onclick="applyPreset(1280,960)">1280×960</button>
+          <button class="stretch-preset" onclick="applyPreset(1440,1080)">1440×1080</button>
+          <button class="stretch-preset" onclick="applyPreset(1024,768)">1024×768</button>
+          <button class="stretch-preset" onclick="applyPreset(1600,1200)">1600×1200</button>
+          <button class="stretch-preset" onclick="applyPreset(1280,1024)">1280×1024<br><span style="font-size:10px;opacity:.6">5:4</span></button>
+          <button class="stretch-preset" onclick="applyPreset(800,600)">800×600</button>
+        </div>
+      </div>
+
+      <!-- Custom -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">CUSTOM RESOLUTION</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div>
+            <div class="form-label" style="font-size:11px;margin-bottom:4px">Width (px)</div>
+            <input type="number" id="customW" placeholder="1280" min="640" max="7680" style="width:110px">
+          </div>
+          <div style="padding-top:18px;color:var(--fg3)">×</div>
+          <div>
+            <div class="form-label" style="font-size:11px;margin-bottom:4px">Height (px)</div>
+            <input type="number" id="customH" placeholder="960" min="480" max="4320" style="width:110px">
+          </div>
+          <div style="padding-top:18px">
+            <button class="btn btn-cyan" onclick="applyCustom()">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Restore -->
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-red" id="stretchRestoreBtn" style="flex:1;height:50px;font-size:13px;font-weight:700;opacity:.4;cursor:not-allowed" disabled onclick="restoreRes()">
+          ↩ Restore Original Resolution
+        </button>
+      </div>
+
+      <!-- Tip -->
+      <div style="background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:12px 16px;font-size:11px;color:var(--fg2);line-height:1.7">
+        <strong style="color:var(--purple)">GPU SCALING TIP</strong><br>
+        Enable <em>GPU Scaling</em> in your graphics control panel (AMD Radeon Settings or NVIDIA Control Panel) so the stretched 4:3 image fills your whole monitor without black bars.
+        The resolution is applied system-wide but reverts the moment you hit Restore — your desktop is untouched during normal use.
+      </div>
+
+    </div>
+
   </div><!-- /pages -->
 </div><!-- /content -->
 
@@ -702,13 +795,15 @@ let meterAnim    = null;
 let meterT       = 0;
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
+const TAB_IDX = { boost: 0, vpn: 1, stretch: 2 };
 function switchTab(tab) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
   document.getElementById(`page-${tab}`).classList.add('visible');
   document.querySelectorAll('.nav-btn').forEach((b, i) => {
-    b.classList.toggle('active', (tab === 'boost' && i === 0) || (tab === 'vpn' && i === 1));
+    b.classList.toggle('active', i === TAB_IDX[tab]);
   });
   if (tab === 'vpn') loadVpn();
+  if (tab === 'stretch') loadDisplay();
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
@@ -1057,6 +1152,86 @@ async function saveVpn() {
     loadVpn();
     showToast(`VPN profile "${name}" added`);
   } catch { showToast('Failed to save VPN'); }
+}
+
+// ── Stretch Resolution ────────────────────────────────────────────────────────
+let stretchOriginal = null;
+let stretchApplied  = null;
+
+async function loadDisplay() {
+  try {
+    const r = await fetch('/api/booster/display');
+    const d = await r.json();
+    stretchOriginal = d.original;
+    stretchApplied  = d.stretchActive ? d.current : null;
+    updateStretchUI(d);
+  } catch { /* ignore */ }
+}
+
+function updateStretchUI(d) {
+  const cur     = d.current || {};
+  const orig    = d.original || {};
+  const active  = d.stretchActive;
+  const lbl     = document.getElementById('stretchCurrentLbl');
+  const badge   = document.getElementById('stretchBadge');
+  const restore = document.getElementById('stretchRestoreBtn');
+
+  if (active) {
+    lbl.textContent = `Active: ${cur.width}×${cur.height}  ·  Original: ${orig.width}×${orig.height}`;
+    badge.textContent = 'ACTIVE';
+    badge.style.cssText = 'background:rgba(139,92,246,.15);color:var(--purple);border-color:var(--purple);display:inline-block;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;border:1px solid';
+    restore.disabled = false;
+    restore.style.opacity = '1';
+    restore.style.cursor = 'pointer';
+  } else {
+    lbl.textContent = `Current: ${cur.width || '—'}×${cur.height || '—'}`;
+    badge.textContent = 'INACTIVE';
+    badge.style.cssText = 'background:rgba(139,92,246,.1);color:var(--fg3);border-color:rgba(139,92,246,.2);display:inline-block;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;border:1px solid';
+    restore.disabled = true;
+    restore.style.opacity = '.4';
+    restore.style.cursor = 'not-allowed';
+  }
+
+  document.querySelectorAll('.stretch-preset').forEach(b => b.classList.remove('applied'));
+  if (active && cur.width && cur.height) {
+    document.querySelectorAll('.stretch-preset').forEach(b => {
+      if (b.textContent.trim().startsWith(`${cur.width}×${cur.height}`)) b.classList.add('applied');
+    });
+  }
+}
+
+async function applyPreset(w, h) {
+  await applyStretch(w, h);
+}
+
+async function applyCustom() {
+  const w = parseInt(document.getElementById('customW').value);
+  const h = parseInt(document.getElementById('customH').value);
+  if (!w || !h || w < 640 || h < 480) { showToast('Enter a valid width (≥640) and height (≥480)'); return; }
+  await applyStretch(w, h);
+}
+
+async function applyStretch(w, h) {
+  try {
+    const r = await fetch('/api/booster/display/apply', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ width: w, height: h })
+    });
+    const d = await r.json();
+    if (d.error) { showToast(`Error: ${d.error}`); return; }
+    showToast(`Stretch applied: ${w}×${h} — launch your game now`);
+    loadDisplay();
+  } catch { showToast('Failed — is the server running?'); }
+}
+
+async function restoreRes() {
+  try {
+    const r = await fetch('/api/booster/display/restore', { method: 'POST' });
+    const d = await r.json();
+    if (d.error) { showToast(`Restore error: ${d.error}`); return; }
+    showToast('Resolution restored to original');
+    loadDisplay();
+  } catch { showToast('Restore failed'); }
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
