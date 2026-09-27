@@ -23,6 +23,7 @@ export function PaymentsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [filterUser, setFilterUser] = useState("all");
   const [saving, setSaving] = useState(false);
+  const [bulking, setBulking] = useState(false);
   const [error, setError] = useState("");
 
   const [userId, setUserId] = useState("");
@@ -39,6 +40,26 @@ export function PaymentsPage() {
       setTeam(t.filter(u => u.role !== "owner" && u.active));
     } catch {/* ignore */}
     finally { setLoading(false); }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this payment record?")) return;
+    await api.deletePayment(id);
+    const p = await api.refreshPayments(); setPayments(p);
+  }
+
+  async function handleBulkPayroll() {
+    const owing = team.filter(u => u.totalOwed > 0);
+    if (owing.length === 0) { alert("All employees are up to date — no balances owed."); return; }
+    const names = owing.map(u => `${u.name} ($${u.totalOwed.toFixed(2)})`).join(", ");
+    if (!confirm(`Pay month balances for:\n${names}\n\nThis will record ${owing.length} payment(s).`)) return;
+    setBulking(true);
+    try {
+      const result = await api.bulkPayroll();
+      const p = await api.refreshPayments(); setPayments(p);
+      alert(`Paid ${result.paid} employee(s) successfully.`);
+    } catch {/* ignore */}
+    finally { setBulking(false); }
   }
 
   async function handleAdd(e: React.FormEvent) {
@@ -68,9 +89,14 @@ export function PaymentsPage() {
           <div className="page-title">Payments</div>
           <div className="page-subtitle">Record and track all employee payments</div>
         </div>
-        <button className="btn btn-primary" onClick={() => { setShowAdd(true); setError(""); }}>
-          + Record Payment
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn btn-secondary" onClick={handleBulkPayroll} disabled={bulking}>
+            {bulking ? "Processing…" : "💰 Bulk Payroll"}
+          </button>
+          <button className="btn btn-primary" onClick={() => { setShowAdd(true); setError(""); }}>
+            + Record Payment
+          </button>
+        </div>
       </div>
 
       <div className="stats-grid">
@@ -101,7 +127,7 @@ export function PaymentsPage() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Date</th><th>Employee</th><th>Type</th><th>Description</th><th className="text-right">Amount</th></tr>
+                <tr><th>Date</th><th>Employee</th><th>Type</th><th>Description</th><th className="text-right">Amount</th><th></th></tr>
               </thead>
               <tbody>
                 {shown.map(p => (
@@ -111,14 +137,16 @@ export function PaymentsPage() {
                     <td>{typeBadge(p.type)}</td>
                     <td className="td-muted">{p.description || "—"}</td>
                     <td className="text-right pay-total">{money(p.amount)}</td>
+                    <td><button className="btn btn-ghost btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleDelete(p.id)}>×</button></td>
                   </tr>
                 ))}
               </tbody>
               {shown.length > 1 && (
                 <tfoot>
                   <tr style={{ background: "var(--surface-hover)" }}>
-                    <td colSpan={4} style={{ fontWeight: 600, padding: "12px 14px" }}>Total</td>
-                    <td className="text-right pay-total" style={{ fontWeight: 700, padding: "12px 14px" }}>{money(shown.reduce((s, p) => s + p.amount, 0))}</td>
+                    <td colSpan={4} style={{ fontWeight: 600, padding: "12px 16px" }}>Total</td>
+                    <td className="text-right pay-total" style={{ fontWeight: 700, padding: "12px 16px" }}>{money(shown.reduce((s, p) => s + p.amount, 0))}</td>
+                    <td />
                   </tr>
                 </tfoot>
               )}

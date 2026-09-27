@@ -14,21 +14,24 @@ interface Props {
 interface NavItem { page: Page; label: string; icon: ReactNode; }
 
 const ownerNav: NavItem[] = [
-  { page: "owner-dashboard",  label: "Dashboard",      icon: <DashIcon /> },
-  { page: "owner-jobs",       label: "Jobs",            icon: <JobIcon /> },
-  { page: "owner-team",       label: "Team",            icon: <TeamIcon /> },
-  { page: "owner-time",       label: "Time Tracking",   icon: <ClockIcon /> },
-  { page: "owner-payroll",    label: "Payroll",         icon: <PayIcon /> },
-  { page: "owner-payments",   label: "Payments",        icon: <LedgerIcon /> },
-  { page: "owner-analytics",  label: "Analytics",       icon: <ChartIcon /> },
+  { page: "owner-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
+  { page: "owner-jobs",           label: "Jobs",            icon: <JobIcon /> },
+  { page: "owner-team",           label: "Team",            icon: <TeamIcon /> },
+  { page: "owner-time",           label: "Time Tracking",   icon: <ClockIcon /> },
+  { page: "owner-payroll",        label: "Payroll",         icon: <PayIcon /> },
+  { page: "owner-payments",       label: "Payments",        icon: <LedgerIcon /> },
+  { page: "owner-expenses",       label: "Expenses",        icon: <ExpenseIcon /> },
+  { page: "owner-analytics",      label: "Analytics",       icon: <ChartIcon /> },
+  { page: "owner-announcements",  label: "Announcements",   icon: <MegaphoneIcon /> },
 ];
 
 const employeeNav: NavItem[] = [
-  { page: "employee-dashboard", label: "Dashboard",     icon: <DashIcon /> },
-  { page: "employee-jobs",      label: "My Jobs",       icon: <JobIcon /> },
-  { page: "employee-time",      label: "My Hours",      icon: <ClockIcon /> },
-  { page: "employee-pay",       label: "My Pay",        icon: <PayIcon /> },
-  { page: "employee-payments",  label: "Payments",      icon: <LedgerIcon /> },
+  { page: "employee-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
+  { page: "employee-jobs",           label: "My Jobs",        icon: <JobIcon /> },
+  { page: "employee-time",           label: "My Hours",       icon: <ClockIcon /> },
+  { page: "employee-pay",            label: "My Pay",         icon: <PayIcon /> },
+  { page: "employee-payments",       label: "Payments",       icon: <LedgerIcon /> },
+  { page: "employee-announcements",  label: "Announcements",  icon: <MegaphoneIcon /> },
 ];
 
 function initials(name: string) {
@@ -104,4 +107,10 @@ function LedgerIcon() {
 }
 function ChartIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12l4-5 3 3 4-6 3 4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function ExpenseIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 13V5l6-3 6 3v8" strokeLinejoin="round" /><rect x="5.5" y="8" width="5" height="5" rx="0.5" /><path d="M8 8v5" /></svg>;
+}
+function MegaphoneIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 10V6l9-4v12L2 10z" strokeLinejoin="round" /><path d="M2 10h2v3H2" strokeLinejoin="round" /><circle cx="13.5" cy="8" r="1.5" /></svg>;
 }

@@ -1,4 +1,4 @@
-import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours } from "./types";
+import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement } from "./types";
 import { cacheGet, cacheSet, cacheInvalidate } from "./cache";
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
@@ -125,6 +125,30 @@ export const api = {
     cacheInvalidate("payments:"); cacheInvalidate("payroll"); cacheInvalidate("team"); cacheInvalidate("me:");
     return req<Payment>("/api/payments", { method: "POST", body: JSON.stringify(p) });
   },
+
+  deletePayment: (id: string) => {
+    cacheInvalidate("payments:"); cacheInvalidate("payroll"); cacheInvalidate("team"); cacheInvalidate("me:");
+    return req<{ ok: boolean }>(`/api/payments/${id}`, { method: "DELETE" });
+  },
+
+  bulkPayroll: (userIds?: string[]) => {
+    cacheInvalidate("payments:"); cacheInvalidate("payroll"); cacheInvalidate("team"); cacheInvalidate("me:");
+    return req<{ paid: number; payments: Payment[] }>("/api/payroll/bulk", { method: "POST", body: JSON.stringify({ userIds }) });
+  },
+
+  // ── Expenses ──
+  getExpenses: () => cached("expenses", () => req<Expense[]>("/api/expenses")),
+  refreshExpenses: () => { cacheInvalidate("expenses"); return req<Expense[]>("/api/expenses").then(d => { cacheSet("expenses", d); return d; }); },
+  createExpense: (e: Omit<Expense,"id"|"createdAt">) => { cacheInvalidate("expenses"); return req<Expense>("/api/expenses", { method: "POST", body: JSON.stringify(e) }); },
+  updateExpense: (id: string, updates: Partial<Omit<Expense,"id"|"createdAt">>) => { cacheInvalidate("expenses"); return req<Expense>(`/api/expenses/${id}`, { method: "PATCH", body: JSON.stringify(updates) }); },
+  deleteExpense: (id: string) => { cacheInvalidate("expenses"); return req<{ ok: boolean }>(`/api/expenses/${id}`, { method: "DELETE" }); },
+
+  // ── Announcements ──
+  getAnnouncements: () => cached("announcements", () => req<Announcement[]>("/api/announcements")),
+  refreshAnnouncements: () => { cacheInvalidate("announcements"); return req<Announcement[]>("/api/announcements").then(d => { cacheSet("announcements", d); return d; }); },
+  createAnnouncement: (a: { title: string; body: string; authorId: string; pinned?: boolean }) => { cacheInvalidate("announcements"); return req<Announcement>("/api/announcements", { method: "POST", body: JSON.stringify(a) }); },
+  updateAnnouncement: (id: string, updates: Partial<Pick<Announcement,"pinned"|"title"|"body">>) => { cacheInvalidate("announcements"); return req<Announcement>(`/api/announcements/${id}`, { method: "PATCH", body: JSON.stringify(updates) }); },
+  deleteAnnouncement: (id: string) => { cacheInvalidate("announcements"); return req<{ ok: boolean }>(`/api/announcements/${id}`, { method: "DELETE" }); },
 
   // ── Analytics ──
   getAnalytics: () =>

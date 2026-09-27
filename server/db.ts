@@ -58,12 +58,35 @@ export interface Payment {
   periodEnd?: string;
 }
 
+export interface Expense {
+  id: string;
+  title: string;
+  amount: number;
+  category: string;
+  vendor: string;
+  notes: string;
+  date: string;
+  createdAt: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  authorId: string;
+  authorName: string;
+  pinned: boolean;
+  createdAt: string;
+}
+
 interface DbData {
   company: Company | null;
   users: User[];
   timeEntries: TimeEntry[];
   jobs: Job[];
   payments: Payment[];
+  expenses: Expense[];
+  announcements: Announcement[];
 }
 
 export interface UserWithStats extends User {
@@ -79,7 +102,7 @@ export interface UserWithStats extends User {
 
 function read(): DbData {
   try {
-    if (!fs.existsSync(DB_PATH)) return { company: null, users: [], timeEntries: [], jobs: [], payments: [] };
+    if (!fs.existsSync(DB_PATH)) return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [] };
     const raw = JSON.parse(fs.readFileSync(DB_PATH, "utf-8")) as Partial<DbData>;
     return {
       company: raw.company ?? null,
@@ -87,9 +110,11 @@ function read(): DbData {
       timeEntries: raw.timeEntries ?? [],
       jobs: raw.jobs ?? [],
       payments: raw.payments ?? [],
+      expenses: raw.expenses ?? [],
+      announcements: raw.announcements ?? [],
     };
   } catch {
-    return { company: null, users: [], timeEntries: [], jobs: [], payments: [] };
+    return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [] };
   }
 }
 
@@ -255,6 +280,68 @@ export const db = {
     const data = read();
     const p: Payment = { ...payment, id: randomUUID(), paidAt: new Date().toISOString() };
     data.payments.push(p); write(data); return p;
+  },
+
+  deletePayment(id: string): boolean {
+    const data = read();
+    const i = data.payments.findIndex(p => p.id === id);
+    if (i === -1) return false;
+    data.payments.splice(i, 1); write(data); return true;
+  },
+
+  // ── Expenses ──
+
+  getExpenses(): Expense[] {
+    return [...read().expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  },
+
+  createExpense(e: Omit<Expense,"id"|"createdAt">): Expense {
+    const data = read();
+    const expense: Expense = { ...e, id: randomUUID(), createdAt: new Date().toISOString() };
+    data.expenses.push(expense); write(data); return expense;
+  },
+
+  updateExpense(id: string, updates: Partial<Omit<Expense,"id"|"createdAt">>): Expense | null {
+    const data = read();
+    const i = data.expenses.findIndex(e => e.id === id);
+    if (i === -1) return null;
+    data.expenses[i] = { ...data.expenses[i], ...updates }; write(data); return data.expenses[i];
+  },
+
+  deleteExpense(id: string): boolean {
+    const data = read();
+    const i = data.expenses.findIndex(e => e.id === id);
+    if (i === -1) return false;
+    data.expenses.splice(i, 1); write(data); return true;
+  },
+
+  // ── Announcements ──
+
+  getAnnouncements(): Announcement[] {
+    return [...read().announcements].sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  },
+
+  createAnnouncement(a: Omit<Announcement,"id"|"createdAt">): Announcement {
+    const data = read();
+    const ann: Announcement = { ...a, id: randomUUID(), createdAt: new Date().toISOString() };
+    data.announcements.push(ann); write(data); return ann;
+  },
+
+  updateAnnouncement(id: string, updates: Partial<Pick<Announcement,"pinned"|"title"|"body">>): Announcement | null {
+    const data = read();
+    const i = data.announcements.findIndex(a => a.id === id);
+    if (i === -1) return null;
+    data.announcements[i] = { ...data.announcements[i], ...updates }; write(data); return data.announcements[i];
+  },
+
+  deleteAnnouncement(id: string): boolean {
+    const data = read();
+    const i = data.announcements.findIndex(a => a.id === id);
+    if (i === -1) return false;
+    data.announcements.splice(i, 1); write(data); return true;
   },
 
   // ── Analytics ──

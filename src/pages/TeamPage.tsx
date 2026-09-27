@@ -12,15 +12,15 @@ function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-function money(n: number): string {
-  return "$" + n.toFixed(2);
-}
+function money(n: number): string { return "$" + n.toFixed(2); }
+function fmt(h: number): string { const hrs = Math.floor(h); const mins = Math.round((h - hrs) * 60); if (hrs === 0) return `${mins}m`; return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`; }
 
 export function TeamPage({ user: _user }: Props) {
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [editUser, setEditUser] = useState<UserWithStats | null>(null);
+  const [viewUser, setViewUser] = useState<UserWithStats | null>(null);
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -183,6 +183,7 @@ export function TeamPage({ user: _user }: Props) {
                         <td className="td-muted">{new Date(member.createdAt).toLocaleDateString()}</td>
                         <td>
                           <div className="td-actions">
+                            <button className="btn btn-ghost btn-sm" onClick={() => setViewUser(member)}>View</button>
                             <button className="btn btn-ghost btn-sm" onClick={() => { setEditUser(member); setError(""); }}>Edit</button>
                             <button className="btn btn-ghost btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleDeactivate(member)}>Remove</button>
                           </div>
@@ -271,11 +272,57 @@ export function TeamPage({ user: _user }: Props) {
               <input type="text" value={editUser.title} onChange={e => setEditUser({ ...editUser, title: e.target.value })} />
             </div>
             <div className="form-group">
-              <label>Hourly Rate ($)</label>
-              <input type="number" value={editUser.hourlyRate} onChange={e => setEditUser({ ...editUser, hourlyRate: parseFloat(e.target.value) || 0 })} min="0" step="0.01" />
+              <label>Hourly Rate ($/hr)</label>
+              <input type="number" value={editUser.hourlyRate} onChange={e => setEditUser({ ...editUser, hourlyRate: parseFloat(e.target.value) || 0 })} min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div className="form-group">
+              <label>Status</label>
+              <select value={editUser.active ? "active" : "inactive"} onChange={e => setEditUser({ ...editUser, active: e.target.value === "active" })}
+                style={{ width: "100%", padding: "9px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--radius)", fontSize: 14, fontFamily: "inherit", background: "var(--surface)" }}>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
             </div>
             {error && <p className="error-msg">{error}</p>}
           </form>
+        </Modal>
+      )}
+
+      {viewUser && (
+        <Modal title="Employee Profile" onClose={() => setViewUser(null)}
+          footer={<button className="btn btn-secondary" onClick={() => setViewUser(null)}>Close</button>}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, paddingBottom: 20, borderBottom: "1px solid var(--border)" }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg,#5b6af0,#8b5cf6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, flexShrink: 0 }}>
+              {initials(viewUser.name)}
+            </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.2px" }}>{viewUser.name}</div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{viewUser.title}</div>
+            </div>
+            <div style={{ marginLeft: "auto" }}>
+              {viewUser.clockedIn
+                ? <span className="badge badge-green"><span className="badge-dot" />Working now</span>
+                : <span className="badge badge-gray">Off</span>}
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {[
+              { label: "Today", value: fmt(viewUser.todayHours) },
+              { label: "This Week", value: fmt(viewUser.weekHours) },
+              { label: "This Month", value: fmt(viewUser.monthHours) },
+              { label: "Hourly Rate", value: viewUser.hourlyRate > 0 ? money(viewUser.hourlyRate) + "/hr" : "Not set" },
+              { label: "Month Owed", value: money(viewUser.monthPay), color: "var(--primary)" },
+              { label: "Total Paid", value: money(viewUser.totalPaid), color: "var(--success)" },
+              { label: "Balance", value: viewUser.totalOwed > 0 ? `-${money(viewUser.totalOwed)}` : viewUser.totalOwed < 0 ? `+${money(Math.abs(viewUser.totalOwed))}` : "✓ Even", color: viewUser.totalOwed > 0 ? "var(--danger)" : "var(--success)" },
+              { label: "Joined", value: new Date(viewUser.createdAt).toLocaleDateString() },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "12px 14px" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: color ?? "var(--text)" }}>{value}</div>
+              </div>
+            ))}
+          </div>
         </Modal>
       )}
     </div>

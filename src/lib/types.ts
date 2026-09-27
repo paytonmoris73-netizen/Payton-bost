@@ -66,6 +66,27 @@ export interface Payment {
 
 export interface DailyHours { date: string; label: string; hours: number; }
 
+export interface Expense {
+  id: string;
+  title: string;
+  amount: number;
+  category: string;
+  vendor: string;
+  notes: string;
+  date: string;
+  createdAt: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  authorId: string;
+  authorName: string;
+  pinned: boolean;
+  createdAt: string;
+}
+
 export type Page =
   | "owner-dashboard"
   | "owner-jobs"
@@ -74,8 +95,11 @@ export type Page =
   | "owner-payroll"
   | "owner-analytics"
   | "owner-payments"
+  | "owner-expenses"
+  | "owner-announcements"
   | "employee-dashboard"
   | "employee-jobs"
   | "employee-time"
   | "employee-pay"
-  | "employee-payments";
+  | "employee-payments"
+  | "employee-announcements";

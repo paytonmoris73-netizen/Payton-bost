@@ -156,6 +156,12 @@ app.get("/api/payments", (req, res) => {
   res.json(pays.map(p => ({ ...p, userName: userMap.get(p.userId)?.name ?? "Unknown" })));
 });
 
+app.delete("/api/payments/:id", (req, res) => {
+  const ok = db.deletePayment(req.params.id);
+  if (!ok) { res.status(404).json({ error: "Payment not found." }); return; }
+  res.json({ ok: true });
+});
+
 app.post("/api/payments", (req, res) => {
   const body = req.body as { userId?: string; amount?: number; type?: string; description?: string; jobId?: string; periodStart?: string; periodEnd?: string };
   if (!body.userId || !body.amount || body.amount <= 0) { res.status(400).json({ error: "userId and positive amount required." }); return; }
@@ -171,6 +177,65 @@ app.post("/api/payments", (req, res) => {
     periodEnd: body.periodEnd,
   });
   res.json({ ...payment, userName: user.name });
+});
+
+// ── Payroll bulk ──────────────────────────────────────────
+app.post("/api/payroll/bulk", (req, res) => {
+  const { userIds } = req.body as { userIds?: string[] };
+  const team = db.getUsersWithStats().filter(u => u.role !== "owner" && u.active);
+  const targets = userIds?.length ? team.filter(u => userIds.includes(u.id)) : team;
+  const results = [];
+  for (const u of targets) {
+    if (u.totalOwed > 0) {
+      const p = db.addPayment({ userId: u.id, amount: u.totalOwed, type: "payroll", description: "Bulk payroll" });
+      results.push({ ...p, userName: u.name });
+    }
+  }
+  res.json({ paid: results.length, payments: results });
+});
+
+// ── Expenses ──────────────────────────────────────────────
+app.get("/api/expenses", (_req, res) => { res.json(db.getExpenses()); });
+
+app.post("/api/expenses", (req, res) => {
+  const { title, amount, category, vendor, notes, date } = req.body as { title?: string; amount?: number; category?: string; vendor?: string; notes?: string; date?: string };
+  if (!title?.trim() || !amount || amount <= 0) { res.status(400).json({ error: "Title and positive amount required." }); return; }
+  res.json(db.createExpense({ title: title.trim(), amount: Number(amount), category: category?.trim() || "General", vendor: vendor?.trim() || "", notes: notes?.trim() || "", date: date || new Date().toISOString().split("T")[0] }));
+});
+
+app.patch("/api/expenses/:id", (req, res) => {
+  const e = db.updateExpense(req.params.id, req.body as Parameters<typeof db.updateExpense>[1]);
+  if (!e) { res.status(404).json({ error: "Expense not found." }); return; }
+  res.json(e);
+});
+
+app.delete("/api/expenses/:id", (req, res) => {
+  const ok = db.deleteExpense(req.params.id);
+  if (!ok) { res.status(404).json({ error: "Expense not found." }); return; }
+  res.json({ ok: true });
+});
+
+// ── Announcements ─────────────────────────────────────────
+app.get("/api/announcements", (_req, res) => { res.json(db.getAnnouncements()); });
+
+app.post("/api/announcements", (req, res) => {
+  const { title, body, authorId, pinned } = req.body as { title?: string; body?: string; authorId?: string; pinned?: boolean };
+  if (!title?.trim() || !authorId) { res.status(400).json({ error: "Title and authorId required." }); return; }
+  const author = db.getUserById(authorId);
+  if (!author) { res.status(404).json({ error: "Author not found." }); return; }
+  res.json(db.createAnnouncement({ title: title.trim(), body: body?.trim() || "", authorId, authorName: author.name, pinned: pinned ?? false }));
+});
+
+app.patch("/api/announcements/:id", (req, res) => {
+  const a = db.updateAnnouncement(req.params.id, req.body as Parameters<typeof db.updateAnnouncement>[1]);
+  if (!a) { res.status(404).json({ error: "Announcement not found." }); return; }
+  res.json(a);
+});
+
+app.delete("/api/announcements/:id", (req, res) => {
+  const ok = db.deleteAnnouncement(req.params.id);
+  if (!ok) { res.status(404).json({ error: "Announcement not found." }); return; }
+  res.json({ ok: true });
 });
 
 // ── Analytics ─────────────────────────────────────────────
