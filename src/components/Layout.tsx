@@ -49,8 +49,11 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-top">
-          <div className="company-name">{company || "WorkBase"}</div>
-          <span className="company-tag">Company Portal</span>
+          <div className="sidebar-logo">🏢</div>
+          <div>
+            <div className="company-name">{company || "WorkBase"}</div>
+            <span className="company-tag">Company Portal</span>
+          </div>
         </div>
         <nav className="nav">
           <div className="nav-section-label">{section}</div>
@@ -73,7 +76,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
               <div className="role">{user.title}</div>
             </div>
           </div>
-          <button className="btn btn-secondary btn-full btn-sm" onClick={onLogout}>Sign Out</button>
+          <button className="sidebar-signout" onClick={onLogout}>Sign out</button>
         </div>
       </aside>
       <main className="main-content">{children}</main>
