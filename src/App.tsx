@@ -1,148 +1,89 @@
-import { useEffect, useRef, useState } from "react";
-import { Composer } from "./components/Composer";
-import { BuildLog } from "./components/BuildLog";
-import { PreviewPane } from "./components/PreviewPane";
-import { streamGenerate, type ChatTurn } from "./lib/stream";
-import { extractHtml, leadingNote } from "./lib/extractCode";
-import type { Config, Revision } from "./lib/types";
+import { useEffect, useState } from "react";
+import { api } from "./lib/api";
+import type { User, UserWithStats, Page } from "./lib/types";
+import { SetupPage } from "./pages/SetupPage";
+import { LoginPage } from "./pages/LoginPage";
+import { Layout } from "./components/Layout";
+import { OwnerDashboard } from "./pages/OwnerDashboard";
+import { TeamPage } from "./pages/TeamPage";
+import { TimePage } from "./pages/TimePage";
+import { PayrollPage } from "./pages/PayrollPage";
+import { EmployeeDashboard } from "./pages/EmployeeDashboard";
+import { MyTimePage } from "./pages/MyTimePage";
+import { MyPayPage } from "./pages/MyPayPage";
+
+const AUTH_KEY = "workbase_uid";
 
 export default function App() {
-  const [config, setConfig] = useState<Config | null>(null);
-  const [configError, setConfigError] = useState<string | null>(null);
-
-  const [revisions, setRevisions] = useState<Revision[]>([]);
-  const [messages, setMessages] = useState<ChatTurn[]>([]);
-  const [currentHtml, setCurrentHtml] = useState<string | null>(null);
-  const [liveText, setLiveText] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [activeTab, setActiveTab] = useState<"preview" | "code">("preview");
-
-  const bufferRef = useRef("");
-  const abortRef = useRef<AbortController | null>(null);
-  const nextId = useRef(1);
+  const [loading, setLoading] = useState(true);
+  const [isSetup, setIsSetup] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [page, setPage] = useState<Page>("owner-dashboard");
 
   useEffect(() => {
-    fetch("/api/config")
-      .then((res) => res.json())
-      .then((data: Config) => setConfig(data))
-      .catch(() => setConfigError("Could not reach the BunnyX server. Make sure it's running."));
+    init();
   }, []);
 
-  useEffect(() => () => abortRef.current?.abort(), []);
-
-  async function handleSubmit(prompt: string) {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    const id = nextId.current++;
-    bufferRef.current = "";
-    setLiveText("");
-    setActiveTab("code");
-    setIsStreaming(true);
-    setRevisions((prev) => [...prev, { id, prompt, status: "streaming" }]);
-
-    const nextMessages: ChatTurn[] = [...messages, { role: "user", content: prompt }];
-
-    await streamGenerate(
-      nextMessages,
-      {
-        onDelta: (text) => {
-          bufferRef.current += text;
-          setLiveText(bufferRef.current);
-        },
-        onDone: () => {
-          const raw = bufferRef.current;
-          const html = extractHtml(raw);
-          setMessages([...nextMessages, { role: "assistant", content: raw }]);
-          setIsStreaming(false);
-
-          if (html) {
-            setCurrentHtml(html);
-            setActiveTab("preview");
-            const note = leadingNote(raw);
-            setRevisions((prev) =>
-              prev.map((rev) => (rev.id === id ? { ...rev, status: "done", note: note || undefined } : rev)),
-            );
-          } else {
-            setRevisions((prev) =>
-              prev.map((rev) =>
-                rev.id === id
-                  ? { ...rev, status: "error", error: "No complete HTML document was found in the response." }
-                  : rev,
-              ),
-            );
+  async function init() {
+    try {
+      const status = await api.getStatus();
+      setIsSetup(status.setup);
+      if (status.setup) {
+        const saved = localStorage.getItem(AUTH_KEY);
+        if (saved) {
+          try {
+            const me = await api.getMe(saved);
+            setUser(me);
+            setPage(me.role === "owner" ? "owner-dashboard" : "employee-dashboard");
+          } catch {
+            localStorage.removeItem(AUTH_KEY);
           }
-        },
-        onError: (message) => {
-          setIsStreaming(false);
-          setRevisions((prev) => prev.map((rev) => (rev.id === id ? { ...rev, status: "error", error: message } : rev)));
-        },
-      },
-      controller.signal,
+        }
+      }
+    } catch {/* server unavailable */}
+    finally { setLoading(false); }
+  }
+
+  function handleLogin(u: User) {
+    localStorage.setItem(AUTH_KEY, u.id);
+    setUser(u);
+    setPage(u.role === "owner" ? "owner-dashboard" : "employee-dashboard");
+  }
+
+  function handleLogout() {
+    localStorage.removeItem(AUTH_KEY);
+    setUser(null);
+  }
+
+  function handleSetupDone(owner: User) {
+    setIsSetup(true);
+    handleLogin(owner);
+  }
+
+  function handleUserUpdate(updated: UserWithStats) {
+    setUser(updated);
+  }
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+      </div>
     );
   }
 
-  function handleNewApp() {
-    abortRef.current?.abort();
-    nextId.current = 1;
-    bufferRef.current = "";
-    setRevisions([]);
-    setMessages([]);
-    setCurrentHtml(null);
-    setLiveText("");
-    setIsStreaming(false);
-    setActiveTab("preview");
-  }
-
-  const composerDisabled = isStreaming || configError !== null || (config !== null && !config.hasApiKey);
+  if (!isSetup) return <SetupPage onSetup={handleSetupDone} />;
+  if (!user) return <LoginPage onLogin={handleLogin} />;
 
   return (
-    <div className="shell">
-      <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark">BunnyX</span>
-          <span className="brand-tagline">Describe it. Ship it.</span>
-        </div>
-        <div className="topbar-actions">
-          {config ? <span className="model-badge mono">{config.model}</span> : null}
-          <button type="button" className="ghost-button" onClick={handleNewApp} disabled={revisions.length === 0}>
-            New app
-          </button>
-        </div>
-      </header>
-
-      {configError ? (
-        <div className="status-banner status-banner--error">{configError}</div>
-      ) : config && !config.hasApiKey ? (
-        <div className="status-banner status-banner--warn">
-          Add <code>ANTHROPIC_API_KEY</code> to your <code>.env</code> file, then restart the server, to start building.
-        </div>
-      ) : null}
-
-      <div className="layout">
-        <aside className="sidebar">
-          <div className="sidebar-scroll">
-            <BuildLog revisions={revisions} />
-          </div>
-          <Composer
-            onSubmit={handleSubmit}
-            disabled={composerDisabled}
-            isStreaming={isStreaming}
-            hasApps={revisions.length > 0}
-          />
-        </aside>
-
-        <main className="workspace">
-          <PreviewPane
-            html={currentHtml}
-            liveText={liveText}
-            isStreaming={isStreaming}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </main>
-      </div>
-    </div>
+    <Layout user={user} page={page} onNavigate={setPage} onLogout={handleLogout}>
+      {page === "owner-dashboard" && <OwnerDashboard user={user} />}
+      {page === "owner-team" && <TeamPage user={user} onUserUpdate={setUser} />}
+      {page === "owner-time" && <TimePage />}
+      {page === "owner-payroll" && <PayrollPage />}
+      {page === "employee-dashboard" && <EmployeeDashboard user={user} onUserUpdate={handleUserUpdate} />}
+      {page === "employee-time" && <MyTimePage user={user} />}
+      {page === "employee-pay" && <MyPayPage user={user} />}
+    </Layout>
   );
 }
