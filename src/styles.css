@@ -296,6 +296,55 @@ tr:hover td { background: var(--surface-hover); }
 .text-muted { color: var(--text-muted); font-size: 13px; }
 .text-right { text-align: right; }
 
+/* ── Tab bar ── */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tab-btn {
+  padding: 8px 14px; font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; display: inline-flex; align-items: center; gap: 6px;
+  transition: color 0.12s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-count {
+  background: var(--surface-hover); color: var(--text-muted); border-radius: 10px;
+  padding: 1px 7px; font-size: 11px; font-weight: 600;
+}
+
+/* ── Jobs grid ── */
+.jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.job-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 10px;
+  transition: box-shadow 0.15s;
+}
+.job-card:hover { box-shadow: var(--shadow-md); }
+.job-card.completed { opacity: 0.7; }
+.job-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.job-card-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+.job-category { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.job-title { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.job-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+.job-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.job-pay { display: flex; align-items: baseline; gap: 3px; }
+.job-pay-amount { font-size: 15px; font-weight: 700; }
+.job-pay-type { font-size: 12px; color: var(--text-muted); }
+.job-due { font-size: 12px; color: var(--text-secondary); }
+.job-due.overdue { color: var(--danger); font-weight: 600; }
+.job-assigned { display: flex; flex-wrap: wrap; gap: 5px; }
+.assigned-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 5px;
+  background: var(--surface-hover); border-radius: 20px; font-size: 12px; color: var(--text-secondary);
+}
+.assigned-dot {
+  width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center;
+  justify-content: center; color: #fff; font-size: 10px; font-weight: 700; flex-shrink: 0;
+}
+.job-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+
+/* ── Badge red ── */
+.badge-red { background: var(--danger-light); color: var(--danger); }
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

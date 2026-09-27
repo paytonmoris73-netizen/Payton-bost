@@ -11,6 +11,11 @@ import { PayrollPage } from "./pages/PayrollPage";
 import { EmployeeDashboard } from "./pages/EmployeeDashboard";
 import { MyTimePage } from "./pages/MyTimePage";
 import { MyPayPage } from "./pages/MyPayPage";
+import { JobsPage } from "./pages/JobsPage";
+import { MyJobsPage } from "./pages/MyJobsPage";
+import { PaymentsPage } from "./pages/PaymentsPage";
+import { MyPaymentsPage } from "./pages/MyPaymentsPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 
 const AUTH_KEY = "workbase_uid";
 
@@ -81,9 +86,14 @@ export default function App() {
       {page === "owner-team" && <TeamPage user={user} onUserUpdate={setUser} />}
       {page === "owner-time" && <TimePage />}
       {page === "owner-payroll" && <PayrollPage />}
+      {page === "owner-jobs" && <JobsPage />}
+      {page === "owner-payments" && <PaymentsPage />}
+      {page === "owner-analytics" && <AnalyticsPage />}
       {page === "employee-dashboard" && <EmployeeDashboard user={user} onUserUpdate={handleUserUpdate} />}
       {page === "employee-time" && <MyTimePage user={user} />}
       {page === "employee-pay" && <MyPayPage user={user} />}
+      {page === "employee-jobs" && <MyJobsPage user={user} />}
+      {page === "employee-payments" && <MyPaymentsPage user={user} />}
     </Layout>
   );
 }

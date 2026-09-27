@@ -10,30 +10,32 @@ const PORT = Number(process.env.PORT) || 8787;
 const app = express();
 app.use(express.json());
 
-app.get("/api/status", (_req, res) => {
-  res.json({ setup: db.isSetup() });
-});
+// ── Status / Company ──────────────────────────────────────
+app.get("/api/status", (_req, res) => { res.json({ setup: db.isSetup() }); });
 
 app.get("/api/company", (_req, res) => {
-  const company = db.getCompany();
-  if (!company) { res.status(404).json({ error: "Not set up" }); return; }
-  res.json(company);
+  const c = db.getCompany();
+  if (!c) { res.status(404).json({ error: "Not set up" }); return; }
+  res.json(c);
 });
 
 app.post("/api/setup", (req, res) => {
   const { companyName, ownerName } = req.body as { companyName?: string; ownerName?: string };
-  if (!companyName?.trim() || !ownerName?.trim()) {
-    res.status(400).json({ error: "Company name and owner name are required." }); return;
-  }
+  if (!companyName?.trim() || !ownerName?.trim()) { res.status(400).json({ error: "Company name and owner name required." }); return; }
   if (db.isSetup()) { res.status(409).json({ error: "Already set up." }); return; }
-  const result = db.setup(companyName.trim(), ownerName.trim());
-  res.json(result);
+  res.json(db.setup(companyName.trim(), ownerName.trim()));
 });
 
+app.post("/api/company/regenerate-code", (_req, res) => {
+  const code = db.regenerateJoinCode();
+  if (!code) { res.status(404).json({ error: "Not set up." }); return; }
+  res.json({ joinCode: code });
+});
+
+// ── Auth ──────────────────────────────────────────────────
 app.post("/api/auth/login", (req, res) => {
   const { name } = req.body as { name?: string };
-  if (!name?.trim()) { res.status(400).json({ error: "Name required." }); return; }
-  const user = db.getUserByName(name.trim());
+  const user = name?.trim() ? db.getUserByName(name.trim()) : null;
   if (!user) { res.status(404).json({ error: "User not found." }); return; }
   if (!user.active) { res.status(403).json({ error: "Account inactive." }); return; }
   res.json(user);
@@ -41,9 +43,7 @@ app.post("/api/auth/login", (req, res) => {
 
 app.post("/api/auth/join", (req, res) => {
   const { code, name } = req.body as { code?: string; name?: string };
-  if (!code?.trim() || !name?.trim()) {
-    res.status(400).json({ error: "Code and name are required." }); return;
-  }
+  if (!code?.trim() || !name?.trim()) { res.status(400).json({ error: "Code and name required." }); return; }
   const existing = db.getUserByName(name.trim());
   if (existing) { res.json(existing); return; }
   const user = db.joinByCode(code.trim(), name.trim());
@@ -51,38 +51,34 @@ app.post("/api/auth/join", (req, res) => {
   res.json(user);
 });
 
-app.get("/api/team", (_req, res) => {
-  res.json(db.getUsersWithStats());
+// ── Team ──────────────────────────────────────────────────
+app.get("/api/team", (_req, res) => { res.json(db.getUsersWithStats()); });
+
+app.get("/api/me/:userId", (req, res) => {
+  const u = db.getUserWithStats(req.params.userId);
+  if (!u) { res.status(404).json({ error: "User not found." }); return; }
+  res.json(u);
 });
 
 app.post("/api/team", (req, res) => {
   const { name, hourlyRate, title } = req.body as { name?: string; hourlyRate?: number; title?: string };
-  if (!name?.trim()) { res.status(400).json({ error: "Name is required." }); return; }
-  if (db.getUserByName(name.trim())) {
-    res.status(409).json({ error: "A user with this name already exists." }); return;
-  }
-  const user = db.addUser(name.trim(), Number(hourlyRate) || 0, title?.trim() || "Employee");
-  res.json(user);
+  if (!name?.trim()) { res.status(400).json({ error: "Name required." }); return; }
+  if (db.getUserByName(name.trim())) { res.status(409).json({ error: "User with this name already exists." }); return; }
+  res.json(db.addUser(name.trim(), Number(hourlyRate) || 0, title?.trim() || "Employee"));
 });
 
 app.patch("/api/team/:id", (req, res) => {
-  const { id } = req.params;
-  const updates = req.body as Partial<{ name: string; hourlyRate: number; active: boolean; title: string }>;
-  const user = db.updateUser(id, updates);
-  if (!user) { res.status(404).json({ error: "User not found." }); return; }
-  res.json(user);
+  const u = db.updateUser(req.params.id, req.body as Partial<{ name: string; hourlyRate: number; active: boolean; title: string }>);
+  if (!u) { res.status(404).json({ error: "User not found." }); return; }
+  res.json(u);
 });
 
+// ── Time ──────────────────────────────────────────────────
 app.get("/api/time", (req, res) => {
   const { userId } = req.query as { userId?: string };
   const entries = db.getTimeEntries(userId);
-  const users = db.getUsers();
-  const userMap = new Map(users.map(u => [u.id, u]));
-  const enriched = entries.map(e => ({
-    ...e,
-    userName: userMap.get(e.userId)?.name ?? "Unknown",
-    hours: calcHours(e.clockIn, e.clockOut),
-  }));
+  const userMap = new Map(db.getUsers().map(u => [u.id, u]));
+  const enriched = entries.map(e => ({ ...e, userName: userMap.get(e.userId)?.name ?? "Unknown", hours: calcHours(e.clockIn, e.clockOut) }));
   enriched.sort((a, b) => new Date(b.clockIn).getTime() - new Date(a.clockIn).getTime());
   res.json(enriched);
 });
@@ -110,22 +106,87 @@ app.get("/api/time/status", (req, res) => {
   res.json({ clocked: entry !== null, entry: entry ?? null });
 });
 
-app.get("/api/payroll", (_req, res) => {
-  res.json(db.getUsersWithStats());
+// ── Jobs ──────────────────────────────────────────────────
+app.get("/api/jobs", (req, res) => {
+  const { userId } = req.query as { userId?: string };
+  const jobs = db.getJobs();
+  const filtered = userId ? jobs.filter(j => j.assignedTo.includes(userId) || j.assignedTo.length === 0) : jobs;
+  filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  res.json(filtered);
 });
 
-app.post("/api/company/regenerate-code", (_req, res) => {
-  const code = db.regenerateJoinCode();
-  if (!code) { res.status(404).json({ error: "Not set up." }); return; }
-  res.json({ joinCode: code });
+app.post("/api/jobs", (req, res) => {
+  const body = req.body as {
+    title?: string; description?: string; category?: string;
+    payType?: string; payAmount?: number; assignedTo?: string[];
+    priority?: string; dueDate?: string | null;
+  };
+  if (!body.title?.trim()) { res.status(400).json({ error: "Title required." }); return; }
+  const job = db.createJob({
+    title: body.title.trim(),
+    description: body.description?.trim() ?? "",
+    category: body.category?.trim() || "General",
+    payType: (body.payType === "hourly" ? "hourly" : "fixed"),
+    payAmount: Number(body.payAmount) || 0,
+    assignedTo: Array.isArray(body.assignedTo) ? body.assignedTo : [],
+    status: "open",
+    priority: (["high","urgent"].includes(body.priority ?? "") ? body.priority as "high"|"urgent" : "normal"),
+    dueDate: body.dueDate ?? null,
+  });
+  res.json(job);
 });
 
-app.get("/api/me/:userId", (req, res) => {
-  const user = db.getUserWithStats(req.params.userId);
+app.patch("/api/jobs/:id", (req, res) => {
+  const job = db.updateJob(req.params.id, req.body as Parameters<typeof db.updateJob>[1]);
+  if (!job) { res.status(404).json({ error: "Job not found." }); return; }
+  res.json(job);
+});
+
+app.delete("/api/jobs/:id", (req, res) => {
+  const ok = db.deleteJob(req.params.id);
+  if (!ok) { res.status(404).json({ error: "Job not found." }); return; }
+  res.json({ ok: true });
+});
+
+// ── Payments ──────────────────────────────────────────────
+app.get("/api/payments", (req, res) => {
+  const { userId } = req.query as { userId?: string };
+  const pays = db.getPayments(userId);
+  const userMap = new Map(db.getUsers().map(u => [u.id, u]));
+  res.json(pays.map(p => ({ ...p, userName: userMap.get(p.userId)?.name ?? "Unknown" })));
+});
+
+app.post("/api/payments", (req, res) => {
+  const body = req.body as { userId?: string; amount?: number; type?: string; description?: string; jobId?: string; periodStart?: string; periodEnd?: string };
+  if (!body.userId || !body.amount || body.amount <= 0) { res.status(400).json({ error: "userId and positive amount required." }); return; }
+  const user = db.getUserById(body.userId);
   if (!user) { res.status(404).json({ error: "User not found." }); return; }
-  res.json(user);
+  const payment = db.addPayment({
+    userId: body.userId,
+    amount: Number(body.amount),
+    type: (["payroll","bonus","job"].includes(body.type ?? "") ? body.type as "payroll"|"bonus"|"job" : "payroll"),
+    description: body.description?.trim() ?? "",
+    jobId: body.jobId,
+    periodStart: body.periodStart,
+    periodEnd: body.periodEnd,
+  });
+  res.json({ ...payment, userName: user.name });
 });
 
+// ── Analytics ─────────────────────────────────────────────
+app.get("/api/analytics", (_req, res) => {
+  const team = db.getUsersWithStats().filter(u => u.role !== "owner" && u.active);
+  const dailyHours = db.getDailyHours(undefined, 7);
+  const weeklyPayroll = db.getWeeklyPayroll(6);
+  const payments = db.getPayments();
+  const totalPaidOut = payments.reduce((s, p) => s + p.amount, 0);
+  res.json({ team, dailyHours, weeklyPayroll, totalPaidOut });
+});
+
+// ── Payroll helpers ───────────────────────────────────────
+app.get("/api/payroll", (_req, res) => { res.json(db.getUsersWithStats()); });
+
+// ── Utilities ─────────────────────────────────────────────
 function calcHours(clockIn: string, clockOut: string | null): number {
   const start = new Date(clockIn).getTime();
   const end = clockOut ? new Date(clockOut).getTime() : Date.now();
@@ -135,11 +196,7 @@ function calcHours(clockIn: string, clockOut: string | null): number {
 if (process.env.NODE_ENV === "production") {
   const clientDist = path.join(__dirname, "..", "dist", "client");
   app.use(express.static(clientDist));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(clientDist, "index.html"));
-  });
+  app.get("*", (_req, res) => { res.sendFile(path.join(clientDist, "index.html")); });
 }
 
-app.listen(PORT, () => {
-  console.log(`WorkBase server on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => { console.log(`WorkBase server on http://localhost:${PORT}`); });
