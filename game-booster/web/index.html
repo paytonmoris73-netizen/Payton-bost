@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Booster</title>
+<style>
+:root {
+  --bg:      #07070f;
+  --card:    #0e0e1c;
+  --hover:   #14142a;
+  --input:   #0b0b1a;
+  --border:  #1e1e3a;
+  --border2: #2a2a50;
+  --cyan:    #00d4ff;
+  --purple:  #8b5cf6;
+  --red:     #f43f5e;
+  --green:   #10b981;
+  --orange:  #f59e0b;
+  --fg:      #f0f0ff;
+  --fg2:     #7a8bb0;
+  --fg3:     #3a4466;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  padding: 20px 0 18px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+.logo-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--cyan);
+}
+.logo-sub {
+  font-size: 10px;
+  color: var(--fg3);
+  margin-top: 3px;
+}
+
+.sidebar-section {
+  padding: 16px 18px 8px;
+}
+.sidebar-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--fg3);
+  margin-bottom: 6px;
+}
+.status-dot {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fg2);
+  transition: color .3s;
+}
+
+.stats-card {
+  margin: 0 14px;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stat-row { margin-top: 8px; }
+.stat-row:first-child { margin-top: 0; }
+.stat-label {
+  font-size: 12px;
+  color: var(--fg2);
+  margin-bottom: 4px;
+}
+.stat-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  transition: width .6s ease;
+}
+
+.sidebar-spacer { flex: 1; }
+
+.admin-badge {
+  margin: 0 14px 14px;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 7px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* ── Content ── */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.nav {
+  height: 58px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 8px;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--fg2);
+  font-size: 13px;
+  padding: 7px 18px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.nav-btn:hover { background: var(--hover); color: var(--fg); border-color: var(--border2); }
+.nav-btn.active {
+  background: rgba(0,212,255,.09);
+  color: var(--cyan);
+  border-color: rgba(0,212,255,.27);
+  font-weight: 700;
+}
+
+.pages { flex: 1; overflow: hidden; position: relative; }
+.page {
+  position: absolute; inset: 0;
+  padding: 24px 28px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+}
+.page.visible { opacity: 1; pointer-events: all; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--fg2);
+  font-weight: 600;
+}
+
+/* ── Game selector ── */
+.game-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+select, input {
+  background: var(--input);
+  color: var(--fg);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+}
+select:focus, input:focus { border-color: var(--cyan); }
+select { cursor: pointer; }
+select option { background: var(--card); }
+
+.btn {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--hover); border-color: var(--cyan); color: var(--cyan); }
+.btn-cyan {
+  background: rgba(0,212,255,.1);
+  color: var(--cyan);
+  border-color: rgba(0,212,255,.35);
+  font-weight: 700;
+}
+.btn-cyan:hover { background: rgba(0,212,255,.2); }
+.btn-red {
+  background: rgba(244,63,94,.1);
+  color: var(--red);
+  border-color: rgba(244,63,94,.35);
+}
+.btn-red:hover { background: rgba(244,63,94,.22); }
+.btn-sm { padding: 6px 13px; font-size: 12px; }
+.btn-icon {
+  width: 30px; height: 30px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  background: transparent;
+  color: var(--fg3);
+  border-color: var(--border2);
+}
+.btn-icon:hover { color: var(--red); border-color: rgba(244,63,94,.5); }
+
+/* ── Intensity levels ── */
+.level-btns { display: flex; gap: 8px; }
+.level-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--input);
+  color: var(--fg3);
+  font-family: inherit;
+  transition: all .15s;
+}
+.level-btn:hover { color: var(--fg); }
+.level-btn[data-active="true"][data-level="1"] { background: rgba(0,212,255,.12); color: var(--cyan); border-color: var(--cyan); }
+.level-btn[data-active="true"][data-level="2"] { background: rgba(139,92,246,.12); color: var(--purple); border-color: var(--purple); }
+.level-btn[data-active="true"][data-level="3"] { background: rgba(244,63,94,.12); color: var(--red); border-color: var(--red); }
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: rgba(0,212,255,.1);
+  color: var(--cyan);
+  border: 1px solid rgba(0,212,255,.27);
+}
+
+/* ── Boost meter ── */
+.meter-wrap { position: relative; height: 50px; }
+.meter-track {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0; right: 0;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: visible;
+}
+.meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .4s ease, background .4s;
+  position: relative;
+}
+.meter-dot {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+  transition: background .3s;
+}
+.meter-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  opacity: .4;
+}
+.meter-labels {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: space-around;
+}
+.meter-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--fg3);
+  transition: color .3s;
+}
+
+/* ── Process list ── */
+.proc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.proc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  height: 42px;
+  background: var(--input);
+  border-radius: 8px;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.proc-row:hover { background: var(--hover); }
+.proc-dot { font-size: 9px; flex-shrink: 0; }
+.proc-name { flex: 1; font-size: 13px; }
+.proc-mem { font-size: 11px; color: var(--fg2); }
+.proc-tag { font-size: 10px; font-weight: 700; color: var(--green); }
+.proc-empty { font-size: 12px; color: var(--fg3); text-align: center; padding: 20px 0; }
+
+.mem-hint { font-size: 11px; color: var(--green); margin-top: 4px; }
+
+/* ── Custom checkbox ── */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--input);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  padding: 0;
+  transition: all .15s;
+}
+input[type="checkbox"]:checked {
+  background: var(--cyan);
+  border-color: var(--cyan);
+}
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #000;
+  font-weight: 900;
+}
+
+/* ── Boost button ── */
+.boost-btn {
+  width: 100%;
+  height: 58px;
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+  background: var(--card);
+  color: var(--fg);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.boost-btn:hover { border-color: var(--cyan); }
+.boost-btn.active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  animation: boostPulse 2s ease-in-out infinite;
+}
+.boost-btn.active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0,212,255,.08), rgba(139,92,246,.08));
+}
+@keyframes boostPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,.3); }
+  50%       { box-shadow: 0 0 24px 4px rgba(0,212,255,.2); }
+}
+
+/* ── VPN page ── */
+.vpn-header { display: flex; align-items: center; justify-content: space-between; }
+.banner {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.banner.connected { border-color: rgba(16,185,129,.4); }
+.banner-dot { font-size: 13px; }
+.banner-text { flex: 1; font-size: 13px; }
+.banner-ping { font-size: 11px; color: var(--fg3); }
+
+.vpn-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
+.vpn-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 64px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  flex-shrink: 0;
+  transition: border-color .2s;
+}
+.vpn-card.connected { border-color: rgba(0,212,255,.35); }
+.vpn-info { flex: 1; }
+.vpn-name { font-size: 13px; font-weight: 700; }
+.vpn-sub { font-size: 11px; color: var(--fg2); margin-top: 2px; }
+.vpn-actions { display: flex; gap: 6px; align-items: center; }
+.ping-dot { font-size: 11px; }
+.vpn-empty { font-size: 12px; color: var(--fg3); text-align: center; padding: 40px 0; }
+.vpn-help { font-size: 11px; color: var(--fg3); text-align: center; }
+
+/* ── Modal ── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.65);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 28px;
+  width: 420px;
+  max-width: 95vw;
+  transform: translateY(12px);
+  transition: transform .2s;
+}
+.modal-backdrop.open .modal { transform: translateY(0); }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.modal-sep { height: 1px; background: var(--border2); margin-bottom: 18px; }
+.form-row { margin-bottom: 14px; }
+.form-label { font-size: 12px; color: var(--fg2); margin-bottom: 5px; }
+.form-row input, .form-row select { width: 100%; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.cfg-row { display: flex; gap: 8px; align-items: center; }
+.cfg-name { flex: 1; font-size: 12px; color: var(--fg3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--card); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-title">⚡ GAME BOOSTER</div>
+    <div class="logo-sub">Performance Optimizer</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">STATUS</div>
+    <div class="status-dot" id="statusDot">● IDLE</div>
+  </div>
+
+  <div class="stats-card">
+    <div class="sidebar-label">SYSTEM</div>
+    <div class="stat-row">
+      <div class="stat-label" id="cpuLbl">CPU &nbsp; 0%</div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="cpuBar" style="width:0%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label" id="ramLbl">RAM &nbsp; 0%</div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="ramBar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-spacer"></div>
+  <div class="admin-badge">🔐 &nbsp; ADMIN MODE</div>
+</aside>
+
+<!-- Content -->
+<div class="content">
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('boost')">⚡&nbsp; Boost</button>
+    <button class="nav-btn" onclick="switchTab('vpn')">🔒&nbsp; VPN</button>
+  </nav>
+
+  <div class="pages">
+
+    <!-- Boost Page -->
+    <div class="page visible" id="page-boost">
+
+      <!-- Game selector -->
+      <div class="card">
+        <div class="card-header">
+          <span>🎮</span>
+          <span class="card-title">SELECT GAME</span>
+        </div>
+        <div class="game-row">
+          <select id="gameSelect" style="flex:1">
+            <option value="">— Auto-Detect —</option>
+            <option value="cs2.exe">Counter-Strike 2</option>
+            <option value="VALORANT-Win64-Shipping.exe">VALORANT</option>
+            <option value="r5apex.exe">Apex Legends</option>
+            <option value="FortniteClient-Win64-Shipping.exe">Fortnite</option>
+            <option value="ModernWarfare.exe">Warzone</option>
+            <option value="Overwatch.exe">Overwatch 2</option>
+            <option value="RainbowSix.exe">Rainbow Six Siege</option>
+            <option value="League of Legends.exe">League of Legends</option>
+            <option value="dota2.exe">Dota 2</option>
+            <option value="TslGame.exe">PUBG</option>
+            <option value="Cyberpunk2077.exe">Cyberpunk 2077</option>
+            <option value="eldenring.exe">Elden Ring</option>
+            <option value="GTA5.exe">GTA V</option>
+            <option value="RDR2.exe">Red Dead 2</option>
+            <option value="RocketLeague.exe">Rocket League</option>
+            <option value="javaw.exe">Minecraft</option>
+          </select>
+          <button class="btn" onclick="autoDetect()">🔍 Detect</button>
+        </div>
+      </div>
+
+      <!-- Boost intensity -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">BOOST INTENSITY</span>
+          <div style="flex:1"></div>
+          <span class="badge" id="levelBadge">LIGHT</span>
+        </div>
+
+        <div class="level-btns">
+          <button class="level-btn" data-level="1" data-active="true" onclick="setLevel(1)">LIGHT</button>
+          <button class="level-btn" data-level="2" data-active="false" onclick="setLevel(2)">MEDIUM</button>
+          <button class="level-btn" data-level="3" data-active="false" onclick="setLevel(3)">EXTREME</button>
+        </div>
+
+        <div class="meter-wrap" style="margin-top:14px">
+          <div class="meter-track">
+            <div class="meter-fill" id="meterFill">
+              <div class="meter-dot" id="meterDot"></div>
+            </div>
+          </div>
+          <div class="meter-labels">
+            <span class="meter-label" data-lvl="1" id="ml1">LIGHT</span>
+            <span class="meter-label" data-lvl="2" id="ml2">MEDIUM</span>
+            <span class="meter-label" data-lvl="3" id="ml3">EXTREME</span>
+          </div>
+        </div>
+
+        <div style="font-size:11px; color:var(--fg3); margin-top:6px" id="levelDesc">
+          Lower priority of background apps
+        </div>
+      </div>
+
+      <!-- Process list -->
+      <div class="card" style="flex:1; display:flex; flex-direction:column; min-height:0">
+        <div class="card-header">
+          <span class="card-title">BACKGROUND PROCESSES</span>
+          <div style="flex:1"></div>
+          <span style="font-size:11px; color:var(--fg3)" id="procCount">Scanning…</span>
+        </div>
+        <div class="proc-list" id="procList">
+          <div class="proc-empty">Scanning processes…</div>
+        </div>
+        <div class="mem-hint" id="memHint" style="margin-top:8px">Select processes above to estimate savings</div>
+      </div>
+
+      <button class="boost-btn" id="boostBtn" onclick="toggleBoost()">⚡&nbsp;&nbsp;&nbsp;START BOOST</button>
+    </div>
+
+    <!-- VPN Page -->
+    <div class="page" id="page-vpn">
+      <div class="vpn-header">
+        <span style="font-size:15px; font-weight:700; letter-spacing:1px">VPN Manager</span>
+        <button class="btn btn-cyan btn-sm" onclick="openAddVpn()">＋&nbsp; Add VPN</button>
+      </div>
+
+      <div class="banner" id="vpnBanner">
+        <span class="banner-dot" style="color:var(--fg3)">●</span>
+        <span class="banner-text" style="color:var(--fg2)">Not connected</span>
+        <span class="banner-ping" id="bannerPing"></span>
+      </div>
+
+      <div class="vpn-list" id="vpnList">
+        <div class="vpn-empty">No VPN profiles yet — click  ＋ Add VPN  to get started</div>
+      </div>
+
+      <div class="vpn-help">
+        Supports &nbsp;IKEv2 &nbsp;/&nbsp; L2TP/IPsec &nbsp;/&nbsp; SSTP &nbsp;(Windows built-in) &nbsp;·&nbsp;
+        OpenVPN (.ovpn) &nbsp;·&nbsp; WireGuard (.conf)
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+</div><!-- /content -->
+
+<!-- Add VPN Modal -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add VPN Profile</div>
+    <div class="modal-sep"></div>
+
+    <div class="form-row">
+      <div class="form-label">Name</div>
+      <input id="vpnName" type="text" placeholder="e.g. My Gaming VPN">
+    </div>
+    <div class="form-row">
+      <div class="form-label">Server Address</div>
+      <input id="vpnServer" type="text" placeholder="vpn.example.com">
+    </div>
+    <div class="form-row">
+      <div class="form-label">Type</div>
+      <select id="vpnType" onchange="onTypeChange()">
+        <option>IKEv2</option>
+        <option>L2TP/IPsec</option>
+        <option>SSTP</option>
+        <option>OpenVPN</option>
+        <option>WireGuard</option>
+      </select>
+    </div>
+    <div id="credFields">
+      <div class="form-row">
+        <div class="form-label">Username (optional)</div>
+        <input id="vpnUser" type="text" placeholder="">
+      </div>
+      <div class="form-row">
+        <div class="form-label">Password (optional)</div>
+        <input id="vpnPass" type="password" placeholder="">
+      </div>
+    </div>
+    <div id="cfgField" class="form-row" style="display:none">
+      <div class="form-label">Config File</div>
+      <div class="cfg-row">
+        <span class="cfg-name" id="cfgName">No file selected</span>
+        <button class="btn btn-sm" onclick="browseConfig()">📂 Browse</button>
+      </div>
+      <input type="file" id="cfgInput" accept=".ovpn,.conf" style="display:none" onchange="onCfgChosen()">
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-cyan" onclick="saveVpn()">Add VPN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let boostLevel   = 1;
+let boosting     = false;
+let procSel      = {};   // pid → bool
+let procData     = [];
+let vpnProfiles  = [];
+let activeVpnId  = null;
+let pings        = {};   // vpn id → ms
+let cfgFilePath  = '';
+let statsTimer   = null;
+let procTimer    = null;
+let meterAnim    = null;
+let meterT       = 0;
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
+  document.getElementById(`page-${tab}`).classList.add('visible');
+  document.querySelectorAll('.nav-btn').forEach((b, i) => {
+    b.classList.toggle('active', (tab === 'boost' && i === 0) || (tab === 'vpn' && i === 1));
+  });
+  if (tab === 'vpn') loadVpn();
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+async function fetchStats() {
+  try {
+    const r = await fetch('/api/booster/stats');
+    const d = await r.json();
+    document.getElementById('cpuLbl').textContent = `CPU   ${d.cpu}%`;
+    document.getElementById('ramLbl').textContent = `RAM   ${d.ramPct}%  (${d.ramUsed} GB)`;
+    document.getElementById('cpuBar').style.width = d.cpu + '%';
+    document.getElementById('ramBar').style.width = d.ramPct + '%';
+    if (d.boosting !== boosting) {
+      boosting = d.boosting;
+      updateBoostUI();
+    }
+    activeVpnId = d.vpnActive;
+  } catch { /* offline */ }
+}
+
+// ── Processes ─────────────────────────────────────────────────────────────────
+async function fetchProcs() {
+  if (boosting) return;
+  try {
+    const r = await fetch('/api/booster/processes');
+    procData = await r.json();
+    renderProcs();
+  } catch { /* ignore */ }
+}
+
+function renderProcs() {
+  const list = document.getElementById('procList');
+  if (!procData.length) {
+    list.innerHTML = '<div class="proc-empty">No known background apps detected</div>';
+    document.getElementById('procCount').textContent = 'None detected';
+    document.getElementById('memHint').textContent = 'No processes to free';
+    return;
+  }
+  document.getElementById('procCount').textContent = `${procData.length} running`;
+  list.innerHTML = procData.map(p => {
+    const checked = procSel[p.pid] !== undefined ? procSel[p.pid] : p.def;
+    procSel[p.pid] = checked;
+    const dot = catColor(p.cat);
+    return `<div class="proc-row">
+      <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleProc(${p.pid}, this.checked)">
+      <span class="proc-dot" style="color:${dot}">●</span>
+      <span class="proc-name">${p.label}</span>
+      <span class="proc-mem">${p.memMb} MB</span>
+      <span class="proc-tag">FREE</span>
+    </div>`;
+  }).join('');
+  updateMemHint();
+}
+
+function catColor(cat) {
+  const m = { browser:'#00d4ff', social:'#8b5cf6', media:'#f97316',
+               cloud:'#10b981', launcher:'#f59e0b', system:'#f43f5e', other:'#7a8bb0' };
+  return m[cat] || '#7a8bb0';
+}
+
+function toggleProc(pid, checked) {
+  procSel[pid] = checked;
+  updateMemHint();
+}
+
+function updateMemHint() {
+  let total = 0;
+  for (const p of procData) {
+    if (procSel[p.pid]) total += p.memMb;
+  }
+  document.getElementById('memHint').textContent = total > 0
+    ? `~${total} MB will be freed on boost`
+    : 'Select processes above to estimate savings';
+}
+
+// ── Auto-detect game ──────────────────────────────────────────────────────────
+async function autoDetect() {
+  try {
+    const r = await fetch('/api/booster/processes');
+    const procs = await r.json();
+    const gameExes = ['cs2.exe','r5apex.exe','VALORANT-Win64-Shipping.exe',
+      'FortniteClient-Win64-Shipping.exe','ModernWarfare.exe','Overwatch.exe',
+      'RainbowSix.exe','dota2.exe','TslGame.exe','Cyberpunk2077.exe',
+      'eldenring.exe','GTA5.exe','RocketLeague.exe','javaw.exe'];
+    // Just set first matching option
+    const sel = document.getElementById('gameSelect');
+    for (const opt of sel.options) {
+      if (gameExes.includes(opt.value)) {
+        sel.value = opt.value;
+        showToast(`Game set to: ${opt.text}`);
+        return;
+      }
+    }
+    showToast('No game detected — launch your game first');
+  } catch { showToast('Detection failed'); }
+}
+
+// ── Boost level ───────────────────────────────────────────────────────────────
+const LEVEL_CFG = {
+  1: { name:'LIGHT',   color:'#00d4ff', desc:'Lower priority of background apps' },
+  2: { name:'MEDIUM',  color:'#8b5cf6', desc:'Terminate most non-essential processes' },
+  3: { name:'EXTREME', color:'#f43f5e', desc:'Kill everything except the game' },
+};
+
+function setLevel(lvl) {
+  boostLevel = lvl;
+  const cfg = LEVEL_CFG[lvl];
+  document.getElementById('levelBadge').textContent = cfg.name;
+  document.getElementById('levelBadge').style.cssText = `
+    background:${cfg.color}18; color:${cfg.color};
+    border-color:${cfg.color}44;
+    display:inline-block; font-size:11px; font-weight:700;
+    padding:2px 10px; border-radius:10px; border:1px solid;
+  `;
+  document.getElementById('levelDesc').textContent = cfg.desc;
+  document.querySelectorAll('.level-btn').forEach(b => {
+    b.dataset.active = String(parseInt(b.dataset.level) === lvl);
+  });
+  updateMeter();
+}
+
+function updateMeter() {
+  const fill = document.getElementById('meterFill');
+  const dot  = document.getElementById('meterDot');
+  const cfg  = LEVEL_CFG[boostLevel];
+  const pct  = (boostLevel / 3) * 100;
+  fill.style.width = pct + '%';
+  fill.style.background = `linear-gradient(90deg,#00d4ff,${cfg.color})`;
+  dot.style.background  = cfg.color;
+  dot.style.boxShadow   = `0 0 8px ${cfg.color}88`;
+  ['ml1','ml2','ml3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.style.color = (i + 1) <= boostLevel ? LEVEL_CFG[i + 1].color : 'var(--fg3)';
+    el.style.fontWeight = (i + 1) === boostLevel ? '700' : '400';
+  });
+}
+
+// ── Boost toggle ──────────────────────────────────────────────────────────────
+async function toggleBoost() {
+  if (!boosting) {
+    const pids = Object.entries(procSel).filter(([,v]) => v).map(([k]) => parseInt(k));
+    const gameExe = document.getElementById('gameSelect').value;
+    try {
+      const r = await fetch('/api/booster/boost', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ pids, level: boostLevel, gameExe })
+      });
+      const d = await r.json();
+      boosting = true;
+      updateBoostUI();
+      showToast(`Boost active! ${d.killed} closed, ${d.lowered} deprioritized, ~${d.memFreed} MB freed${d.gameFound ? ' · Game elevated' : ''}`);
+    } catch { showToast('Boost failed — is the server running?'); }
+  } else {
+    try {
+      await fetch('/api/booster/unboost', { method:'POST' });
+      boosting = false;
+      updateBoostUI();
+      showToast('Boost ended');
+    } catch { /* ignore */ }
+  }
+}
+
+function updateBoostUI() {
+  const btn = document.getElementById('boostBtn');
+  const dot = document.getElementById('statusDot');
+  if (boosting) {
+    btn.classList.add('active');
+    btn.textContent = '⚡   BOOSTING  ·  CLICK TO STOP';
+    dot.textContent = '● BOOSTING';
+    dot.style.color = LEVEL_CFG[boostLevel].color;
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '⚡   START BOOST';
+    dot.textContent = '● IDLE';
+    dot.style.color = 'var(--fg2)';
+    fetchProcs();
+  }
+}
+
+// ── VPN ───────────────────────────────────────────────────────────────────────
+async function loadVpn() {
+  try {
+    const r = await fetch('/api/booster/vpn');
+    const d = await r.json();
+    vpnProfiles = d.vpns;
+    activeVpnId = d.activeId;
+    renderVpn();
+    vpnProfiles.forEach(p => { if (!pings[p.id]) pingServer(p); });
+  } catch { /* ignore */ }
+}
+
+async function pingServer(profile) {
+  try {
+    const t0 = Date.now();
+    await fetch(`https://${profile.server}`, { mode:'no-cors', signal: AbortSignal.timeout(3000) });
+    pings[profile.id] = Date.now() - t0;
+  } catch { pings[profile.id] = null; }
+  renderVpn();
+}
+
+function pingColor(ms) {
+  if (!ms) return 'var(--fg3)';
+  if (ms < 60)  return 'var(--green)';
+  if (ms < 120) return 'var(--orange)';
+  return 'var(--red)';
+}
+
+function renderVpn() {
+  const list   = document.getElementById('vpnList');
+  const banner = document.getElementById('vpnBanner');
+  const bDot   = banner.querySelector('.banner-dot');
+  const bText  = banner.querySelector('.banner-text');
+  const bPing  = document.getElementById('bannerPing');
+
+  if (activeVpnId) {
+    const ap = vpnProfiles.find(p => p.id === activeVpnId);
+    banner.classList.add('connected');
+    bDot.style.color = 'var(--green)';
+    bText.textContent = `Connected to  ${ap?.name || 'VPN'}`;
+    bText.style.color = 'var(--green)';
+    bText.style.fontWeight = '700';
+    const pm = pings[activeVpnId];
+    bPing.textContent = pm ? `${pm} ms` : '';
+  } else {
+    banner.classList.remove('connected');
+    bDot.style.color = 'var(--fg3)';
+    bText.textContent = 'Not connected';
+    bText.style.color = 'var(--fg2)';
+    bText.style.fontWeight = '400';
+    bPing.textContent = '';
+  }
+
+  if (!vpnProfiles.length) {
+    list.innerHTML = '<div class="vpn-empty">No VPN profiles yet — click  ＋ Add VPN  to get started</div>';
+    return;
+  }
+
+  list.innerHTML = vpnProfiles.map(p => {
+    const isActive  = p.id === activeVpnId;
+    const pm        = pings[p.id];
+    const pingStr   = pm != null ? `${pm} ms` : '—';
+    const pcol      = pingColor(pm);
+    return `<div class="vpn-card${isActive ? ' connected' : ''}">
+      <span style="color:${isActive ? 'var(--green)' : 'var(--fg3)'}; font-size:12px">●</span>
+      <div class="vpn-info">
+        <div class="vpn-name">${esc(p.name)}</div>
+        <div class="vpn-sub">${esc(p.type)}  ·  ${esc(p.server)}  ·  ${pingStr}</div>
+      </div>
+      ${pm != null ? `<span class="ping-dot" style="color:${pcol}">●</span>` : ''}
+      <div class="vpn-actions">
+        ${isActive
+          ? `<button class="btn btn-red btn-sm" onclick="vpnDisconnect()">Disconnect</button>`
+          : `<button class="btn btn-cyan btn-sm" onclick="vpnConnect('${p.id}')">Connect</button>`}
+        ${!isActive ? `<button class="btn btn-icon" onclick="vpnRemove('${p.id}')">✕</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function vpnConnect(id) {
+  try {
+    const r = await fetch(`/api/booster/vpn/${id}/connect`, { method:'POST' });
+    const d = await r.json();
+    if (d.error) { showToast(`VPN error: ${d.error}`); return; }
+    activeVpnId = id;
+    renderVpn();
+    showToast('VPN connected!');
+  } catch { showToast('VPN connection failed'); }
+}
+
+async function vpnDisconnect() {
+  try {
+    await fetch('/api/booster/vpn/disconnect', { method:'POST' });
+    activeVpnId = null;
+    renderVpn();
+    showToast('VPN disconnected');
+  } catch { /* ignore */ }
+}
+
+async function vpnRemove(id) {
+  try {
+    await fetch(`/api/booster/vpn/${id}`, { method:'DELETE' });
+    delete pings[id];
+    loadVpn();
+  } catch { /* ignore */ }
+}
+
+// ── Add VPN modal ─────────────────────────────────────────────────────────────
+function openAddVpn() {
+  cfgFilePath = '';
+  document.getElementById('vpnName').value = '';
+  document.getElementById('vpnServer').value = '';
+  document.getElementById('vpnUser').value = '';
+  document.getElementById('vpnPass').value = '';
+  document.getElementById('vpnType').value = 'IKEv2';
+  document.getElementById('cfgName').textContent = 'No file selected';
+  document.getElementById('cfgField').style.display = 'none';
+  document.getElementById('credFields').style.display = '';
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalBackdrop'))
+    document.getElementById('modalBackdrop').classList.remove('open');
+}
+
+function onTypeChange() {
+  const t = document.getElementById('vpnType').value;
+  const needsFile = t === 'OpenVPN' || t === 'WireGuard';
+  document.getElementById('cfgField').style.display = needsFile ? '' : 'none';
+  document.getElementById('credFields').style.display = needsFile ? 'none' : '';
+}
+
+function browseConfig() {
+  document.getElementById('cfgInput').click();
+}
+
+function onCfgChosen() {
+  const file = document.getElementById('cfgInput').files[0];
+  if (file) {
+    cfgFilePath = file.name; // in production, send the actual path
+    document.getElementById('cfgName').textContent = file.name;
+    document.getElementById('cfgName').style.color = 'var(--fg)';
+  }
+}
+
+async function saveVpn() {
+  const name   = document.getElementById('vpnName').value.trim();
+  const server = document.getElementById('vpnServer').value.trim();
+  if (!name || !server) {
+    document.getElementById('vpnName').style.borderColor = !name ? 'var(--red)' : '';
+    document.getElementById('vpnServer').style.borderColor = !server ? 'var(--red)' : '';
+    return;
+  }
+  try {
+    await fetch('/api/booster/vpn', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name, server,
+        type:       document.getElementById('vpnType').value,
+        username:   document.getElementById('vpnUser').value,
+        password:   document.getElementById('vpnPass').value,
+        configPath: cfgFilePath,
+      })
+    });
+    document.getElementById('modalBackdrop').classList.remove('open');
+    loadVpn();
+    showToast(`VPN profile "${name}" added`);
+  } catch { showToast('Failed to save VPN'); }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastEl;
+function showToast(msg) {
+  if (!toastEl) {
+    toastEl = document.createElement('div');
+    toastEl.style.cssText = `
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:#0e0e1c; border:1px solid #2a2a50; border-radius:10px;
+      color:#f0f0ff; padding:10px 22px; font-size:13px; z-index:200;
+      pointer-events:none; transition:opacity .3s; white-space:nowrap;
+    `;
+    document.body.appendChild(toastEl);
+  }
+  toastEl.textContent = msg;
+  toastEl.style.opacity = '1';
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(() => { toastEl.style.opacity = '0'; }, 3200);
+}
+
+// ── Escape helper ─────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+setLevel(1);
+updateMeter();
+fetchStats();
+fetchProcs();
+statsTimer = setInterval(fetchStats, 2000);
+procTimer  = setInterval(fetchProcs, 3000);
+</script>
+</body>
+</html>
