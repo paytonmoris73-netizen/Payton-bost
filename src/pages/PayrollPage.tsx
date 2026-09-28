@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { UserWithStats } from "../lib/types";
 import { StatCard } from "../components/StatCard";
+import { useToast } from "../contexts/Toast";
 
 function fmt(h: number): string {
   const hrs = Math.floor(h);
@@ -19,8 +20,10 @@ function initials(name: string) {
 }
 
 export function PayrollPage() {
+  const { toast } = useToast();
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState<string | null>(null);
 
   useEffect(() => {
     load();
@@ -32,6 +35,19 @@ export function PayrollPage() {
       setTeam(data.filter(u => u.role !== "owner" && u.active));
     } catch {/* ignore */}
     finally { setLoading(false); }
+  }
+
+  async function payEmployee(u: UserWithStats) {
+    if (u.totalOwed <= 0) return;
+    if (!confirm(`Pay ${u.name} $${u.totalOwed.toFixed(2)} (month balance)?`)) return;
+    setPaying(u.id);
+    try {
+      await api.addPayment({ userId: u.id, amount: u.totalOwed, type: "payroll", description: "Month payroll" });
+      toast(`Paid ${u.name} $${u.totalOwed.toFixed(2)}`);
+      await load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Payment failed", "error");
+    } finally { setPaying(null); }
   }
 
   const totalWeekPay = team.reduce((s, u) => s + u.weekPay, 0);
@@ -65,7 +81,14 @@ export function PayrollPage() {
       <div className="card">
         <div className="card-header">
           <span className="card-title">Employee Breakdown</span>
-          <span className="text-muted">{team.length} employees</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {team.some(u => u.totalOwed > 0) && (
+              <span style={{ fontSize: 12, color: "var(--warning)", fontWeight: 600 }}>
+                {team.filter(u => u.totalOwed > 0).length} employees owed payment
+              </span>
+            )}
+            <span className="text-muted">{team.length} total</span>
+          </div>
         </div>
 
         {loading ? (
@@ -88,6 +111,8 @@ export function PayrollPage() {
                   <th className="text-right">Week Pay</th>
                   <th>Month Hours</th>
                   <th className="text-right">Month Pay</th>
+                  <th>Balance</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -95,7 +120,7 @@ export function PayrollPage() {
                   <tr key={member.id}>
                     <td>
                       <div className="row" style={{ gap: 8 }}>
-                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#2563eb", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#5b6af0,#8b5cf6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
                           {initials(member.name)}
                         </div>
                         <div>
@@ -110,6 +135,18 @@ export function PayrollPage() {
                     <td className="text-right pay-total">{member.hourlyRate > 0 ? money(member.weekPay) : <span className="td-muted">—</span>}</td>
                     <td>{fmt(member.monthHours)}</td>
                     <td className="text-right pay-total">{member.hourlyRate > 0 ? money(member.monthPay) : <span className="td-muted">—</span>}</td>
+                    <td>
+                      {member.totalOwed > 0
+                        ? <span style={{ fontWeight: 700, color: "var(--danger)", fontSize: 13 }}>-{money(member.totalOwed)}</span>
+                        : <span style={{ color: "var(--success)", fontSize: 13 }}>✓ Even</span>}
+                    </td>
+                    <td>
+                      {member.totalOwed > 0 && (
+                        <button className="btn btn-primary btn-sm" disabled={paying === member.id} onClick={() => payEmployee(member)}>
+                          {paying === member.id ? "…" : "Pay Now"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -120,6 +157,7 @@ export function PayrollPage() {
                   <td className="text-right pay-total" style={{ fontWeight: 700, padding: "12px 14px" }}>{money(totalWeekPay)}</td>
                   <td style={{ fontWeight: 600, padding: "12px 14px" }}>{fmt(totalMonthHours)}</td>
                   <td className="text-right pay-total" style={{ fontWeight: 700, padding: "12px 14px" }}>{money(totalMonthPay)}</td>
+                  <td colSpan={2} />
                 </tr>
               </tfoot>
             </table>

@@ -26,6 +26,14 @@ app.post("/api/setup", (req, res) => {
   res.json(db.setup(companyName.trim(), ownerName.trim()));
 });
 
+app.patch("/api/company", (req, res) => {
+  const { name } = req.body as { name?: string };
+  if (!name?.trim()) { res.status(400).json({ error: "Name required." }); return; }
+  const c = db.updateCompany({ name: name.trim() });
+  if (!c) { res.status(404).json({ error: "Not set up." }); return; }
+  res.json(c);
+});
+
 app.post("/api/company/regenerate-code", (_req, res) => {
   const code = db.regenerateJoinCode();
   if (!code) { res.status(404).json({ error: "Not set up." }); return; }
@@ -92,11 +100,17 @@ app.post("/api/time/clock-in", (req, res) => {
 });
 
 app.post("/api/time/clock-out", (req, res) => {
-  const { userId } = req.body as { userId?: string };
+  const { userId, notes } = req.body as { userId?: string; notes?: string };
   if (!userId) { res.status(400).json({ error: "userId required." }); return; }
-  const entry = db.clockOut(userId);
+  const entry = db.clockOut(userId, notes);
   if (!entry) { res.status(409).json({ error: "Not clocked in." }); return; }
   res.json(entry);
+});
+
+app.delete("/api/time/:id", (req, res) => {
+  const ok = db.deleteTimeEntry(req.params.id);
+  if (!ok) { res.status(404).json({ error: "Entry not found." }); return; }
+  res.json({ ok: true });
 });
 
 app.get("/api/time/status", (req, res) => {

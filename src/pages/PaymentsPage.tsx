@@ -3,6 +3,23 @@ import { api } from "../lib/api";
 import type { Payment, UserWithStats } from "../lib/types";
 import { Modal } from "../components/Modal";
 import { StatCard } from "../components/StatCard";
+import { useToast } from "../contexts/Toast";
+
+function exportPaymentsCSV(payments: Payment[]) {
+  const header = ["Date", "Employee", "Type", "Description", "Amount"];
+  const rows = payments.map(p => [
+    new Date(p.paidAt).toLocaleDateString(),
+    p.userName ?? "",
+    p.type,
+    p.description,
+    p.amount.toFixed(2),
+  ]);
+  const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "payments.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
 
 function money(n: number): string { return "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 function fmtDateTime(iso: string): string {
@@ -17,6 +34,7 @@ const typeBadge = (type: Payment["type"]) => {
 };
 
 export function PaymentsPage() {
+  const { toast } = useToast();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +64,7 @@ export function PaymentsPage() {
     if (!confirm("Delete this payment record?")) return;
     await api.deletePayment(id);
     const p = await api.refreshPayments(); setPayments(p);
+    toast("Payment deleted");
   }
 
   async function handleBulkPayroll() {
@@ -90,6 +109,9 @@ export function PaymentsPage() {
           <div className="page-subtitle">Record and track all employee payments</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => exportPaymentsCSV(shown)}>
+            ↓ CSV
+          </button>
           <button className="btn btn-secondary" onClick={handleBulkPayroll} disabled={bulking}>
             {bulking ? "Processing…" : "💰 Bulk Payroll"}
           </button>

@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { User, Page } from "../lib/types";
 import { api } from "../lib/api";
+import type { UserWithStats, Job, Payment } from "../lib/types";
 
 interface Props {
   user: User;
@@ -24,6 +25,7 @@ const ownerNav: NavItem[] = [
   { page: "owner-analytics",      label: "Analytics",       icon: <ChartIcon /> },
   { page: "owner-announcements",  label: "Announcements",   icon: <MegaphoneIcon /> },
   { page: "owner-billing",        label: "Plan & Billing",  icon: <BillingIcon /> },
+  { page: "owner-settings",       label: "Settings",        icon: <SettingsIcon /> },
 ];
 
 const employeeNav: NavItem[] = [
@@ -39,15 +41,70 @@ function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
+interface SearchResult { label: string; sub: string; page: Page; }
+
 export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
   const [company, setCompany] = useState<string>("");
+  const [dark, setDark] = useState<boolean>(() => localStorage.getItem("theme") === "dark");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.getCompany().then(c => setCompany(c.name)).catch(() => {});
   }, []);
 
+  // Apply dark mode to <html>
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  }, [dark]);
+
+  // Global Cmd+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(s => !s);
+      }
+      if (e.key === "Escape") setSearchOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (searchOpen) { setSearchQuery(""); setTimeout(() => searchRef.current?.focus(), 50); }
+  }, [searchOpen]);
+
+  async function runSearch(q: string) {
+    setSearchQuery(q);
+    if (!q.trim()) { setSearchResults([]); return; }
+    const lq = q.toLowerCase();
+    const results: SearchResult[] = [];
+    if (user.role === "owner") {
+      const [team, jobs, payments] = await Promise.all([
+        api.getTeam().catch(() => [] as UserWithStats[]),
+        api.getJobs().catch(() => [] as Job[]),
+        api.getPayments().catch(() => [] as Payment[]),
+      ]);
+      team.filter(u => u.role !== "owner" && u.active && u.name.toLowerCase().includes(lq)).slice(0, 3).forEach(u =>
+        results.push({ label: u.name, sub: u.title, page: "owner-team" }));
+      jobs.filter(j => j.title.toLowerCase().includes(lq) || j.description.toLowerCase().includes(lq)).slice(0, 3).forEach(j =>
+        results.push({ label: j.title, sub: j.category + " · " + j.status, page: "owner-jobs" }));
+      payments.filter(p => (p.userName ?? "").toLowerCase().includes(lq)).slice(0, 2).forEach(p =>
+        results.push({ label: (p.userName ?? "Unknown"), sub: "$" + p.amount.toFixed(2) + " — " + p.type, page: "owner-payments" }));
+    }
+    setSearchResults(results);
+  }
+
+  function goSearch(r: SearchResult) {
+    onNavigate(r.page);
+    setSearchOpen(false);
+  }
+
   const nav = user.role === "owner" ? ownerNav : employeeNav;
-  const section = user.role === "owner" ? "Management" : "My Workspace";
 
   return (
     <div className="app-shell">
@@ -59,8 +116,20 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
             <span className="company-tag">Company Portal</span>
           </div>
         </div>
+
+        {/* Search button */}
+        {user.role === "owner" && (
+          <div style={{ padding: "10px 12px" }}>
+            <button onClick={() => setSearchOpen(true)} style={{ width: "100%", padding: "7px 10px", borderRadius: 7, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--sidebar-text)", fontSize: 12, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", textAlign: "left" }}>
+              <span style={{ fontSize: 11 }}>🔍</span>
+              <span style={{ flex: 1 }}>Search…</span>
+              <span style={{ fontSize: 10, opacity: 0.5, fontFamily: "monospace" }}>⌘K</span>
+            </button>
+          </div>
+        )}
+
         <nav className="nav">
-          <div className="nav-section-label">{section}</div>
+          <div className="nav-section-label">{user.role === "owner" ? "Management" : "My Workspace"}</div>
           {nav.map(item => (
             <button
               key={item.page}
@@ -72,6 +141,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
             </button>
           ))}
         </nav>
+
         <div className="sidebar-bottom">
           <div className="user-info-bar">
             <div className="avatar">{initials(user.name)}</div>
@@ -79,11 +149,69 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
               <div className="name">{user.name}</div>
               <div className="role">{user.title}</div>
             </div>
+            {/* Dark mode toggle */}
+            <button
+              onClick={() => setDark(d => !d)}
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              style={{ marginLeft: "auto", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 13, flexShrink: 0 }}
+            >
+              {dark ? "☀" : "🌙"}
+            </button>
           </div>
           <button className="sidebar-signout" onClick={onLogout}>Sign out</button>
         </div>
       </aside>
+
       <main className="main-content">{children}</main>
+
+      {/* Search overlay */}
+      {searchOpen && (
+        <div onClick={() => setSearchOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "15vh" }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)", boxShadow: "0 24px 64px rgba(0,0,0,0.2)", overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
+              <span style={{ fontSize: 16 }}>🔍</span>
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={e => runSearch(e.target.value)}
+                placeholder="Search employees, jobs, payments…"
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 15, background: "transparent", color: "var(--text)" }}
+              />
+              <span style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", background: "var(--surface-2)", padding: "2px 6px", borderRadius: 4 }}>ESC</span>
+            </div>
+            {searchResults.length > 0 && (
+              <div style={{ maxHeight: 360, overflowY: "auto" }}>
+                {searchResults.map((r, i) => (
+                  <button key={i} onClick={() => goSearch(r)} style={{ width: "100%", padding: "11px 16px", display: "flex", alignItems: "center", gap: 12, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", borderBottom: i < searchResults.length - 1 ? "1px solid var(--border)" : "none" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--primary-light)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>
+                      {r.page.includes("team") ? "👤" : r.page.includes("jobs") ? "💼" : "💳"}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>{r.label}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{r.sub}</div>
+                    </div>
+                    <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-muted)" }}>→</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {searchQuery.trim() && searchResults.length === 0 && (
+              <div style={{ padding: "24px 16px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>No results for "{searchQuery}"</div>
+            )}
+            {!searchQuery.trim() && (
+              <div style={{ padding: "16px 16px", color: "var(--text-muted)", fontSize: 12 }}>
+                <div style={{ marginBottom: 8, fontWeight: 600 }}>Quick navigation</div>
+                {nav.slice(0, 5).map(n => (
+                  <button key={n.page} onClick={() => { onNavigate(n.page); setSearchOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 4px", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 13, borderRadius: 6, textAlign: "left" }}>
+                    <span style={{ width: 18, height: 18 }}>{n.icon}</span>{n.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -117,4 +245,7 @@ function MegaphoneIcon() {
 }
 function BillingIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="4" width="14" height="9" rx="1.5" /><path d="M1 7.5h14" /><path d="M4 11h2M9 11h3" strokeLinecap="round" /></svg>;
+}
+function SettingsIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="2" /><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" strokeLinecap="round" /></svg>;
 }

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "../lib/api";
 import type { User, UserWithStats, TimeEntry } from "../lib/types";
 import { StatCard } from "../components/StatCard";
+import { useToast } from "../contexts/Toast";
 
 interface Props {
   user: User;
@@ -35,6 +36,7 @@ function fmtTime(iso: string): string {
 }
 
 export function EmployeeDashboard({ user, onUserUpdate }: Props) {
+  const { toast } = useToast();
   const [stats, setStats] = useState<UserWithStats | null>(null);
   const [clocked, setClocked] = useState(false);
   const [clockEntry, setClockEntry] = useState<TimeEntry | null>(null);
@@ -42,6 +44,8 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
   const [recentEntries, setRecentEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -82,10 +86,17 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     finally { setActionLoading(false); }
   }
 
-  async function handleClockOut() {
+  function initiateClockOut() {
+    setNoteText("");
+    setShowNoteModal(true);
+  }
+
+  async function handleClockOut(note?: string) {
+    setShowNoteModal(false);
     setActionLoading(true);
     try {
-      await api.clockOut(user.id);
+      await api.clockOut(user.id, note);
+      toast("Clocked out successfully");
       await load();
     } catch {/* ignore */}
     finally { setActionLoading(false); }
@@ -115,7 +126,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
           </div>
           <div>
             {clocked ? (
-              <button onClick={handleClockOut} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "rgba(255,255,255,0.2)", border: "2px solid rgba(255,255,255,0.4)", color: "#fff", letterSpacing: "0.02em" }}>
+              <button onClick={initiateClockOut} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "rgba(255,255,255,0.2)", border: "2px solid rgba(255,255,255,0.4)", color: "#fff", letterSpacing: "0.02em" }}>
                 {actionLoading ? "…" : "Clock Out"}
               </button>
             ) : (
@@ -133,6 +144,31 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
         <StatCard label="This Month" value={fmt(stats?.monthHours ?? 0)} />
         <StatCard label="Week Pay" value={money(stats?.weekPay ?? 0)} sub={stats?.hourlyRate ? `$${stats.hourlyRate}/hr` : "Rate not set"} color="orange" />
       </div>
+
+      {/* Monthly earnings summary */}
+      {stats && stats.hourlyRate > 0 && (
+        <div className="card" style={{ marginBottom: 24 }}>
+          <div className="card-header"><span className="card-title">This Month's Earnings</span></div>
+          <div style={{ padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12 }}>
+            {[
+              { label: "Hours Worked", value: fmt(stats.monthHours), color: "var(--primary)" },
+              { label: "Gross Earned", value: "$" + stats.monthPay.toFixed(2), color: "var(--text)" },
+              { label: "Total Paid", value: "$" + stats.totalPaid.toFixed(2), color: "var(--success)" },
+              { label: stats.totalOwed > 0 ? "Outstanding" : "Balance", value: stats.totalOwed > 0 ? "-$" + stats.totalOwed.toFixed(2) : "✓ Settled", color: stats.totalOwed > 0 ? "var(--danger)" : "var(--success)" },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>{label}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color }}>{value}</div>
+              </div>
+            ))}
+          </div>
+          {stats.totalOwed > 0 && (
+            <div style={{ margin: "0 20px 16px", padding: "10px 14px", background: "rgba(214,59,59,0.08)", border: "1px solid rgba(214,59,59,0.2)", borderRadius: 8, fontSize: 13, color: "var(--danger)", fontWeight: 500 }}>
+              You have ${stats.totalOwed.toFixed(2)} outstanding — contact your manager to arrange payment.
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="card">
         <div className="card-header">
@@ -164,6 +200,32 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
           </div>
         )}
       </div>
+
+      {/* Clock-out note modal */}
+      {showNoteModal && (
+        <div onClick={() => setShowNoteModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)", boxShadow: "0 16px 48px rgba(0,0,0,0.15)", width: "100%", maxWidth: 400, padding: 28 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Clock Out</div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>Add an optional note about your shift.</div>
+            <div className="form-group">
+              <label>Shift note (optional)</label>
+              <textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="e.g. Completed inventory count, helped with onboarding…"
+                rows={3}
+                autoFocus
+                style={{ resize: "none" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+              <button className="btn btn-secondary" onClick={() => setShowNoteModal(false)}>Cancel</button>
+              <button className="btn btn-secondary" onClick={() => handleClockOut()}>Skip note</button>
+              <button className="btn btn-primary" onClick={() => handleClockOut(noteText)}>Clock Out</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

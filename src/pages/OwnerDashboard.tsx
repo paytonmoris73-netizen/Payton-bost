@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import type { User, UserWithStats } from "../lib/types";
+import type { User, UserWithStats, Job } from "../lib/types";
 import { StatCard } from "../components/StatCard";
 
 function greeting() {
@@ -31,6 +31,7 @@ function initials(name: string) {
 
 export function OwnerDashboard({ user }: Props) {
   const [team, setTeam] = useState<UserWithStats[]>([]);
+  const [overdueJobs, setOverdueJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,8 +42,10 @@ export function OwnerDashboard({ user }: Props) {
 
   async function load() {
     try {
-      const data = await api.getTeam();
+      const [data, jobs] = await Promise.all([api.getTeam(), api.getJobs()]);
       setTeam(data.filter(u => u.active && u.role !== "owner"));
+      const now = new Date();
+      setOverdueJobs(jobs.filter(j => j.status !== "completed" && j.dueDate && new Date(j.dueDate) < now));
     } catch {
       /* ignore */
     } finally {
@@ -84,6 +87,19 @@ export function OwnerDashboard({ user }: Props) {
         </div>
         <button className="btn btn-ghost btn-sm" style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff" }} onClick={load}>↻ Refresh</button>
       </div>
+
+      {/* Overdue jobs alert */}
+      {overdueJobs.length > 0 && (
+        <div style={{ background: "rgba(200,129,10,0.1)", border: "1px solid rgba(200,129,10,0.3)", borderRadius: 12, padding: "14px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 18 }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "var(--warning)", marginBottom: 2 }}>{overdueJobs.length} overdue job{overdueJobs.length > 1 ? "s" : ""}</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+              {overdueJobs.slice(0, 3).map(j => j.title).join(", ")}{overdueJobs.length > 3 ? ` +${overdueJobs.length - 3} more` : ""}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="stats-grid">
         <StatCard label="Employees" value={totalEmployees} sub="active team members" />

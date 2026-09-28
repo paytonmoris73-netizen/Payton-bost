@@ -98,6 +98,7 @@ export type Page =
   | "owner-expenses"
   | "owner-announcements"
   | "owner-billing"
+  | "owner-settings"
   | "employee-dashboard"
   | "employee-jobs"
   | "employee-time"

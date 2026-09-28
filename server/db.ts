@@ -173,6 +173,13 @@ export const db = {
   },
 
   getCompany: (): Company | null => read().company,
+
+  updateCompany(updates: Partial<Pick<Company,"name">>): Company | null {
+    const data = read();
+    if (!data.company) return null;
+    data.company = { ...data.company, ...updates };
+    write(data); return data.company;
+  },
   getUsers: (): User[] => read().users,
   getUserById: (id: string): User | null => read().users.find(u => u.id === id) ?? null,
   getUserByName: (name: string): User | null => read().users.find(u => u.name.toLowerCase() === name.toLowerCase()) ?? null,
@@ -206,11 +213,20 @@ export const db = {
     data.timeEntries.push(entry); write(data); return entry;
   },
 
-  clockOut(userId: string): TimeEntry | null {
+  clockOut(userId: string, notes?: string): TimeEntry | null {
     const data = read();
     const i = data.timeEntries.findIndex(e => e.userId === userId && e.clockOut === null);
     if (i === -1) return null;
-    data.timeEntries[i].clockOut = new Date().toISOString(); write(data); return data.timeEntries[i];
+    data.timeEntries[i].clockOut = new Date().toISOString();
+    if (notes?.trim()) data.timeEntries[i].notes = notes.trim();
+    write(data); return data.timeEntries[i];
+  },
+
+  deleteTimeEntry(id: string): boolean {
+    const data = read();
+    const i = data.timeEntries.findIndex(e => e.id === id);
+    if (i === -1) return false;
+    data.timeEntries.splice(i, 1); write(data); return true;
   },
 
   getTimeEntries: (userId?: string): TimeEntry[] => {

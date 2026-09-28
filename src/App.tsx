@@ -19,6 +19,8 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { BillingPage } from "./pages/BillingPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { ToastProvider } from "./contexts/Toast";
 
 const AUTH_KEY = "workbase_uid";
 
@@ -74,16 +76,19 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="loading-screen">
-        <div className="spinner" />
-      </div>
+      <ToastProvider>
+        <div className="loading-screen">
+          <div className="spinner" />
+        </div>
+      </ToastProvider>
     );
   }
 
-  if (!isSetup) return <SetupPage onSetup={handleSetupDone} />;
-  if (!user) return <LoginPage onLogin={handleLogin} />;
+  if (!isSetup) return <ToastProvider><SetupPage onSetup={handleSetupDone} /></ToastProvider>;
+  if (!user) return <ToastProvider><LoginPage onLogin={handleLogin} /></ToastProvider>;
 
   return (
+    <ToastProvider>
     <Layout user={user} page={page} onNavigate={setPage} onLogout={handleLogout}>
       {page === "owner-dashboard" && <OwnerDashboard user={user} />}
       {page === "owner-team" && <TeamPage user={user} onUserUpdate={setUser} />}
@@ -101,6 +106,8 @@ export default function App() {
       {page === "employee-payments" && <MyPaymentsPage user={user} />}
       {page === "employee-announcements" && <AnnouncementsPage user={user} />}
       {page === "owner-billing" && <BillingPage />}
+      {page === "owner-settings" && <SettingsPage />}
     </Layout>
+    </ToastProvider>
   );
 }

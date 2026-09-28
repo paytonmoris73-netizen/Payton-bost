@@ -33,6 +33,7 @@ export interface AnalyticsData {
 export const api = {
   getStatus: () => req<{ setup: boolean }>("/api/status"),
   getCompany: () => cached("company", () => req<Company>("/api/company")),
+  updateCompany: (name: string) => { cacheInvalidate("company"); return req<Company>("/api/company", { method: "PATCH", body: JSON.stringify({ name }) }); },
 
   setup: (companyName: string, ownerName: string) =>
     req<{ company: Company; user: User }>("/api/setup", { method: "POST", body: JSON.stringify({ companyName, ownerName }) }),
@@ -66,9 +67,14 @@ export const api = {
     return req<TimeEntry>("/api/time/clock-in", { method: "POST", body: JSON.stringify({ userId, notes }) });
   },
 
-  clockOut: (userId: string) => {
+  clockOut: (userId: string, notes?: string) => {
     cacheInvalidate("time:"); cacheInvalidate("team");
-    return req<TimeEntry>("/api/time/clock-out", { method: "POST", body: JSON.stringify({ userId }) });
+    return req<TimeEntry>("/api/time/clock-out", { method: "POST", body: JSON.stringify({ userId, notes }) });
+  },
+
+  deleteTimeEntry: (id: string) => {
+    cacheInvalidate("time:");
+    return req<{ ok: boolean }>(`/api/time/${id}`, { method: "DELETE" });
   },
 
   getTimeStatus: (userId: string) =>

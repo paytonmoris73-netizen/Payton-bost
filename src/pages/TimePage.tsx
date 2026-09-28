@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { TimeEntry, UserWithStats } from "../lib/types";
+import { useToast } from "../contexts/Toast";
 
 function fmt(h: number): string {
   const hrs = Math.floor(h);
@@ -17,7 +18,25 @@ function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+function exportCSV(entries: TimeEntry[]) {
+  const header = ["Employee", "Date", "Clock In", "Clock Out", "Duration (hrs)", "Notes"];
+  const rows = entries.map(e => [
+    e.userName ?? "",
+    fmtDate(e.clockIn),
+    fmtTime(e.clockIn),
+    e.clockOut ? fmtTime(e.clockOut) : "Active",
+    (e.hours ?? 0).toFixed(2),
+    e.notes ?? "",
+  ]);
+  const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "time-entries.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function TimePage() {
+  const { toast } = useToast();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [filter, setFilter] = useState<string>("all");
@@ -36,9 +55,19 @@ export function TimePage() {
     finally { setLoading(false); }
   }
 
-  const displayed = filter === "all"
-    ? entries
-    : entries.filter(e => e.userId === filter);
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this time entry? This cannot be undone.")) return;
+    try {
+      await api.deleteTimeEntry(id);
+      setEntries(es => es.filter(e => e.id !== id));
+      toast("Time entry deleted");
+    } catch {
+      toast("Failed to delete entry", "error");
+    }
+  }
+
+  const displayed = filter === "all" ? entries : entries.filter(e => e.userId === filter);
+  const totalHours = displayed.reduce((s, e) => s + (e.hours ?? 0), 0);
 
   return (
     <div className="page">
@@ -47,16 +76,24 @@ export function TimePage() {
           <div className="page-title">Time Tracking</div>
           <div className="page-subtitle">All employee time entries</div>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={load}>↻ Refresh</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => exportCSV(displayed)}>
+            ↓ Export CSV
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={load}>↻ Refresh</button>
+        </div>
       </div>
 
       <div className="card">
         <div className="card-header">
-          <span className="card-title">Time Entries</span>
+          <span className="card-title">
+            Time Entries
+            {displayed.length > 0 && <span style={{ fontWeight: 400, color: "var(--text-muted)", marginLeft: 8 }}>· {fmt(totalHours)} total</span>}
+          </span>
           <select
             value={filter}
             onChange={e => setFilter(e.target.value)}
-            style={{ padding: "6px 10px", border: "1px solid var(--border)", borderRadius: "var(--radius)", fontSize: 13, background: "var(--surface)" }}
+            style={{ padding: "6px 10px", border: "1px solid var(--border)", borderRadius: "var(--radius)", fontSize: 13, background: "var(--surface)", color: "var(--text)" }}
           >
             <option value="all">All Employees</option>
             {team.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -82,21 +119,27 @@ export function TimePage() {
                   <th>Clock Out</th>
                   <th>Duration</th>
                   <th>Notes</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {displayed.map(entry => (
                   <tr key={entry.id}>
                     <td className="td-name">{entry.userName ?? "—"}</td>
-                    <td>{fmtDate(entry.clockIn)}</td>
+                    <td className="td-muted">{fmtDate(entry.clockIn)}</td>
                     <td>{fmtTime(entry.clockIn)}</td>
                     <td>
                       {entry.clockOut
                         ? fmtTime(entry.clockOut)
                         : <span className="badge badge-green"><span className="badge-dot" />Active</span>}
                     </td>
-                    <td>{fmt(entry.hours ?? 0)}</td>
+                    <td style={{ fontWeight: 500 }}>{fmt(entry.hours ?? 0)}</td>
                     <td className="td-muted">{entry.notes || "—"}</td>
+                    <td>
+                      {entry.clockOut && (
+                        <button className="btn btn-ghost btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleDelete(entry.id)}>×</button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
