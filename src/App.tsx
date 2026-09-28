@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "./lib/api";
 import type { User, UserWithStats, Page } from "./lib/types";
 import { SetupPage } from "./pages/SetupPage";
@@ -70,17 +70,15 @@ export default function App() {
     handleLogin(owner);
   }
 
-  function handleUserUpdate(updated: UserWithStats) {
+  const handleUserUpdate = useCallback((updated: UserWithStats) => {
     setUser(updated);
-  }
+  }, []);
 
   if (loading) {
     return (
-      <ToastProvider>
-        <div className="loading-screen">
-          <div className="spinner" />
-        </div>
-      </ToastProvider>
+      <div className="loading-screen">
+        <div className="spinner" />
+      </div>
     );
   }
 

@@ -81,6 +81,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     setActionLoading(true);
     try {
       await api.clockIn(user.id);
+      toast("Clocked in successfully");
       await load();
     } catch {/* ignore */}
     finally { setActionLoading(false); }

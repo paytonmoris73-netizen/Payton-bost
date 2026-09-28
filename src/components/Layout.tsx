@@ -50,6 +50,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     api.getCompany().then(c => setCompany(c.name)).catch(() => {});
@@ -78,25 +79,28 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
     if (searchOpen) { setSearchQuery(""); setTimeout(() => searchRef.current?.focus(), 50); }
   }, [searchOpen]);
 
-  async function runSearch(q: string) {
+  function runSearch(q: string) {
     setSearchQuery(q);
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
     if (!q.trim()) { setSearchResults([]); return; }
-    const lq = q.toLowerCase();
-    const results: SearchResult[] = [];
-    if (user.role === "owner") {
-      const [team, jobs, payments] = await Promise.all([
-        api.getTeam().catch(() => [] as UserWithStats[]),
-        api.getJobs().catch(() => [] as Job[]),
-        api.getPayments().catch(() => [] as Payment[]),
-      ]);
-      team.filter(u => u.role !== "owner" && u.active && u.name.toLowerCase().includes(lq)).slice(0, 3).forEach(u =>
-        results.push({ label: u.name, sub: u.title, page: "owner-team" }));
-      jobs.filter(j => j.title.toLowerCase().includes(lq) || j.description.toLowerCase().includes(lq)).slice(0, 3).forEach(j =>
-        results.push({ label: j.title, sub: j.category + " · " + j.status, page: "owner-jobs" }));
-      payments.filter(p => (p.userName ?? "").toLowerCase().includes(lq)).slice(0, 2).forEach(p =>
-        results.push({ label: (p.userName ?? "Unknown"), sub: "$" + p.amount.toFixed(2) + " — " + p.type, page: "owner-payments" }));
-    }
-    setSearchResults(results);
+    searchDebounce.current = setTimeout(async () => {
+      const lq = q.toLowerCase();
+      const results: SearchResult[] = [];
+      if (user.role === "owner") {
+        const [team, jobs, payments] = await Promise.all([
+          api.getTeam().catch(() => [] as UserWithStats[]),
+          api.getJobs().catch(() => [] as Job[]),
+          api.getPayments().catch(() => [] as Payment[]),
+        ]);
+        team.filter(u => u.role !== "owner" && u.active && u.name.toLowerCase().includes(lq)).slice(0, 3).forEach(u =>
+          results.push({ label: u.name, sub: u.title, page: "owner-team" }));
+        jobs.filter(j => j.title.toLowerCase().includes(lq) || j.description.toLowerCase().includes(lq)).slice(0, 3).forEach(j =>
+          results.push({ label: j.title, sub: j.category + " · " + j.status, page: "owner-jobs" }));
+        payments.filter(p => (p.userName ?? "").toLowerCase().includes(lq)).slice(0, 2).forEach(p =>
+          results.push({ label: (p.userName ?? "Unknown"), sub: "$" + p.amount.toFixed(2) + " — " + p.type, page: "owner-payments" }));
+      }
+      setSearchResults(results);
+    }, 200);
   }
 
   function goSearch(r: SearchResult) {

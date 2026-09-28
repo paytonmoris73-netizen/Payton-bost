@@ -69,16 +69,17 @@ export function PaymentsPage() {
 
   async function handleBulkPayroll() {
     const owing = team.filter(u => u.totalOwed > 0);
-    if (owing.length === 0) { alert("All employees are up to date — no balances owed."); return; }
+    if (owing.length === 0) { toast("All employees are up to date — no balances owed.", "info"); return; }
     const names = owing.map(u => `${u.name} ($${u.totalOwed.toFixed(2)})`).join(", ");
     if (!confirm(`Pay month balances for:\n${names}\n\nThis will record ${owing.length} payment(s).`)) return;
     setBulking(true);
     try {
       const result = await api.bulkPayroll();
       const p = await api.refreshPayments(); setPayments(p);
-      alert(`Paid ${result.paid} employee(s) successfully.`);
-    } catch {/* ignore */}
-    finally { setBulking(false); }
+      toast(`Paid ${result.paid} employee(s) successfully`);
+    } catch {
+      toast("Bulk payroll failed", "error");
+    } finally { setBulking(false); }
   }
 
   async function handleAdd(e: React.FormEvent) {
@@ -89,6 +90,7 @@ export function PaymentsPage() {
       await api.addPayment({ userId, amount: parseFloat(amount), type, description: description.trim() || `${type === "payroll" ? "Payroll" : type === "bonus" ? "Bonus" : "Job payment"}` });
       setShowAdd(false); setUserId(""); setAmount(""); setType("payroll"); setDescription("");
       const p = await api.refreshPayments(); setPayments(p);
+      toast("Payment recorded");
     } catch (err) { setError(err instanceof Error ? err.message : "Failed"); }
     finally { setSaving(false); }
   }

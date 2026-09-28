@@ -63,12 +63,12 @@ export const api = {
   },
 
   clockIn: (userId: string, notes?: string) => {
-    cacheInvalidate("time:"); cacheInvalidate("team");
+    cacheInvalidate("time:"); cacheInvalidate("team"); cacheInvalidate("me:");
     return req<TimeEntry>("/api/time/clock-in", { method: "POST", body: JSON.stringify({ userId, notes }) });
   },
 
   clockOut: (userId: string, notes?: string) => {
-    cacheInvalidate("time:"); cacheInvalidate("team");
+    cacheInvalidate("time:"); cacheInvalidate("team"); cacheInvalidate("me:");
     return req<TimeEntry>("/api/time/clock-out", { method: "POST", body: JSON.stringify({ userId, notes }) });
   },
 
