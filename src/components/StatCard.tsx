@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface Props {
   label: string;
   value: string | number;
   sub?: string;
   color?: "green" | "blue" | "orange";
+  icon?: ReactNode;
+  delta?: { value: string; up: boolean };
 }
 
 // Parse a value that holds exactly one number, e.g. "$1,240.00", "12", "5h".
@@ -55,15 +57,19 @@ function useCountUp(target: number | null, decimals: number): number {
   return display;
 }
 
-export function StatCard({ label, value, sub, color }: Props) {
+export function StatCard({ label, value, sub, color, icon, delta }: Props) {
   const parsed = parseValue(value);
   const animated = useCountUp(parsed ? parsed.num : null, parsed?.decimals ?? 0);
   const display = parsed ? parsed.prefix + format(animated, parsed.decimals) + parsed.suffix : String(value);
 
   return (
     <div className={`stat-card${color ? ` ${color}` : ""}`}>
-      <div className="stat-card-label">{label}</div>
+      <div className="stat-card-top">
+        {icon && <span className="stat-icon">{icon}</span>}
+        {delta && <span className={`stat-delta${delta.up ? " up" : " down"}`}>{delta.up ? "↑" : "↓"} {delta.value}</span>}
+      </div>
       <div className="stat-card-value">{display}</div>
+      <div className="stat-card-label">{label}</div>
       {sub && <div className="stat-card-sub">{sub}</div>}
     </div>
   );

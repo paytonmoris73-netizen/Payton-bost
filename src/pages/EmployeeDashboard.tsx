@@ -109,41 +109,44 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
 
   return (
     <div className="page">
-      {/* Premium hero — clock + welcome */}
-      <div className="hero-banner" style={{ background: clocked ? "linear-gradient(120deg,#059669 0%,#10b981 100%)" : "linear-gradient(120deg,#ff9a56 0%,#ff6b35 55%,#f0611b 100%)", marginBottom: 24, transition: "background 0.6s" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.75, marginBottom: 6 }}>Welcome back</div>
-            <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 4 }}>{firstName}</div>
-            <div style={{ fontSize: 14, opacity: 0.8 }}>{user.title}</div>
+      {/* Greeting */}
+      <div className="dash-head">
+        <div>
+          <h1 className="dash-greeting">Welcome back, {firstName}</h1>
+          <div className="dash-sub">{user.title}</div>
+        </div>
+      </div>
+
+      {/* Clock status card */}
+      <div className={`clock-card${clocked ? " clocked" : ""}`}>
+        <div className="clock-card-status">
+          <span className={`clock-pill${clocked ? " on" : ""}`}>
+            {clocked ? <><span className="badge-dot" />On the clock</> : "Off the clock"}
+          </span>
+          <div className="clock-card-since">
+            {clocked && clockEntry ? `Started at ${fmtTime(clockEntry.clockIn)}` : "Clock in to start tracking your shift"}
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: "0.05em", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-              {clocked ? fmtTimer(elapsed) : "--:--:--"}
-            </div>
-            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6, fontWeight: 600 }}>
-              {clocked && clockEntry ? `Since ${fmtTime(clockEntry.clockIn)}` : "Not clocked in"}
-            </div>
-          </div>
-          <div>
-            {clocked ? (
-              <button onClick={initiateClockOut} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "rgba(255,255,255,0.2)", border: "2px solid rgba(255,255,255,0.4)", color: "#fff", letterSpacing: "0.02em" }}>
-                {actionLoading ? "…" : "Clock Out"}
-              </button>
-            ) : (
-              <button onClick={handleClockIn} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "#fff", border: "none", color: "#f0611b", letterSpacing: "0.02em" }}>
-                {actionLoading ? "…" : "Clock In"}
-              </button>
-            )}
-          </div>
+        </div>
+        <div className="clock-card-timer">{clocked ? fmtTimer(elapsed) : "00:00:00"}</div>
+        <div>
+          {clocked ? (
+            <button className="btn btn-lg" onClick={initiateClockOut} disabled={actionLoading}
+              style={{ background: "var(--surface)", border: "1.5px solid var(--border-strong)", color: "var(--text)" }}>
+              {actionLoading ? "…" : "Clock out"}
+            </button>
+          ) : (
+            <button className="btn btn-primary btn-lg" onClick={handleClockIn} disabled={actionLoading}>
+              {actionLoading ? "…" : "Clock in"}
+            </button>
+          )}
         </div>
       </div>
 
       <div className="stats-grid" style={{ marginBottom: 24 }}>
-        <StatCard label="Today" value={fmt(stats?.todayHours ?? 0)} color={clocked ? "green" : undefined} />
-        <StatCard label="This Week" value={fmt(stats?.weekHours ?? 0)} color="blue" />
-        <StatCard label="This Month" value={fmt(stats?.monthHours ?? 0)} />
-        <StatCard label="Week Pay" value={money(stats?.weekPay ?? 0)} sub={stats?.hourlyRate ? `$${stats.hourlyRate}/hr` : "Rate not set"} color="orange" />
+        <StatCard label="Today" value={fmt(stats?.todayHours ?? 0)} color={clocked ? "green" : undefined} icon={<TodayIcon />} />
+        <StatCard label="This week" value={fmt(stats?.weekHours ?? 0)} color="blue" icon={<WeekIcon />} />
+        <StatCard label="This month" value={fmt(stats?.monthHours ?? 0)} icon={<MonthIcon />} />
+        <StatCard label="Week pay" value={money(stats?.weekPay ?? 0)} sub={stats?.hourlyRate ? `$${stats.hourlyRate}/hr` : "Rate not set"} color="orange" icon={<WalletIcon />} />
       </div>
 
       {/* Monthly earnings summary */}
@@ -230,3 +233,9 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     </div>
   );
 }
+
+const sv = { viewBox: "0 0 20 20", fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, width: 18, height: 18 };
+function TodayIcon() { return <svg {...sv}><circle cx="10" cy="10" r="8" /><path d="M10 5.5V10l3 2" /></svg>; }
+function WeekIcon() { return <svg {...sv}><rect x="2.5" y="4" width="15" height="13.5" rx="2.5" /><path d="M2.5 8h15M6.5 2.5v3M13.5 2.5v3" /></svg>; }
+function MonthIcon() { return <svg {...sv}><rect x="2.5" y="4" width="15" height="13.5" rx="2.5" /><path d="M2.5 8h15M6 11.5h2M10 11.5h4M6 14.5h4" /></svg>; }
+function WalletIcon() { return <svg {...sv}><rect x="2.5" y="5" width="15" height="11" rx="2.5" /><path d="M2.5 9h15" /><circle cx="14" cy="12.5" r="1" fill="currentColor" stroke="none" /></svg>; }

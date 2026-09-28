@@ -62,38 +62,27 @@ export function OwnerDashboard({ user }: Props) {
 
   return (
     <div className="page">
-      {/* Welcome banner */}
-      <div className="hero-banner" style={{ background: "linear-gradient(120deg,#ff9a56 0%,#ff6b35 55%,#f0611b 100%)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+      {/* Greeting header */}
+      <div className="dash-head">
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.75, marginBottom: 4 }}>{greeting()}</div>
-          <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 4 }}>{user.name}</div>
-          <div style={{ fontSize: 14, opacity: 0.8 }}>{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</div>
+          <h1 className="dash-greeting">{greeting()}, {user.name.split(" ")[0]}</h1>
+          <div className="dash-sub">Here's what's happening across your team today.</div>
         </div>
-        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 28, fontWeight: 800 }}>{clockedIn}</div>
-            <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>Working Now</div>
+        <div className="dash-head-right">
+          <div className="dash-date">
+            <span className="dash-date-day">{new Date().toLocaleDateString(undefined, { weekday: "long" })}</span>
+            <span className="dash-date-full">{new Date().toLocaleDateString(undefined, { month: "long", day: "numeric" })}</span>
           </div>
-          <div style={{ width: 1, background: "rgba(255,255,255,0.2)" }} />
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 28, fontWeight: 800 }}>{totalEmployees}</div>
-            <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>Employees</div>
-          </div>
-          <div style={{ width: 1, background: "rgba(255,255,255,0.2)" }} />
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 28, fontWeight: 800 }}>{fmt(totalWeekHours)}</div>
-            <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>Week Hours</div>
-          </div>
+          <button className="btn btn-secondary btn-sm" onClick={load}>↻ Refresh</button>
         </div>
-        <button className="btn btn-ghost btn-sm" style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff" }} onClick={load}>↻ Refresh</button>
       </div>
 
       {/* Overdue jobs alert */}
       {overdueJobs.length > 0 && (
-        <div style={{ background: "rgba(200,129,10,0.1)", border: "1px solid rgba(200,129,10,0.3)", borderRadius: 12, padding: "14px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 18 }}>⚠️</span>
+        <div className="alert-strip">
+          <span className="alert-strip-icon"><WarnIcon /></span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "var(--warning)", marginBottom: 2 }}>{overdueJobs.length} overdue job{overdueJobs.length > 1 ? "s" : ""}</div>
+            <div style={{ fontWeight: 700, fontSize: 13.5, color: "var(--warning)", marginBottom: 2 }}>{overdueJobs.length} overdue job{overdueJobs.length > 1 ? "s" : ""}</div>
             <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
               {overdueJobs.slice(0, 3).map(j => j.title).join(", ")}{overdueJobs.length > 3 ? ` +${overdueJobs.length - 3} more` : ""}
             </div>
@@ -102,11 +91,11 @@ export function OwnerDashboard({ user }: Props) {
       )}
 
       <div className="stats-grid">
-        <StatCard label="Employees" value={totalEmployees} sub="active team members" />
-        <StatCard label="Clocked In" value={clockedIn} sub="working right now" color="green" />
-        <StatCard label="Week Hours" value={fmt(totalWeekHours)} sub="total this week" color="blue" />
-        <StatCard label="Week Payroll" value={money(totalWeekPay)} sub="estimated this week" color="orange" />
-        <StatCard label="Outstanding" value={money(owedTotal)} sub="owed to team" color="orange" />
+        <StatCard label="Active employees" value={totalEmployees} icon={<PeopleIcon />} sub={`${team.filter(u => u.hourlyRate > 0).length} on payroll`} />
+        <StatCard label="Working now" value={clockedIn} color="green" icon={<BoltIcon />} sub={totalEmployees > 0 ? `${Math.round((clockedIn / totalEmployees) * 100)}% of team clocked in` : "no one clocked in"} />
+        <StatCard label="Hours this week" value={fmt(totalWeekHours)} color="blue" icon={<ClockIcon />} sub="across all employees" />
+        <StatCard label="Payroll this week" value={money(totalWeekPay)} color="orange" icon={<WalletIcon />} sub="estimated to date" />
+        <StatCard label="Outstanding" value={money(owedTotal)} color="orange" icon={<CoinIcon />} delta={owedTotal > 0 ? { value: `${team.filter(u => u.totalOwed > 0).length} owed`, up: false } : undefined} sub={owedTotal > 0 ? "awaiting payout" : "all settled up"} />
       </div>
 
       <div className="card">
@@ -172,3 +161,11 @@ export function OwnerDashboard({ user }: Props) {
     </div>
   );
 }
+
+const sv = { viewBox: "0 0 20 20", fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, width: 18, height: 18 };
+function PeopleIcon() { return <svg {...sv}><circle cx="7" cy="6" r="3" /><path d="M2 17c0-2.8 2.2-5 5-5s5 2.2 5 5" /><path d="M14 3.5a3 3 0 010 5.5M18 17c0-2.2-1.3-4.1-3.2-4.8" /></svg>; }
+function BoltIcon() { return <svg {...sv}><path d="M11 2L4 11h5l-1 7 7-9h-5l1-7z" /></svg>; }
+function ClockIcon() { return <svg {...sv}><circle cx="10" cy="10" r="8" /><path d="M10 5.5V10l3 2" /></svg>; }
+function WalletIcon() { return <svg {...sv}><rect x="2.5" y="5" width="15" height="11" rx="2.5" /><path d="M2.5 9h15" /><circle cx="14" cy="12.5" r="1" fill="currentColor" stroke="none" /></svg>; }
+function CoinIcon() { return <svg {...sv}><ellipse cx="10" cy="6" rx="6.5" ry="2.8" /><path d="M3.5 6v8c0 1.5 2.9 2.8 6.5 2.8s6.5-1.3 6.5-2.8V6" /><path d="M3.5 10c0 1.5 2.9 2.8 6.5 2.8s6.5-1.3 6.5-2.8" /></svg>; }
+function WarnIcon() { return <svg {...sv} width={16} height={16}><path d="M10 2.5l8 14H2l8-14z" /><path d="M10 8v3.5M10 14h.01" /></svg>; }
