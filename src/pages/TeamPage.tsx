@@ -167,7 +167,7 @@ export function TeamPage({ user: _user }: Props) {
                       <tr key={member.id}>
                         <td>
                           <div className="row" style={{ gap: 8 }}>
-                            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#2563eb", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+                            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#ff9a56,#ff6b35)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                               {initials(member.name)}
                             </div>
                             <span className="td-name">{member.name}</span>
@@ -293,7 +293,7 @@ export function TeamPage({ user: _user }: Props) {
           footer={<button className="btn btn-secondary" onClick={() => setViewUser(null)}>Close</button>}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, paddingBottom: 20, borderBottom: "1px solid var(--border)" }}>
-            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg,#5b6af0,#8b5cf6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, flexShrink: 0 }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg,#ff9a56,#ff6b35)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, flexShrink: 0 }}>
               {initials(viewUser.name)}
             </div>
             <div>

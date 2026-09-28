@@ -81,7 +81,7 @@ export function AnnouncementsPage({ user }: Props) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {announcements.map(a => (
-            <div key={a.id} className="ann-card" style={{ background: "var(--surface)", border: `1px solid ${a.pinned ? "rgba(91,106,240,0.3)" : "var(--border)"}`, borderRadius: "var(--radius-lg)", padding: "20px 24px", boxShadow: a.pinned ? "0 0 0 2px rgba(91,106,240,0.08)" : "var(--shadow-xs)" }}>
+            <div key={a.id} className="ann-card" style={{ background: "var(--surface)", border: `1px solid ${a.pinned ? "rgba(255,122,61,0.35)" : "var(--border)"}`, borderRadius: "var(--radius-lg)", padding: "20px 24px", boxShadow: a.pinned ? "0 0 0 2px rgba(255,122,61,0.1)" : "var(--shadow-xs)" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   {a.pinned && <span className="badge badge-blue" style={{ fontSize: 11 }}>📌 Pinned</span>}

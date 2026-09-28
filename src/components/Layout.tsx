@@ -124,10 +124,10 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
         {/* Search button */}
         {user.role === "owner" && (
           <div style={{ padding: "10px 12px" }}>
-            <button onClick={() => setSearchOpen(true)} style={{ width: "100%", padding: "7px 10px", borderRadius: 7, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--sidebar-text)", fontSize: 12, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", textAlign: "left" }}>
+            <button onClick={() => setSearchOpen(true)} className="sidebar-search" style={{ width: "100%", padding: "8px 11px", borderRadius: 9, background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", textAlign: "left", transition: "all 0.16s" }}>
               <span style={{ fontSize: 11 }}>🔍</span>
               <span style={{ flex: 1 }}>Search…</span>
-              <span style={{ fontSize: 10, opacity: 0.5, fontFamily: "monospace" }}>⌘K</span>
+              <span style={{ fontSize: 10, opacity: 0.7, fontFamily: "monospace", background: "var(--surface)", padding: "1px 5px", borderRadius: 4, border: "1px solid var(--border)" }}>⌘K</span>
             </button>
           </div>
         )}
@@ -157,7 +157,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
             <button
               onClick={() => setDark(d => !d)}
               title={dark ? "Switch to light mode" : "Switch to dark mode"}
-              style={{ marginLeft: "auto", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 13, flexShrink: 0 }}
+              style={{ marginLeft: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 13, flexShrink: 0, transition: "all 0.16s" }}
             >
               {dark ? "☀" : "🌙"}
             </button>

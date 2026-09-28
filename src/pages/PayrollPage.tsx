@@ -120,7 +120,7 @@ export function PayrollPage() {
                   <tr key={member.id}>
                     <td>
                       <div className="row" style={{ gap: 8 }}>
-                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#5b6af0,#8b5cf6)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#ff9a56,#ff6b35)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                           {initials(member.name)}
                         </div>
                         <div>

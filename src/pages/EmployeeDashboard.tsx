@@ -110,7 +110,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
   return (
     <div className="page">
       {/* Premium hero — clock + welcome */}
-      <div style={{ background: clocked ? "linear-gradient(135deg,#059669 0%,#10b981 100%)" : "linear-gradient(135deg,#5b6af0 0%,#8b5cf6 100%)", borderRadius: 20, padding: "32px", marginBottom: 24, color: "#fff", transition: "background 0.6s" }}>
+      <div className="hero-banner" style={{ background: clocked ? "linear-gradient(120deg,#059669 0%,#10b981 100%)" : "linear-gradient(120deg,#ff9a56 0%,#ff6b35 55%,#f0611b 100%)", marginBottom: 24, transition: "background 0.6s" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.75, marginBottom: 6 }}>Welcome back</div>
@@ -131,7 +131,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
                 {actionLoading ? "…" : "Clock Out"}
               </button>
             ) : (
-              <button onClick={handleClockIn} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "#fff", border: "none", color: "#5b6af0", letterSpacing: "0.02em" }}>
+              <button onClick={handleClockIn} disabled={actionLoading} style={{ padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", background: "#fff", border: "none", color: "#f0611b", letterSpacing: "0.02em" }}>
                 {actionLoading ? "…" : "Clock In"}
               </button>
             )}

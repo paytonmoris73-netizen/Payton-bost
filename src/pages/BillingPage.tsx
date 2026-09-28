@@ -17,9 +17,9 @@ const PLANS = [
     name: "Pro",
     price: 29,
     period: "per month",
-    color: "#5b6af0",
-    gradient: "linear-gradient(135deg,#eef0fe,#f5f3ff)",
-    border: "rgba(91,106,240,0.3)",
+    color: "#ff7a3d",
+    gradient: "linear-gradient(135deg,#fff1e8,#fff7f0)",
+    border: "rgba(255,122,61,0.32)",
     badge: "Most Popular",
     features: ["Up to 25 employees", "Everything in Starter", "Job board & assignments", "Analytics & charts", "Expenses tracking", "Announcements", "Bulk payroll", "Payment history"],
     missing: ["Custom domain", "Priority support", "API access"],
@@ -29,9 +29,9 @@ const PLANS = [
     name: "Business",
     price: 79,
     period: "per month",
-    color: "#7c3aed",
-    gradient: "linear-gradient(135deg,#faf5ff,#ede9fe)",
-    border: "rgba(124,58,237,0.25)",
+    color: "#b45309",
+    gradient: "linear-gradient(135deg,#fef6e8,#fdf0d8)",
+    border: "rgba(180,83,9,0.28)",
     features: ["Unlimited employees", "Everything in Pro", "Custom domain", "Priority support", "API access", "Advanced reporting", "Custom roles", "Data export"],
     missing: [],
   },
@@ -62,7 +62,7 @@ export function BillingPage() {
       </div>
 
       {/* Current plan banner */}
-      <div style={{ background: "linear-gradient(135deg,#5b6af0 0%,#8b5cf6 100%)", borderRadius: 16, padding: "28px 32px", marginBottom: 28, color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
+      <div className="hero-banner" style={{ background: "linear-gradient(120deg,#ff9a56 0%,#ff6b35 55%,#f0611b 100%)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
         <div>
           <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.75, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Current Plan</div>
           <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 4 }}>{currentPlan.name} <span style={{ fontSize: 16, fontWeight: 500, opacity: 0.8 }}>${currentPlan.price}/mo</span></div>
@@ -70,7 +70,7 @@ export function BillingPage() {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button style={{ padding: "10px 20px", borderRadius: 8, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Manage Billing</button>
-          <button style={{ padding: "10px 20px", borderRadius: 8, background: "#fff", border: "none", color: "#5b6af0", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Upgrade to Business →</button>
+          <button style={{ padding: "10px 20px", borderRadius: 8, background: "#fff", border: "none", color: "#f0611b", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Upgrade to Business →</button>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ export function BillingPage() {
                 </div>
               ))}
             </div>
-            <button style={{ width: "100%", padding: "10px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: plan.current ? "default" : "pointer", background: plan.current ? "rgba(91,106,240,0.1)" : plan.price === 0 ? "rgba(0,0,0,0.06)" : plan.color, color: plan.current ? plan.color : plan.price === 0 ? "var(--text-secondary)" : "#fff", border: plan.current ? `1.5px solid ${plan.color}40` : "none" }}>
+            <button style={{ width: "100%", padding: "10px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: plan.current ? "default" : "pointer", background: plan.current ? "rgba(255,122,61,0.12)" : plan.price === 0 ? "rgba(0,0,0,0.06)" : plan.color, color: plan.current ? plan.color : plan.price === 0 ? "var(--text-secondary)" : "#fff", border: plan.current ? `1.5px solid ${plan.color}40` : "none" }}>
               {plan.current ? "✓ Current Plan" : plan.price === 0 ? "Downgrade" : "Upgrade"}
             </button>
           </div>

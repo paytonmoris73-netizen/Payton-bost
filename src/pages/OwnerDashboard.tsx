@@ -63,7 +63,7 @@ export function OwnerDashboard({ user }: Props) {
   return (
     <div className="page">
       {/* Welcome banner */}
-      <div style={{ background: "linear-gradient(135deg,#5b6af0 0%,#8b5cf6 100%)", borderRadius: 16, padding: "28px 32px", marginBottom: 28, color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+      <div className="hero-banner" style={{ background: "linear-gradient(120deg,#ff9a56 0%,#ff6b35 55%,#f0611b 100%)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.75, marginBottom: 4 }}>{greeting()}</div>
           <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 4 }}>{user.name}</div>
@@ -142,7 +142,7 @@ export function OwnerDashboard({ user }: Props) {
                   <tr key={member.id}>
                     <td>
                       <div className="row" style={{ gap: 8 }}>
-                        <div className="user-avatar" style={{ width: 28, height: 28, fontSize: 11, borderRadius: "50%", background: "#2563eb", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, flexShrink: 0 }}>
+                        <div className="user-avatar" style={{ width: 30, height: 30, fontSize: 11, borderRadius: "50%", background: "linear-gradient(135deg,#ff9a56,#ff6b35)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>
                           {initials(member.name)}
                         </div>
                         <div>

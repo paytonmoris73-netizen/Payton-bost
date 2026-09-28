@@ -10,7 +10,7 @@ function fmt(h: number): string {
 }
 function money(n: number): string { return "$" + n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
-const COLORS = ["#2563eb","#059669","#d97706","#7c3aed","#dc2626","#0891b2","#65a30d"];
+const COLORS = ["#ff6b35","#0ea372","#7c3aed","#0891b2","#dc2626","#d97706","#65a30d"];
 
 export function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
