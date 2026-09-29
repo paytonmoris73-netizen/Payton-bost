@@ -23,12 +23,60 @@ export interface User {
   title: string;
 }
 
+export interface BreakEntry {
+  breakStart: string;
+  breakEnd: string | null;
+}
+
 export interface TimeEntry {
   id: string;
   userId: string;
   clockIn: string;
   clockOut: string | null;
   notes: string;
+  jobId?: string;
+  breaks: BreakEntry[];
+}
+
+export interface Shift {
+  id: string;
+  userId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  title: string;
+  note: string;
+  createdAt: string;
+}
+
+export interface LeaveRequest {
+  id: string;
+  userId: string;
+  startDate: string;
+  endDate: string;
+  type: "vacation" | "sick" | "personal" | "other";
+  reason: string;
+  status: "pending" | "approved" | "denied";
+  createdAt: string;
+  reviewedAt: string | null;
+}
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  message: string;
+  type: "info" | "success" | "warning";
+  read: boolean;
+  createdAt: string;
+}
+
+export interface EmployeeNote {
+  id: string;
+  userId: string;
+  text: string;
+  authorId: string;
+  authorName: string;
+  createdAt: string;
 }
 
 export interface Job {
@@ -67,6 +115,7 @@ export interface Expense {
   notes: string;
   date: string;
   createdAt: string;
+  recurring: boolean;
 }
 
 export interface Announcement {
@@ -87,6 +136,10 @@ interface DbData {
   payments: Payment[];
   expenses: Expense[];
   announcements: Announcement[];
+  shifts: Shift[];
+  leaveRequests: LeaveRequest[];
+  notifications: AppNotification[];
+  employeeNotes: EmployeeNote[];
 }
 
 export interface UserWithStats extends User {
@@ -102,19 +155,23 @@ export interface UserWithStats extends User {
 
 function read(): DbData {
   try {
-    if (!fs.existsSync(DB_PATH)) return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [] };
+    if (!fs.existsSync(DB_PATH)) return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [], shifts: [], leaveRequests: [], notifications: [], employeeNotes: [] };
     const raw = JSON.parse(fs.readFileSync(DB_PATH, "utf-8")) as Partial<DbData>;
     return {
       company: raw.company ?? null,
       users: raw.users ?? [],
-      timeEntries: raw.timeEntries ?? [],
+      timeEntries: (raw.timeEntries ?? []).map(e => ({ ...e, breaks: e.breaks ?? [] })),
       jobs: raw.jobs ?? [],
       payments: raw.payments ?? [],
-      expenses: raw.expenses ?? [],
+      expenses: (raw.expenses ?? []).map(e => ({ ...e, recurring: e.recurring ?? false })),
       announcements: raw.announcements ?? [],
+      shifts: raw.shifts ?? [],
+      leaveRequests: raw.leaveRequests ?? [],
+      notifications: raw.notifications ?? [],
+      employeeNotes: raw.employeeNotes ?? [],
     };
   } catch {
-    return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [] };
+    return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [], shifts: [], leaveRequests: [], notifications: [], employeeNotes: [] };
   }
 }
 
@@ -125,7 +182,13 @@ function write(data: DbData): void {
 function hoursFor(entry: TimeEntry): number {
   const start = new Date(entry.clockIn).getTime();
   const end = entry.clockOut ? new Date(entry.clockOut).getTime() : Date.now();
-  return (end - start) / (1000 * 60 * 60);
+  let breakMs = 0;
+  for (const b of (entry.breaks ?? [])) {
+    const bs = new Date(b.breakStart).getTime();
+    const be = b.breakEnd ? new Date(b.breakEnd).getTime() : Date.now();
+    breakMs += be - bs;
+  }
+  return Math.max(0, (end - start - breakMs) / (1000 * 60 * 60));
 }
 
 function weekStart(): number {
@@ -206,10 +269,10 @@ export const db = {
     data.users.push(user); write(data); return user;
   },
 
-  clockIn(userId: string, notes: string): TimeEntry | null {
+  clockIn(userId: string, notes: string, jobId?: string): TimeEntry | null {
     const data = read();
     if (data.timeEntries.find(e => e.userId === userId && e.clockOut === null)) return null;
-    const entry: TimeEntry = { id: randomUUID(), userId, clockIn: new Date().toISOString(), clockOut: null, notes };
+    const entry: TimeEntry = { id: randomUUID(), userId, clockIn: new Date().toISOString(), clockOut: null, notes, jobId, breaks: [] };
     data.timeEntries.push(entry); write(data); return entry;
   },
 
@@ -366,6 +429,130 @@ export const db = {
     const i = data.announcements.findIndex(a => a.id === id);
     if (i === -1) return false;
     data.announcements.splice(i, 1); write(data); return true;
+  },
+
+  // ── Breaks ──
+
+  startBreak(entryId: string): TimeEntry | null {
+    const data = read();
+    const i = data.timeEntries.findIndex(e => e.id === entryId && e.clockOut === null);
+    if (i === -1) return null;
+    const entry = data.timeEntries[i];
+    if ((entry.breaks ?? []).some(b => !b.breakEnd)) return null; // already on break
+    entry.breaks = [...(entry.breaks ?? []), { breakStart: new Date().toISOString(), breakEnd: null }];
+    write(data); return entry;
+  },
+
+  endBreak(entryId: string): TimeEntry | null {
+    const data = read();
+    const i = data.timeEntries.findIndex(e => e.id === entryId && e.clockOut === null);
+    if (i === -1) return null;
+    const entry = data.timeEntries[i];
+    const bi = (entry.breaks ?? []).findIndex(b => !b.breakEnd);
+    if (bi === -1) return null;
+    entry.breaks[bi].breakEnd = new Date().toISOString();
+    write(data); return entry;
+  },
+
+  // ── Shifts ──
+
+  getShifts(userId?: string): Shift[] {
+    const data = read();
+    const all = [...data.shifts].sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+    return userId ? all.filter(s => s.userId === userId) : all;
+  },
+
+  createShift(s: Omit<Shift,"id"|"createdAt">): Shift {
+    const data = read();
+    const shift: Shift = { ...s, id: randomUUID(), createdAt: new Date().toISOString() };
+    data.shifts.push(shift); write(data); return shift;
+  },
+
+  updateShift(id: string, updates: Partial<Omit<Shift,"id"|"createdAt">>): Shift | null {
+    const data = read();
+    const i = data.shifts.findIndex(s => s.id === id);
+    if (i === -1) return null;
+    data.shifts[i] = { ...data.shifts[i], ...updates }; write(data); return data.shifts[i];
+  },
+
+  deleteShift(id: string): boolean {
+    const data = read();
+    const i = data.shifts.findIndex(s => s.id === id);
+    if (i === -1) return false;
+    data.shifts.splice(i, 1); write(data); return true;
+  },
+
+  // ── Leave Requests ──
+
+  getLeaveRequests(userId?: string): LeaveRequest[] {
+    const data = read();
+    const all = [...data.leaveRequests].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return userId ? all.filter(r => r.userId === userId) : all;
+  },
+
+  createLeaveRequest(r: Omit<LeaveRequest,"id"|"createdAt"|"reviewedAt"|"status">): LeaveRequest {
+    const data = read();
+    const req: LeaveRequest = { ...r, id: randomUUID(), status: "pending", createdAt: new Date().toISOString(), reviewedAt: null };
+    data.leaveRequests.push(req); write(data); return req;
+  },
+
+  updateLeaveRequest(id: string, status: "approved" | "denied"): LeaveRequest | null {
+    const data = read();
+    const i = data.leaveRequests.findIndex(r => r.id === id);
+    if (i === -1) return null;
+    data.leaveRequests[i] = { ...data.leaveRequests[i], status, reviewedAt: new Date().toISOString() };
+    write(data); return data.leaveRequests[i];
+  },
+
+  deleteLeaveRequest(id: string): boolean {
+    const data = read();
+    const i = data.leaveRequests.findIndex(r => r.id === id);
+    if (i === -1) return false;
+    data.leaveRequests.splice(i, 1); write(data); return true;
+  },
+
+  // ── Notifications ──
+
+  getNotifications(userId: string): AppNotification[] {
+    return [...read().notifications.filter(n => n.userId === userId)].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  },
+
+  addNotification(n: Omit<AppNotification,"id"|"createdAt"|"read">): AppNotification {
+    const data = read();
+    const notif: AppNotification = { ...n, id: randomUUID(), read: false, createdAt: new Date().toISOString() };
+    data.notifications.push(notif); write(data); return notif;
+  },
+
+  markNotificationRead(id: string): boolean {
+    const data = read();
+    const i = data.notifications.findIndex(n => n.id === id);
+    if (i === -1) return false;
+    data.notifications[i].read = true; write(data); return true;
+  },
+
+  markAllNotificationsRead(userId: string): void {
+    const data = read();
+    data.notifications.filter(n => n.userId === userId).forEach(n => { n.read = true; });
+    write(data);
+  },
+
+  // ── Employee Notes ──
+
+  getEmployeeNotes(userId: string): EmployeeNote[] {
+    return [...read().employeeNotes.filter(n => n.userId === userId)].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  },
+
+  addEmployeeNote(n: Omit<EmployeeNote,"id"|"createdAt">): EmployeeNote {
+    const data = read();
+    const note: EmployeeNote = { ...n, id: randomUUID(), createdAt: new Date().toISOString() };
+    data.employeeNotes.push(note); write(data); return note;
+  },
+
+  deleteEmployeeNote(id: string): boolean {
+    const data = read();
+    const i = data.employeeNotes.findIndex(n => n.id === id);
+    if (i === -1) return false;
+    data.employeeNotes.splice(i, 1); write(data); return true;
   },
 
   // ── Analytics ──

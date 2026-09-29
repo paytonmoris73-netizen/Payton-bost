@@ -9,8 +9,8 @@ const CATEGORIES = ["General", "Software", "Hardware", "Travel", "Food", "Market
 function money(n: number): string { return "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 function fmtDate(iso: string): string { return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
 
-interface FormState { title: string; amount: string; category: string; vendor: string; notes: string; date: string; }
-const blank = (): FormState => ({ title: "", amount: "", category: "General", vendor: "", notes: "", date: new Date().toISOString().split("T")[0] });
+interface FormState { title: string; amount: string; category: string; vendor: string; notes: string; date: string; recurring: boolean; }
+const blank = (): FormState => ({ title: "", amount: "", category: "General", vendor: "", notes: "", date: new Date().toISOString().split("T")[0], recurring: false });
 
 export function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -34,7 +34,7 @@ export function ExpensesPage() {
     if (!form.title.trim() || !form.amount) return;
     setSaving(true); setError("");
     try {
-      const payload = { title: form.title.trim(), amount: parseFloat(form.amount), category: form.category, vendor: form.vendor.trim(), notes: form.notes.trim(), date: form.date };
+      const payload = { title: form.title.trim(), amount: parseFloat(form.amount), category: form.category, vendor: form.vendor.trim(), notes: form.notes.trim(), date: form.date, recurring: form.recurring };
       if (editExp) {
         await api.updateExpense(editExp.id, payload);
         setEditExp(null);
@@ -55,8 +55,19 @@ export function ExpensesPage() {
   }
 
   function openEdit(exp: Expense) {
-    setForm({ title: exp.title, amount: String(exp.amount), category: exp.category, vendor: exp.vendor, notes: exp.notes, date: exp.date });
+    setForm({ title: exp.title, amount: String(exp.amount), category: exp.category, vendor: exp.vendor, notes: exp.notes, date: exp.date, recurring: exp.recurring });
     setEditExp(exp); setError("");
+  }
+
+  const thisMonthStr = new Date().toISOString().slice(0, 7);
+  const recurringMissing = expenses.filter(e => e.recurring && !expenses.some(e2 => e2.title === e.title && e2.recurring && e2.date.startsWith(thisMonthStr) && e2.id !== e.id));
+
+  async function applyRecurring() {
+    const today = new Date().toISOString().split("T")[0];
+    for (const e of recurringMissing) {
+      await api.createExpense({ title: e.title, amount: e.amount, category: e.category, vendor: e.vendor, notes: e.notes, date: today, recurring: true });
+    }
+    setExpenses(await api.refreshExpenses());
   }
 
   const shown = filterCat === "all" ? expenses : expenses.filter(e => e.category === filterCat);
@@ -75,6 +86,14 @@ export function ExpensesPage() {
         </div>
         <button className="btn btn-primary" onClick={() => { setShowAdd(true); setForm(blank()); setError(""); }}>+ Add Expense</button>
       </div>
+
+      {recurringMissing.length > 0 && (
+        <div style={{ background: "rgba(255,107,53,0.08)", border: "1px solid rgba(255,107,53,0.25)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 16 }}>🔁</span>
+          <span style={{ flex: 1, fontWeight: 600, color: "var(--primary)" }}>{recurringMissing.length} recurring expense{recurringMissing.length !== 1 ? "s" : ""} haven't been applied this month</span>
+          <button className="btn btn-sm btn-primary" onClick={applyRecurring}>Apply Now</button>
+        </div>
+      )}
 
       <div className="stats-grid">
         <StatCard label="Total Spent" value={money(total)} sub="all time" />
@@ -132,7 +151,7 @@ export function ExpensesPage() {
                   <tr key={e.id}>
                     <td className="td-muted" style={{ whiteSpace: "nowrap" }}>{fmtDate(e.date)}</td>
                     <td className="td-name">{e.title}</td>
-                    <td><span className="badge badge-gray">{e.category}</span></td>
+                    <td><span className="badge badge-gray">{e.category}</span>{e.recurring && <span style={{ marginLeft: 4, fontSize: 10, color: "var(--primary)" }}>🔁</span>}</td>
                     <td className="td-muted">{e.vendor || "—"}</td>
                     <td className="td-muted" style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.notes || "—"}</td>
                     <td className="text-right" style={{ fontWeight: 700, color: "var(--danger)" }}>{money(e.amount)}</td>
@@ -202,6 +221,10 @@ export function ExpensesPage() {
             <div className="form-group">
               <label>Notes</label>
               <input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Optional details" />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0" }}>
+              <input type="checkbox" id="recurring-toggle" checked={form.recurring} onChange={e => setForm(f => ({ ...f, recurring: e.target.checked }))} style={{ width: 16, height: 16, cursor: "pointer" }} />
+              <label htmlFor="recurring-toggle" style={{ fontSize: 13, cursor: "pointer", userSelect: "none" }}>🔁 Recurring monthly expense</label>
             </div>
             {error && <p className="error-msg">{error}</p>}
           </form>

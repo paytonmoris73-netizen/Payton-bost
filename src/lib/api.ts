@@ -1,4 +1,4 @@
-import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement, ActivityEvent } from "./types";
+import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement, ActivityEvent, Shift, LeaveRequest, AppNotification, EmployeeNote } from "./types";
 import { cacheGet, cacheSet, cacheInvalidate } from "./cache";
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
@@ -62,9 +62,19 @@ export const api = {
     return req<TimeEntry[]>(`/api/time${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`).then(d => { cacheSet(`time:${userId ?? "all"}`, d); return d; });
   },
 
-  clockIn: (userId: string, notes?: string) => {
+  clockIn: (userId: string, notes?: string, jobId?: string) => {
     cacheInvalidate("time:"); cacheInvalidate("team"); cacheInvalidate("me:");
-    return req<TimeEntry>("/api/time/clock-in", { method: "POST", body: JSON.stringify({ userId, notes }) });
+    return req<TimeEntry>("/api/time/clock-in", { method: "POST", body: JSON.stringify({ userId, notes, jobId }) });
+  },
+
+  startBreak: (entryId: string) => {
+    cacheInvalidate("time:"); cacheInvalidate("me:");
+    return req<TimeEntry>(`/api/time/${entryId}/break/start`, { method: "POST" });
+  },
+
+  endBreak: (entryId: string) => {
+    cacheInvalidate("time:"); cacheInvalidate("me:");
+    return req<TimeEntry>(`/api/time/${entryId}/break/end`, { method: "POST" });
   },
 
   clockOut: (userId: string, notes?: string) => {
@@ -160,6 +170,50 @@ export const api = {
   createAnnouncement: (a: { title: string; body: string; authorId: string; pinned?: boolean }) => { cacheInvalidate("announcements"); return req<Announcement>("/api/announcements", { method: "POST", body: JSON.stringify(a) }); },
   updateAnnouncement: (id: string, updates: Partial<Pick<Announcement,"pinned"|"title"|"body">>) => { cacheInvalidate("announcements"); return req<Announcement>(`/api/announcements/${id}`, { method: "PATCH", body: JSON.stringify(updates) }); },
   deleteAnnouncement: (id: string) => { cacheInvalidate("announcements"); return req<{ ok: boolean }>(`/api/announcements/${id}`, { method: "DELETE" }); },
+
+  // ── Shifts ──
+  getShifts: (userId?: string) =>
+    cached(`shifts:${userId ?? "all"}`, () => req<Shift[]>(`/api/shifts${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`)),
+  refreshShifts: (userId?: string) => {
+    cacheInvalidate("shifts:");
+    const url = `/api/shifts${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`;
+    return req<Shift[]>(url).then(d => { cacheSet(`shifts:${userId ?? "all"}`, d); return d; });
+  },
+  createShift: (s: { userId: string; date: string; startTime: string; endTime: string; title: string; note: string }) => {
+    cacheInvalidate("shifts:"); return req<Shift>("/api/shifts", { method: "POST", body: JSON.stringify(s) });
+  },
+  updateShift: (id: string, updates: Partial<Omit<Shift,"id"|"createdAt">>) => {
+    cacheInvalidate("shifts:"); return req<Shift>(`/api/shifts/${id}`, { method: "PATCH", body: JSON.stringify(updates) });
+  },
+  deleteShift: (id: string) => {
+    cacheInvalidate("shifts:"); return req<{ ok: boolean }>(`/api/shifts/${id}`, { method: "DELETE" });
+  },
+
+  // ── Leave ──
+  getLeaveRequests: (userId?: string) =>
+    req<LeaveRequest[]>(`/api/leave${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
+  createLeaveRequest: (r: { userId: string; startDate: string; endDate: string; type: string; reason: string }) =>
+    req<LeaveRequest>("/api/leave", { method: "POST", body: JSON.stringify(r) }),
+  updateLeaveRequest: (id: string, status: "approved" | "denied") =>
+    req<LeaveRequest>(`/api/leave/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  deleteLeaveRequest: (id: string) =>
+    req<{ ok: boolean }>(`/api/leave/${id}`, { method: "DELETE" }),
+
+  // ── Notifications ──
+  getNotifications: (userId: string) =>
+    req<AppNotification[]>(`/api/notifications?userId=${encodeURIComponent(userId)}`),
+  markNotificationRead: (id: string) =>
+    req<{ ok: boolean }>(`/api/notifications/${id}/read`, { method: "PATCH" }),
+  markAllNotificationsRead: (userId: string) =>
+    req<{ ok: boolean }>("/api/notifications/read-all", { method: "POST", body: JSON.stringify({ userId }) }),
+
+  // ── Employee Notes ──
+  getEmployeeNotes: (userId: string) =>
+    req<EmployeeNote[]>(`/api/team/${encodeURIComponent(userId)}/notes`),
+  addEmployeeNote: (userId: string, text: string, authorId: string) =>
+    req<EmployeeNote>(`/api/team/${encodeURIComponent(userId)}/notes`, { method: "POST", body: JSON.stringify({ text, authorId }) }),
+  deleteEmployeeNote: (noteId: string) =>
+    req<{ ok: boolean }>(`/api/team/notes/${noteId}`, { method: "DELETE" }),
 
   // ── Activity ──
   getActivity: () => req<ActivityEvent[]>("/api/activity"),

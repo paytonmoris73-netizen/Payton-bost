@@ -92,9 +92,9 @@ app.get("/api/time", (req, res) => {
 });
 
 app.post("/api/time/clock-in", (req, res) => {
-  const { userId, notes } = req.body as { userId?: string; notes?: string };
+  const { userId, notes, jobId } = req.body as { userId?: string; notes?: string; jobId?: string };
   if (!userId) { res.status(400).json({ error: "userId required." }); return; }
-  const entry = db.clockIn(userId, notes ?? "");
+  const entry = db.clockIn(userId, notes ?? "", jobId);
   if (!entry) { res.status(409).json({ error: "Already clocked in." }); return; }
   res.json(entry);
 });
@@ -130,6 +130,19 @@ app.get("/api/time/status", (req, res) => {
   if (!userId) { res.status(400).json({ error: "userId required." }); return; }
   const entry = db.getOpenEntry(userId);
   res.json({ clocked: entry !== null, entry: entry ?? null });
+});
+
+// ── Breaks ────────────────────────────────────────────────
+app.post("/api/time/:id/break/start", (req, res) => {
+  const entry = db.startBreak(req.params.id);
+  if (!entry) { res.status(409).json({ error: "Entry not found or already on break." }); return; }
+  res.json(entry);
+});
+
+app.post("/api/time/:id/break/end", (req, res) => {
+  const entry = db.endBreak(req.params.id);
+  if (!entry) { res.status(409).json({ error: "Entry not found or not on break." }); return; }
+  res.json(entry);
 });
 
 // ── Jobs ──────────────────────────────────────────────────
@@ -224,9 +237,9 @@ app.post("/api/payroll/bulk", (req, res) => {
 app.get("/api/expenses", (_req, res) => { res.json(db.getExpenses()); });
 
 app.post("/api/expenses", (req, res) => {
-  const { title, amount, category, vendor, notes, date } = req.body as { title?: string; amount?: number; category?: string; vendor?: string; notes?: string; date?: string };
+  const { title, amount, category, vendor, notes, date, recurring } = req.body as { title?: string; amount?: number; category?: string; vendor?: string; notes?: string; date?: string; recurring?: boolean };
   if (!title?.trim() || !amount || amount <= 0) { res.status(400).json({ error: "Title and positive amount required." }); return; }
-  res.json(db.createExpense({ title: title.trim(), amount: Number(amount), category: category?.trim() || "General", vendor: vendor?.trim() || "", notes: notes?.trim() || "", date: date || new Date().toISOString().split("T")[0] }));
+  res.json(db.createExpense({ title: title.trim(), amount: Number(amount), category: category?.trim() || "General", vendor: vendor?.trim() || "", notes: notes?.trim() || "", date: date || new Date().toISOString().split("T")[0], recurring: recurring ?? false }));
 });
 
 app.patch("/api/expenses/:id", (req, res) => {
@@ -249,7 +262,12 @@ app.post("/api/announcements", (req, res) => {
   if (!title?.trim() || !authorId) { res.status(400).json({ error: "Title and authorId required." }); return; }
   const author = db.getUserById(authorId);
   if (!author) { res.status(404).json({ error: "Author not found." }); return; }
-  res.json(db.createAnnouncement({ title: title.trim(), body: body?.trim() || "", authorId, authorName: author.name, pinned: pinned ?? false }));
+  const ann = db.createAnnouncement({ title: title.trim(), body: body?.trim() || "", authorId, authorName: author.name, pinned: pinned ?? false });
+  // notify all active employees
+  db.getUsers().filter(u => u.role !== "owner" && u.active).forEach(u => {
+    db.addNotification({ userId: u.id, message: `New announcement: ${title.trim()}`, type: "info" });
+  });
+  res.json(ann);
 });
 
 app.patch("/api/announcements/:id", (req, res) => {
@@ -261,6 +279,110 @@ app.patch("/api/announcements/:id", (req, res) => {
 app.delete("/api/announcements/:id", (req, res) => {
   const ok = db.deleteAnnouncement(req.params.id);
   if (!ok) { res.status(404).json({ error: "Announcement not found." }); return; }
+  res.json({ ok: true });
+});
+
+// ── Shifts ────────────────────────────────────────────────
+app.get("/api/shifts", (req, res) => {
+  const { userId } = req.query as { userId?: string };
+  const shifts = db.getShifts(userId);
+  const userMap = new Map(db.getUsers().map(u => [u.id, u]));
+  res.json(shifts.map(s => ({ ...s, userName: userMap.get(s.userId)?.name ?? "Unknown" })));
+});
+
+app.post("/api/shifts", (req, res) => {
+  const { userId, date, startTime, endTime, title, note } = req.body as { userId?: string; date?: string; startTime?: string; endTime?: string; title?: string; note?: string };
+  if (!userId || !date || !startTime || !endTime) { res.status(400).json({ error: "userId, date, startTime, endTime required." }); return; }
+  const shift = db.createShift({ userId, date, startTime, endTime, title: title?.trim() ?? "", note: note?.trim() ?? "" });
+  const user = db.getUserById(userId);
+  res.json({ ...shift, userName: user?.name ?? "Unknown" });
+});
+
+app.patch("/api/shifts/:id", (req, res) => {
+  const shift = db.updateShift(req.params.id, req.body as Parameters<typeof db.updateShift>[1]);
+  if (!shift) { res.status(404).json({ error: "Shift not found." }); return; }
+  res.json(shift);
+});
+
+app.delete("/api/shifts/:id", (req, res) => {
+  const ok = db.deleteShift(req.params.id);
+  if (!ok) { res.status(404).json({ error: "Shift not found." }); return; }
+  res.json({ ok: true });
+});
+
+// ── Leave Requests ────────────────────────────────────────
+app.get("/api/leave", (req, res) => {
+  const { userId } = req.query as { userId?: string };
+  const requests = db.getLeaveRequests(userId);
+  const userMap = new Map(db.getUsers().map(u => [u.id, u]));
+  res.json(requests.map(r => ({ ...r, userName: userMap.get(r.userId)?.name ?? "Unknown" })));
+});
+
+app.post("/api/leave", (req, res) => {
+  const { userId, startDate, endDate, type, reason } = req.body as { userId?: string; startDate?: string; endDate?: string; type?: string; reason?: string };
+  if (!userId || !startDate || !endDate) { res.status(400).json({ error: "userId, startDate, endDate required." }); return; }
+  const leaveType = (["vacation","sick","personal","other"].includes(type ?? "") ? type as "vacation"|"sick"|"personal"|"other" : "other");
+  const request = db.createLeaveRequest({ userId, startDate, endDate, type: leaveType, reason: reason?.trim() ?? "" });
+  const user = db.getUserById(userId);
+  // notify owner(s)
+  db.getUsers().filter(u => u.role === "owner").forEach(owner => {
+    db.addNotification({ userId: owner.id, message: `${user?.name ?? "Employee"} requested ${leaveType} leave (${startDate} – ${endDate})`, type: "info" });
+  });
+  res.json({ ...request, userName: user?.name ?? "Unknown" });
+});
+
+app.patch("/api/leave/:id", (req, res) => {
+  const { status } = req.body as { status?: string };
+  if (status !== "approved" && status !== "denied") { res.status(400).json({ error: "status must be approved or denied." }); return; }
+  const request = db.updateLeaveRequest(req.params.id, status);
+  if (!request) { res.status(404).json({ error: "Request not found." }); return; }
+  // notify employee
+  const label = status === "approved" ? "approved" : "denied";
+  db.addNotification({ userId: request.userId, message: `Your ${request.type} leave request (${request.startDate} – ${request.endDate}) was ${label}`, type: status === "approved" ? "success" : "warning" });
+  res.json(request);
+});
+
+app.delete("/api/leave/:id", (req, res) => {
+  const ok = db.deleteLeaveRequest(req.params.id);
+  if (!ok) { res.status(404).json({ error: "Request not found." }); return; }
+  res.json({ ok: true });
+});
+
+// ── Notifications ─────────────────────────────────────────
+app.get("/api/notifications", (req, res) => {
+  const { userId } = req.query as { userId?: string };
+  if (!userId) { res.status(400).json({ error: "userId required." }); return; }
+  res.json(db.getNotifications(userId));
+});
+
+app.post("/api/notifications/read-all", (req, res) => {
+  const { userId } = req.body as { userId?: string };
+  if (!userId) { res.status(400).json({ error: "userId required." }); return; }
+  db.markAllNotificationsRead(userId);
+  res.json({ ok: true });
+});
+
+app.patch("/api/notifications/:id/read", (_req, res) => {
+  db.markNotificationRead(_req.params.id);
+  res.json({ ok: true });
+});
+
+// ── Employee Notes ────────────────────────────────────────
+app.get("/api/team/:id/notes", (req, res) => {
+  res.json(db.getEmployeeNotes(req.params.id));
+});
+
+app.post("/api/team/:id/notes", (req, res) => {
+  const { text, authorId } = req.body as { text?: string; authorId?: string };
+  if (!text?.trim() || !authorId) { res.status(400).json({ error: "text and authorId required." }); return; }
+  const author = db.getUserById(authorId);
+  if (!author) { res.status(404).json({ error: "Author not found." }); return; }
+  res.json(db.addEmployeeNote({ userId: req.params.id, text: text.trim(), authorId, authorName: author.name }));
+});
+
+app.delete("/api/team/notes/:noteId", (req, res) => {
+  const ok = db.deleteEmployeeNote(req.params.noteId);
+  if (!ok) { res.status(404).json({ error: "Note not found." }); return; }
   res.json({ ok: true });
 });
 

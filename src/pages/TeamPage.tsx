@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import type { User, UserWithStats } from "../lib/types";
+import type { User, UserWithStats, EmployeeNote } from "../lib/types";
 import { Modal } from "../components/Modal";
 
 interface Props {
@@ -17,7 +17,7 @@ function fmt(h: number): string { const hrs = Math.floor(h); const mins = Math.r
 
 type SortKey = "name" | "weekHours" | "monthHours" | "weekPay" | "monthPay";
 
-export function TeamPage({ user: _user }: Props) {
+export function TeamPage({ user }: Props) {
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -28,6 +28,9 @@ export function TeamPage({ user: _user }: Props) {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortAsc, setSortAsc] = useState(true);
+  const [notes, setNotes] = useState<EmployeeNote[]>([]);
+  const [noteText, setNoteText] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
 
   // Add form
   const [name, setName] = useState("");
@@ -85,6 +88,29 @@ export function TeamPage({ user: _user }: Props) {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function openView(member: UserWithStats) {
+    setViewUser(member);
+    setNoteText("");
+    try { setNotes(await api.getEmployeeNotes(member.id)); } catch {/* ignore */}
+  }
+
+  async function handleAddNote() {
+    if (!viewUser || !noteText.trim()) return;
+    setSavingNote(true);
+    try {
+      await api.addEmployeeNote(viewUser.id, noteText.trim(), user.id);
+      setNoteText("");
+      setNotes(await api.getEmployeeNotes(viewUser.id));
+    } catch {/* ignore */}
+    finally { setSavingNote(false); }
+  }
+
+  async function handleDeleteNote(noteId: string) {
+    if (!viewUser) return;
+    await api.deleteEmployeeNote(noteId);
+    setNotes(await api.getEmployeeNotes(viewUser.id));
   }
 
   async function handleDeactivate(u: UserWithStats) {
@@ -225,7 +251,7 @@ export function TeamPage({ user: _user }: Props) {
                         <td>{member.hourlyRate > 0 ? money(member.weekPay) : <span className="td-muted">—</span>}</td>
                         <td>
                           <div className="td-actions">
-                            <button className="btn btn-ghost btn-sm" onClick={() => setViewUser(member)}>View</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => openView(member)}>View</button>
                             <button className="btn btn-ghost btn-sm" onClick={() => { setEditUser(member); setError(""); }}>Edit</button>
                             <button className="btn btn-ghost btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleDeactivate(member)}>Remove</button>
                           </div>
@@ -348,7 +374,7 @@ export function TeamPage({ user: _user }: Props) {
                 : <span className="badge badge-gray">Off</span>}
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
             {[
               { label: "Today", value: fmt(viewUser.todayHours) },
               { label: "This Week", value: fmt(viewUser.weekHours) },
@@ -364,6 +390,27 @@ export function TeamPage({ user: _user }: Props) {
                 <div style={{ fontSize: 15, fontWeight: 700, color: color ?? "var(--text)" }}>{value}</div>
               </div>
             ))}
+          </div>
+          {/* Manager Notes */}
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>Manager Notes</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <input type="text" value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Add a note…" style={{ flex: 1, padding: "7px 10px", border: "1px solid var(--border)", borderRadius: "var(--radius)", fontSize: 13, background: "var(--surface)" }} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddNote(); }}} />
+              <button className="btn btn-sm btn-primary" onClick={handleAddNote} disabled={savingNote || !noteText.trim()}>Add</button>
+            </div>
+            {notes.length === 0 ? (
+              <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: "8px 0" }}>No notes yet</p>
+            ) : (
+              notes.map(n => (
+                <div key={n.id} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", marginBottom: 6, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, color: "var(--text)" }}>{n.text}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{n.authorName} · {new Date(n.createdAt).toLocaleDateString()}</div>
+                  </div>
+                  <button onClick={() => handleDeleteNote(n.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 14, lineHeight: 1, flexShrink: 0 }}>×</button>
+                </div>
+              ))
+            )}
           </div>
         </Modal>
       )}

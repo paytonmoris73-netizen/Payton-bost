@@ -189,7 +189,20 @@ export function PaymentsPage() {
       {/* Pay stub modal */}
       {stubPayment && (
         <Modal title="Payment Receipt" onClose={() => setStubPayment(null)}
-          footer={<button className="btn btn-secondary" onClick={() => setStubPayment(null)}>Close</button>}
+          footer={
+            <>
+              <button className="btn btn-ghost btn-sm" onClick={() => {
+                const w = window.open("", "_blank", "width=420,height=600");
+                if (!w) return;
+                w.document.write(`<html><head><title>Receipt</title><style>body{font-family:monospace;font-size:13px;padding:24px;line-height:1.8}h2{text-align:center;font-size:16px;letter-spacing:1px}.row{display:flex;justify-content:space-between;gap:12px}.muted{color:#888}.total{font-size:20px;font-weight:800;color:#0ea372}.hr{border:none;border-top:2px dashed #ccc;margin:12px 0}</style></head><body>`);
+                w.document.write(`<h2>PAYMENT RECEIPT</h2><p style="text-align:center;color:#888;font-size:11px">WorkBase Payroll System</p><hr class="hr">`);
+                [["Receipt #", stubPayment.id.slice(0,8).toUpperCase()],["Employee",stubPayment.userName??"-"],["Date",new Date(stubPayment.paidAt).toLocaleDateString()],["Type",stubPayment.type],["Description",stubPayment.description||"-"]].forEach(([k,v]) => w.document.write(`<div class="row"><span class="muted">${k}:</span><span>${v}</span></div>`));
+                w.document.write(`<hr class="hr"><div class="row"><span style="font-weight:800;font-size:15px">TOTAL PAID</span><span class="total">${money(stubPayment.amount)}</span></div></body></html>`);
+                w.document.close(); w.print();
+              }}>🖨 Print</button>
+              <button className="btn btn-secondary" onClick={() => setStubPayment(null)}>Close</button>
+            </>
+          }
         >
           <div style={{ fontFamily: "monospace", fontSize: 13, lineHeight: 1.8 }}>
             <div style={{ textAlign: "center", paddingBottom: 16, marginBottom: 16, borderBottom: "2px dashed var(--border)" }}>

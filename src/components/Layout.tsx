@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import type { User, Page } from "../lib/types";
+import type { User, Page, AppNotification } from "../lib/types";
 import { api } from "../lib/api";
 import type { UserWithStats, Job, Payment } from "../lib/types";
 
@@ -17,6 +17,8 @@ interface NavItem { page: Page; label: string; icon: ReactNode; }
 const ownerNav: NavItem[] = [
   { page: "owner-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
   { page: "owner-activity",       label: "Activity",        icon: <ActivityIcon /> },
+  { page: "owner-schedule",       label: "Schedule",        icon: <CalendarIcon /> },
+  { page: "owner-leave",          label: "Leave Requests",  icon: <LeaveIcon /> },
   { page: "owner-jobs",           label: "Jobs",            icon: <JobIcon /> },
   { page: "owner-team",           label: "Team",            icon: <TeamIcon /> },
   { page: "owner-time",           label: "Time Tracking",   icon: <ClockIcon /> },
@@ -31,6 +33,8 @@ const ownerNav: NavItem[] = [
 
 const employeeNav: NavItem[] = [
   { page: "employee-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
+  { page: "employee-schedule",       label: "My Schedule",    icon: <CalendarIcon /> },
+  { page: "employee-leave",          label: "My Leave",       icon: <LeaveIcon /> },
   { page: "employee-jobs",           label: "My Jobs",        icon: <JobIcon /> },
   { page: "employee-time",           label: "My Hours",       icon: <ClockIcon /> },
   { page: "employee-pay",            label: "My Pay",         icon: <PayIcon /> },
@@ -52,10 +56,31 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [bellOpen, setBellOpen] = useState(false);
+
+  const unread = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     api.getCompany().then(c => setCompany(c.name)).catch(() => {});
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  async function loadNotifications() {
+    try { setNotifications(await api.getNotifications(user.id)); } catch {/* ignore */}
+  }
+
+  async function handleMarkAllRead() {
+    await api.markAllNotificationsRead(user.id);
+    loadNotifications();
+  }
+
+  async function handleMarkRead(id: string) {
+    await api.markNotificationRead(id);
+    setNotifications(ns => ns.map(n => n.id === id ? { ...n, read: true } : n));
+  }
 
   // Apply dark mode to <html>
   useEffect(() => {
@@ -161,17 +186,52 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
               <div className="name">{user.name}</div>
               <div className="role">{user.title}</div>
             </div>
+            {/* Bell */}
+            <button
+              onClick={() => setBellOpen(b => !b)}
+              title="Notifications"
+              style={{ position: "relative", marginLeft: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "all 0.16s", color: "var(--text-secondary)" }}
+            >
+              <span style={{ width: 14, height: 14, display: "flex" }}><BellIcon /></span>
+              {unread > 0 && <span style={{ position: "absolute", top: -4, right: -4, background: "var(--danger)", color: "#fff", borderRadius: 10, fontSize: 9, fontWeight: 700, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>{unread > 9 ? "9+" : unread}</span>}
+            </button>
             {/* Dark mode toggle */}
             <button
               onClick={() => setDark(d => !d)}
               title={dark ? "Switch to light mode" : "Switch to dark mode"}
-              style={{ marginLeft: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 13, flexShrink: 0, transition: "all 0.16s" }}
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 13, flexShrink: 0, transition: "all 0.16s" }}
             >
               {dark ? "☀" : "🌙"}
             </button>
           </div>
           <button className="sidebar-signout" onClick={onLogout}>Sign out</button>
         </div>
+
+        {/* Notification panel */}
+        {bellOpen && (
+          <div onClick={() => setBellOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 900 }}>
+            <div onClick={e => e.stopPropagation()} style={{ position: "fixed", bottom: 80, left: 8, width: 300, maxHeight: 420, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,0.18)", overflow: "hidden", display: "flex", flexDirection: "column", zIndex: 901 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
+                <span style={{ fontWeight: 700, fontSize: 13 }}>Notifications {unread > 0 && <span style={{ background: "var(--danger)", color: "#fff", borderRadius: 9, fontSize: 10, padding: "1px 5px", marginLeft: 4 }}>{unread}</span>}</span>
+                {unread > 0 && <button onClick={handleMarkAllRead} style={{ fontSize: 11, color: "var(--primary)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Mark all read</button>}
+              </div>
+              <div style={{ overflowY: "auto", flex: 1 }}>
+                {notifications.length === 0 ? (
+                  <div style={{ padding: 24, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>No notifications</div>
+                ) : notifications.slice(0, 20).map(n => (
+                  <div key={n.id} onClick={() => handleMarkRead(n.id)} style={{ padding: "10px 14px", borderBottom: "1px solid var(--border)", cursor: "pointer", background: n.read ? "transparent" : "rgba(255,122,61,0.05)", display: "flex", gap: 10, alignItems: "flex-start", transition: "background 0.1s" }}>
+                    <span style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>{n.type === "warning" ? "⚠️" : n.type === "success" ? "✅" : "📢"}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: n.read ? 500 : 700, color: "var(--text)", lineHeight: 1.4 }}>{n.message}</div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{new Date(n.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {new Date(n.createdAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</div>
+                    </div>
+                    {!n.read && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary)", flexShrink: 0, marginTop: 4 }} />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </aside>
 
       <main className="main-content">{children}</main>
@@ -263,4 +323,13 @@ function BillingIcon() {
 }
 function SettingsIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="2" /><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" strokeLinecap="round" /></svg>;
+}
+function CalendarIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="2.5" width="14" height="12" rx="1.5" /><path d="M1 6h14M5 1v3M11 1v3" strokeLinecap="round" /></svg>;
+}
+function LeaveIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="5" r="2.5" /><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" /><path d="M6 11.5l2 2 2-2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function BellIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1.5a5 5 0 015 5v3l1.5 2H1.5L3 9.5v-3a5 5 0 015-5z" strokeLinejoin="round" /><path d="M6.5 13a1.5 1.5 0 003 0" strokeLinecap="round" /></svg>;
 }

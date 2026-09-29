@@ -21,6 +21,9 @@ import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { BillingPage } from "./pages/BillingPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ActivityPage } from "./pages/ActivityPage";
+import { SchedulePage } from "./pages/SchedulePage";
+import { MySchedulePage } from "./pages/MySchedulePage";
+import { LeavePage } from "./pages/LeavePage";
 import { ToastProvider } from "./contexts/Toast";
 
 const AUTH_KEY = "workbase_uid";
@@ -98,6 +101,8 @@ export default function App() {
     <Layout user={user} page={page} onNavigate={setPage} onLogout={handleLogout}>
       {page === "owner-dashboard" && <OwnerDashboard user={user} />}
       {page === "owner-activity" && <ActivityPage />}
+      {page === "owner-schedule" && <SchedulePage />}
+      {page === "owner-leave" && <LeavePage user={user} />}
       {page === "owner-team" && <TeamPage user={user} onUserUpdate={setUser} />}
       {page === "owner-time" && <TimePage />}
       {page === "owner-payroll" && <PayrollPage />}
@@ -105,6 +110,8 @@ export default function App() {
       {page === "owner-payments" && <PaymentsPage />}
       {page === "owner-analytics" && <AnalyticsPage />}
       {page === "employee-dashboard" && <EmployeeDashboard user={user} onUserUpdate={handleUserUpdate} />}
+      {page === "employee-schedule" && <MySchedulePage user={user} />}
+      {page === "employee-leave" && <LeavePage user={user} />}
       {page === "employee-time" && <MyTimePage user={user} />}
       {page === "employee-pay" && <MyPayPage user={user} />}
       {page === "owner-expenses" && <ExpensesPage />}

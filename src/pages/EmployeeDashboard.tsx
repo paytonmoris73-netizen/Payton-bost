@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../lib/api";
-import type { User, UserWithStats, TimeEntry, Job } from "../lib/types";
+import type { User, UserWithStats, TimeEntry, Job, BreakEntry } from "../lib/types";
 import { StatCard } from "../components/StatCard";
 import { useToast } from "../contexts/Toast";
 
@@ -48,7 +48,10 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
   const [noteText, setNoteText] = useState("");
   const [showClockInNote, setShowClockInNote] = useState(false);
   const [clockInNote, setClockInNote] = useState("");
+  const [clockInJobId, setClockInJobId] = useState("");
   const [myJobs, setMyJobs] = useState<Job[]>([]);
+  const [onBreak, setOnBreak] = useState(false);
+  const [breakElapsed, setBreakElapsed] = useState(0);
 
   const load = useCallback(async () => {
     try {
@@ -62,6 +65,9 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
       onUserUpdate(me);
       setClocked(status.clocked);
       setClockEntry(status.entry ?? null);
+      const activeEntry = status.entry;
+      const currentBreak = activeEntry?.breaks?.find((b: BreakEntry) => !b.breakEnd) ?? null;
+      setOnBreak(!!currentBreak);
       setRecentEntries(entries.slice(0, 10));
       setMyJobs(jobs.filter(j => j.status !== "completed" && j.assignedTo.includes(user.id)));
     } catch {/* ignore */}
@@ -76,14 +82,28 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
   useEffect(() => {
     if (!clocked || !clockEntry) { setElapsed(0); return; }
     const start = new Date(clockEntry.clockIn).getTime();
-    const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
+    const totalBreakMs = (clockEntry.breaks ?? []).filter((b: BreakEntry) => b.breakEnd).reduce((s: number, b: BreakEntry) => s + (new Date(b.breakEnd!).getTime() - new Date(b.breakStart).getTime()), 0);
+    const tick = () => setElapsed(Math.floor((Date.now() - start - totalBreakMs) / 1000));
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [clocked, clockEntry]);
 
+  // Break timer
+  useEffect(() => {
+    if (!onBreak || !clockEntry) { setBreakElapsed(0); return; }
+    const activeBreak = (clockEntry.breaks ?? []).find((b: BreakEntry) => !b.breakEnd);
+    if (!activeBreak) { setBreakElapsed(0); return; }
+    const breakStart = new Date(activeBreak.breakStart).getTime();
+    const tick = () => setBreakElapsed(Math.floor((Date.now() - breakStart) / 1000));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [onBreak, clockEntry]);
+
   function initiateClockIn() {
     setClockInNote("");
+    setClockInJobId("");
     setShowClockInNote(true);
   }
 
@@ -91,8 +111,24 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     setShowClockInNote(false);
     setActionLoading(true);
     try {
-      await api.clockIn(user.id, note);
+      await api.clockIn(user.id, note, clockInJobId || undefined);
       toast("Clocked in successfully");
+      await load();
+    } catch {/* ignore */}
+    finally { setActionLoading(false); }
+  }
+
+  async function handleBreak() {
+    if (!clockEntry) return;
+    setActionLoading(true);
+    try {
+      if (onBreak) {
+        await api.endBreak(clockEntry.id);
+        toast("Break ended");
+      } else {
+        await api.startBreak(clockEntry.id);
+        toast("Break started");
+      }
       await load();
     } catch {/* ignore */}
     finally { setActionLoading(false); }
@@ -132,14 +168,22 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
       <div className={`clock-card${clocked ? " clocked" : ""}`}>
         <div className="clock-card-status">
           <span className={`clock-pill${clocked ? " on" : ""}`}>
-            {clocked ? <><span className="badge-dot" />On the clock</> : "Off the clock"}
+            {clocked ? (onBreak ? <><span className="badge-dot" style={{ background: "#f59e0b" }} />On break</> : <><span className="badge-dot" />On the clock</>) : "Off the clock"}
           </span>
           <div className="clock-card-since">
             {clocked && clockEntry ? `Started at ${fmtTime(clockEntry.clockIn)}` : "Clock in to start tracking your shift"}
           </div>
         </div>
-        <div className="clock-card-timer">{clocked ? fmtTimer(elapsed) : "00:00:00"}</div>
-        <div>
+        <div className="clock-card-timer">
+          {clocked ? (onBreak ? <span style={{ color: "#f59e0b" }}>{fmtTimer(breakElapsed)}</span> : fmtTimer(elapsed)) : "00:00:00"}
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {clocked && (
+            <button className="btn btn-lg" onClick={handleBreak} disabled={actionLoading}
+              style={{ background: onBreak ? "var(--primary)" : "var(--surface)", border: "1.5px solid var(--border-strong)", color: onBreak ? "#fff" : "var(--text)" }}>
+              {actionLoading ? "…" : onBreak ? "End break" : "Start break"}
+            </button>
+          )}
           {clocked ? (
             <button className="btn btn-lg" onClick={initiateClockOut} disabled={actionLoading}
               style={{ background: "var(--surface)", border: "1.5px solid var(--border-strong)", color: "var(--text)" }}>
@@ -248,6 +292,16 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)", boxShadow: "0 16px 48px rgba(0,0,0,0.15)", width: "100%", maxWidth: 400, padding: 28 }}>
             <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Clock In</div>
             <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>Optionally note what you'll be working on.</div>
+            {myJobs.length > 0 && (
+              <div className="form-group">
+                <label>Link to Job (optional)</label>
+                <select value={clockInJobId} onChange={e => setClockInJobId(e.target.value)}
+                  style={{ width: "100%", padding: "9px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--radius)", fontSize: 14, fontFamily: "inherit", background: "var(--surface)" }}>
+                  <option value="">No job</option>
+                  {myJobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
+                </select>
+              </div>
+            )}
             <div className="form-group">
               <label>Shift note (optional)</label>
               <textarea value={clockInNote} onChange={e => setClockInNote(e.target.value)} placeholder="e.g. Starting on inventory, covering front desk…" rows={3} autoFocus style={{ resize: "none" }} />

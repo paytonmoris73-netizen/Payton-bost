@@ -26,14 +26,64 @@ export interface UserWithStats extends User {
   totalOwed: number;
 }
 
+export interface BreakEntry {
+  breakStart: string;
+  breakEnd: string | null;
+}
+
 export interface TimeEntry {
   id: string;
   userId: string;
   clockIn: string;
   clockOut: string | null;
   notes: string;
+  jobId?: string;
+  breaks: BreakEntry[];
   userName?: string;
   hours?: number;
+}
+
+export interface Shift {
+  id: string;
+  userId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  title: string;
+  note: string;
+  createdAt: string;
+  userName?: string;
+}
+
+export interface LeaveRequest {
+  id: string;
+  userId: string;
+  startDate: string;
+  endDate: string;
+  type: "vacation" | "sick" | "personal" | "other";
+  reason: string;
+  status: "pending" | "approved" | "denied";
+  createdAt: string;
+  reviewedAt: string | null;
+  userName?: string;
+}
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  message: string;
+  type: "info" | "success" | "warning";
+  read: boolean;
+  createdAt: string;
+}
+
+export interface EmployeeNote {
+  id: string;
+  userId: string;
+  text: string;
+  authorId: string;
+  authorName: string;
+  createdAt: string;
 }
 
 export interface Job {
@@ -75,6 +125,7 @@ export interface Expense {
   notes: string;
   date: string;
   createdAt: string;
+  recurring: boolean;
 }
 
 export interface Announcement {
@@ -110,9 +161,13 @@ export type Page =
   | "owner-announcements"
   | "owner-billing"
   | "owner-settings"
+  | "owner-schedule"
+  | "owner-leave"
   | "employee-dashboard"
   | "employee-jobs"
   | "employee-time"
   | "employee-pay"
   | "employee-payments"
-  | "employee-announcements";
+  | "employee-announcements"
+  | "employee-schedule"
+  | "employee-leave";
