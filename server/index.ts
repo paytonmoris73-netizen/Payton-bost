@@ -262,6 +262,49 @@ app.get("/api/analytics", (_req, res) => {
   res.json({ team, dailyHours, weeklyPayroll, totalPaidOut });
 });
 
+// ── Activity feed ─────────────────────────────────────────
+app.get("/api/activity", (_req, res) => {
+  const userMap = new Map(db.getUsers().map(u => [u.id, u]));
+  const events: Array<{ id: string; type: string; ts: string; actor: string; title: string; sub: string; meta?: Record<string, string | number> }> = [];
+
+  // Clock-ins / clock-outs
+  const entries = db.getTimeEntries();
+  for (const e of entries) {
+    const name = userMap.get(e.userId)?.name ?? "Unknown";
+    events.push({ id: `ci-${e.id}`, type: "clock_in", ts: e.clockIn, actor: name, title: `${name} clocked in`, sub: e.notes ? `Note: ${e.notes}` : "Started shift" });
+    if (e.clockOut) {
+      const hrs = calcHours(e.clockIn, e.clockOut);
+      events.push({ id: `co-${e.id}`, type: "clock_out", ts: e.clockOut, actor: name, title: `${name} clocked out`, sub: `${hrs.toFixed(1)}h shift`, meta: { hours: hrs } });
+    }
+  }
+
+  // Payments
+  const pays = db.getPayments();
+  for (const p of pays) {
+    const name = userMap.get(p.userId)?.name ?? "Unknown";
+    const label = p.type === "payroll" ? "Payroll" : p.type === "bonus" ? "Bonus" : "Job payment";
+    events.push({ id: `pay-${p.id}`, type: "payment", ts: p.paidAt, actor: name, title: `${label} — ${name}`, sub: `$${p.amount.toFixed(2)}${p.description ? ` · ${p.description}` : ""}`, meta: { amount: p.amount } });
+  }
+
+  // Jobs
+  const jobs = db.getJobs();
+  for (const j of jobs) {
+    events.push({ id: `jc-${j.id}`, type: "job_created", ts: j.createdAt, actor: "Owner", title: `Job created: ${j.title}`, sub: `${j.category} · ${j.priority} priority` });
+    if (j.completedAt) {
+      events.push({ id: `jd-${j.id}`, type: "job_done", ts: j.completedAt, actor: "Owner", title: `Job completed: ${j.title}`, sub: j.category });
+    }
+  }
+
+  // Announcements
+  const anns = db.getAnnouncements();
+  for (const a of anns) {
+    events.push({ id: `ann-${a.id}`, type: "announcement", ts: a.createdAt, actor: a.authorName, title: a.title, sub: a.body.length > 80 ? a.body.slice(0, 80) + "…" : a.body });
+  }
+
+  events.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+  res.json(events.slice(0, 200));
+});
+
 // ── Payroll helpers ───────────────────────────────────────
 app.get("/api/payroll", (_req, res) => { res.json(db.getUsersWithStats()); });
 

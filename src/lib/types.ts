@@ -87,8 +87,19 @@ export interface Announcement {
   createdAt: string;
 }
 
+export interface ActivityEvent {
+  id: string;
+  type: "clock_in" | "clock_out" | "payment" | "job_created" | "job_done" | "announcement";
+  ts: string;
+  actor: string;
+  title: string;
+  sub: string;
+  meta?: Record<string, string | number>;
+}
+
 export type Page =
   | "owner-dashboard"
+  | "owner-activity"
   | "owner-jobs"
   | "owner-team"
   | "owner-time"

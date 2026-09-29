@@ -20,6 +20,7 @@ import { ExpensesPage } from "./pages/ExpensesPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { BillingPage } from "./pages/BillingPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ActivityPage } from "./pages/ActivityPage";
 import { ToastProvider } from "./contexts/Toast";
 
 const AUTH_KEY = "workbase_uid";
@@ -89,6 +90,7 @@ export default function App() {
     <ToastProvider>
     <Layout user={user} page={page} onNavigate={setPage} onLogout={handleLogout}>
       {page === "owner-dashboard" && <OwnerDashboard user={user} />}
+      {page === "owner-activity" && <ActivityPage />}
       {page === "owner-team" && <TeamPage user={user} onUserUpdate={setUser} />}
       {page === "owner-time" && <TimePage />}
       {page === "owner-payroll" && <PayrollPage />}

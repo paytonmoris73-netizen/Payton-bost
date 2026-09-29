@@ -1,4 +1,4 @@
-import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement } from "./types";
+import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement, ActivityEvent } from "./types";
 import { cacheGet, cacheSet, cacheInvalidate } from "./cache";
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
@@ -155,6 +155,9 @@ export const api = {
   createAnnouncement: (a: { title: string; body: string; authorId: string; pinned?: boolean }) => { cacheInvalidate("announcements"); return req<Announcement>("/api/announcements", { method: "POST", body: JSON.stringify(a) }); },
   updateAnnouncement: (id: string, updates: Partial<Pick<Announcement,"pinned"|"title"|"body">>) => { cacheInvalidate("announcements"); return req<Announcement>(`/api/announcements/${id}`, { method: "PATCH", body: JSON.stringify(updates) }); },
   deleteAnnouncement: (id: string) => { cacheInvalidate("announcements"); return req<{ ok: boolean }>(`/api/announcements/${id}`, { method: "DELETE" }); },
+
+  // ── Activity ──
+  getActivity: () => req<ActivityEvent[]>("/api/activity"),
 
   // ── Analytics ──
   getAnalytics: () =>

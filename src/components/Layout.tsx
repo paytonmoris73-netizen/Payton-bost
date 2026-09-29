@@ -16,6 +16,7 @@ interface NavItem { page: Page; label: string; icon: ReactNode; }
 
 const ownerNav: NavItem[] = [
   { page: "owner-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
+  { page: "owner-activity",       label: "Activity",        icon: <ActivityIcon /> },
   { page: "owner-jobs",           label: "Jobs",            icon: <JobIcon /> },
   { page: "owner-team",           label: "Team",            icon: <TeamIcon /> },
   { page: "owner-time",           label: "Time Tracking",   icon: <ClockIcon /> },
@@ -229,6 +230,9 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
 
 function DashIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="6" height="6" rx="1" /><rect x="9" y="1" width="6" height="6" rx="1" /><rect x="1" y="9" width="6" height="6" rx="1" /><rect x="9" y="9" width="6" height="6" rx="1" /></svg>;
+}
+function ActivityIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 8h2l2-5 2 10 2-6 2 3h4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 function TeamIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="5" r="2.5" /><path d="M1 13c0-2.76 2.24-5 5-5s5 2.24 5 5" /><circle cx="12" cy="5" r="2" /><path d="M12 10c1.66 0 3 1.34 3 3" /></svg>;
