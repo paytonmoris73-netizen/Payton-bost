@@ -107,6 +107,18 @@ app.post("/api/time/clock-out", (req, res) => {
   res.json(entry);
 });
 
+app.patch("/api/time/:id", (req, res) => {
+  const { clockIn, clockOut, notes } = req.body as { clockIn?: string; clockOut?: string | null; notes?: string };
+  const updates: Parameters<typeof db.updateTimeEntry>[1] = {};
+  if (clockIn) updates.clockIn = clockIn;
+  if (clockOut !== undefined) updates.clockOut = clockOut;
+  if (notes !== undefined) updates.notes = notes;
+  const e = db.updateTimeEntry(req.params.id, updates);
+  if (!e) { res.status(404).json({ error: "Entry not found." }); return; }
+  const userMap = new Map(db.getUsers().map(u => [u.id, u]));
+  res.json({ ...e, userName: userMap.get(e.userId)?.name ?? "Unknown", hours: calcHours(e.clockIn, e.clockOut) });
+});
+
 app.delete("/api/time/:id", (req, res) => {
   const ok = db.deleteTimeEntry(req.params.id);
   if (!ok) { res.status(404).json({ error: "Entry not found." }); return; }

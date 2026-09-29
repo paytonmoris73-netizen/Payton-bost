@@ -85,14 +85,21 @@ export function ExpensesPage() {
 
       {catTotals.length > 0 && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <div className="card-header"><span className="card-title">By Category</span></div>
-          <div className="card-body" style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {catTotals.map(({ cat, total: t }) => (
-              <div key={cat} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 16px", minWidth: 110 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{cat}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "var(--danger)" }}>{money(t)}</div>
-              </div>
-            ))}
+          <div className="card-header"><span className="card-title">Spending by Category</span></div>
+          <div style={{ padding: "16px 20px", display: "flex", gap: 28, alignItems: "center", flexWrap: "wrap" }}>
+            {/* SVG donut */}
+            <DonutChart segments={catTotals.map((x, i) => ({ label: x.cat, value: x.total, color: DONUT_COLORS[i % DONUT_COLORS.length] }))} total={total} />
+            {/* Legend */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1, minWidth: 180 }}>
+              {catTotals.map(({ cat, total: t }, i) => (
+                <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 3, background: DONUT_COLORS[i % DONUT_COLORS.length], flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 13, color: "var(--text-secondary)" }}>{cat}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{money(t)}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", width: 36, textAlign: "right" }}>{Math.round(t / total * 100)}%</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -201,5 +208,40 @@ export function ExpensesPage() {
         </Modal>
       )}
     </div>
+  );
+}
+
+const DONUT_COLORS = ["#ff6b35", "#0ea372", "#7c3aed", "#0891b2", "#dc2626", "#d97706", "#65a30d", "#db2777"];
+
+function DonutChart({ segments, total }: { segments: { label: string; value: number; color: string }[]; total: number }) {
+  const R = 54, cx = 70, cy = 70, stroke = 18;
+  const circ = 2 * Math.PI * R;
+  let offset = 0;
+  return (
+    <svg width={140} height={140} viewBox="0 0 140 140">
+      <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--surface-2)" strokeWidth={stroke} />
+      {segments.map(seg => {
+        const dash = (seg.value / total) * circ;
+        const el = (
+          <circle
+            key={seg.label}
+            cx={cx} cy={cy} r={R}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth={stroke}
+            strokeDasharray={`${dash} ${circ}`}
+            strokeDashoffset={-offset}
+            transform={`rotate(-90 ${cx} ${cy})`}
+            strokeLinecap="butt"
+          />
+        );
+        offset += dash;
+        return el;
+      })}
+      <text x={cx} y={cy - 6} textAnchor="middle" style={{ fontSize: 11, fill: "var(--text-muted)", fontFamily: "inherit" }}>Total</text>
+      <text x={cx} y={cy + 10} textAnchor="middle" style={{ fontSize: 13, fontWeight: 700, fill: "var(--text)", fontFamily: "inherit" }}>
+        {total >= 1000 ? `$${(total / 1000).toFixed(1)}k` : `$${Math.round(total)}`}
+      </text>
+    </svg>
   );
 }

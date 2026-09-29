@@ -43,6 +43,7 @@ export function PaymentsPage() {
   const [saving, setSaving] = useState(false);
   const [bulking, setBulking] = useState(false);
   const [error, setError] = useState("");
+  const [stubPayment, setStubPayment] = useState<Payment | null>(null);
 
   const [userId, setUserId] = useState("");
   const [amount, setAmount] = useState("");
@@ -97,7 +98,11 @@ export function PaymentsPage() {
 
   const shown = filterUser === "all" ? payments : payments.filter(p => p.userId === filterUser);
   const totalOut = payments.reduce((s, p) => s + p.amount, 0);
-  const thisMonth = payments.filter(p => new Date(p.paidAt) >= new Date(new Date().setDate(1))).reduce((s, p) => s + p.amount, 0);
+  const msThisMonth = new Date(); msThisMonth.setDate(1); msThisMonth.setHours(0,0,0,0);
+  const msLastMonth = new Date(msThisMonth); msLastMonth.setMonth(msLastMonth.getMonth() - 1);
+  const thisMonth = payments.filter(p => new Date(p.paidAt) >= msThisMonth).reduce((s, p) => s + p.amount, 0);
+  const lastMonth = payments.filter(p => { const d = new Date(p.paidAt); return d >= msLastMonth && d < msThisMonth; }).reduce((s, p) => s + p.amount, 0);
+  const monthDelta = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth * 100) : 0;
   const thisWeek = (() => {
     const ws = new Date(); ws.setHours(0,0,0,0); ws.setDate(ws.getDate() - ws.getDay());
     return payments.filter(p => new Date(p.paidAt) >= ws).reduce((s, p) => s + p.amount, 0);
@@ -125,8 +130,10 @@ export function PaymentsPage() {
 
       <div className="stats-grid">
         <StatCard label="Total Paid Out" value={money(totalOut)} sub="all time" />
-        <StatCard label="This Month" value={money(thisMonth)} color="green" />
-        <StatCard label="This Week" value={money(thisWeek)} color="blue" />
+        <StatCard label="This Month" value={money(thisMonth)} color="green"
+          delta={lastMonth > 0 ? { value: Math.abs(Math.round(monthDelta)) + "% vs last month", up: monthDelta >= 0 } : undefined} />
+        <StatCard label="Last Month" value={money(lastMonth)} color="blue" />
+        <StatCard label="This Week" value={money(thisWeek)} />
         <StatCard label="Transactions" value={payments.length} sub="all time" />
       </div>
 
@@ -155,13 +162,13 @@ export function PaymentsPage() {
               </thead>
               <tbody>
                 {shown.map(p => (
-                  <tr key={p.id}>
+                  <tr key={p.id} style={{ cursor: "pointer" }} onClick={() => setStubPayment(p)}>
                     <td className="td-muted" style={{ whiteSpace: "nowrap" }}>{fmtDateTime(p.paidAt)}</td>
                     <td className="td-name">{p.userName ?? "—"}</td>
                     <td>{typeBadge(p.type)}</td>
                     <td className="td-muted">{p.description || "—"}</td>
                     <td className="text-right pay-total">{money(p.amount)}</td>
-                    <td><button className="btn btn-ghost btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleDelete(p.id)}>×</button></td>
+                    <td><button className="btn btn-ghost btn-sm" style={{ color: "var(--danger)" }} onClick={e => { e.stopPropagation(); handleDelete(p.id); }}>×</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -178,6 +185,40 @@ export function PaymentsPage() {
           </div>
         )}
       </div>
+
+      {/* Pay stub modal */}
+      {stubPayment && (
+        <Modal title="Payment Receipt" onClose={() => setStubPayment(null)}
+          footer={<button className="btn btn-secondary" onClick={() => setStubPayment(null)}>Close</button>}
+        >
+          <div style={{ fontFamily: "monospace", fontSize: 13, lineHeight: 1.8 }}>
+            <div style={{ textAlign: "center", paddingBottom: 16, marginBottom: 16, borderBottom: "2px dashed var(--border)" }}>
+              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: 1 }}>PAYMENT RECEIPT</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>WorkBase Payroll System</div>
+            </div>
+            {[
+              ["Receipt #", stubPayment.id.slice(0, 8).toUpperCase()],
+              ["Date", new Date(stubPayment.paidAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })],
+              ["Time", new Date(stubPayment.paidAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })],
+              ["Employee", stubPayment.userName ?? "—"],
+              ["Type", stubPayment.type.charAt(0).toUpperCase() + stubPayment.type.slice(1)],
+              ["Description", stubPayment.description || "—"],
+              ...(stubPayment.periodStart ? [["Period Start", new Date(stubPayment.periodStart).toLocaleDateString()]] : []),
+              ...(stubPayment.periodEnd ? [["Period End", new Date(stubPayment.periodEnd).toLocaleDateString()]] : []),
+            ].map(([k, v]) => (
+              <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                <span style={{ color: "var(--text-muted)" }}>{k}:</span>
+                <span style={{ fontWeight: 600 }}>{v}</span>
+              </div>
+            ))}
+            <div style={{ margin: "16px 0", borderTop: "2px dashed var(--border)", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontWeight: 800, fontSize: 15 }}>TOTAL PAID</span>
+              <span style={{ fontWeight: 800, fontSize: 20, color: "var(--success)" }}>{money(stubPayment.amount)}</span>
+            </div>
+            <div style={{ textAlign: "center", fontSize: 10, color: "var(--text-muted)", marginTop: 8 }}>Thank you</div>
+          </div>
+        </Modal>
+      )}
 
       {showAdd && (
         <Modal title="Record Payment" onClose={() => { setShowAdd(false); setError(""); }}

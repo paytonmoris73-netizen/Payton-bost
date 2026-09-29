@@ -25,6 +25,13 @@ import { ToastProvider } from "./contexts/Toast";
 
 const AUTH_KEY = "workbase_uid";
 
+// On first load, auto-detect OS dark mode if user hasn't set a preference yet
+if (!localStorage.getItem("theme")) {
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  localStorage.setItem("theme", prefersDark ? "dark" : "light");
+  document.documentElement.setAttribute("data-theme", prefersDark ? "dark" : "light");
+}
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [isSetup, setIsSetup] = useState(false);

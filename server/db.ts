@@ -222,6 +222,14 @@ export const db = {
     write(data); return data.timeEntries[i];
   },
 
+  updateTimeEntry(id: string, updates: Partial<Pick<TimeEntry,"clockIn"|"clockOut"|"notes">>): TimeEntry | null {
+    const data = read();
+    const i = data.timeEntries.findIndex(e => e.id === id);
+    if (i === -1) return null;
+    data.timeEntries[i] = { ...data.timeEntries[i], ...updates };
+    write(data); return data.timeEntries[i];
+  },
+
   deleteTimeEntry(id: string): boolean {
     const data = read();
     const i = data.timeEntries.findIndex(e => e.id === id);

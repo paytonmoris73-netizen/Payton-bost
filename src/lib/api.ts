@@ -72,6 +72,11 @@ export const api = {
     return req<TimeEntry>("/api/time/clock-out", { method: "POST", body: JSON.stringify({ userId, notes }) });
   },
 
+  updateTimeEntry: (id: string, updates: { clockIn?: string; clockOut?: string | null; notes?: string }) => {
+    cacheInvalidate("time:"); cacheInvalidate("team"); cacheInvalidate("me:");
+    return req<TimeEntry>(`/api/time/${id}`, { method: "PATCH", body: JSON.stringify(updates) });
+  },
+
   deleteTimeEntry: (id: string) => {
     cacheInvalidate("time:");
     return req<{ ok: boolean }>(`/api/time/${id}`, { method: "DELETE" });

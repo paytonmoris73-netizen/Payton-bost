@@ -15,6 +15,8 @@ function initials(name: string) {
 function money(n: number): string { return "$" + n.toFixed(2); }
 function fmt(h: number): string { const hrs = Math.floor(h); const mins = Math.round((h - hrs) * 60); if (hrs === 0) return `${mins}m`; return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`; }
 
+type SortKey = "name" | "weekHours" | "monthHours" | "weekPay" | "monthPay";
+
 export function TeamPage({ user: _user }: Props) {
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +25,9 @@ export function TeamPage({ user: _user }: Props) {
   const [viewUser, setViewUser] = useState<UserWithStats | null>(null);
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortAsc, setSortAsc] = useState(true);
 
   // Add form
   const [name, setName] = useState("");
@@ -105,8 +110,32 @@ export function TeamPage({ user: _user }: Props) {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  function copyInviteUrl() {
+    const url = `${window.location.origin}?join=${joinCode}`;
+    navigator.clipboard.writeText(url).catch(() => {});
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 1800);
+  }
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) setSortAsc(a => !a);
+    else { setSortKey(key); setSortAsc(false); }
+  }
+
+  function sortIcon(key: SortKey) {
+    if (sortKey !== key) return <span style={{ opacity: 0.3 }}>↕</span>;
+    return <span>{sortAsc ? "↑" : "↓"}</span>;
+  }
+
   const active = team.filter(u => u.active);
   const inactive = team.filter(u => !u.active);
+
+  const sortedActive = [...active.filter(u => u.role !== "owner")].sort((a, b) => {
+    let diff = 0;
+    if (sortKey === "name") diff = a.name.localeCompare(b.name);
+    else diff = (a[sortKey] as number) - (b[sortKey] as number);
+    return sortAsc ? diff : -diff;
+  });
 
   return (
     <div className="page">
@@ -124,14 +153,18 @@ export function TeamPage({ user: _user }: Props) {
         <div>
           <div className="join-code-label">Employee Invite Code</div>
           <div className="join-code-value">{joinCode}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, wordBreak: "break-all" }}>
+            {window.location.origin}?join={joinCode}
+          </div>
         </div>
         <div className="join-code-actions">
           <button className="btn btn-sm btn-secondary" onClick={copyCode}>
-            {copied ? "✓ Copied" : "Copy"}
+            {copied ? "✓ Code" : "Copy code"}
           </button>
-          <button className="btn btn-sm btn-ghost" onClick={handleRegenCode} title="Regenerate code">
-            ↻
+          <button className="btn btn-sm btn-secondary" onClick={copyInviteUrl}>
+            {copiedUrl ? "✓ Link copied" : "Copy invite link"}
           </button>
+          <button className="btn btn-sm btn-ghost" onClick={handleRegenCode} title="Regenerate code">↻</button>
         </div>
       </div>
 
@@ -154,23 +187,29 @@ export function TeamPage({ user: _user }: Props) {
                 <table>
                   <thead>
                     <tr>
-                      <th>Name</th>
+                      <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => handleSort("name")}>Name {sortIcon("name")}</th>
                       <th>Title</th>
-                      <th>Hourly Rate</th>
+                      <th>Rate</th>
                       <th>Status</th>
-                      <th>Joined</th>
+                      <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => handleSort("weekHours")}>Wk Hrs {sortIcon("weekHours")}</th>
+                      <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => handleSort("weekPay")}>Wk Pay {sortIcon("weekPay")}</th>
                       <th></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {active.filter(u => u.role !== "owner").map(member => (
+                    {sortedActive.map(member => (
                       <tr key={member.id}>
                         <td>
                           <div className="row" style={{ gap: 8 }}>
                             <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#ff9a56,#ff6b35)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                               {initials(member.name)}
                             </div>
-                            <span className="td-name">{member.name}</span>
+                            <div>
+                              <div className="td-name">{member.name}</div>
+                              {member.weekHours >= 40 && (
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", background: "rgba(220,38,38,0.1)", borderRadius: 4, padding: "1px 5px" }}>⚠ OT</span>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td>{member.title}</td>
@@ -180,7 +219,10 @@ export function TeamPage({ user: _user }: Props) {
                             ? <span className="badge badge-green"><span className="badge-dot" />Working</span>
                             : <span className="badge badge-gray">Off</span>}
                         </td>
-                        <td className="td-muted">{new Date(member.createdAt).toLocaleDateString()}</td>
+                        <td style={{ fontWeight: member.weekHours >= 40 ? 700 : 400, color: member.weekHours >= 40 ? "#dc2626" : "var(--text)" }}>
+                          {fmt(member.weekHours)}
+                        </td>
+                        <td>{member.hourlyRate > 0 ? money(member.weekPay) : <span className="td-muted">—</span>}</td>
                         <td>
                           <div className="td-actions">
                             <button className="btn btn-ghost btn-sm" onClick={() => setViewUser(member)}>View</button>

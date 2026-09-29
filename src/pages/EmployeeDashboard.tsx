@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../lib/api";
-import type { User, UserWithStats, TimeEntry } from "../lib/types";
+import type { User, UserWithStats, TimeEntry, Job } from "../lib/types";
 import { StatCard } from "../components/StatCard";
 import { useToast } from "../contexts/Toast";
 
@@ -46,19 +46,24 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
   const [actionLoading, setActionLoading] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const [showClockInNote, setShowClockInNote] = useState(false);
+  const [clockInNote, setClockInNote] = useState("");
+  const [myJobs, setMyJobs] = useState<Job[]>([]);
 
   const load = useCallback(async () => {
     try {
-      const [me, status, entries] = await Promise.all([
+      const [me, status, entries, jobs] = await Promise.all([
         api.getMe(user.id),
         api.getTimeStatus(user.id),
         api.getTimeEntries(user.id),
+        api.getJobs(user.id),
       ]);
       setStats(me);
       onUserUpdate(me);
       setClocked(status.clocked);
       setClockEntry(status.entry ?? null);
       setRecentEntries(entries.slice(0, 10));
+      setMyJobs(jobs.filter(j => j.status !== "completed" && j.assignedTo.includes(user.id)));
     } catch {/* ignore */}
     finally { setLoading(false); }
   }, [user.id, onUserUpdate]);
@@ -77,10 +82,16 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     return () => clearInterval(t);
   }, [clocked, clockEntry]);
 
-  async function handleClockIn() {
+  function initiateClockIn() {
+    setClockInNote("");
+    setShowClockInNote(true);
+  }
+
+  async function handleClockIn(note?: string) {
+    setShowClockInNote(false);
     setActionLoading(true);
     try {
-      await api.clockIn(user.id);
+      await api.clockIn(user.id, note);
       toast("Clocked in successfully");
       await load();
     } catch {/* ignore */}
@@ -135,7 +146,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
               {actionLoading ? "…" : "Clock out"}
             </button>
           ) : (
-            <button className="btn btn-primary btn-lg" onClick={handleClockIn} disabled={actionLoading}>
+            <button className="btn btn-primary btn-lg" onClick={initiateClockIn} disabled={actionLoading}>
               {actionLoading ? "…" : "Clock in"}
             </button>
           )}
@@ -205,6 +216,51 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
         )}
       </div>
 
+      {/* Upcoming jobs */}
+      {myJobs.length > 0 && (
+        <div className="card" style={{ marginTop: 24 }}>
+          <div className="card-header"><span className="card-title">My Open Jobs</span></div>
+          <div style={{ padding: "0 20px 12px" }}>
+            {myJobs.map(j => {
+              const overdue = j.dueDate && new Date(j.dueDate) < new Date();
+              return (
+                <div key={j.id} style={{ padding: "12px 0", borderBottom: "1px solid var(--border)", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: j.priority === "urgent" ? "#dc2626" : j.priority === "high" ? "var(--primary)" : "var(--success)", marginTop: 5, flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{j.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{j.category} · {j.status.replace("_", " ")}</div>
+                  </div>
+                  {j.dueDate && (
+                    <div style={{ fontSize: 11, fontWeight: 600, color: overdue ? "#dc2626" : "var(--text-muted)", background: overdue ? "rgba(220,38,38,0.08)" : "var(--surface-2)", border: `1px solid ${overdue ? "rgba(220,38,38,0.2)" : "var(--border)"}`, borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap" }}>
+                      {overdue ? "⚠ Overdue" : "Due " + new Date(j.dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Clock-in note modal */}
+      {showClockInNote && (
+        <div onClick={() => setShowClockInNote(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)", boxShadow: "0 16px 48px rgba(0,0,0,0.15)", width: "100%", maxWidth: 400, padding: 28 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Clock In</div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>Optionally note what you'll be working on.</div>
+            <div className="form-group">
+              <label>Shift note (optional)</label>
+              <textarea value={clockInNote} onChange={e => setClockInNote(e.target.value)} placeholder="e.g. Starting on inventory, covering front desk…" rows={3} autoFocus style={{ resize: "none" }} />
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+              <button className="btn btn-secondary" onClick={() => setShowClockInNote(false)}>Cancel</button>
+              <button className="btn btn-secondary" onClick={() => handleClockIn()}>Skip</button>
+              <button className="btn btn-primary" onClick={() => handleClockIn(clockInNote)}>Clock In</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Clock-out note modal */}
       {showNoteModal && (
         <div onClick={() => setShowNoteModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -213,14 +269,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
             <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>Add an optional note about your shift.</div>
             <div className="form-group">
               <label>Shift note (optional)</label>
-              <textarea
-                value={noteText}
-                onChange={e => setNoteText(e.target.value)}
-                placeholder="e.g. Completed inventory count, helped with onboarding…"
-                rows={3}
-                autoFocus
-                style={{ resize: "none" }}
-              />
+              <textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="e.g. Completed inventory count, helped with onboarding…" rows={3} autoFocus style={{ resize: "none" }} />
             </div>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
               <button className="btn btn-secondary" onClick={() => setShowNoteModal(false)}>Cancel</button>

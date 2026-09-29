@@ -45,6 +45,7 @@ export function JobsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<"all" | "open" | "in_progress" | "completed">("all");
+  const [priorityFilter, setPriorityFilter] = useState<"all" | "normal" | "high" | "urgent">("all");
 
   useEffect(() => { load(); }, []);
 
@@ -115,8 +116,12 @@ export function JobsPage() {
     setForm(f => ({ ...f, assignedTo: f.assignedTo.includes(uid) ? f.assignedTo.filter(i => i !== uid) : [...f.assignedTo, uid] }));
   }
 
-  const shown = jobs.filter(j => filter === "all" || j.status === filter);
+  const shown = jobs.filter(j =>
+    (filter === "all" || j.status === filter) &&
+    (priorityFilter === "all" || j.priority === priorityFilter)
+  );
   const counts = { open: jobs.filter(j => j.status === "open").length, in_progress: jobs.filter(j => j.status === "in_progress").length, completed: jobs.filter(j => j.status === "completed").length };
+  const completionPct = jobs.length > 0 ? Math.round((counts.completed / jobs.length) * 100) : 0;
   const userMap = new Map(team.map(u => [u.id, u]));
 
   return (
@@ -131,12 +136,39 @@ export function JobsPage() {
         </button>
       </div>
 
-      <div className="tab-bar">
-        {([["all","All"], ["open","Open"], ["in_progress","In Progress"], ["completed","Done"]] as [string, string][]).map(([v, l]) => (
-          <button key={v} className={`tab-btn${filter === v ? " active" : ""}`} onClick={() => setFilter(v as typeof filter)}>
-            {l} {v !== "all" && <span className="tab-count">{counts[v as keyof typeof counts] ?? jobs.length}</span>}
-          </button>
-        ))}
+      {/* Completion progress bar */}
+      {jobs.length > 0 && (
+        <div style={{ marginBottom: 16, padding: "12px 16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Overall Completion</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: completionPct === 100 ? "var(--success)" : "var(--text)" }}>{completionPct}%</span>
+          </div>
+          <div style={{ height: 7, background: "var(--surface-2)", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${completionPct}%`, background: completionPct === 100 ? "var(--success)" : "var(--primary)", borderRadius: 4, transition: "width 0.6s ease" }} />
+          </div>
+          <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
+            <span>{counts.open} open</span>
+            <span>{counts.in_progress} in progress</span>
+            <span>{counts.completed} completed</span>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
+        <div className="tab-bar" style={{ margin: 0 }}>
+          {([["all","All"], ["open","Open"], ["in_progress","In Progress"], ["completed","Done"]] as [string, string][]).map(([v, l]) => (
+            <button key={v} className={`tab-btn${filter === v ? " active" : ""}`} onClick={() => setFilter(v as typeof filter)}>
+              {l} {v !== "all" && <span className="tab-count">{counts[v as keyof typeof counts] ?? jobs.length}</span>}
+            </button>
+          ))}
+        </div>
+        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as typeof priorityFilter)}
+          style={{ padding: "6px 10px", border: "1px solid var(--border)", borderRadius: "var(--radius)", fontSize: 13, background: "var(--surface)", color: "var(--text)" }}>
+          <option value="all">All priorities</option>
+          <option value="urgent">🔴 Urgent</option>
+          <option value="high">⚡ High</option>
+          <option value="normal">Normal</option>
+        </select>
       </div>
 
       {loading ? (
