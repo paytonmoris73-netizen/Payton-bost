@@ -319,12 +319,37 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 
+/* ── BOOST BANNER (home) ── */
+.boost-banner{display:none;background:linear-gradient(90deg,rgba(34,197,94,.13),rgba(34,197,94,.04));border:1px solid var(--gnb);border-radius:var(--r);padding:11px 16px;align-items:center;gap:12px;cursor:pointer;transition:opacity .14s}
+.boost-banner.on{display:flex}.boost-banner:hover{opacity:.88}
+.bb-ico{width:38px;height:38px;border-radius:9px;overflow:hidden;flex-shrink:0}
+.bb-txt{flex:1}.bb-title{font-size:13px;font-weight:700;color:var(--gn)}.bb-sub{font-size:11px;color:var(--tx2);margin-top:1px}
+.bb-timer{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--gn);min-width:46px;text-align:right;flex-shrink:0}
+/* ── NAV BOOST DOT ── */
+.nb-dot{width:7px;height:7px;border-radius:50%;background:var(--gn);box-shadow:0 0 5px var(--gn);display:none;flex-shrink:0;margin-left:auto;animation:nbdp 1.4s ease-in-out infinite}
+.nb-dot.on{display:block}
+@keyframes nbdp{0%,100%{opacity:1;box-shadow:0 0 5px var(--gn)}50%{opacity:.35;box-shadow:0 0 2px var(--gn)}}
+/* ── RECENT BOOSTS ── */
+.rbst-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.rbst-row:last-child{border-bottom:none;padding-bottom:0}
+.rbst-ico{width:30px;height:30px;border-radius:7px;overflow:hidden;flex-shrink:0}
+.rbst-nm{font-size:13px;font-weight:600;flex:1}
+.rbst-fps{font-family:'Space Mono',monospace;font-size:12px;color:var(--gn);font-weight:700}
+.rbst-ago{font-size:11px;color:var(--tx3);margin-top:1px}
 /* ── BOOST FLOW ── */
 .bstate{display:none}.bstate.on{display:flex;flex-direction:column;gap:14px}
 .pick-hero{text-align:center;padding:10px 0 2px}
 .pick-hero h2{font-size:22px;font-weight:800;letter-spacing:-.02em}
 .pick-hero p{font-size:13px;color:var(--tx2);margin-top:5px}
 .pick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+/* launch extras */
+.lt-row{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--tx2)}
+.lt-timer{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--gn)}
+.launch-vpn-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c2);border:1px solid var(--bd);border-radius:10px;width:100%;font-size:13px;transition:all .2s}
+.launch-vpn-row.vpn-live{border-color:var(--gnb);background:var(--gnd)}
+.lvr-dot{width:8px;height:8px;border-radius:50%;background:var(--tx3);flex-shrink:0;transition:all .3s}
+.lvr-dot.on{background:var(--gn);box-shadow:0 0 6px var(--gn)}
+.lvr-txt{flex:1;font-weight:600}.lvr-ping{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx2)}
 .pick-tile{background:var(--c1);border:2px solid var(--bd);border-radius:14px;padding:18px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:9px;transition:all .14s;cursor:pointer;width:100%;text-align:center}
 .pick-tile:hover{border-color:var(--acb);background:var(--acd);transform:translateY(-2px)}
 .pick-tile-ico{width:64px;height:64px;border-radius:14px;overflow:hidden;flex-shrink:0}
@@ -374,6 +399,7 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
   .plan-grid{grid-template-columns:1fr}
   .pgrid{grid-template-columns:repeat(2,1fr)}
   .tgrid2{grid-template-columns:1fr}
+  .pick-grid{grid-template-columns:repeat(3,1fr)}
 }
 </style>
 
@@ -399,6 +425,7 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
         <button class="nav-item" data-p="boost">
           <svg viewBox="0 0 16 16" fill="currentColor"><path d="M9 1L2 9.5h5.5V15l8-9.5H10V1Z"/></svg>
           <span>Boost</span>
+          <span class="nb-dot" id="boostNavDot"></span>
         </button>
         <button class="nav-item" data-p="vpn">
           <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5l5.5 2v4.5C13.5 11.5 11 14 8 15 5 14 2.5 11.5 2.5 8V3.5l5.5-2Z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
@@ -461,6 +488,18 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 
       <!-- ═══ HOME PAGE ═══ -->
       <div class="page on" id="p-home">
+
+        <!-- Active boost banner -->
+        <div class="boost-banner" id="boostBanner" onclick="goPage('boost')">
+          <div class="bb-ico" id="bbIco"></div>
+          <div class="bb-txt">
+            <div class="bb-title" id="bbTitle">Boosting</div>
+            <div class="bb-sub" id="bbSub">Click to view launch screen</div>
+          </div>
+          <div class="bb-timer" id="bbTimer">0:00</div>
+          <button class="btn btn-d btn-sm" style="flex-shrink:0" onclick="event.stopPropagation();stopBoost()">Stop</button>
+        </div>
+
         <div class="hgrid">
 
           <!-- LEFT COL -->
@@ -633,6 +672,15 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
               </div>
             </div>
 
+            <!-- Recent Boosts -->
+            <div class="card">
+              <div class="card-hdr">
+                <div class="card-title">Recent Boosts</div>
+                <button class="btn btn-sm" onclick="clearHistory()">Clear</button>
+              </div>
+              <div id="recentList"><div style="font-size:13px;color:var(--tx3);text-align:center;padding:12px 0">No boosts yet — pick a game to start</div></div>
+            </div>
+
             <!-- Premium Features -->
             <div class="card" style="border-color:var(--gob);background:linear-gradient(150deg,rgba(245,158,11,.08),var(--c1))">
               <div class="card-hdr">
@@ -707,6 +755,30 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
               <div class="pick-tile-nm">Valorant</div>
               <div class="pick-tile-sub">Tactical FPS</div>
             </button>
+            <button class="pick-tile" onclick="pickGame('apex')">
+              <div class="pick-tile-ico"><svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#1a0505"/><polygon points="28,8 44,44 28,36 12,44" fill="#cd4d13"/><polygon points="28,8 44,44 28,36" fill="#e8621f" opacity=".8"/><circle cx="28" cy="26" r="5" fill="#1a0505"/><circle cx="28" cy="26" r="3" fill="#e8621f" opacity=".7"/></svg></div>
+              <div class="pick-tile-nm">Apex</div>
+              <div class="pick-tile-sub">Battle Royale</div>
+            </button>
+            <button class="pick-tile" onclick="pickGame('warzone')">
+              <div class="pick-tile-ico"><svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#0e1209"/><rect x="10" y="24" width="36" height="7" rx="2" fill="#5a6a3a"/><rect x="14" y="20" width="7" height="4" rx="1" fill="#5a6a3a"/><rect x="35" y="20" width="7" height="4" rx="1" fill="#5a6a3a" opacity=".6"/><circle cx="28" cy="27" r="3" fill="#0e1209"/><circle cx="28" cy="27" r="1.5" stroke="#8fa050" stroke-width="1.2" fill="none"/><line x1="28" y1="9" x2="28" y2="19" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="35" x2="28" y2="47" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="27" x2="19" y2="27" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="37" y1="27" x2="47" y2="27" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/></svg></div>
+              <div class="pick-tile-nm">Warzone</div>
+              <div class="pick-tile-sub">FPS / BR</div>
+            </button>
+            <button class="pick-tile" onclick="pickGameCustom()">
+              <div class="pick-tile-ico"><svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#111218"/><rect x="10" y="20" width="36" height="22" rx="5" stroke="#4b6080" stroke-width="2" fill="none"/><circle cx="20" cy="31" r="2.5" fill="#4b6080"/><circle cx="36" cy="31" r="2.5" fill="#4b6080"/><rect x="26" y="28" width="4" height="1.5" rx=".75" fill="#4b6080"/><rect x="27.25" y="26.75" width="1.5" height="4" rx=".75" fill="#4b6080"/><line x1="28" y1="14" x2="28" y2="20" stroke="#4b6080" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+              <div class="pick-tile-nm">Other</div>
+              <div class="pick-tile-sub">Any game</div>
+            </button>
+          </div>
+          <!-- Custom game input (hidden by default) -->
+          <div class="card" id="customGameCard" style="display:none">
+            <div class="card-title" style="margin-bottom:10px">Game Name</div>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="customGameInp" placeholder="e.g. Rocket League, PUBG…" style="flex:1" onkeydown="if(event.key==='Enter')confirmCustomGame()">
+              <button class="btn btn-p" onclick="confirmCustomGame()">Boost →</button>
+              <button class="btn" onclick="hideCustomGame()">Cancel</button>
+            </div>
           </div>
           <div class="card">
             <div class="card-title" style="margin-bottom:12px">Boost Intensity</div>
@@ -764,13 +836,23 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
               <span class="fps-num" id="launch-fps">+0</span>
               <span class="fps-lbl">FPS estimated</span>
             </div>
-            <div style="font-size:13px;color:var(--gn);font-weight:600">System optimized — ready to play</div>
+            <div class="lt-row">
+              <span style="color:var(--gn)">●</span>
+              <span>System optimized</span>
+              <span style="color:var(--bd2)">·</span>
+              <span>Boosting for</span>
+              <span class="lt-timer" id="launchTimer">0:00</span>
+            </div>
+            <!-- VPN status row -->
+            <div class="launch-vpn-row" id="launchVpnRow">
+              <div class="lvr-dot" id="launchVpnDot"></div>
+              <span class="lvr-txt" id="launchVpnTxt">No VPN — add one for lower ping</span>
+              <span class="lvr-ping" id="launchVpnPing"></span>
+              <button class="btn btn-sm btn-p" id="launchVpnBtn" onclick="goPage('vpn')">Add VPN</button>
+            </div>
             <div class="launch-btns">
               <button class="btn-launch" onclick="toast('Launch your game now — boost is active!')">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="white" style="margin-right:6px;vertical-align:middle"><path d="M8 1L2 7.5h4.5V13l8-8H10V1Z"/></svg>Launch Game
-              </button>
-              <button class="btn-vpn-l" onclick="goPage('vpn')">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="margin-right:5px;vertical-align:middle"><path d="M6.5 1l5 2V6c0 3.1-2.3 5.2-5 6C3.8 11.2 1.5 9.1 1.5 6V3L6.5 1Z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>Add VPN
               </button>
               <button class="btn-stop-l" onclick="stopBoost()">Stop Boost</button>
             </div>
@@ -1101,8 +1183,114 @@ const GAME_DATA={
     icon:'<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#1a2910"/><polygon points="28,8 46,18 28,28 10,18" fill="#72b940"/><polygon points="10,18 28,28 28,48 10,38" fill="#5d4521"/><polygon points="46,18 28,28 28,48 46,38" fill="#7a5e2a"/><polygon points="28,8 46,18 28,28 10,18" fill="#5daa2e" opacity=".5"/></svg>'},
   valorant:{name:'Valorant',full:'VALORANT',
     icon:'<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#0d0003"/><path d="M6 10h11L28 36 39 10h11L28 47Z" fill="#ff4655"/><path d="M36 10l-8 16-2-5 6-11h4Z" fill="#0d0003" opacity=".75"/></svg>'},
+  apex:{name:'Apex',full:'Apex Legends',
+    icon:'<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#1a0505"/><polygon points="28,8 44,44 28,36 12,44" fill="#cd4d13"/><polygon points="28,8 44,44 28,36" fill="#e8621f" opacity=".8"/><circle cx="28" cy="26" r="5" fill="#1a0505"/><circle cx="28" cy="26" r="3" fill="#e8621f" opacity=".7"/></svg>'},
+  warzone:{name:'Warzone',full:'Call of Duty: Warzone',
+    icon:'<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#0e1209"/><rect x="10" y="24" width="36" height="7" rx="2" fill="#5a6a3a"/><rect x="14" y="20" width="7" height="4" rx="1" fill="#5a6a3a"/><rect x="35" y="20" width="7" height="4" rx="1" fill="#5a6a3a" opacity=".6"/><circle cx="28" cy="27" r="3" fill="#0e1209"/><circle cx="28" cy="27" r="1.5" stroke="#8fa050" stroke-width="1.2" fill="none"/><line x1="28" y1="9" x2="28" y2="19" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="35" x2="28" y2="47" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="27" x2="19" y2="27" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="37" y1="27" x2="47" y2="27" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/></svg>'},
 };
 let pickedGame=null,boostAnimTimer=null;
+
+/* ── BOOST TIMER ── */
+let boostStartTs=0,boostTickInterval=null;
+function startBoostTimer(){
+  boostStartTs=Date.now();
+  clearInterval(boostTickInterval);
+  boostTickInterval=setInterval(tickBoostTimer,1000);
+  tickBoostTimer();
+}
+function stopBoostTimer(){clearInterval(boostTickInterval);boostTickInterval=null;}
+function tickBoostTimer(){
+  const s=Math.floor((Date.now()-boostStartTs)/1000);
+  const m=Math.floor(s/60),ss=String(s%60).padStart(2,'0');
+  const fmt=m+':'+ss;
+  setText('launchTimer',fmt);setText('bbTimer',fmt);
+}
+
+/* ── BOOST BANNER ── */
+function updateBoostBanner(){
+  const b=document.getElementById('boostBanner');
+  const dot=document.getElementById('boostNavDot');
+  if(!b)return;
+  if(boosting&&pickedGame){
+    b.classList.add('on');
+    document.getElementById('bbIco').innerHTML=pickedGame.icon;
+    document.getElementById('bbTitle').textContent='Boosting '+pickedGame.name;
+    const[lo,hi]=LV_FPS[lv];
+    document.getElementById('bbSub').textContent='Estimated +'+document.getElementById('launch-fps').textContent+' FPS active';
+    if(dot)dot.classList.add('on');
+  } else {
+    b.classList.remove('on');
+    if(dot)dot.classList.remove('on');
+  }
+}
+
+/* ── VPN STATUS ON LAUNCH ── */
+function updateLaunchVpn(){
+  const row=document.getElementById('launchVpnRow');
+  const dot=document.getElementById('launchVpnDot');
+  const txt=document.getElementById('launchVpnTxt');
+  const ping=document.getElementById('launchVpnPing');
+  const btn=document.getElementById('launchVpnBtn');
+  if(!row)return;
+  if(activeVpnId){
+    const v=vpns.find(x=>x.id===activeVpnId);
+    row.classList.add('vpn-live');
+    dot.className='lvr-dot on';
+    txt.textContent=v?v.name:'VPN connected';
+    const pm=pings[activeVpnId];ping.textContent=pm!=null?pm+' ms':'';
+    btn.textContent='Change';btn.onclick=()=>goPage('vpn');
+  } else {
+    row.classList.remove('vpn-live');
+    dot.className='lvr-dot';
+    txt.textContent='No VPN — add one for lower ping';
+    ping.textContent='';
+    btn.textContent='Add VPN';btn.onclick=()=>goPage('vpn');
+  }
+}
+
+/* ── BOOST HISTORY (localStorage) ── */
+function loadHistory(){
+  try{return JSON.parse(localStorage.getItem('frxst_history')||'[]');}catch{return[];}
+}
+function saveHistory(h){try{localStorage.setItem('frxst_history',JSON.stringify(h.slice(0,8)));}catch{}}
+function addHistory(game,fps){
+  const h=loadHistory();
+  h.unshift({game:game.name,icon:game.icon,fps,ts:Date.now()});
+  saveHistory(h);renderHistory();
+}
+function clearHistory(){try{localStorage.removeItem('frxst_history');}catch{}renderHistory();toast('History cleared');}
+function timeAgo(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<120)return 'just now';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+function renderHistory(){
+  const el=document.getElementById('recentList');if(!el)return;
+  const h=loadHistory();
+  if(!h.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);text-align:center;padding:12px 0">No boosts yet — pick a game to start</div>';return;}
+  el.innerHTML=h.slice(0,4).map(r=>`<div class="rbst-row">
+    <div class="rbst-ico">${r.icon}</div>
+    <div style="flex:1"><div class="rbst-nm">${esc(r.game)}</div><div class="rbst-ago">${timeAgo(r.ts)}</div></div>
+    <div class="rbst-fps">+${r.fps} FPS</div>
+    <button class="btn btn-sm" style="flex-shrink:0;margin-left:6px" onclick="pickGame('${r.game.toLowerCase().replace(/[^a-z]/g,'')}')">Boost again</button>
+  </div>`).join('');
+}
+
+/* ── CUSTOM GAME ── */
+function pickGameCustom(){
+  const c=document.getElementById('customGameCard');
+  if(c){c.style.display='';document.getElementById('customGameInp').focus();}
+}
+function hideCustomGame(){const c=document.getElementById('customGameCard');if(c)c.style.display='none';}
+function confirmCustomGame(){
+  const inp=document.getElementById('customGameInp');
+  const name=(inp?inp.value.trim():'')||'Game';
+  hideCustomGame();
+  pickedGame={name,full:name,icon:'<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#111218"/><rect x="10" y="20" width="36" height="22" rx="5" stroke="#4b6080" stroke-width="2" fill="none"/><circle cx="20" cy="31" r="2.5" fill="#4b6080"/><circle cx="36" cy="31" r="2.5" fill="#4b6080"/><rect x="26" y="28" width="4" height="1.5" rx=".75" fill="#4b6080"/><rect x="27.25" y="26.75" width="1.5" height="4" rx=".75" fill="#4b6080"/><line x1="28" y1="14" x2="28" y2="20" stroke="#4b6080" stroke-width="1.5" stroke-linecap="round"/></svg>'};
+  goPage('boost');startBoostAnim();
+}
 
 const BOOST_STEPS_ALL=[
   'Setting power plan → High Performance',
@@ -1179,9 +1367,10 @@ function completedBoost(fps){
   /* update launch state */
   document.getElementById('launch-ico').innerHTML=gd.icon;
   document.getElementById('launch-nm').textContent=gd.name;
-  document.getElementById('launch-fps').textContent='+'+fps;
+  /* FPS count-up animation */
+  animateNum(document.getElementById('launch-fps'),fps,600,v=>'+'+v);
   setText('launchFpsV','+'+fps);
-  setText('launchPingV',Math.round(pingBase-6)+' ms');
+  setText('launchPingV',Math.round(Math.max(8,pingBase-6))+' ms');
   setText('launchCpuV',freedCpu+'%');
   setText('launchRamV',freedMem+'');
   /* apply stats immediately */
@@ -1194,19 +1383,37 @@ function completedBoost(fps){
   if(hf){hf.textContent='↑ +'+fps+' FPS';hf.style.display='';}
   tickStats();tickNet();
   updateStatus();
+  startBoostTimer();
+  updateBoostBanner();
+  updateLaunchVpn();
+  addHistory(gd,fps);
   showBoostState('bs-launch');
   toast(gd.name+' boosted — +'+fps+' FPS estimated');
+}
+
+function animateNum(el,target,ms,fmt){
+  if(!el)return;
+  const start=Date.now(),from=0;
+  const step=()=>{
+    const p=Math.min(1,(Date.now()-start)/ms);
+    const ease=1-Math.pow(1-p,3);
+    el.textContent=(fmt||String)(Math.round(from+(target-from)*ease));
+    if(p<1)requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 function stopBoost(){
   boosting=false;pickedGame=null;
   clearTimeout(boostAnimTimer);
+  stopBoostTimer();
   activeProcs=[...MOCK_PROCS];procSel={};
   cpuBase=Math.min(78,cpuBase+18);ramBase=Math.min(72,ramBase+16);
   tickStats();tickNet();
   const hf=document.getElementById('homeFpsChg');if(hf)hf.style.display='none';
   setText('homeFpsV','—');
   setText('fpsV','—');
+  updateBoostBanner();
   updateStatus();
   showBoostState('bs-pick');
   toast('Boost stopped — settings restored');
@@ -1243,12 +1450,12 @@ function renderVpn(){
 function pingCol(ms){return ms==null?'var(--tx3)':ms<60?'var(--gn)':ms<120?'var(--or)':'var(--rd)';}
 function fakePing(id){setTimeout(()=>{pings[id]=18+Math.floor(Math.random()*130);renderVpn();},900+Math.random()*1400);}
 function vpnConn(id){
-  activeVpnId=id;renderVpn();updateStatus();
+  activeVpnId=id;renderVpn();updateStatus();updateLaunchVpn();
   /* route ping display through VPN server's latency */
   const pm=pings[id];if(pm!=null){pingBase=pm;tickNet();}
   toast('VPN connected — routing through '+vpns.find(v=>v.id===id)?.name);
 }
-function vpnDisconn(){activeVpnId=null;renderVpn();updateStatus();pingBase=32;tickNet();toast('VPN disconnected');}
+function vpnDisconn(){activeVpnId=null;renderVpn();updateStatus();updateLaunchVpn();pingBase=32;tickNet();toast('VPN disconnected');}
 function vpnRm(id){vpns=vpns.filter(v=>v.id!==id);if(activeVpnId===id){activeVpnId=null;updateStatus();}delete pings[id];renderVpn();}
 /* live fluctuation of VPN pings */
 setInterval(()=>{
@@ -1371,4 +1578,7 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 setLv(1);
+renderHistory();
+updateBoostBanner();
+updateLaunchVpn();
 </script>
