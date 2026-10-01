@@ -300,6 +300,27 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 .fi.y{color:var(--gn)}
 .fi.n{color:var(--tx3)}
 
+/* ── PAYMENT MODAL ── */
+.pay-plan-badge{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:10px;margin-bottom:2px}
+.pay-plan-badge.pro{background:linear-gradient(90deg,rgba(75,142,248,.15),rgba(155,109,255,.1));border:1px solid var(--acb)}
+.pay-plan-badge.elite{background:linear-gradient(90deg,rgba(245,158,11,.14),rgba(245,158,11,.06));border:1px solid var(--gob)}
+.ppb-name{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.ppb-price{font-family:'Space Mono',monospace;font-size:18px;font-weight:700}
+.card-row{display:grid;grid-template-columns:1fr 80px 70px;gap:8px}
+.card-icons{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.ci{width:32px;height:20px;border-radius:4px;border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.04em}
+.secure-note{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3);margin-top:4px}
+.pay-btn{width:100%;height:46px;border-radius:11px;background:linear-gradient(90deg,var(--ac),var(--pu));color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;transition:opacity .15s;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:8px}
+.pay-btn:hover{opacity:.88}
+.pay-btn:disabled{opacity:.5;cursor:not-allowed}
+.pay-btn.elite-grad{background:linear-gradient(90deg,#f59e0b,#f97316)}
+.pay-success{display:none;flex-direction:column;align-items:center;gap:12px;padding:10px 0;text-align:center}
+.pay-success.on{display:flex}
+.pay-success-ico{width:56px;height:56px;border-radius:50%;background:var(--gnd);border:2px solid var(--gnb);display:flex;align-items:center;justify-content:center}
+.pay-success-h{font-size:18px;font-weight:800}
+.pay-success-s{font-size:13px;color:var(--tx2);line-height:1.6}
+.pay-form-inner{display:flex;flex-direction:column;gap:10px}
+
 /* ── MODAL ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .18s}
 .overlay.open{opacity:1;pointer-events:all}
@@ -316,6 +337,7 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:3px}
+@keyframes spin{to{transform:rotate(360deg)}}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 
@@ -1031,6 +1053,79 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
   </div>
 </div>
 
+<!-- PAYMENT MODAL -->
+<div class="overlay" id="payOverlay" onclick="if(event.target===this)document.getElementById('payOverlay').classList.remove('open')">
+  <div class="modal" style="width:440px" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="mtitle">Checkout</div>
+      <button class="btn-ic" onclick="document.getElementById('payOverlay').classList.remove('open')" style="font-size:16px">✕</button>
+    </div>
+    <div class="msep"></div>
+
+    <!-- Success state -->
+    <div class="pay-success" id="paySuccess">
+      <div class="pay-success-ico">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><polyline points="4,13 10,19 22,7" stroke="var(--gn)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="pay-success-h" id="paySuccessH">Payment successful!</div>
+      <div class="pay-success-s" id="paySuccessS">Your plan is now active. All features are unlocked.</div>
+      <button class="pay-btn" id="paySuccessBtn" onclick="document.getElementById('payOverlay').classList.remove('open')">Done</button>
+    </div>
+
+    <!-- Form state -->
+    <div class="pay-form-inner" id="payForm">
+      <div class="pay-plan-badge pro" id="payBadge">
+        <div>
+          <div class="ppb-name" id="payPlanName">FRXST Pro</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:2px" id="payPlanDesc">Billed monthly · Cancel anytime</div>
+        </div>
+        <div class="ppb-price" id="payPlanPrice">$4.99</div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="flbl">Card number</div>
+          <div class="card-icons">
+            <div class="ci" style="color:#1a1f71;background:#fff">VISA</div>
+            <div class="ci" style="background:#eb001b;color:#fff;font-size:8px">MC</div>
+            <div class="ci" style="color:#2557d6;background:#fff">AMEX</div>
+          </div>
+        </div>
+        <input type="text" id="payCard" placeholder="1234  5678  9012  3456" maxlength="19" oninput="fmtCard(this)" onkeypress="return /[\d ]/.test(event.key)" autocomplete="cc-number">
+      </div>
+
+      <div class="card-row">
+        <div class="field">
+          <label class="flbl" for="payExp">Expiry</label>
+          <input type="text" id="payExp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)" onkeypress="return /[\d\/]/.test(event.key)" autocomplete="cc-exp">
+        </div>
+        <div class="field">
+          <label class="flbl" for="payCvc">CVC</label>
+          <input type="text" id="payCvc" placeholder="123" maxlength="4" onkeypress="return /\d/.test(event.key)" autocomplete="cc-csc">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="flbl" for="payName">Cardholder name</label>
+        <input type="text" id="payName" placeholder="Full name on card" autocomplete="cc-name">
+      </div>
+      <div class="field">
+        <label class="flbl" for="payEmail">Email</label>
+        <input type="text" id="payEmail" placeholder="you@email.com" autocomplete="email">
+      </div>
+
+      <button class="pay-btn" id="payBtn" onclick="submitPay()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="4" width="12" height="8" rx="1.5" stroke="white" stroke-width="1.3"/><path d="M4 4V3a3 3 0 0 1 6 0v1" stroke="white" stroke-width="1.3"/></svg>
+        <span id="payBtnTxt">Pay $4.99</span>
+      </button>
+      <div class="secure-note">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1l4 1.5V5.5c0 2.5-2 4-4 4.5-2-.5-4-2-4-4.5V2.5L5.5 1Z" stroke="currentColor" stroke-width="1.1" fill="none"/></svg>
+        256-bit SSL encrypted · Never stored · Cancel any time
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1134,8 +1229,9 @@ function updateStatus(){
 /* ── PROCESS LIST ── */
 function renderProcs(){
   const list=document.getElementById('plist'),count=document.getElementById('pcount');
-  if(!activeProcs.length){list.innerHTML='<div class="pempty">No background apps running</div>';count.textContent='';document.getElementById('mest').textContent='';return;}
-  count.textContent=activeProcs.length+' running';
+  if(!list)return;
+  if(!activeProcs.length){list.innerHTML='<div class="pempty">No background apps running</div>';if(count)count.textContent='';const m=document.getElementById('mest');if(m)m.textContent='';return;}
+  if(count)count.textContent=activeProcs.length+' running';
   list.innerHTML=activeProcs.map(p=>{
     if(procSel[p.pid]===undefined)procSel[p.pid]=p.def;
     const col=CAT_COL[p.cat]||'#6b7280';
@@ -1153,15 +1249,7 @@ function togProc(pid,v){procSel[pid]=v;calcFreed();}
 function calcFreed(){
   let mem=0,cpu=0;
   for(const p of activeProcs)if(procSel[p.pid]){mem+=p.memMb;cpu+=p.cpuPct;}
-  document.getElementById('mest').textContent=mem>0?`~${mem} MB · ${cpu.toFixed(1)}% CPU freed on boost`:'';
-}
-renderProcs();
-
-function autoDetect(){
-  const opts=['cs2','valorant','apex','fortnite','warzone','lol','dota2','rocket'];
-  const sel=document.getElementById('gameSelect');
-  for(const o of sel.options){if(opts.includes(o.value)){sel.value=o.value;toast('Game set to: '+o.text);return;}}
-  toast('No game detected — launch your game first');
+  const m=document.getElementById('mest');if(m)m.textContent=mem>0?`~${mem} MB · ${cpu.toFixed(1)}% CPU freed on boost`:'';
 }
 
 /* ── INTENSITY ── */
@@ -1514,7 +1602,80 @@ function toggleBill(){
   document.getElementById('proOrig').style.display=billingYr?'':'none';
   document.getElementById('elOrig').style.display=billingYr?'':'none';
 }
-function buy(plan){toast(plan+' — payment coming soon');}
+
+/* ── PAYMENT ── */
+let _payPlan='';
+function buy(plan){
+  _payPlan=plan;
+  const isElite=plan==='Elite';
+  const mo=billingYr?(isElite?'7.99':'3.99'):(isElite?'9.99':'4.99');
+  const badge=document.getElementById('payBadge');
+  badge.className='pay-plan-badge '+(isElite?'elite':'pro');
+  setText('payPlanName','FRXST '+plan);
+  setText('payPlanDesc','Billed '+(billingYr?'yearly':'monthly')+' · Cancel anytime');
+  setText('payPlanPrice','$'+mo+(billingYr?'/mo':''));
+  const btn=document.getElementById('payBtn');
+  btn.className='pay-btn'+(isElite?' elite-grad':'');
+  setText('payBtnTxt','Pay $'+mo);
+  /* reset form */
+  ['payCard','payExp','payCvc','payName','payEmail'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.value='';el.style.borderColor='';}
+  });
+  document.getElementById('paySuccess').classList.remove('on');
+  document.getElementById('payForm').style.display='';
+  btn.disabled=false;
+  document.getElementById('payOverlay').classList.add('open');
+}
+function closePayModal(e){
+  if(e&&e.target!==document.getElementById('payOverlay')&&e.type==='click')return;
+  document.getElementById('payOverlay').classList.remove('open');
+}
+function fmtCard(el){
+  let v=el.value.replace(/\D/g,'').slice(0,16);
+  el.value=v.replace(/(.{4})/g,'$1 ').trim();
+}
+function fmtExp(el){
+  let v=el.value.replace(/\D/g,'').slice(0,4);
+  if(v.length>2)v=v.slice(0,2)+' / '+v.slice(2);
+  el.value=v;
+}
+function submitPay(){
+  const card=document.getElementById('payCard').value.replace(/\s/g,'');
+  const exp=document.getElementById('payExp').value;
+  const cvc=document.getElementById('payCvc').value;
+  const name=document.getElementById('payName').value.trim();
+  const email=document.getElementById('payEmail').value.trim();
+  let ok=true;
+  const mark=(id,v)=>{const el=document.getElementById(id);if(el)el.style.borderColor=v?'':'var(--rd)';};
+  mark('payCard',card.length===16);if(card.length!==16)ok=false;
+  mark('payExp',exp.length>=4);if(exp.length<4)ok=false;
+  mark('payCvc',cvc.length>=3);if(cvc.length<3)ok=false;
+  mark('payName',name);if(!name)ok=false;
+  mark('payEmail',email&&email.includes('@'));if(!email||!email.includes('@'))ok=false;
+  if(!ok){toast('Fill in all fields correctly');return;}
+  const btn=document.getElementById('payBtn');
+  btn.disabled=true;
+  setText('payBtnTxt','Processing…');
+  btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="animation:spin .8s linear infinite"><path d="M8 2a6 6 0 1 1-4.24 1.76" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg><span>Processing…</span>';
+  setTimeout(()=>{
+    document.getElementById('payForm').style.display='none';
+    const s=document.getElementById('paySuccess');
+    s.classList.add('on');
+    setText('paySuccessH',_payPlan+' plan activated!');
+    setText('paySuccessS','Welcome to FRXST '+_payPlan+'. All features are now unlocked. Check your email for your receipt.');
+    const sb=document.getElementById('paySuccessBtn');
+    sb.className='pay-btn'+(_payPlan==='Elite'?' elite-grad':'');
+    /* update sidebar badge */
+    const pc=document.querySelector('.prem-card .prem-title');
+    if(pc)pc.textContent='FRXST '+_payPlan+' Active';
+    const ps=document.querySelector('.prem-card .prem-sub');
+    if(ps)ps.textContent='All features unlocked. Enjoying peak performance.';
+    /* mark current plan */
+    document.querySelectorAll('[onclick^="buy("]').forEach(b=>{b.disabled=false;});
+    const activePlanBtn=document.querySelector('[onclick="buy(\''+_payPlan+'\')"]');
+    if(activePlanBtn){activePlanBtn.textContent=_payPlan+' — Active ✓';activePlanBtn.disabled=true;}
+  },1600);
+}
 
 /* ── LIVE NETWORK STATS ── */
 let pingBase=32,dlBase=520,ulBase=48;
