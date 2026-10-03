@@ -678,8 +678,9 @@ function showSuccess(name, sub, title) {
   setTimeout(() => {
     document.getElementById('sov').classList.remove('on');
     ['si-btn','co-btn','su-btn'].forEach(id => setLd(id, false));
+    // Artifacts run in an iframe with no booster.html beside them; only the hosted site redirects.
+    if (fbReady && window.top === window) { location.href = 'booster.html'; return; }
     toast(fbReady ? 'Signed in! Launching dashboard…' : 'Demo sign-in finished. Connect Firebase for real accounts.', fbReady ? 'ok' : 'in');
-    // In production: window.location.href = '/dashboard';
   }, 2600);
 }
 
