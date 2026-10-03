@@ -229,8 +229,9 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 .perf-good{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gnd);color:var(--gn)}
 
 /* ── QUICK TOOLS ── */
-.qt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.qt-btn{background:var(--c2);border:1px solid var(--bd);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;transition:all .14s;text-align:left;width:100%}
+.qt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.qt-btn{background:var(--c2);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;transition:all .14s;text-align:left;width:100%;min-width:0}
+.qt-btn>div:not(.qt-ico){min-width:0}
 .qt-btn:hover{border-color:var(--bd2);background:var(--c3)}
 .qt-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .qt-label{font-size:13px;font-weight:600;line-height:1}
