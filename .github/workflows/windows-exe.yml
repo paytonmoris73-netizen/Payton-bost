@@ -7,11 +7,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
     defaults:
       run:
         shell: pwsh
@@ -75,3 +77,19 @@ jobs:
           name: launch-screenshot
           path: screenshot.png
           if-no-files-found: ignore
+
+      # Keeps the latest tested build on a single-commit branch so it can be
+      # fetched with plain git.
+      - name: Publish build to frxst-exe branch
+        run: |
+          $dir = "$env:RUNNER_TEMP\exe"
+          New-Item -ItemType Directory $dir | Out-Null
+          Copy-Item dist\FRXST.exe $dir
+          if (Test-Path screenshot.png) { Copy-Item screenshot.png $dir }
+          Set-Location $dir
+          git init -q -b frxst-exe
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "FRXST.exe built from $env:GITHUB_SHA"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" frxst-exe
