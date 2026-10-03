@@ -51,12 +51,12 @@ print("boost steps:", *r["steps"], sep="\n  ")
 check("boost forces FRXST plan", e.plan_id_of(fe.active_scheme()) == "frxst")
 check("Game DVR off during boost", dvr_values() == [0, 0], dvr_values())
 qos = fe.ps("Get-NetQosPolicy -PolicyStore ActiveStore | Select-Object -ExpandProperty Name")[1]
-check("QoS policy created", "FRXST-cs2.exe" in qos, qos)
+check("QoS policy created", "frxst-cs2.exe" in qos.lower(), qos)
 r = e.unboost()
 check("unboost restores Balanced", e.plan_id_of(fe.active_scheme()) == "balanced", r)
 check("Game DVR restored", dvr_values() == dvr_before, (dvr_before, dvr_values()))
 qos = fe.ps("Get-NetQosPolicy -PolicyStore ActiveStore | Select-Object -ExpandProperty Name")[1]
-check("QoS policy removed", "FRXST-" not in qos, qos)
+check("QoS policy removed", "frxst-" not in qos.lower(), qos)
 
 r = e.vpn_add({"name": "FRXST Smoke 'Test'", "server": "vpn.example.invalid", "type": "IKEv2"})
 check("add Windows VPN profile (quotes in name)", r.get("ok"), r)
