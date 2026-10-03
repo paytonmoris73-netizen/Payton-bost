@@ -54,6 +54,9 @@ input,select{font-family:inherit}
 .nav-item svg{width:16px;height:16px;flex-shrink:0}
 .sb-sep{height:1px;background:var(--bd);margin:10px 12px}
 .sb-bottom{padding:12px;border-top:1px solid var(--bd)}
+.sb-support{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;margin-top:8px;padding:7px 8px;background:none;border:1px solid var(--bd);border-radius:8px;color:var(--tx2);font:inherit;font-size:10.5px;cursor:pointer;text-align:left}
+.sb-support:hover{border-color:var(--ac);color:var(--tx)}
+.sb-support-em{color:var(--ac);font-size:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prem-card{background:linear-gradient(135deg,rgba(75,142,248,.2),rgba(155,109,255,.2));border:1px solid rgba(155,109,255,.28);border-radius:var(--r);padding:14px;margin-bottom:10px}
 .prem-ico{font-size:18px;margin-bottom:5px}
 .prem-title{font-size:13px;font-weight:700;margin-bottom:3px}
@@ -478,6 +481,10 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
         </div>
         <span class="sb-chev">›</span>
       </div>
+      <button class="sb-support" onclick="copyEmail()" title="Copy support email">
+        <span>Support</span>
+        <span class="sb-support-em">paytonmoris73@gmail.com</span>
+      </button>
     </div>
   </aside>
 
@@ -1122,6 +1129,9 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1l4 1.5V5.5c0 2.5-2 4-4 4.5-2-.5-4-2-4-4.5V2.5L5.5 1Z" stroke="currentColor" stroke-width="1.1" fill="none"/></svg>
         256-bit SSL encrypted · Never stored · Cancel any time
       </div>
+      <div class="secure-note" style="margin-top:6px">
+        Billing questions? <span style="color:var(--ac);cursor:pointer;user-select:all" onclick="copyEmail()">paytonmoris73@gmail.com</span>
+      </div>
     </div>
   </div>
 </div>
@@ -1735,6 +1745,7 @@ setTimeout(drawChart,80);setInterval(drawChart,2200);
 
 /* ── TOAST ── */
 let _tt;
+function copyEmail(){const e='paytonmoris73@gmail.com';try{navigator.clipboard.writeText(e).then(()=>toast('Support email copied: '+e),()=>toast('Support: '+e));}catch{toast('Support: '+e);}}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';clearTimeout(_tt);_tt=setTimeout(()=>el.style.opacity='0',3400);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 

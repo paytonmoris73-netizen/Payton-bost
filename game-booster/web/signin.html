@@ -190,6 +190,10 @@ body{
 .sulink a{color:var(--ac);text-decoration:none;font-weight:500}
 .sulink a:hover{text-decoration:underline}
 
+.help-row{margin-top:20px;padding-top:16px;border-top:1px solid var(--br);text-align:center;font-size:12px;color:var(--t3)}
+.help-em{background:none;border:none;color:var(--ac);font:inherit;cursor:pointer;user-select:all;word-break:break-all}
+.help-em:hover{text-decoration:underline}
+
 /* code panel */
 .code-desc{
   font-size:13px;color:var(--t2);text-align:center;
@@ -402,6 +406,10 @@ body{
     </div>
   </div>
 
+  <div class="help-row">
+    Need help? <button class="help-em" onclick="copyEmail()" title="Copy email">paytonmoris73@gmail.com</button>
+  </div>
+
 </div><!-- /card -->
 
 <!-- Forgot password modal -->
@@ -573,7 +581,7 @@ const ERR = {
   'auth/wrong-password':       'Incorrect password. Please try again.',
   'auth/invalid-email':        'Please enter a valid email address.',
   'auth/too-many-requests':    'Too many attempts. Please wait and try again.',
-  'auth/user-disabled':        'This account has been suspended. Contact support.',
+  'auth/user-disabled':        'This account has been suspended. Contact paytonmoris73@gmail.com.',
   'auth/network-request-failed':'Network error. Check your connection.',
   'auth/popup-closed-by-user': 'Sign-in popup was closed. Please try again.',
   'auth/popup-blocked':        'Pop-ups are blocked. Allow pop-ups and try again.',
@@ -704,6 +712,12 @@ function mkAcct(e) {
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
+function copyEmail() {
+  const e = 'paytonmoris73@gmail.com';
+  try {
+    navigator.clipboard.writeText(e).then(() => toast('Email copied: ' + e, 'ok'), () => toast('Contact: ' + e, 'in'));
+  } catch { toast('Contact: ' + e, 'in'); }
+}
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 function ifEnter(e, fn) { if (e.key === 'Enter') fn(); }
 </script>
