@@ -2,8 +2,10 @@ import "dotenv/config";
 import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SYSTEM_PROMPT } from "./systemPrompt.js";
+import { boosterRouter } from "./booster.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 8787;
@@ -16,6 +18,14 @@ interface ChatTurn {
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
+
+// Game Booster routes
+app.use("/api/booster", boosterRouter);
+app.get("/game-booster", (_req, res) => {
+  const html = readFileSync(path.join(__dirname, "..", "game-booster", "web", "index.html"), "utf8");
+  res.setHeader("Content-Type", "text/html");
+  res.send(html);
+});
 
 app.get("/api/config", (_req, res) => {
   res.json({ model: MODEL, hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY) });

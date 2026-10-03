@@ -1,0 +1,50 @@
+name: Deploy FRXST to GitHub Pages
+
+on:
+  push:
+    branches: [claude/game-booster-app-h7edzf]
+    paths: ['game-booster/web/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The pages are authored as artifact bodies (no doctype/head), so wrap
+      # them in a standards-mode skeleton for the public site.
+      - name: Build site
+        run: |
+          mkdir -p _site
+          wrap() {
+            {
+              printf '<!doctype html>\n<html lang="en">\n<meta charset="utf-8">\n'
+              printf '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
+              cat "$1"
+              printf '\n</html>\n'
+            } > "$2"
+          }
+          wrap game-booster/web/signin.html _site/index.html
+          wrap game-booster/web/signin.html _site/signin.html
+          wrap game-booster/web/booster.html _site/booster.html
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
