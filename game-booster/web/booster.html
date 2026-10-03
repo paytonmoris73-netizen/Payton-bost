@@ -137,7 +137,31 @@ input,select{font-family:inherit}
 .lv-dx{font-size:12px;color:var(--tx2);line-height:1.5}
 .lv-tile.l1{background:var(--acd);border-color:var(--acb)}.lv-tile.l1 .lv-ico,.lv-tile.l1 .lv-nm,.lv-tile.l1 .lv-fps{color:var(--ac)}.lv-tile.l1 .lv-dx{color:var(--tx)}
 .lv-tile.l2{background:var(--pud);border-color:var(--pub)}.lv-tile.l2 .lv-ico,.lv-tile.l2 .lv-nm,.lv-tile.l2 .lv-fps{color:var(--pu)}.lv-tile.l2 .lv-dx{color:var(--tx)}
-.lv-tile.l3{background:var(--rdd);border-color:var(--rdb)}.lv-tile.l3 .lv-ico,.lv-tile.l3 .lv-nm,.lv-tile.l3 .lv-fps{color:var(--rd)}.lv-tile.l3 .lv-dx{color:var(--tx)}
+.lv-tile.l3{background:var(--god);border-color:var(--gob)}.lv-tile.l3 .lv-ico,.lv-tile.l3 .lv-nm,.lv-tile.l3 .lv-fps{color:var(--go)}.lv-tile.l3 .lv-dx{color:var(--tx)}
+.lv-top{display:flex;align-items:flex-start;justify-content:space-between}
+.tier-tag{font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle}
+.tier-tag.free{background:var(--acd);color:var(--ac)}
+.tier-tag.pro{background:var(--pud);color:var(--pu)}
+.tier-tag.ultra{background:var(--god);color:var(--go)}
+.tier-tag.frx{background:linear-gradient(90deg,var(--ac),var(--pu));color:#fff}
+.tier-tag.locked::before{content:'';width:7px;height:8px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 8'%3E%3Cpath d='M1.5 3.5V2.3a2 2 0 0 1 4 0v1.2h.5v4.5H1V3.5h.5Zm1 0h2V2.3a1 1 0 0 0-2 0v1.2Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 8'%3E%3Cpath d='M1.5 3.5V2.3a2 2 0 0 1 4 0v1.2h.5v4.5H1V3.5h.5Zm1 0h2V2.3a1 1 0 0 0-2 0v1.2Z'/%3E%3C/svg%3E") center/contain no-repeat}
+.plan-chip{font-size:11px;font-weight:700;color:var(--tx2);background:var(--c2);border:1px solid var(--bd2);border-radius:20px;padding:3px 10px}
+.plan-chip.pro{color:var(--pu);border-color:var(--pub)}.plan-chip.elite{color:var(--go);border-color:var(--gob)}
+.pp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pp-tile{background:var(--c2);border:2px solid var(--bd);border-radius:var(--r);padding:13px 14px;text-align:left;display:flex;flex-direction:column;gap:5px;transition:border-color .14s,background .14s;cursor:pointer;color:var(--tx)}
+.pp-tile:hover{border-color:var(--bd2)}
+.pp-nm{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pp-dx{font-size:11.5px;color:var(--tx2);line-height:1.5}
+.pp-tile.on{border-color:var(--acb);background:var(--acd)}
+.pp-tile.frx.on{border-color:var(--pub);background:linear-gradient(150deg,rgba(75,142,248,.12),rgba(155,109,255,.12))}
+.pp-tile.busy{opacity:.6;pointer-events:none}
+.pp-cur{font-size:11px;font-weight:700;color:var(--tx2)}
+.pp-cur.boosted{color:var(--gn)}
+.pp-spec{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:12px;background:var(--bd);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.pp-spec div{background:var(--c1);padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pp-spec span{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+.pp-spec b{font-family:'Space Mono',monospace;font-size:11.5px;color:var(--tx);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-spec b.good{color:var(--gn)}
 
 /* ── PROCESS LIST ── */
 .plist-hdr{display:grid;grid-template-columns:15px 8px 1fr 42px 52px;gap:8px;align-items:center;padding:0 8px;margin-bottom:4px}
@@ -249,6 +273,33 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 .dot{width:8px;height:8px;border-radius:50%;background:var(--tx3);flex-shrink:0;transition:all .3s}
 .dot.gn{background:var(--gn);box-shadow:0 0 6px var(--gn)}
 .dot.ac{background:var(--ac);box-shadow:0 0 6px var(--ac)}
+.vconn{display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--c1);border:1px solid var(--bd);border-radius:var(--r);transition:border-color .2s}
+.vconn.on{border-color:var(--gnb);background:linear-gradient(150deg,rgba(34,197,94,.07),var(--c1) 60%)}
+.vconn.busy{border-color:var(--acb)}
+.vconn-top{display:flex;align-items:center;gap:12px}
+.vshield{width:44px;height:44px;border-radius:12px;background:var(--c2);color:var(--tx3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,color .2s}
+.vconn.busy .vshield{color:var(--ac);background:var(--acd)}
+.vconn.on .vshield{color:var(--gn);background:var(--gnd)}
+.vconn-st{font-size:15px;font-weight:800}
+.vconn-sub{font-size:12px;color:var(--tx2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vstats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.vstats div{background:var(--c1);padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.vstats span{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+.vstats b{font-family:'Space Mono',monospace;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vconn-acts{display:flex;gap:10px;flex-wrap:wrap}
+.vconn-acts .btn-launch{flex:1;min-width:160px}
+.vc.busy{border-color:var(--acb)}
+.lm-hdr{display:flex;align-items:center;gap:12px}
+.lm-ico{width:52px;height:52px;border-radius:12px;overflow:hidden;flex-shrink:0}
+.lm-ico svg{width:100%;height:100%}
+.lm-sub{font-size:12px;color:var(--tx2);margin-top:2px}
+.lm-done{display:flex;flex-direction:column;gap:10px}
+.lm-sum{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.lm-sum div{background:var(--c2);padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.lm-sum span{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+.lm-sum b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-open{display:block;text-align:center;text-decoration:none}
+.lm-note{font-size:11.5px;color:var(--tx2);line-height:1.55;text-align:center}
 .vc{display:flex;align-items:center;gap:12px;padding:0 16px;height:62px;background:var(--c1);border:1px solid var(--bd);border-radius:var(--r);transition:border-color .2s}
 .vc.on{border-color:var(--gnb)}
 .vi{flex:1;min-width:0}
@@ -353,7 +404,7 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 /* ── NAV BOOST DOT ── */
 .nb-dot{width:7px;height:7px;border-radius:50%;background:var(--gn);box-shadow:0 0 5px var(--gn);display:none;flex-shrink:0;margin-left:auto;animation:nbdp 1.4s ease-in-out infinite}
 .nb-dot.on{display:block}
-@keyframes nbdp{0%,100%{opacity:1;box-shadow:0 0 5px var(--gn)}50%{opacity:.35;box-shadow:0 0 2px var(--gn)}}
+@keyframes nbdp{0%,100%{opacity:1}50%{opacity:.35}}
 /* ── RECENT BOOSTS ── */
 .rbst-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
 .rbst-row:last-child{border-bottom:none;padding-bottom:0}
@@ -411,7 +462,7 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 /* ── RESPONSIVE ── */
 @media(max-width:700px){
   .sidebar{width:54px}
-  .sb-logo-name,.sb-logo-sub,.nav-item span,.prem-card,.sb-user .user-nm,.sb-user .user-sub,.sb-chev{display:none}
+  .sb-logo-name,.sb-logo-sub,.nav-item span,.prem-card,.sb-user .user-nm,.sb-user .user-sub,.sb-chev,.sb-support{display:none}
   .sb-top{padding:14px 7px 8px}
   .sb-logo{justify-content:center;margin-bottom:14px}
   .nav-item{padding:11px;justify-content:center;border-left:none;border-radius:10px}
@@ -421,6 +472,9 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
   .hgrid{grid-template-columns:1fr}
   .stat-row{grid-template-columns:repeat(2,1fr)}
   .lv-grid{grid-template-columns:1fr}
+  .pp-grid{grid-template-columns:1fr}
+  .pp-spec{grid-template-columns:repeat(2,1fr)}
+  .vstats{grid-template-columns:repeat(2,1fr)}
   .plan-grid{grid-template-columns:1fr}
   .pgrid{grid-template-columns:repeat(2,1fr)}
   .tgrid2{grid-template-columns:1fr}
@@ -810,27 +864,61 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
             </div>
           </div>
           <div class="card">
-            <div class="card-title" style="margin-bottom:12px">Boost Intensity</div>
+            <div class="card-hdr">
+              <div class="card-title">Boost Mode</div>
+              <span class="plan-chip" id="planChip">Free plan</span>
+            </div>
             <div class="lv-grid">
               <button class="lv-tile l1" data-lv="1" onclick="setLv(1)">
-                <div class="lv-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4a10 10 0 1 1 0 20A10 10 0 0 1 14 4Zm0 2a8 8 0 1 0 0 16A8 8 0 0 0 14 6Zm0 3v5.586l3.207 3.207-1.414 1.414L12 15.414V9h2Z" fill="currentColor"/></svg></div>
-                <div class="lv-nm">Light</div>
+                <div class="lv-top">
+                  <div class="lv-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="currentColor"><path d="M15 3L6 15.5h6.5V25l9.5-12.5H15.5V3Z"/></svg></div>
+                  <span class="tier-tag free">FREE</span>
+                </div>
+                <div class="lv-nm">Free Boost</div>
                 <div class="lv-fps">+5–12 FPS</div>
-                <div class="lv-dx">High Performance power plan + elevate game priority</div>
+                <div class="lv-dx">High Performance power plan, game priority up, background apps throttled</div>
               </button>
               <button class="lv-tile" data-lv="2" onclick="setLv(2)">
-                <div class="lv-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 22c0-4 2-6 4-8s2-4 2-6c1.5 1 2.5 3 2.5 5 0 1-.25 2-.75 3C17.5 15 19 13 19 10c2 2.5 3 5.5 3 8a8 8 0 0 1-14 0Z" fill="currentColor"/></svg></div>
-                <div class="lv-nm">Medium</div>
-                <div class="lv-fps">+10–22 FPS</div>
-                <div class="lv-dx">Kills background apps, disables Game DVR, flushes RAM</div>
+                <div class="lv-top">
+                  <div class="lv-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="currentColor"><path d="M11 2L4 13h5l-2 8 8-11h-5l3-8h-2Zm9 6l-5 7h3.5L17 22l6-8h-3.5L21 8h-1Z"/></svg></div>
+                  <span class="tier-tag pro" id="tag2">PRO</span>
+                </div>
+                <div class="lv-nm">Pro Boost</div>
+                <div class="lv-fps">+12–25 FPS</div>
+                <div class="lv-dx">FRXST Ultimate power plan, kills background apps, disables Game DVR, flushes RAM</div>
               </button>
               <button class="lv-tile" data-lv="3" onclick="setLv(3)">
-                <div class="lv-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3a9 9 0 0 1 9 9c0 3.1-1.6 5.8-4 7.4V22a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1v-2.6A9 9 0 0 1 14 3Zm3 21v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1h6Zm-3-19a7 7 0 0 0-4 12.7V21h8v-3.3A7 7 0 0 0 14 5Z" fill="currentColor"/></svg></div>
-                <div class="lv-nm">Extreme</div>
-                <div class="lv-fps">+15–35 FPS</div>
-                <div class="lv-dx">Max mode — suspends Defender, kills everything non-essential</div>
+                <div class="lv-top">
+                  <div class="lv-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="currentColor"><path d="M14 1l3.2 6.5 7.1 1-5.1 5 1.2 7.1L14 17.3l-6.4 3.3 1.2-7.1-5.1-5 7.1-1L14 1Zm-6 22h12v2.5H8V23Z"/></svg></div>
+                  <span class="tier-tag ultra" id="tag3">ULTRA</span>
+                </div>
+                <div class="lv-nm">Ultra Boost</div>
+                <div class="lv-fps">+20–40 FPS</div>
+                <div class="lv-dx">Everything in Pro + realtime priority, 0.5 ms timer, network QoS, GPU scheduling tweaks</div>
               </button>
             </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hdr">
+              <div class="card-title">Power Plan</div>
+              <span class="pp-cur" id="ppCur">Active: Balanced</span>
+            </div>
+            <div class="pp-grid">
+              <button class="pp-tile" data-pp="balanced" onclick="setPowerPlan('balanced')">
+                <div class="pp-nm">Balanced</div>
+                <div class="pp-dx">Windows default. Saves power, CPU clocks down when idle.</div>
+              </button>
+              <button class="pp-tile" data-pp="high" onclick="setPowerPlan('high')">
+                <div class="pp-nm">High Performance</div>
+                <div class="pp-dx">Windows plan. CPU stays fast, fewer sleep states.</div>
+              </button>
+              <button class="pp-tile frx" data-pp="frxst" onclick="setPowerPlan('frxst')">
+                <div class="pp-nm">FRXST Ultimate <span class="tier-tag frx">FRXST</span></div>
+                <div class="pp-dx">Our own plan, tuned for games. Zero core parking, no USB or PCIe sleep, 0.5 ms timer.</div>
+              </button>
+            </div>
+            <div class="pp-spec" id="ppSpec"></div>
           </div>
         </div>
 
@@ -880,8 +968,8 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
               <button class="btn btn-sm btn-p" id="launchVpnBtn" onclick="goPage('vpn')">Add VPN</button>
             </div>
             <div class="launch-btns">
-              <button class="btn-launch" onclick="toast('Launch your game now — boost is active!')">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="white" style="margin-right:6px;vertical-align:middle"><path d="M8 1L2 7.5h4.5V13l8-8H10V1Z"/></svg>Launch Game
+              <button class="btn-launch" id="launchBtn" onclick="launchGame()">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="white" style="margin-right:6px;vertical-align:middle"><path d="M3 1.5v11l9.5-5.5L3 1.5Z"/></svg><span id="launchBtnTxt">Launch Game</span>
               </button>
               <button class="btn-stop-l" onclick="stopBoost()">Stop Boost</button>
             </div>
@@ -919,10 +1007,30 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
           <span style="font-size:16px;font-weight:800">VPN Profiles</span>
           <button class="btn btn-p btn-sm" onclick="openVpnModal()">Add VPN</button>
         </div>
-        <div class="vpnst" id="vpnSt">
-          <div class="dot" id="vpnDot"></div>
-          <span class="vpnstt" id="vpnStTxt">Not connected</span>
-          <span class="vpnping" id="vpnPingTxt"></span>
+        <div class="vconn" id="vconn">
+          <div class="vconn-top">
+            <div class="vshield" id="vShield"><svg width="22" height="22" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l5.5 2v4.5C13.5 11.5 11 14 8 15 5 14 2.5 11.5 2.5 8V3.5l5.5-2Z" stroke="currentColor" stroke-width="1.4" fill="none"/><path id="vShieldTick" d="M5.5 8l1.8 1.8L10.8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0"/></svg></div>
+            <div style="flex:1;min-width:0">
+              <div class="vconn-st" id="vStTitle">Not connected</div>
+              <div class="vconn-sub" id="vStSub">Pick a server below. Your real IP is visible.</div>
+            </div>
+            <span class="vpnping" id="vpnPingTxt"></span>
+          </div>
+          <div class="prog-track" id="vProgWrap" hidden><div class="prog-fill" id="vProg" style="width:0%"></div></div>
+          <div class="vstats" id="vStats" hidden>
+            <div><span>Server</span><b id="vsSrv">—</b></div>
+            <div><span>Protocol</span><b id="vsProto">—</b></div>
+            <div><span>Public IP</span><b id="vsIp">—</b></div>
+            <div><span>Tunnel IP</span><b id="vsTun">—</b></div>
+            <div><span>Session</span><b id="vsTime">0:00</b></div>
+            <div><span>Data</span><b id="vsData">0 MB</b></div>
+          </div>
+          <div class="vconn-acts" id="vActs" hidden>
+            <button class="btn-launch" onclick="launchFromVpn()">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="white" style="margin-right:6px;vertical-align:middle"><path d="M3 1.5v11l9.5-5.5L3 1.5Z"/></svg><span id="vLaunchTxt">Launch Game</span>
+            </button>
+            <button class="btn-stop-l" onclick="vpnDisconn()">Disconnect</button>
+          </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:7px" id="vlist"></div>
         <div style="font-size:11px;color:var(--tx3);text-align:center">IKEv2 · L2TP/IPsec · SSTP · OpenVPN · WireGuard</div>
@@ -1029,6 +1137,27 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
     </div><!-- /pages -->
   </div><!-- /main-wrap -->
 </div><!-- /app -->
+
+<!-- LAUNCH MODAL -->
+<div class="overlay" id="launchOverlay" onclick="if(event.target===this&&launchDone)closeLaunch()">
+  <div class="modal" style="width:420px">
+    <div class="lm-hdr">
+      <div class="lm-ico" id="lmIco"></div>
+      <div style="min-width:0">
+        <div class="mtitle" id="lmTitle">Launching</div>
+        <div class="lm-sub" id="lmSub">Preparing your session…</div>
+      </div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="lmProg" style="width:0%"></div></div>
+    <div class="bst-steps" id="lmSteps"></div>
+    <div class="lm-done" id="lmDone" hidden>
+      <div class="lm-sum" id="lmSum"></div>
+      <a class="btn-launch lm-open" id="lmOpen" href="#" hidden>Open game</a>
+      <div class="lm-note" id="lmNote"></div>
+      <button class="btn" style="width:100%" onclick="closeLaunch()">Done</button>
+    </div>
+  </div>
+</div>
 
 <!-- VPN MODAL -->
 <div class="overlay" id="vpnOverlay" onclick="closeVpnModal(event)">
@@ -1153,12 +1282,20 @@ const MOCK_PROCS=[
   {pid:1010,label:'VS Code',cat:'other',memMb:198,cpuPct:1.1,def:false},
 ];
 const CAT_COL={browser:'#60a5fa',social:'#a78bfa',media:'#fb923c',cloud:'#34d399',launcher:'#fbbf24',system:'#f87171',other:'#6b7280'};
-const LV_ACTIONS={
-  1:['Switch power plan → High Performance','Set game process → High priority','Deprioritize background apps','Pause Windows Search indexer'],
-  2:['Switch power plan → High Performance','Set game process → High priority','Terminate selected background processes','Pause Windows Search indexer','Disable Game DVR / Xbox capture','Flush standby RAM list'],
-  3:['Switch power plan → High Performance','Set game process → Realtime priority','Terminate ALL non-essential processes','Disable Windows Search + SysMain','Disable Game DVR / Xbox capture','Suspend Windows Defender scans','Flush standby RAM list','Disable desktop visual effects'],
+const LV_NAMES={1:'Free Boost',2:'Pro Boost',3:'Ultra Boost'};
+const LV_FPS={1:[5,12],2:[12,25],3:[20,40]};
+/* plan required for each boost tier */
+const LV_REQ={1:'Free',2:'Pro',3:'Elite'};
+const PLAN_RANK={Free:0,Pro:1,Elite:2};
+
+/* ── POWER PLANS ── */
+const POWER_PLANS={
+  balanced:{name:'Balanced',rank:0,spec:[['Min CPU','5%'],['Max CPU','100%'],['Core parking','On'],['Timer','15.6 ms'],['USB suspend','On'],['PCIe link','Saving'],['Disk sleep','20 min'],['Display off','10 min']]},
+  high:{name:'High Performance',rank:1,spec:[['Min CPU','100%',1],['Max CPU','100%'],['Core parking','Partial'],['Timer','15.6 ms'],['USB suspend','On'],['PCIe link','Off',1],['Disk sleep','20 min'],['Display off','15 min']]},
+  frxst:{name:'FRXST Ultimate',rank:2,spec:[['Min CPU','100%',1],['Max CPU','100%'],['Core parking','Off',1],['Timer','0.5 ms',1],['USB suspend','Off',1],['PCIe link','Off',1],['Disk sleep','Never',1],['Display off','Never',1]]},
 };
-const LV_FPS={1:[5,12],2:[10,22],3:[15,35]};
+/* minimum power plan each boost tier forces while active */
+const LV_PLAN={1:'high',2:'frxst',3:'frxst'};
 
 /* ── STATE ── */
 let lv=1,boosting=false,procSel={},activeProcs=[...MOCK_PROCS];
@@ -1172,6 +1309,13 @@ let activeVpnId=null,pings={'v1':32,'v2':68,'v3':112,'v4':48},cfgPath='';
 let stretchOn=false,stretchW=0,stretchH=0,origW=1920,origH=1080;
 let billingYr=false;
 let cpuBase=28,ramBase=52;
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch{return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch{}}
+let curPlan=lsGet('frxst_plan','Free');if(!(curPlan in PLAN_RANK))curPlan='Free';
+let userPower=lsGet('frxst_power','balanced');if(!POWER_PLANS[userPower])userPower='balanced';
+/* vpnState: off | connecting | on */
+let vpnState='off',connectingId=null,connSeq=0,vpnSince=0,vpnBytes=0,vpnPubIp='',vpnTunIp='';
+let launchDone=true,launchSeq=0;
 
 /* ── NAVIGATION ── */
 function goPage(name){
@@ -1179,6 +1323,7 @@ function goPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='p-'+name));
   if(name==='vpn')renderVpn();
   if(name==='stretch')renderRes();
+  if(name==='home')requestAnimationFrame(()=>drawChart(false));
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>goPage(b.dataset.p)));
 
@@ -1201,39 +1346,67 @@ function tickStats(){
   activeProcs.forEach(p=>{p.cpuPct=Math.max(.1,Math.min(12,p.cpuPct+(Math.random()*.4-.2)));});
   updateStatus();
 }
-function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
-function setStyle(id,p,v){const e=document.getElementById(id);if(e)e.style[p]=v;}
-setInterval(tickStats,2000);tickStats();
+function setText(id,v){const e=document.getElementById(id);if(e&&e.textContent!==String(v))e.textContent=v;}
+function setStyle(id,p,v){const e=document.getElementById(id);if(e&&e.style[p]!==v)e.style[p]=v;}
+
+/* power plan actually in effect: a running boost can raise it, never lower it */
+function activePower(){
+  if(!boosting)return userPower;
+  const forced=LV_PLAN[lv];
+  return POWER_PLANS[forced].rank>POWER_PLANS[userPower].rank?forced:userPower;
+}
 
 function updateStatus(){
   const dot=document.getElementById('stDot'),txt=document.getElementById('stTxt');
   const fpsTile=document.getElementById('fpsTile');
   const pwrPill=document.getElementById('pwrPill');
-  const pwrV=document.getElementById('pwrV'),pwrSub=document.getElementById('pwrSub');
-  if(boosting){
-    dot.className='sdot gn';txt.textContent='Boosting';
-    fpsTile.classList.add('fps-on');
-    pwrV.textContent='High Performance';pwrV.style.color='var(--gn)';
-    pwrSub.textContent='active';pwrSub.style.color='var(--gn)';
-    pwrPill.textContent='High Performance';pwrPill.classList.add('hp');
-    const hf=document.getElementById('homeFpsChg');if(hf)hf.style.display='';
-  } else if(activeVpnId){
-    dot.className='sdot ac';txt.textContent='VPN active';
-    fpsTile.classList.remove('fps-on');
-    setText('fpsV','—');setText('homeFpsV','—');
-    pwrV.textContent='Balanced';pwrV.style.color='';
-    pwrSub.textContent='standard';pwrSub.style.color='';
-    pwrPill.textContent='Balanced';pwrPill.classList.remove('hp');
-    const hf=document.getElementById('homeFpsChg');if(hf)hf.style.display='none';
-  } else {
-    dot.className='sdot';txt.textContent='Idle';
-    fpsTile.classList.remove('fps-on');
-    setText('fpsV','—');setText('homeFpsV','—');
-    pwrV.textContent='Balanced';pwrV.style.color='';
-    pwrSub.textContent='standard';pwrSub.style.color='';
-    pwrPill.textContent='Balanced';pwrPill.classList.remove('hp');
-    const hf=document.getElementById('homeFpsChg');if(hf)hf.style.display='none';
+  const pp=activePower(),ppName=POWER_PLANS[pp].name,hot=pp!=='balanced';
+  if(boosting){dot.className='sdot gn';txt.textContent='Boosting';}
+  else if(vpnState==='on'){dot.className='sdot ac';txt.textContent='VPN active';}
+  else if(vpnState==='connecting'){dot.className='sdot ac';txt.textContent='VPN connecting';}
+  else{dot.className='sdot';txt.textContent='Idle';}
+  fpsTile.classList.toggle('fps-on',boosting);
+  if(!boosting){setText('fpsV','—');setText('homeFpsV','—');}
+  const hf=document.getElementById('homeFpsChg');if(hf)hf.style.display=boosting?'':'none';
+  setText('pwrV',ppName);setStyle('pwrV','color',hot?'var(--gn)':'');
+  setText('pwrSub',boosting&&pp!==userPower?'set by boost':hot?'active':'standard');
+  setStyle('pwrSub','color',hot?'var(--gn)':'');
+  if(pwrPill.textContent!==ppName)pwrPill.textContent=ppName;
+  pwrPill.classList.toggle('hp',hot);
+  renderPower();
+}
+
+/* ── POWER PLAN UI ── */
+let powerBusy=null;
+function renderPower(){
+  const pp=activePower();
+  document.querySelectorAll('.pp-tile').forEach(t=>{
+    t.classList.toggle('on',t.dataset.pp===pp);
+    t.classList.toggle('busy',t.dataset.pp===powerBusy);
+  });
+  const cur=document.getElementById('ppCur');
+  if(cur){
+    const s=boosting&&pp!==userPower?'Active: '+POWER_PLANS[pp].name+' (boost)':'Active: '+POWER_PLANS[pp].name;
+    if(cur.textContent!==s)cur.textContent=s;
+    cur.classList.toggle('boosted',pp!=='balanced');
   }
+  const spec=document.getElementById('ppSpec');
+  if(spec&&spec.dataset.pp!==pp){
+    spec.dataset.pp=pp;
+    spec.innerHTML=POWER_PLANS[pp].spec.map(([k,v,g])=>`<div><span>${k}</span><b${g?' class="good"':''}>${v}</b></div>`).join('');
+  }
+}
+function setPowerPlan(id){
+  if(!POWER_PLANS[id]||powerBusy)return;
+  if(id===userPower&&!boosting){toast(POWER_PLANS[id].name+' is already active');return;}
+  powerBusy=id;renderPower();
+  setTimeout(()=>{
+    powerBusy=null;userPower=id;lsSet('frxst_power',id);
+    updateStatus();
+    const pp=activePower();
+    toast(pp===id?'Power plan switched to '+POWER_PLANS[id].name
+      :POWER_PLANS[id].name+' saved. '+LV_NAMES[lv]+' keeps '+POWER_PLANS[pp].name+' until you stop boosting');
+  },550);
 }
 
 /* ── PROCESS LIST ── */
@@ -1263,12 +1436,28 @@ function calcFreed(){
 }
 
 /* ── INTENSITY ── */
-function setLv(n){
+function hasTier(n){return PLAN_RANK[curPlan]>=PLAN_RANK[LV_REQ[n]];}
+function setLv(n,silent){
+  if(!hasTier(n)){
+    if(!silent){
+      pendingLv=n;
+      toast(LV_NAMES[n]+' needs FRXST '+LV_REQ[n]+'. Upgrade to unlock it');
+      buy(LV_REQ[n]);
+    }
+    return;
+  }
+  if(boosting&&n!==lv&&!silent)toast(LV_NAMES[n]+' selected. It applies on your next boost');
   lv=n;
+  renderTiers();
+}
+function renderTiers(){
   document.querySelectorAll('.lv-tile').forEach(b=>{
     const bn=parseInt(b.dataset.lv);
-    b.className='lv-tile'+(bn===n?' '+(n===1?'l1':n===2?'l2':'l3'):'');
+    b.className='lv-tile'+(bn===lv?' '+(bn===1?'l1':bn===2?'l2':'l3'):'');
   });
+  [2,3].forEach(n=>{const t=document.getElementById('tag'+n);if(t)t.classList.toggle('locked',!hasTier(n));});
+  const chip=document.getElementById('planChip');
+  if(chip){chip.textContent=curPlan+' plan';chip.className='plan-chip'+(curPlan==='Pro'?' pro':curPlan==='Elite'?' elite':'');}
 }
 
 /* ── BOOST FLOW ── */
@@ -1330,7 +1519,11 @@ function updateLaunchVpn(){
   const ping=document.getElementById('launchVpnPing');
   const btn=document.getElementById('launchVpnBtn');
   if(!row)return;
-  if(activeVpnId){
+  if(vpnState==='connecting'){
+    row.classList.remove('vpn-live');dot.className='lvr-dot';
+    txt.textContent='VPN connecting…';ping.textContent='';
+    btn.textContent='View';btn.onclick=()=>goPage('vpn');
+  } else if(activeVpnId){
     const v=vpns.find(x=>x.id===activeVpnId);
     row.classList.add('vpn-live');
     dot.className='lvr-dot on';
@@ -1353,8 +1546,14 @@ function loadHistory(){
 function saveHistory(h){try{localStorage.setItem('frxst_history',JSON.stringify(h.slice(0,8)));}catch{}}
 function addHistory(game,fps){
   const h=loadHistory();
-  h.unshift({game:game.name,icon:game.icon,fps,ts:Date.now()});
+  h.unshift({id:game.id||'',game:game.name,icon:game.icon,fps,tier:lv,ts:Date.now()});
   saveHistory(h);renderHistory();
+}
+function boostAgain(i){
+  const r=loadHistory()[i];if(!r)return;
+  const id=r.id||r.game.toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(GAME_DATA[id])pickGame(id);
+  else startCustom(r.game);
 }
 function clearHistory(){try{localStorage.removeItem('frxst_history');}catch{}renderHistory();toast('History cleared');}
 function timeAgo(ts){
@@ -1368,11 +1567,11 @@ function renderHistory(){
   const el=document.getElementById('recentList');if(!el)return;
   const h=loadHistory();
   if(!h.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3);text-align:center;padding:12px 0">No boosts yet — pick a game to start</div>';return;}
-  el.innerHTML=h.slice(0,4).map(r=>`<div class="rbst-row">
-    <div class="rbst-ico">${r.icon}</div>
-    <div style="flex:1"><div class="rbst-nm">${esc(r.game)}</div><div class="rbst-ago">${timeAgo(r.ts)}</div></div>
-    <div class="rbst-fps">+${r.fps} FPS</div>
-    <button class="btn btn-sm" style="flex-shrink:0;margin-left:6px" onclick="pickGame('${r.game.toLowerCase().replace(/[^a-z]/g,'')}')">Boost again</button>
+  el.innerHTML=h.slice(0,4).map((r,i)=>`<div class="rbst-row">
+    <div class="rbst-ico">${GAME_DATA[r.id]?GAME_DATA[r.id].icon:CUSTOM_ICON}</div>
+    <div style="flex:1;min-width:0"><div class="rbst-nm">${esc(r.game)}</div><div class="rbst-ago">${r.tier?LV_NAMES[r.tier]+' · ':''}${timeAgo(r.ts)}</div></div>
+    <div class="rbst-fps">+${Number(r.fps)||0} FPS</div>
+    <button class="btn btn-sm" style="flex-shrink:0;margin-left:6px" onclick="boostAgain(${i})">Boost again</button>
   </div>`).join('');
 }
 
@@ -1382,31 +1581,48 @@ function pickGameCustom(){
   if(c){c.style.display='';document.getElementById('customGameInp').focus();}
 }
 function hideCustomGame(){const c=document.getElementById('customGameCard');if(c)c.style.display='none';}
+const CUSTOM_ICON='<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#111218"/><rect x="10" y="20" width="36" height="22" rx="5" stroke="#4b6080" stroke-width="2" fill="none"/><circle cx="20" cy="31" r="2.5" fill="#4b6080"/><circle cx="36" cy="31" r="2.5" fill="#4b6080"/><rect x="26" y="28" width="4" height="1.5" rx=".75" fill="#4b6080"/><rect x="27.25" y="26.75" width="1.5" height="4" rx=".75" fill="#4b6080"/><line x1="28" y1="14" x2="28" y2="20" stroke="#4b6080" stroke-width="1.5" stroke-linecap="round"/></svg>';
 function confirmCustomGame(){
   const inp=document.getElementById('customGameInp');
-  const name=(inp?inp.value.trim():'')||'Game';
+  const name=((inp?inp.value.trim():'')||'Game').slice(0,40);
   hideCustomGame();
-  pickedGame={name,full:name,icon:'<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#111218"/><rect x="10" y="20" width="36" height="22" rx="5" stroke="#4b6080" stroke-width="2" fill="none"/><circle cx="20" cy="31" r="2.5" fill="#4b6080"/><circle cx="36" cy="31" r="2.5" fill="#4b6080"/><rect x="26" y="28" width="4" height="1.5" rx=".75" fill="#4b6080"/><rect x="27.25" y="26.75" width="1.5" height="4" rx=".75" fill="#4b6080"/><line x1="28" y1="14" x2="28" y2="20" stroke="#4b6080" stroke-width="1.5" stroke-linecap="round"/></svg>'};
+  startCustom(name);
+}
+function startCustom(name){
+  if(boosting)stopBoost(true);
+  pickedGame={id:'',name,full:name,icon:CUSTOM_ICON};
   goPage('boost');startBoostAnim();
 }
 
-const BOOST_STEPS_ALL=[
-  'Setting power plan → High Performance',
-  'Elevating game process priority',
-  'Terminating background processes',
-  'Disabling Windows Game DVR',
-  'Flushing standby RAM list',
-  'Optimizing network QoS routing',
-  'Applying GPU scheduling tweaks',
-];
+/* steam:// and launcher links; they only work where those launchers are installed */
+const GAME_LAUNCH={
+  cs2:{via:'Steam',url:'steam://rungameid/730'},
+  apex:{via:'Steam',url:'steam://rungameid/1172470'},
+  warzone:{via:'Steam',url:'steam://rungameid/1938090'},
+  fortnite:{via:'Epic Games',url:'com.epicgames.launcher://apps/Fortnite?action=launch&silent=true'},
+  minecraft:{via:'Minecraft Launcher',url:'minecraft://'},
+  valorant:{via:'Riot Client',url:''},
+};
+function boostSteps(){
+  const pp=POWER_PLANS[POWER_PLANS[LV_PLAN[lv]].rank>POWER_PLANS[userPower].rank?LV_PLAN[lv]:userPower].name;
+  const s=['Setting power plan → '+pp,'Raising game process priority'];
+  if(lv===1)return s.concat(['Throttling background apps','Pausing Windows Search indexer']);
+  s.push('Closing background apps','Disabling Game DVR / Xbox capture','Flushing standby RAM list');
+  if(lv===2)return s;
+  return ['Setting power plan → '+pp,'Setting game process → Realtime priority','Closing ALL non-essential apps',
+    'Disabling Game DVR / Xbox capture','Flushing standby RAM list','Setting timer resolution → 0.5 ms',
+    'Prioritizing game traffic (QoS)','Enabling hardware GPU scheduling'];
+}
 
 function showBoostState(id){
   document.querySelectorAll('.bstate').forEach(s=>s.classList.toggle('on',s.id===id));
 }
 
 function pickGame(id){
-  pickedGame=GAME_DATA[id]||null;
-  if(!pickedGame)return;
+  const gd=GAME_DATA[id];
+  if(!gd)return;
+  if(boosting)stopBoost(true);
+  pickedGame=Object.assign({id},gd);
   goPage('boost');
   startBoostAnim();
 }
@@ -1414,6 +1630,7 @@ function pickGame(id){
 function startBoostAnim(){
   boosting=false;
   clearTimeout(boostAnimTimer);
+  stopBoostTimer();updateBoostBanner();updateStatus();
   const gd=pickedGame;
   /* fill game header */
   document.getElementById('bst-game-ico').innerHTML=gd.icon;
@@ -1421,8 +1638,8 @@ function startBoostAnim(){
   document.getElementById('bstProg').style.width='0%';
   document.getElementById('bstProgLbl').textContent='Starting…';
   document.getElementById('bstProgPct').textContent='0%';
-  /* steps for this intensity level */
-  const steps=BOOST_STEPS_ALL.slice(0,lv===1?4:lv===2?5:7);
+  const steps=boostSteps();
+  document.querySelector('#bs-boosting .bst-game-hdr-sub').textContent=LV_NAMES[lv]+' · optimizing your system…';
   const stepsEl=document.getElementById('bst-steps');
   stepsEl.innerHTML=steps.map((s,i)=>`<div class="bst-step" id="bst-step-${i}">
     <div class="step-dot" id="bst-dot-${i}"></div><span>${s}</span>
@@ -1486,7 +1703,8 @@ function completedBoost(fps){
   updateLaunchVpn();
   addHistory(gd,fps);
   showBoostState('bs-launch');
-  toast(gd.name+' boosted — +'+fps+' FPS estimated');
+  setText('launchBtnTxt','Launch '+gd.name);
+  toast(gd.name+' boosted with '+LV_NAMES[lv]+'. +'+fps+' FPS estimated');
 }
 
 function animateNum(el,target,ms,fmt){
@@ -1501,65 +1719,185 @@ function animateNum(el,target,ms,fmt){
   requestAnimationFrame(step);
 }
 
-function stopBoost(){
+/* ── LAUNCH ── */
+function launchGame(){
+  if(!boosting||!pickedGame){toast('Boost a game first, then launch it');return;}
+  if(!launchDone)return;
+  const gd=pickedGame,seq=++launchSeq,L=GAME_LAUNCH[gd.id]||{via:'',url:''};
+  const vpn=vpnState==='on'?vpns.find(v=>v.id===activeVpnId):null;
+  const ppName=POWER_PLANS[activePower()].name;
+  launchDone=false;
+  document.getElementById('lmIco').innerHTML=gd.icon;
+  setText('lmTitle','Launching '+gd.name);
+  setText('lmSub',LV_NAMES[lv]+' · '+ppName);
+  const steps=['Verifying '+LV_NAMES[lv]+' profile',
+    vpn?'Routing game traffic through '+vpn.name:'Checking network route (no VPN)',
+    'Locking power plan → '+ppName,'Clearing standby memory',
+    L.url?'Handing off to '+L.via:'Getting '+gd.name+' ready'];
+  document.getElementById('lmSteps').innerHTML=steps.map((s,i)=>`<div class="bst-step" id="lm-step-${i}"><div class="step-dot"></div><span>${esc(s)}</span></div>`).join('');
+  document.getElementById('lmDone').hidden=true;
+  document.getElementById('lmSteps').hidden=false;
+  setStyle('lmProg','width','0%');
+  document.getElementById('launchOverlay').classList.add('open');
+  const tick='<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8.5,2.5" fill="none" stroke="var(--gn)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  let i=0;
+  const next=()=>{
+    if(seq!==launchSeq)return;
+    if(i>0){const p=document.getElementById('lm-step-'+(i-1));p.classList.remove('active');p.classList.add('done');p.firstElementChild.innerHTML=tick;}
+    if(i<steps.length){
+      document.getElementById('lm-step-'+i).classList.add('active');
+      setStyle('lmProg','width',Math.round((i+1)/steps.length*100)+'%');
+      i++;setTimeout(next,380+rnd(240));return;
+    }
+    launchDone=true;
+    setText('lmTitle',gd.name+' is ready');
+    setText('lmSub','Boost locked in for this session');
+    const pm=vpn?pings[vpn.id]:Math.round(pingBase);
+    document.getElementById('lmSum').innerHTML=[
+      ['Boost',LV_NAMES[lv]+' · '+document.getElementById('launch-fps').textContent+' FPS'],
+      ['Power plan',ppName],['VPN',vpn?vpn.name:'Off'],['Ping',pm+' ms']
+    ].map(([k,v])=>`<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
+    const open=document.getElementById('lmOpen');
+    open.hidden=!L.url;
+    if(L.url){open.href=L.url;open.textContent='Open '+gd.name+' in '+L.via;}
+    setText('lmNote',L.url
+      ?'If '+L.via+' doesn\'t open, start '+gd.name+' from it yourself. Your boost stays on while you play.'
+      :'Start '+gd.name+' from '+(L.via||'its launcher')+' now. Your boost stays on while you play.');
+    document.getElementById('lmDone').hidden=false;
+    setText('launchBtnTxt','Relaunch '+gd.name);
+  };
+  next();
+}
+function closeLaunch(){
+  launchSeq++;launchDone=true;
+  document.getElementById('launchOverlay').classList.remove('open');
+}
+
+function stopBoost(quiet){
+  if(!launchDone)closeLaunch();
+  const wasPower=activePower();
   boosting=false;pickedGame=null;
   clearTimeout(boostAnimTimer);
   stopBoostTimer();
   activeProcs=[...MOCK_PROCS];procSel={};
   cpuBase=Math.min(78,cpuBase+18);ramBase=Math.min(72,ramBase+16);
   tickStats();tickNet();
-  const hf=document.getElementById('homeFpsChg');if(hf)hf.style.display='none';
-  setText('homeFpsV','—');
-  setText('fpsV','—');
   updateBoostBanner();
   updateStatus();
+  if(quiet)return;
   showBoostState('bs-pick');
-  toast('Boost stopped — settings restored');
+  toast(wasPower!==userPower?'Boost stopped. Power plan back to '+POWER_PLANS[userPower].name:'Boost stopped. Settings restored');
 }
 
 /* ── VPN ── */
+/* Rebuilds the list only on structural changes; pings update in place via updateVpnLive(). */
 function renderVpn(){
-  const st=document.getElementById('vpnSt'),dot=document.getElementById('vpnDot');
-  const stTxt=document.getElementById('vpnStTxt'),pTxt=document.getElementById('vpnPingTxt');
-  if(activeVpnId){
-    const ap=vpns.find(v=>v.id===activeVpnId);
-    st.classList.add('on');dot.className='dot gn';
-    stTxt.textContent='Connected to '+(ap?.name||'VPN');
-    const pm=pings[activeVpnId];pTxt.textContent=pm!=null?pm+' ms':'';pTxt.style.color=pingCol(pm);
-  } else {
-    st.classList.remove('on');dot.className='dot';stTxt.textContent='Not connected';pTxt.textContent='';
-  }
   const list=document.getElementById('vlist');
-  if(!vpns.length){list.innerHTML='<div class="vempty">No VPN profiles — click Add VPN to get started</div>';return;}
-  list.innerHTML=vpns.map(v=>{
-    const on=v.id===activeVpnId,pm=pings[v.id];
-    const ps=pm!=null?pm+' ms':'—',pc=pingCol(pm);
-    return`<div class="vc${on?' on':''}">
-      <div class="dot${on?' gn':''}"></div>
-      <div class="vi"><div class="vnm">${esc(v.name)}</div><div class="vmt">${esc(v.type)} · ${esc(v.server)} · <span style="color:${pc}">${ps}</span></div></div>
+  if(!vpns.length){list.innerHTML='<div class="vempty">No VPN profiles — click Add VPN to get started</div>';}
+  else list.innerHTML=vpns.map(v=>{
+    const on=v.id===activeVpnId&&vpnState==='on',busy=v.id===connectingId;
+    return`<div class="vc${on?' on':busy?' busy':''}">
+      <div class="dot${on?' gn':busy?' ac':''}"></div>
+      <div class="vi"><div class="vnm">${esc(v.name)}</div><div class="vmt">${esc(v.type)} · ${esc(v.server)} · <span data-ping="${v.id}">—</span></div></div>
       <div class="vac">
         ${on?`<button class="btn btn-d btn-sm" onclick="vpnDisconn()">Disconnect</button>`
-            :`<button class="btn btn-p btn-sm" onclick="vpnConn('${v.id}')">Connect</button>
-              <button class="btn-ic" onclick="vpnRm('${v.id}')" title="Remove">✕</button>`}
+          :busy?`<button class="btn btn-sm" onclick="vpnDisconn()">Cancel</button>`
+          :`<button class="btn btn-p btn-sm" onclick="vpnConn('${v.id}')">${vpnState==='off'?'Connect':'Switch'}</button>
+            <button class="btn-ic" onclick="vpnRm('${v.id}')" title="Remove">✕</button>`}
       </div>
     </div>`;
   }).join('');
+  renderVpnPanel();
+  updateVpnLive();
+}
+function renderVpnPanel(){
+  const box=document.getElementById('vconn');if(!box)return;
+  const v=vpns.find(x=>x.id===(connectingId||activeVpnId));
+  box.classList.toggle('on',vpnState==='on');
+  box.classList.toggle('busy',vpnState==='connecting');
+  document.getElementById('vShieldTick').setAttribute('opacity',vpnState==='on'?'1':'0');
+  document.getElementById('vProgWrap').hidden=vpnState!=='connecting';
+  document.getElementById('vStats').hidden=vpnState!=='on';
+  document.getElementById('vActs').hidden=vpnState!=='on';
+  if(vpnState==='off'){
+    setText('vStTitle','Not connected');setText('vStSub','Pick a server below. Your real IP is visible.');
+  } else if(vpnState==='on'&&v){
+    setText('vStTitle','Protected · '+v.name);
+    setText('vStSub','Game traffic is routed through '+v.server);
+    setText('vsSrv',v.server);setText('vsProto',v.type);
+    setText('vsIp',vpnPubIp);setText('vsTun',vpnTunIp);
+    setText('vLaunchTxt',boosting&&pickedGame?'Launch '+pickedGame.name:'Pick a game & launch');
+  }
+}
+function fmtDur(ms){const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=String(s%60).padStart(2,'0');return h?h+':'+String(m).padStart(2,'0')+':'+ss:m+':'+ss;}
+function fmtBytes(b){return b<1024?Math.round(b)+' MB':(b/1024).toFixed(2)+' GB';}
+function updateVpnLive(){
+  document.querySelectorAll('#vlist [data-ping]').forEach(el=>{
+    const pm=pings[el.dataset.ping],s=pm!=null?pm+' ms':'testing…';
+    if(el.textContent!==s){el.textContent=s;el.style.color=pingCol(pm);}
+  });
+  const pTxt=document.getElementById('vpnPingTxt');
+  if(vpnState==='on'){
+    const pm=pings[activeVpnId];setText('vpnPingTxt',pm!=null?pm+' ms':'');pTxt.style.color=pingCol(pm);
+    setText('vsTime',fmtDur(Date.now()-vpnSince));setText('vsData',fmtBytes(vpnBytes));
+  } else setText('vpnPingTxt','');
 }
 function pingCol(ms){return ms==null?'var(--tx3)':ms<60?'var(--gn)':ms<120?'var(--or)':'var(--rd)';}
-function fakePing(id){setTimeout(()=>{pings[id]=18+Math.floor(Math.random()*130);renderVpn();},900+Math.random()*1400);}
+function fakePing(id){setTimeout(()=>{if(!vpns.some(v=>v.id===id))return;pings[id]=18+Math.floor(Math.random()*130);updateVpnLive();},900+Math.random()*1400);}
+
+const REGION_IP={ny:'38.132',eu:'185.216',jp:'103.152',la:'45.89'};
+function rnd(n){return Math.floor(Math.random()*n);}
 function vpnConn(id){
-  activeVpnId=id;renderVpn();updateStatus();updateLaunchVpn();
-  /* route ping display through VPN server's latency */
-  const pm=pings[id];if(pm!=null){pingBase=pm;tickNet();}
-  toast('VPN connected — routing through '+vpns.find(v=>v.id===id)?.name);
+  const v=vpns.find(x=>x.id===id);if(!v)return;
+  const seq=++connSeq;
+  vpnState='connecting';connectingId=id;activeVpnId=null;
+  renderVpn();updateStatus();updateLaunchVpn();
+  const steps=[['Resolving '+v.server,12],['Opening '+v.type+' tunnel',38],['Exchanging keys',62],['Authenticating',80],['Assigning tunnel IP',94]];
+  let i=0;
+  const next=()=>{
+    if(seq!==connSeq)return;
+    if(i<steps.length){
+      const [lbl,pct]=steps[i++];
+      setText('vStTitle','Connecting to '+v.name);setText('vStSub',lbl+'…');
+      setStyle('vProg','width',pct+'%');
+      setTimeout(next,320+rnd(260));
+      return;
+    }
+    setStyle('vProg','width','100%');
+    const pre=REGION_IP[(v.server.split('.')[0]||'').toLowerCase()]||(rnd(180)+20)+'.'+rnd(255);
+    vpnPubIp=pre+'.'+rnd(255)+'.'+(rnd(250)+2);
+    vpnTunIp='10.8.'+rnd(255)+'.'+(rnd(250)+2);
+    vpnState='on';activeVpnId=id;connectingId=null;vpnSince=Date.now();vpnBytes=0;
+    if(pings[id]==null)pings[id]=20+rnd(60);
+    pingBase=pings[id];
+    renderVpn();updateStatus();updateLaunchVpn();tickNet();
+    toast('Connected to '+v.name+'. You can launch your game now');
+  };
+  next();
 }
-function vpnDisconn(){activeVpnId=null;renderVpn();updateStatus();updateLaunchVpn();pingBase=32;tickNet();toast('VPN disconnected');}
-function vpnRm(id){vpns=vpns.filter(v=>v.id!==id);if(activeVpnId===id){activeVpnId=null;updateStatus();}delete pings[id];renderVpn();}
-/* live fluctuation of VPN pings */
-setInterval(()=>{
+function vpnDisconn(){
+  const was=vpnState;
+  connSeq++;vpnState='off';activeVpnId=null;connectingId=null;
+  renderVpn();updateStatus();updateLaunchVpn();pingBase=32;tickNet();
+  toast(was==='connecting'?'Connection cancelled':'VPN disconnected. Your real IP is visible again');
+}
+function vpnRm(id){
+  if(id===activeVpnId||id===connectingId){vpnDisconn();}
+  vpns=vpns.filter(v=>v.id!==id);delete pings[id];renderVpn();
+}
+function vpnTick(){
   Object.keys(pings).forEach(id=>{pings[id]=Math.max(8,Math.min(200,pings[id]+(Math.random()*8-4)|0));});
-  if(document.getElementById('p-vpn').classList.contains('on'))renderVpn();
-},3000);
+  if(vpnState==='on'){vpnBytes+=0.4+Math.random()*(boosting?3.5:1.2);}
+  if(document.getElementById('p-vpn').classList.contains('on'))updateVpnLive();
+  if(vpnState==='on'){const pm=pings[activeVpnId];setText('launchVpnPing',pm!=null?pm+' ms':'');}
+}
+function launchFromVpn(){
+  if(boosting&&pickedGame){goPage('boost');launchGame();return;}
+  goPage('boost');
+  if(document.getElementById('bs-boosting').classList.contains('on')){toast('Boost is almost done. Launch appears when it finishes');return;}
+  showBoostState('bs-pick');
+  toast('Pick your game. It will run through '+(vpns.find(v=>v.id===activeVpnId)?.name||'the VPN'));
+}
 renderVpn();
 
 function openVpnModal(){
@@ -1675,16 +2013,26 @@ function submitPay(){
     setText('paySuccessS','Welcome to FRXST '+_payPlan+'. All features are now unlocked. Check your email for your receipt.');
     const sb=document.getElementById('paySuccessBtn');
     sb.className='pay-btn'+(_payPlan==='Elite'?' elite-grad':'');
-    /* update sidebar badge */
-    const pc=document.querySelector('.prem-card .prem-title');
-    if(pc)pc.textContent='FRXST '+_payPlan+' Active';
-    const ps=document.querySelector('.prem-card .prem-sub');
-    if(ps)ps.textContent='All features unlocked. Enjoying peak performance.';
-    /* mark current plan */
-    document.querySelectorAll('[onclick^="buy("]').forEach(b=>{b.disabled=false;});
-    const activePlanBtn=document.querySelector('[onclick="buy(\''+_payPlan+'\')"]');
-    if(activePlanBtn){activePlanBtn.textContent=_payPlan+' — Active ✓';activePlanBtn.disabled=true;}
+    if(PLAN_RANK[_payPlan]>PLAN_RANK[curPlan]){curPlan=_payPlan;lsSet('frxst_plan',curPlan);}
+    applyPlanUI();
+    if(pendingLv&&hasTier(pendingLv)){setLv(pendingLv,true);setText('paySuccessS','Welcome to FRXST '+_payPlan+'. '+LV_NAMES[pendingLv]+' is unlocked and selected.');}
+    pendingLv=0;
   },1600);
+}
+let pendingLv=0;
+function applyPlanUI(){
+  renderTiers();
+  if(curPlan==='Free')return;
+  const pc=document.querySelector('.prem-card .prem-title');
+  if(pc)pc.textContent='FRXST '+curPlan+' Active';
+  const ps=document.querySelector('.prem-card .prem-sub');
+  if(ps)ps.textContent=curPlan==='Elite'?'Ultra Boost unlocked. Everything is on.':'Pro Boost unlocked. Upgrade to Elite for Ultra Boost.';
+  document.querySelectorAll('[onclick^="buy("]').forEach(b=>{
+    const p=(b.getAttribute('onclick').match(/buy\('(\w+)'\)/)||[])[1];
+    if(!p)return;
+    if(p===curPlan){b.textContent=p+' — Active ✓';b.disabled=true;}
+    else if(PLAN_RANK[p]<PLAN_RANK[curPlan]){b.textContent='Included';b.disabled=true;}
+  });
 }
 
 /* ── LIVE NETWORK STATS ── */
@@ -1706,18 +2054,31 @@ function tickNet(){
   const uc=document.getElementById('homeUlChg');
   if(uc){uc.textContent='↑ '+ul+' Mbps';uc.style.color='var(--gn)';}
 }
-tickNet();setInterval(tickNet,2000);
-
 /* ── LIVE CHART ── */
 const chartPts=Array.from({length:42},()=>Math.random()*55+20);
-function drawChart(){
+let chartW=0,chartH=0;
+function sizeChart(){
+  const canvas=document.getElementById('connChart');if(!canvas)return;
+  const W=canvas.parentElement.clientWidth,H=canvas.parentElement.clientHeight;
+  if(!W||!H)return;
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  if(W===chartW&&H===chartH&&canvas.width===Math.round(W*dpr))return;
+  chartW=W;chartH=H;
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  canvas.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+function drawChart(advance){
   const canvas=document.getElementById('connChart');
   if(!canvas)return;
+  if(advance!==false){
+    chartPts.push(Math.max(10,Math.min(90,chartPts[chartPts.length-1]+(Math.random()*16-8))));
+    chartPts.shift();
+  }
+  sizeChart();
+  const W=chartW,H=chartH;if(!W||!H)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.parentElement.offsetWidth,H=canvas.parentElement.offsetHeight;
-  canvas.width=W;canvas.height=H;
-  chartPts.push(Math.max(10,Math.min(90,chartPts[chartPts.length-1]+(Math.random()*16-8))));
-  chartPts.shift();
+  ctx.clearRect(0,0,W,H);
   const max=100;
   const pts=chartPts.map((v,i)=>[i/(chartPts.length-1)*W,H-(v/max)*H]);
   const g=ctx.createLinearGradient(0,0,0,H);
@@ -1730,7 +2091,7 @@ function drawChart(){
   ctx.strokeStyle='#4b8ef8';ctx.lineWidth=1.8;ctx.stroke();
 
   /* purple layer */
-  const chartPts2=chartPts.map(v=>Math.max(5,Math.min(85,v*0.55+Math.random()*8)));
+  const chartPts2=chartPts.map((v,i)=>Math.max(5,Math.min(85,v*0.55+((i*7919)%8))));
   const pts2=chartPts2.map((v,i)=>[i/(chartPts2.length-1)*W,H-(v/max)*H]);
   const g2=ctx.createLinearGradient(0,0,0,H);
   g2.addColorStop(0,'rgba(155,109,255,.18)');g2.addColorStop(1,'rgba(155,109,255,.01)');
@@ -1741,7 +2102,22 @@ function drawChart(){
   for(let i=1;i<pts2.length;i++){const cpx=(pts2[i-1][0]+pts2[i][0])/2;ctx.bezierCurveTo(cpx,pts2[i-1][1],cpx,pts2[i][1],pts2[i][0],pts2[i][1]);}
   ctx.strokeStyle='rgba(155,109,255,.5)';ctx.lineWidth=1.5;ctx.stroke();
 }
-setTimeout(drawChart,80);setInterval(drawChart,2200);
+if(window.ResizeObserver){const c=document.getElementById('connChart');if(c)new ResizeObserver(()=>drawChart(false)).observe(c.parentElement);}
+
+/* ── MASTER TICKER: one timer for all live data, paused while the app isn't visible ── */
+let tickN=0;
+function masterTick(){
+  if(document.hidden)return;
+  tickN++;
+  if(tickN%2===0){tickStats();tickNet();}
+  if(tickN%3===0)vpnTick();
+  else if(vpnState==='on'&&document.getElementById('p-vpn').classList.contains('on'))updateVpnLive();
+  if(tickN%2===1&&document.getElementById('p-home').classList.contains('on'))drawChart();
+}
+setInterval(masterTick,1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){tickStats();tickNet();}});
+tickStats();tickNet();
+requestAnimationFrame(()=>drawChart(false));
 
 /* ── TOAST ── */
 let _tt;
@@ -1749,7 +2125,9 @@ function copyEmail(){const e='paytonmoris73@gmail.com';try{navigator.clipboard.w
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';clearTimeout(_tt);_tt=setTimeout(()=>el.style.opacity='0',3400);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-setLv(1);
+setLv(1,true);
+applyPlanUI();
+updateStatus();
 renderHistory();
 updateBoostBanner();
 updateLaunchVpn();
