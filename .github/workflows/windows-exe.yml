@@ -1,0 +1,77 @@
+name: Build FRXST.exe
+
+on:
+  push:
+    branches: [claude/game-booster-app-h7edzf]
+    paths: ['game-booster/desktop/**', 'game-booster/web/booster.html', '.github/workflows/windows-exe.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install
+        run: pip install -r game-booster/desktop/requirements.txt pyinstaller==6.11.1 pillow
+
+      - name: Engine smoke test on real Windows
+        working-directory: game-booster/desktop
+        run: python smoke_test.py
+
+      - name: Build FRXST.exe
+        run: |
+          python game-booster/desktop/make_icon.py game-booster/desktop/frxst.ico
+          pyinstaller --noconfirm --onefile --windowed --uac-admin --name FRXST `
+            --icon game-booster/desktop/frxst.ico `
+            --add-data "game-booster/web/booster.html;." `
+            --paths game-booster/desktop `
+            game-booster/desktop/frxst_desktop.py
+
+      # Launches the built exe and waits for the page to call back into Python,
+      # proving WebView2 rendered the UI and the bridge works.
+      - name: Launch test
+        run: |
+          $log = "$env:APPDATA\FRXST\frxst.log"
+          Remove-Item $log -ErrorAction SilentlyContinue
+          $p = Start-Process dist\FRXST.exe -PassThru
+          $ok = $false
+          for ($i = 0; $i -lt 60; $i++) {
+            Start-Sleep 1
+            if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'ui ready' -Quiet)) { $ok = $true; break }
+            if ($p.HasExited) { break }
+          }
+          Start-Sleep 3
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          try {
+            $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+            [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+            $bmp.Save("$pwd\screenshot.png")
+          } catch { Write-Host "screenshot unavailable: $_" }
+          if (Test-Path $log) { Get-Content $log }
+          Get-Process FRXST -ErrorAction SilentlyContinue | Stop-Process -Force
+          if (-not $ok) { throw 'FRXST.exe did not reach ui ready' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FRXST-Windows
+          path: dist/FRXST.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: launch-screenshot
+          path: screenshot.png
+          if-no-files-found: ignore

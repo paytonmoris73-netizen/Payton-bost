@@ -438,6 +438,9 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
 .bst-step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tx3);transition:color .2s}
 .bst-step.done{color:var(--tx2)}
 .bst-step.active{color:var(--ac);font-weight:600}
+.bst-step.warn{color:var(--tx2)}
+.bst-step.warn .step-dot{background:var(--god);border-color:var(--gob)}
+.step-note{display:block;font-style:normal;font-size:11px;color:var(--tx3);font-weight:400;margin-top:1px}
 .step-dot{width:22px;height:22px;border-radius:50%;background:var(--c3);border:1.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
 .bst-step.done .step-dot{background:var(--gnd);border-color:var(--gnb)}
 .bst-step.active .step-dot{background:var(--acd);border-color:var(--acb);animation:apdot .9s ease-in-out infinite}
@@ -1179,7 +1182,7 @@ input[type=checkbox]:checked::after{content:'';position:absolute;inset:0;backgro
       <div class="flbl" style="margin-bottom:5px">Config file</div>
       <div class="cfg-row">
         <span class="cfg-nm" id="cfgNm">No file selected</span>
-        <button class="btn btn-sm" onclick="document.getElementById('cfgIn').click()">Browse</button>
+        <button class="btn btn-sm" onclick="pickCfg()">Browse</button>
       </div>
       <input type="file" id="cfgIn" accept=".ovpn,.conf" style="display:none" onchange="onCfg()">
     </div>
@@ -1330,22 +1333,48 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
 
 /* ── STATS ── */
 function tickStats(){
+  if(DESK){deskStats();return;}
   cpuBase=Math.max(5,Math.min(90,cpuBase+(Math.random()*8-4)));
   ramBase=Math.max(20,Math.min(85,ramBase+(Math.random()*1.4-.7)));
   if(boosting){
     cpuBase=Math.max(5,cpuBase-(lv===1?4:lv===2?8:14));
     ramBase=Math.max(10,ramBase-(lv===1?2:lv===2?6:14));
   }
-  const cpu=Math.round(cpuBase),ram=Math.round(ramBase);
+  renderCpuRam(Math.round(cpuBase),Math.round(ramBase));
+  /* fluctuate process CPU values slightly */
+  activeProcs.forEach(p=>{p.cpuPct=Math.max(.1,Math.min(12,p.cpuPct+(Math.random()*.4-.2)));});
+}
+function renderCpuRam(cpu,ram){
   setText('cpuV',cpu+'%'); setText('ramV',ram+'%');
   setText('homeCpuV',cpu+'%'); setText('homeRamV',ram+'%');
   setStyle('cpuB','width',cpu+'%');
   setStyle('ramB','width',ram+'%');
   setStyle('cpuB','background',cpu<50?'var(--ac)':cpu<75?'var(--or)':'var(--rd)');
   setStyle('ramB','background',ram<50?'var(--ac)':ram<75?'var(--or)':'var(--rd)');
-  /* fluctuate process CPU values slightly */
-  activeProcs.forEach(p=>{p.cpuPct=Math.max(.1,Math.min(12,p.cpuPct+(Math.random()*.4-.2)));});
   updateStatus();
+}
+
+/* ── DESKTOP BRIDGE: inside FRXST.exe, window.pywebview.api drives real Windows changes ── */
+let DESK=null,deskChain=Promise.resolve(),deskStatsBusy=false;
+/* engine calls that change system state run strictly in order */
+function deskQ(fn){const p=deskChain.then(fn,fn);deskChain=p.catch(()=>{});return p;}
+window.addEventListener('pywebviewready',()=>{
+  DESK=window.pywebview.api;
+  document.documentElement.classList.add('desk');
+  if(DESK.ui_ready)DESK.ui_ready();
+  DESK.get_power_plan().then(r=>{if(r&&r.ok&&POWER_PLANS[r.user]){userPower=r.user;lsSet('frxst_power',userPower);}updateStatus();});
+  deskLoadVpns();
+  tickStats();
+});
+function deskStats(){
+  if(deskStatsBusy)return;deskStatsBusy=true;
+  DESK.stats().then(s=>{
+    deskStatsBusy=false;if(!s)return;
+    renderCpuRam(s.cpu,s.ram);
+    const prev=pingBase;
+    if(s.ping!=null)pingBase=s.ping;
+    renderNet(s.ping,s.dl,s.ul,prev);
+  }).catch(()=>{deskStatsBusy=false;});
 }
 function setText(id,v){const e=document.getElementById(id);if(e&&e.textContent!==String(v))e.textContent=v;}
 function setStyle(id,p,v){const e=document.getElementById(id);if(e&&e.style[p]!==v)e.style[p]=v;}
@@ -1401,6 +1430,16 @@ function setPowerPlan(id){
   if(!POWER_PLANS[id]||powerBusy)return;
   if(id===userPower&&!boosting){toast(POWER_PLANS[id].name+' is already active');return;}
   powerBusy=id;renderPower();
+  if(DESK){
+    deskQ(()=>DESK.set_power_plan(id)).then(r=>{
+      powerBusy=null;
+      if(!r||!r.ok){renderPower();toast((r&&r.error)||'Windows refused the power plan change');return;}
+      userPower=id;lsSet('frxst_power',id);updateStatus();
+      toast(r.id===id?'Windows power plan → '+POWER_PLANS[id].name
+        :POWER_PLANS[id].name+' saved. '+LV_NAMES[lv]+' keeps '+POWER_PLANS[r.id].name+' until you stop boosting');
+    });
+    return;
+  }
   setTimeout(()=>{
     powerBusy=null;userPower=id;lsSet('frxst_power',id);
     updateStatus();
@@ -1476,7 +1515,7 @@ const GAME_DATA={
   warzone:{name:'Warzone',full:'Call of Duty: Warzone',
     icon:'<svg width="64" height="64" viewBox="0 0 56 56" fill="none"><rect width="56" height="56" fill="#0e1209"/><rect x="10" y="24" width="36" height="7" rx="2" fill="#5a6a3a"/><rect x="14" y="20" width="7" height="4" rx="1" fill="#5a6a3a"/><rect x="35" y="20" width="7" height="4" rx="1" fill="#5a6a3a" opacity=".6"/><circle cx="28" cy="27" r="3" fill="#0e1209"/><circle cx="28" cy="27" r="1.5" stroke="#8fa050" stroke-width="1.2" fill="none"/><line x1="28" y1="9" x2="28" y2="19" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="35" x2="28" y2="47" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="27" x2="19" y2="27" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/><line x1="37" y1="27" x2="47" y2="27" stroke="#5a6a3a" stroke-width="2" stroke-linecap="round"/></svg>'},
 };
-let pickedGame=null,boostAnimTimer=null;
+let pickedGame=null,boostAnimTimer=null,boostSeq=0,deskBoostRes=null;
 
 /* ── BOOST TIMER ── */
 let boostStartTs=0,boostTickInterval=null;
@@ -1646,10 +1685,26 @@ function startBoostAnim(){
     <div class="step-dot" id="bst-dot-${i}"></div><span>${s}</span>
   </div>`).join('');
   showBoostState('bs-boosting');
+  deskBoostRes=null;
+  const seq=++boostSeq;
+  if(DESK){
+    stepsEl.innerHTML=`<div class="bst-step active"><div class="step-dot"></div><span>Applying ${LV_NAMES[lv]} to Windows…</span></div>`;
+    setStyle('bstProg','width','12%');setText('bstProgPct','12%');setText('bstProgLbl','Talking to Windows…');
+    deskQ(()=>DESK.boost(gd.id||'',lv,gd.name)).then(res=>{
+      if(seq!==boostSeq)return;
+      if(!res||!res.ok){toast('Boost failed: '+((res&&res.error)||'Windows returned an error'));showBoostState('bs-pick');return;}
+      deskBoostRes=res;
+      stepsEl.innerHTML=res.steps.map((s,i)=>`<div class="bst-step" id="bst-step-${i}">
+        <div class="step-dot" id="bst-dot-${i}"></div><span>${esc(s.label)}${s.detail?`<em class="step-note">${esc(s.detail)}</em>`:''}</span>
+      </div>`).join('');
+      runStep(res.steps.map(s=>s.label),0,res.steps);
+    },e=>{if(seq===boostSeq){toast('Boost failed: '+e);showBoostState('bs-pick');}});
+    return;
+  }
   runStep(steps,0);
 }
 
-function runStep(steps,i){
+function runStep(steps,i,results){
   if(i>=steps.length){
     document.getElementById('bstProg').style.width='100%';
     document.getElementById('bstProgPct').textContent='100%';
@@ -1667,32 +1722,34 @@ function runStep(steps,i){
   document.getElementById('bstProgPct').textContent=pct+'%';
   document.getElementById('bstProgLbl').textContent=steps[i];
   boostAnimTimer=setTimeout(()=>{
-    if(stepEl){stepEl.classList.remove('active');stepEl.classList.add('done');}
-    if(dotEl){dotEl.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8.5,2.5" fill="none" stroke="var(--gn)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
-    runStep(steps,i+1);
-  },300+Math.floor(Math.random()*260));
+    const bad=results&&!results[i].ok;
+    if(stepEl){stepEl.classList.remove('active');stepEl.classList.add(bad?'warn':'done');}
+    if(dotEl){dotEl.innerHTML=bad?'<b style="color:var(--go);font-size:12px;line-height:1">!</b>':'<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8.5,2.5" fill="none" stroke="var(--gn)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
+    runStep(steps,i+1,results);
+  },(results?220:300)+Math.floor(Math.random()*(results?160:260)));
 }
 
 function completedBoost(fps){
   boosting=true;
   const gd=pickedGame;
-  /* calc freed resources */
-  let freedMem=0;
-  for(const p of MOCK_PROCS)if(p.def)freedMem+=p.memMb;
-  const freedCpu=Math.round(8+Math.random()*12);
+  /* freed resources: real figures from the engine on desktop, estimates in the browser */
+  let freedMem=0,freedCpu;
+  if(deskBoostRes){freedMem=deskBoostRes.freed_mb;freedCpu=deskBoostRes.freed_cpu;}
+  else{for(const p of MOCK_PROCS)if(p.def)freedMem+=p.memMb;freedCpu=Math.round(8+Math.random()*12);}
   /* update launch state */
   document.getElementById('launch-ico').innerHTML=gd.icon;
   document.getElementById('launch-nm').textContent=gd.name;
   /* FPS count-up animation */
   animateNum(document.getElementById('launch-fps'),fps,600,v=>'+'+v);
   setText('launchFpsV','+'+fps);
-  setText('launchPingV',Math.round(Math.max(8,pingBase-6))+' ms');
+  setText('launchPingV',(DESK?Math.round(pingBase):Math.round(Math.max(8,pingBase-6)))+' ms');
   setText('launchCpuV',freedCpu+'%');
   setText('launchRamV',freedMem+'');
-  /* apply stats immediately */
-  cpuBase=Math.max(5,cpuBase-(lv===1?14:lv===2?22:32));
-  ramBase=Math.max(8,ramBase-(lv===1?5:lv===2?14:24));
-  pingBase=Math.max(8,pingBase-6);
+  if(!DESK){
+    cpuBase=Math.max(5,cpuBase-(lv===1?14:lv===2?22:32));
+    ramBase=Math.max(8,ramBase-(lv===1?5:lv===2?14:24));
+    pingBase=Math.max(8,pingBase-6);
+  }
   setText('fpsV','+'+fps);
   setText('homeFpsV','+'+fps+' FPS');
   const hf=document.getElementById('homeFpsChg');
@@ -1733,8 +1790,9 @@ function launchGame(){
   setText('lmSub',LV_NAMES[lv]+' · '+ppName);
   const steps=['Verifying '+LV_NAMES[lv]+' profile',
     vpn?'Routing game traffic through '+vpn.name:'Checking network route (no VPN)',
-    'Locking power plan → '+ppName,'Clearing standby memory',
-    L.url?'Handing off to '+L.via:'Getting '+gd.name+' ready'];
+    'Locking power plan → '+ppName];
+  if(!DESK)steps.push('Clearing standby memory');
+  steps.push(L.url||(DESK&&gd.id)?'Handing off to '+(L.via||'the launcher'):'Getting '+gd.name+' ready');
   document.getElementById('lmSteps').innerHTML=steps.map((s,i)=>`<div class="bst-step" id="lm-step-${i}"><div class="step-dot"></div><span>${esc(s)}</span></div>`).join('');
   document.getElementById('lmDone').hidden=true;
   document.getElementById('lmSteps').hidden=false;
@@ -1759,6 +1817,16 @@ function launchGame(){
       ['Power plan',ppName],['VPN',vpn?vpn.name:'Off'],['Ping',pm+' ms']
     ].map(([k,v])=>`<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
     const open=document.getElementById('lmOpen');
+    if(DESK){
+      open.hidden=!gd.id;open.href='#';open.textContent='Start '+gd.name+' again';
+      open.onclick=e=>{e.preventDefault();deskLaunch(gd,L);};
+      document.getElementById('lmDone').hidden=false;
+      setText('launchBtnTxt','Relaunch '+gd.name);
+      if(gd.id)deskLaunch(gd,L);
+      else setText('lmNote','Start '+gd.name+' yourself now. Your boost stays on while you play.');
+      return;
+    }
+    open.onclick=null;
     open.hidden=!L.url;
     if(L.url){open.href=L.url;open.textContent='Open '+gd.name+' in '+L.via;}
     setText('lmNote',L.url
@@ -1769,6 +1837,27 @@ function launchGame(){
   };
   next();
 }
+let gameWatch=null;
+function deskLaunch(gd,L){
+  DESK.launch(gd.id).then(r=>{
+    if(!r||!r.ok){setText('lmNote',(r&&r.error)||'Couldn\'t open the launcher.');deskWatchGame(gd);return;}
+    setText('lmNote','Opening '+(L.via||'the game')+'… FRXST sets '+gd.name+' to High priority the moment it starts.');
+    deskWatchGame(gd);
+  });
+}
+function deskWatchGame(gd){
+  clearInterval(gameWatch);
+  const seq=boostSeq;let tries=0;
+  gameWatch=setInterval(()=>{
+    if(seq!==boostSeq||!boosting||++tries>90){clearInterval(gameWatch);return;}
+    DESK.find_game(gd.id).then(r=>{
+      if(!r||!r.found||seq!==boostSeq)return;
+      clearInterval(gameWatch);
+      const msg=gd.name+' is running'+(r.boosted?'. Priority set to High':'');
+      setText('lmNote',msg+'. Good luck!');toast(msg);
+    });
+  },2000);
+}
 function closeLaunch(){
   launchSeq++;launchDone=true;
   document.getElementById('launchOverlay').classList.remove('open');
@@ -1777,8 +1866,13 @@ function closeLaunch(){
 function stopBoost(quiet){
   if(!launchDone)closeLaunch();
   const wasPower=activePower();
-  boosting=false;pickedGame=null;
+  boosting=false;pickedGame=null;boostSeq++;
   clearTimeout(boostAnimTimer);
+  if(DESK){
+    deskQ(()=>DESK.unboost()).then(r=>{
+      if(!quiet&&r&&r.restored&&r.restored.length)toast('Boost stopped. Restored: '+r.restored.join(', '));
+    });
+  }
   stopBoostTimer();
   activeProcs=[...MOCK_PROCS];procSel={};
   cpuBase=Math.min(78,cpuBase+18);ramBase=Math.min(72,ramBase+16);
@@ -1848,11 +1942,35 @@ function fakePing(id){setTimeout(()=>{if(!vpns.some(v=>v.id===id))return;pings[i
 
 const REGION_IP={ny:'38.132',eu:'185.216',jp:'103.152',la:'45.89'};
 function rnd(n){return Math.floor(Math.random()*n);}
+
+/* Desktop: VPN profiles are the real Windows VPN connections (plus OpenVPN/WireGuard configs). */
+let deskPinging={};
+function deskLoadVpns(){
+  if(!DESK)return;
+  DESK.vpn_list().then(r=>{
+    if(!r||!r.ok)return;
+    vpns=r.list.map(v=>({id:v.id,name:v.name,server:v.server,type:v.type,own:v.own}));
+    Object.keys(pings).forEach(id=>{if(!vpns.some(v=>v.id===id))delete pings[id];});
+    if(r.active&&vpnState==='off'){vpnState='on';activeVpnId=r.active;vpnSince=Date.now();vpnPubIp='—';vpnTunIp='—';}
+    renderVpn();updateStatus();updateLaunchVpn();
+    deskPingAll();
+  });
+}
+function deskPingAll(){
+  vpns.forEach(v=>{
+    if(!v.server||deskPinging[v.id])return;deskPinging[v.id]=1;
+    DESK.ping(v.server).then(ms=>{deskPinging[v.id]=0;if(ms!=null)pings[v.id]=ms;else delete pings[v.id];updateVpnLive();},()=>{deskPinging[v.id]=0;});
+  });
+}
+
 function vpnConn(id){
   const v=vpns.find(x=>x.id===id);if(!v)return;
   const seq=++connSeq;
+  if(DESK&&vpnState==='on')deskQ(()=>DESK.vpn_disconnect());
   vpnState='connecting';connectingId=id;activeVpnId=null;
   renderVpn();updateStatus();updateLaunchVpn();
+  let deskRes=null;
+  if(DESK)deskQ(()=>DESK.vpn_connect(id)).then(r=>{deskRes=r||{ok:false,error:'No response from Windows'};},e=>{deskRes={ok:false,error:String(e)};});
   const steps=[['Resolving '+v.server,12],['Opening '+v.type+' tunnel',38],['Exchanging keys',62],['Authenticating',80],['Assigning tunnel IP',94]];
   let i=0;
   const next=()=>{
@@ -1864,13 +1982,23 @@ function vpnConn(id){
       setTimeout(next,320+rnd(260));
       return;
     }
+    if(DESK){
+      if(!deskRes){setText('vStSub','Waiting for '+v.server+' to answer…');setTimeout(next,300);return;}
+      if(!deskRes.ok){
+        vpnState='off';connectingId=null;
+        renderVpn();updateStatus();updateLaunchVpn();
+        toast(deskRes.error||'Connection failed');return;
+      }
+      vpnPubIp=deskRes.public_ip||'—';vpnTunIp=deskRes.tunnel_ip||'—';
+    } else {
+      const pre=REGION_IP[(v.server.split('.')[0]||'').toLowerCase()]||(rnd(180)+20)+'.'+rnd(255);
+      vpnPubIp=pre+'.'+rnd(255)+'.'+(rnd(250)+2);
+      vpnTunIp='10.8.'+rnd(255)+'.'+(rnd(250)+2);
+    }
     setStyle('vProg','width','100%');
-    const pre=REGION_IP[(v.server.split('.')[0]||'').toLowerCase()]||(rnd(180)+20)+'.'+rnd(255);
-    vpnPubIp=pre+'.'+rnd(255)+'.'+(rnd(250)+2);
-    vpnTunIp='10.8.'+rnd(255)+'.'+(rnd(250)+2);
     vpnState='on';activeVpnId=id;connectingId=null;vpnSince=Date.now();vpnBytes=0;
-    if(pings[id]==null)pings[id]=20+rnd(60);
-    pingBase=pings[id];
+    if(!DESK&&pings[id]==null)pings[id]=20+rnd(60);
+    if(pings[id]!=null)pingBase=pings[id];
     renderVpn();updateStatus();updateLaunchVpn();tickNet();
     toast('Connected to '+v.name+'. You can launch your game now');
   };
@@ -1879,16 +2007,30 @@ function vpnConn(id){
 function vpnDisconn(){
   const was=vpnState;
   connSeq++;vpnState='off';activeVpnId=null;connectingId=null;
+  if(DESK)deskQ(()=>DESK.vpn_disconnect());
   renderVpn();updateStatus();updateLaunchVpn();pingBase=32;tickNet();
   toast(was==='connecting'?'Connection cancelled':'VPN disconnected. Your real IP is visible again');
 }
 function vpnRm(id){
+  if(DESK){
+    const v=vpns.find(x=>x.id===id);
+    if(!v)return;
+    if(!v.own){toast('This VPN was set up in Windows. Remove it in Settings → Network → VPN');return;}
+    if(id===activeVpnId||id===connectingId)vpnDisconn();
+    deskQ(()=>DESK.vpn_remove(id)).then(r=>{if(r&&!r.ok)toast(r.error);deskLoadVpns();});
+    return;
+  }
   if(id===activeVpnId||id===connectingId){vpnDisconn();}
   vpns=vpns.filter(v=>v.id!==id);delete pings[id];renderVpn();
 }
 function vpnTick(){
-  Object.keys(pings).forEach(id=>{pings[id]=Math.max(8,Math.min(200,pings[id]+(Math.random()*8-4)|0));});
-  if(vpnState==='on'){vpnBytes+=0.4+Math.random()*(boosting?3.5:1.2);}
+  if(DESK){
+    if(tickN%6===0)deskPingAll();
+    if(vpnState==='on')DESK.vpn_status().then(s=>{if(s&&s.on)vpnBytes=s.mb;});
+  } else {
+    Object.keys(pings).forEach(id=>{pings[id]=Math.max(8,Math.min(200,pings[id]+(Math.random()*8-4)|0));});
+    if(vpnState==='on'){vpnBytes+=0.4+Math.random()*(boosting?3.5:1.2);}
+  }
   if(document.getElementById('p-vpn').classList.contains('on'))updateVpnLive();
   if(vpnState==='on'){const pm=pings[activeVpnId];setText('launchVpnPing',pm!=null?pm+' ms':'');}
 }
@@ -1913,11 +2055,26 @@ function openVpnModal(){
 function closeVpnModal(e){if(!e||e.target===document.getElementById('vpnOverlay'))document.getElementById('vpnOverlay').classList.remove('open');}
 function onVType(){const t=document.getElementById('vType').value,file=t==='OpenVPN'||t==='WireGuard';document.getElementById('vCfg').style.display=file?'':'none';document.getElementById('vCreds').style.display=file?'none':'';}
 function onCfg(){const f=document.getElementById('cfgIn').files[0];if(f){cfgPath=f.name;const n=document.getElementById('cfgNm');n.textContent=f.name;n.style.color='var(--tx)';}}
+function pickCfg(){
+  if(!DESK){document.getElementById('cfgIn').click();return;}
+  DESK.pick_config().then(p=>{if(!p)return;cfgPath=p;const n=document.getElementById('cfgNm');n.textContent=p.split(/[\\/]/).pop();n.style.color='var(--tx)';});
+}
 function saveVpn(){
   const name=document.getElementById('vName').value.trim(),server=document.getElementById('vServer').value.trim();
   document.getElementById('vName').style.borderColor=name?'':'var(--rd)';
   document.getElementById('vServer').style.borderColor=server?'':'var(--rd)';
   if(!name||!server)return;
+  if(DESK){
+    const prof={name,server,type:document.getElementById('vType').value,
+      user:document.getElementById('vUser').value.trim(),pass:document.getElementById('vPass').value,config:cfgPath};
+    deskQ(()=>DESK.vpn_add(prof)).then(r=>{
+      if(!r||!r.ok){toast((r&&r.error)||'Windows rejected the profile');return;}
+      document.getElementById('vpnOverlay').classList.remove('open');
+      document.getElementById('vPass').value='';
+      toast('VPN "'+name+'" added to Windows');deskLoadVpns();
+    });
+    return;
+  }
   const id=Math.random().toString(36).slice(2,10);
   vpns.push({id,name,server,type:document.getElementById('vType').value});
   fakePing(id);document.getElementById('vpnOverlay').classList.remove('open');
@@ -2039,17 +2196,20 @@ function applyPlanUI(){
 /* ── LIVE NETWORK STATS ── */
 let pingBase=32,dlBase=520,ulBase=48;
 function tickNet(){
+  if(DESK)return;
   const prevPing=pingBase;
   pingBase=Math.max(8,Math.min(120,pingBase+(Math.random()*10-5)));
   dlBase=Math.max(200,Math.min(940,dlBase+(Math.random()*30-15)));
   ulBase=Math.max(12,Math.min(120,ulBase+(Math.random()*6-3)));
   if(boosting){pingBase=Math.max(8,pingBase-6);}
-  const ping=Math.round(pingBase),dl=Math.round(dlBase),ul=Math.round(ulBase);
-  const pingDown=ping<prevPing;
-  setText('homePing',ping); setText('homePingV',ping+' ms'); setText('srvPing',ping+' ms');
+  renderNet(Math.round(pingBase),Math.round(dlBase),Math.round(ulBase),prevPing);
+}
+function renderNet(ping,dl,ul,prevPing){
+  const ps=ping==null?'—':ping;
+  setText('homePing',ps); setText('homePingV',ps+' ms'); setText('srvPing',ps+' ms');
   setText('homeDl',dl); setText('homeUl',ul);
   const pc=document.getElementById('homePingChg');
-  if(pc){pc.textContent=(pingDown?'↓':'↑')+' '+Math.abs(Math.round((ping-prevPing)/prevPing*100))+'%';pc.style.color=pingDown?'var(--gn)':'var(--rd)';}
+  if(pc&&ping!=null&&prevPing){const pingDown=ping<=prevPing;pc.textContent=(pingDown?'↓':'↑')+' '+Math.abs(Math.round((ping-prevPing)/prevPing*100))+'%';pc.style.color=pingDown?'var(--gn)':'var(--rd)';}
   const dc=document.getElementById('homeDlChg');
   if(dc){dc.textContent='↓ '+dl+' Mbps';dc.style.color='var(--gn)';}
   const uc=document.getElementById('homeUlChg');
