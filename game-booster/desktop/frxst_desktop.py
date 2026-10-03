@@ -54,8 +54,31 @@ class Api:
         log("ui ready (admin=%s, plan=%s)" % (s.get("admin"), self._e.get_power_plan().get("id")))
         return True
 
+    def open_data_folder(self):
+        if sys.platform == "win32":
+            os.startfile(DATA_DIR)  # type: ignore[attr-defined]
+        return True
+
+    def startup_info(self):
+        return {"recovered": self._e.recovered}
+
     def stats(self):
         return self._e.stats()
+
+    def system_info(self):
+        return self._e.system_info()
+
+    def monitor(self):
+        return self._e.monitor()
+
+    def resolution_info(self):
+        return self._e.resolution_info()
+
+    def set_resolution(self, w, h):
+        return self._e.set_resolution(w, h)
+
+    def restore_resolution(self):
+        return self._e.restore_resolution()
 
     def get_power_plan(self):
         return self._e.get_power_plan()
@@ -105,9 +128,28 @@ class Api:
         return res[0] if res else ""
 
 
+def already_running() -> bool:
+    """Named mutex: a second FRXST would fight the first over power plans and priorities."""
+    if sys.platform != "win32":
+        return False
+    import ctypes
+    k32 = ctypes.windll.kernel32
+    k32.CreateMutexW.restype = ctypes.c_void_p
+    main._mutex = k32.CreateMutexW(None, False, "Local\\FRXST-Game-Booster")  # keep handle alive
+    return k32.GetLastError() == 183  # ERROR_ALREADY_EXISTS
+
+
 def main():
     log("starting FRXST")
+    if already_running():
+        import ctypes
+        log("second instance blocked")
+        ctypes.windll.user32.MessageBoxW(None, "FRXST is already running. Check your taskbar.",
+                                         "FRXST Game Booster", 0x40)
+        return
     engine = Engine()
+    if engine.recovered:
+        log("recovered after unclean exit: " + ", ".join(engine.recovered))
     atexit.register(engine.shutdown)
     api = Api(engine)
     window = webview.create_window("FRXST Game Booster", url=build_ui(), js_api=api,

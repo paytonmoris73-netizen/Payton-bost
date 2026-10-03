@@ -68,6 +68,42 @@ r = e.vpn_remove("w:FRXST Smoke 'Test'")
 check("profile removed", r.get("ok") and not any(v["name"].startswith("FRXST Smoke") for v in e.vpn_list()["list"]), r)
 
 check("ping works", fe.ping_ms("1.1.1.1") is not None)
+
+# crash recovery: boost, then a fresh engine (as after a crash) must undo it
+dvr_before = dvr_values()
+e.boost("cs2", 2, "CS2")
+check("journal written while boosting", "journal" in fe.Engine._load_cfg(e))
+e2 = fe.Engine()
+check("recovery restores Game DVR", "Game DVR" in e2.recovered and dvr_values() == dvr_before, e2.recovered)
+check("recovery restores power plan", e2.plan_id_of(fe.active_scheme()) == e2.user_plan, e2.user_plan)
+e.boosting = False
+e._dvr_saved = None
+
+# display modes
+check("DEVMODE struct size", fe.ctypes.sizeof(fe.DEVMODEW) == 220, fe.ctypes.sizeof(fe.DEVMODEW))
+info = e2.resolution_info()
+print("display", info["current"], "modes", info["modes"][:12])
+check("read current display mode", info["ok"], info)
+smaller = [m for m in info["modes"] if m[0] < info["current"][0]]
+if smaller:
+    w, h = smaller[-1]
+    r = e2.set_resolution(w, h)
+    check("switch resolution to %dx%d" % (w, h), r.get("ok") and fe.current_mode()[:2] == [w, h], r)
+    e2.restore_resolution()
+    check("restore resolution", fe.current_mode()[:2] == info["current"], fe.current_mode())
+r = e2.set_resolution(123, 45)
+check("unsupported resolution rejected", not r["ok"], r)
+
+# monitor
+si = e2.system_info()
+print("system", si)
+check("system info", si["cpu"] and si["ram_gb"] > 0 and si["os"].startswith("Windows"), si)
+e2.monitor()
+time.sleep(5)
+m = e2.monitor()
+print("monitor", {k: m[k] for k in ("cpu", "gpu", "temp", "ram_pct", "disk")}, m["top"][:3])
+check("monitor top processes", len(m["top"]) > 0 and len(m["cores"]) > 0, m)
+e2.shutdown()
 e.shutdown()
 if orig:
     fe.run(["powercfg", "/setactive", orig])

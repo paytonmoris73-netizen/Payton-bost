@@ -7,6 +7,7 @@ No GUI imports here so it can be smoke-tested on its own.
 import ctypes
 import json
 import os
+import platform
 import re
 import socket
 import subprocess
@@ -143,14 +144,56 @@ class Engine:
         self._vpn_proc = None
         self._vpn_active: Optional[Dict] = None
         self._pending_pass: Dict[str, str] = {}
+        self.vpn_lock = threading.Lock()
+        self._res_orig: Optional[List[int]] = None
         self._stop = threading.Event()
+        self._mon = Monitor(self._stop)
         psutil.cpu_percent(None)
         threading.Thread(target=self._ping_loop, daemon=True).start()
         self.user_plan = self.plan_id_of(self.original_scheme) if self.original_scheme else "balanced"
         if self.user_plan == "other":
             self.user_plan = "balanced"
+        self.recovered = self._recover()
         if self.user_plan == "frxst":
             self._timer(True, "plan")
+
+    # ── crash journal: what to undo if FRXST dies while changes are active ──
+    def _journal_save(self):
+        if self.boosting or self._res_orig:
+            self.cfg["journal"] = {"user_plan": self.user_plan, "dvr": self._dvr_saved,
+                                   "closed": self._closed, "qos": self._qos, "res": self._res_orig}
+        else:
+            self.cfg.pop("journal", None)
+        self._save_cfg()
+
+    def _recover(self) -> List[str]:
+        j = self.cfg.get("journal")
+        if not j:
+            return []
+        done = []
+        if j.get("dvr"):
+            self._dvr_saved = j["dvr"]
+            self._dvr_restore()
+            done.append("Game DVR")
+        if j.get("qos"):
+            self._qos = list(j["qos"])
+            self._qos_off()
+            done.append("QoS")
+        if j.get("closed"):
+            self._closed = list(j["closed"])
+            self._reopen_closed()
+            done.append("closed apps")
+        if j.get("res"):
+            self._res_orig = j["res"]
+            self.restore_resolution()
+            done.append("screen resolution")
+        if j.get("user_plan") in PLAN_RANK:
+            self.user_plan = j["user_plan"]
+            if self._apply_plan(self.user_plan)["ok"]:
+                done.append("power plan")
+        self.cfg.pop("journal", None)
+        self._save_cfg()
+        return done
 
     # ── config ──
     def _load_cfg(self) -> Dict:
@@ -389,6 +432,9 @@ class Engine:
         for p in self._find(CLOSE_APPS):
             try:
                 info = {"exe": p.exe(), "cmd": p.cmdline(), "label": CLOSE_APPS[p.name().lower()]}
+                # Store (MSIX) apps can't be relaunched from their exe path, so leave them running.
+                if "\\windowsapps\\" in info["exe"].lower():
+                    continue
                 mem += p.memory_info().rss / 1024 ** 2
                 p.terminate()
                 if not any(c["exe"].lower() == info["exe"].lower() for c in self._closed):
@@ -468,6 +514,7 @@ class Engine:
                 else:
                     step("Game traffic prioritized (QoS)", False, "Only for the listed games.")
 
+            self._journal_save()
             return {"ok": True, "steps": steps, "freed_mb": round(freed),
                     "freed_cpu": round(min(30, len(self._lowered) * 1.5 + len(self._closed) * 2)),
                     "game_running": bool(gp), "tier": TIER_NAME[tier]}
@@ -488,15 +535,7 @@ class Engine:
         if self._lowered:
             restored.append("app priorities")
         self._lowered.clear()
-        reopened = []
-        for info in self._closed:
-            try:
-                if info["exe"] and os.path.exists(info["exe"]):
-                    subprocess.Popen(info["cmd"] or [info["exe"]], creationflags=NO_WINDOW)
-                    reopened.append(info["label"])
-            except OSError:
-                pass
-        self._closed = []
+        reopened = self._reopen_closed()
         if reopened:
             restored.append("reopened " + ", ".join(dict.fromkeys(reopened)))
         if self._dvr_saved is not None:
@@ -510,7 +549,20 @@ class Engine:
         r = self._apply_plan(self.user_plan)
         if r["ok"]:
             restored.append("power plan")
+        self._journal_save()
         return {"ok": True, "restored": restored}
+
+    def _reopen_closed(self) -> List[str]:
+        reopened = []
+        for info in self._closed:
+            try:
+                if info.get("exe") and os.path.exists(info["exe"]):
+                    subprocess.Popen(info.get("cmd") or [info["exe"]], creationflags=NO_WINDOW)
+                    reopened.append(info["label"])
+            except OSError:
+                pass
+        self._closed = []
+        return reopened
 
     def unboost(self) -> Dict:
         with self.lock:
@@ -618,7 +670,7 @@ class Engine:
 
     def vpn_connect(self, vid: str) -> Dict:
         name = vid[2:]
-        with self.lock:
+        with self.vpn_lock:
             self._vpn_disconnect_locked()
             if vid.startswith("f:"):
                 p = next((v for v in self.cfg.get("vpn_files", []) if v["name"] == name), None)
@@ -694,7 +746,7 @@ class Engine:
         self._vpn_active = None
 
     def vpn_disconnect(self) -> Dict:
-        with self.lock:
+        with self.vpn_lock:
             self._vpn_disconnect_locked()
         return {"ok": True}
 
@@ -703,10 +755,300 @@ class Engine:
         with self.lock:
             if self.boosting:
                 self._unboost_locked()
-            self._vpn_disconnect_locked()
+            if self._res_orig:
+                self.restore_resolution()
             self._timer(False, "plan")
             self._timer(False, "ultra")
+        if self.vpn_lock.acquire(timeout=3):
+            try:
+                self._vpn_disconnect_locked()
+            finally:
+                self.vpn_lock.release()
         self._stop.set()
+
+    # ── display resolution (dynamic change: Windows resets it on reboot) ──
+    def resolution_info(self) -> Dict:
+        cur = current_mode()
+        orig = self._res_orig or ([cur[0], cur[1]] if cur else None)
+        return {"ok": bool(cur), "current": cur[:2] if cur else None, "hz": cur[2] if cur else None,
+                "original": orig, "active": bool(self._res_orig), "modes": list_modes()}
+
+    def set_resolution(self, w: int, h: int) -> Dict:
+        w, h = int(w), int(h)
+        with self.lock:
+            cur = current_mode()
+            if not cur:
+                return {"ok": False, "error": "Couldn't read your display settings."}
+            modes = list_modes()
+            if [w, h] not in modes:
+                alts = [m for m in modes if abs(m[0] / m[1] - w / h) < 0.02 and m[0] < cur[0]]
+                hint = (" Supported at this shape: " + ", ".join("%d×%d" % tuple(m) for m in alts[-4:])) if alts else ""
+                return {"ok": False, "error": "Your display doesn't support %d×%d.%s" % (w, h, hint)}
+            if not self._res_orig:
+                self._res_orig = [cur[0], cur[1]]
+            rc = change_mode(w, h, cur[2])
+            if rc != 0:
+                return {"ok": False, "error": "Windows refused %d×%d (code %d)." % (w, h, rc)}
+            self._journal_save()
+            return {"ok": True, "current": [w, h], "original": self._res_orig}
+
+    def restore_resolution(self) -> Dict:
+        if IS_WIN:
+            ctypes.windll.user32.ChangeDisplaySettingsW(None, 0)
+        orig = self._res_orig
+        self._res_orig = None
+        self._journal_save()
+        return {"ok": True, "original": orig}
+
+    # ── PC monitor ──
+    def system_info(self) -> Dict:
+        return self._mon.info()
+
+    def monitor(self) -> Dict:
+        return self._mon.sample()
+
+
+class DEVMODEW(ctypes.Structure):
+    _fields_ = [("dmDeviceName", ctypes.c_wchar * 32), ("dmSpecVersion", ctypes.c_ushort),
+                ("dmDriverVersion", ctypes.c_ushort), ("dmSize", ctypes.c_ushort),
+                ("dmDriverExtra", ctypes.c_ushort), ("dmFields", ctypes.c_ulong),
+                ("dmPositionX", ctypes.c_long), ("dmPositionY", ctypes.c_long),
+                ("dmDisplayOrientation", ctypes.c_ulong), ("dmDisplayFixedOutput", ctypes.c_ulong),
+                ("dmColor", ctypes.c_short), ("dmDuplex", ctypes.c_short), ("dmYResolution", ctypes.c_short),
+                ("dmTTOption", ctypes.c_short), ("dmCollate", ctypes.c_short),
+                ("dmFormName", ctypes.c_wchar * 32), ("dmLogPixels", ctypes.c_ushort),
+                ("dmBitsPerPel", ctypes.c_ulong), ("dmPelsWidth", ctypes.c_ulong),
+                ("dmPelsHeight", ctypes.c_ulong), ("dmDisplayFlags", ctypes.c_ulong),
+                ("dmDisplayFrequency", ctypes.c_ulong), ("dmICMMethod", ctypes.c_ulong),
+                ("dmICMIntent", ctypes.c_ulong), ("dmMediaType", ctypes.c_ulong),
+                ("dmDitherType", ctypes.c_ulong), ("dmReserved1", ctypes.c_ulong),
+                ("dmReserved2", ctypes.c_ulong), ("dmPanningWidth", ctypes.c_ulong),
+                ("dmPanningHeight", ctypes.c_ulong)]
+
+
+def _devmode():
+    dm = DEVMODEW()
+    dm.dmSize = ctypes.sizeof(DEVMODEW)
+    return dm
+
+
+def current_mode() -> Optional[List[int]]:
+    if not IS_WIN:
+        return None
+    dm = _devmode()
+    if not ctypes.windll.user32.EnumDisplaySettingsW(None, -1, ctypes.byref(dm)):
+        return None
+    return [dm.dmPelsWidth, dm.dmPelsHeight, dm.dmDisplayFrequency]
+
+
+def list_modes() -> List[List[int]]:
+    if not IS_WIN:
+        return []
+    seen, i = set(), 0
+    dm = _devmode()
+    while ctypes.windll.user32.EnumDisplaySettingsW(None, i, ctypes.byref(dm)):
+        if dm.dmBitsPerPel >= 32:
+            seen.add((dm.dmPelsWidth, dm.dmPelsHeight))
+        i += 1
+    return [list(m) for m in sorted(seen)]
+
+
+def change_mode(w: int, h: int, hz: int) -> int:
+    """Switches the main display; picks the highest refresh rate up to the current one."""
+    best, i = None, 0
+    dm = _devmode()
+    while ctypes.windll.user32.EnumDisplaySettingsW(None, i, ctypes.byref(dm)):
+        if dm.dmPelsWidth == w and dm.dmPelsHeight == h and dm.dmBitsPerPel >= 32:
+            if best is None or (best < dm.dmDisplayFrequency <= hz):
+                best = dm.dmDisplayFrequency
+        i += 1
+    target = _devmode()
+    target.dmPelsWidth, target.dmPelsHeight = w, h
+    target.dmFields = 0x80000 | 0x100000
+    if best:
+        target.dmDisplayFrequency = best
+        target.dmFields |= 0x400000
+    user32 = ctypes.windll.user32
+    rc = user32.ChangeDisplaySettingsW(ctypes.byref(target), 2)  # CDS_TEST
+    if rc != 0:
+        return rc
+    return user32.ChangeDisplaySettingsW(ctypes.byref(target), 0)
+
+
+class _PdhItem(ctypes.Structure):
+    class _Val(ctypes.Structure):
+        _fields_ = [("CStatus", ctypes.c_ulong), ("doubleValue", ctypes.c_double)]
+    _fields_ = [("szName", ctypes.c_wchar_p), ("FmtValue", _Val)]
+
+
+class Monitor:
+    """Hardware readings for the PC Monitor page. Process sampling runs only while the page polls."""
+
+    def __init__(self, stop: threading.Event):
+        self._stop = stop
+        self._info: Optional[Dict] = None
+        self._last_poll = 0.0
+        self._procs: Dict[int, psutil.Process] = {}
+        self._top: List[Dict] = []
+        self._gpu: Optional[float] = None
+        self._temp: Optional[float] = None
+        self._temp_supported = True
+        self._disk_prev = None
+        self._pdh = None
+        threading.Thread(target=self._loop, daemon=True).start()
+
+    def info(self) -> Dict:
+        if self._info is None:
+            self._info = _system_info()
+        return self._info
+
+    def _loop(self):
+        tick = 0
+        while not self._stop.is_set():
+            if time.monotonic() - self._last_poll < 6:
+                self._sample_procs()
+                self._gpu = self._read_gpu()
+                if tick % 5 == 0 and self._temp_supported:
+                    self._temp = _read_temp()
+                    if self._temp is None:
+                        self._temp_supported = False
+                tick += 1
+            self._stop.wait(2)
+
+    def _sample_procs(self):
+        alive, rows = {}, []
+        ncpu = psutil.cpu_count() or 1
+        for p in psutil.process_iter(["name", "memory_info"]):
+            try:
+                proc = self._procs.get(p.pid) or p
+                cpu = proc.cpu_percent(None) / ncpu
+                alive[p.pid] = proc
+                name = p.info.get("name") or ""
+                if p.pid in (0, 4) or name.lower() in ("system idle process", "idle", "registry"):
+                    continue
+                rows.append({"name": name, "pid": p.pid, "cpu": round(cpu, 1),
+                             "mb": round((p.info["memory_info"].rss if p.info.get("memory_info") else 0) / 1024 ** 2)})
+            except (psutil.Error, OSError):
+                pass
+        self._procs = alive
+        merged: Dict[str, Dict] = {}
+        for r in rows:
+            m = merged.setdefault(r["name"], {"name": r["name"], "cpu": 0.0, "mb": 0, "n": 0})
+            m["cpu"] += r["cpu"]
+            m["mb"] += r["mb"]
+            m["n"] += 1
+        top = sorted(merged.values(), key=lambda x: (x["cpu"], x["mb"]), reverse=True)[:8]
+        for t in top:
+            t["cpu"] = round(t["cpu"], 1)
+        self._top = top
+
+    def _read_gpu(self) -> Optional[float]:
+        if not IS_WIN:
+            return None
+        try:
+            pdh = ctypes.windll.pdh
+            if self._pdh is None:
+                q, c = ctypes.c_void_p(), ctypes.c_void_p()
+                if pdh.PdhOpenQueryW(None, None, ctypes.byref(q)) != 0:
+                    self._pdh = False
+                    return None
+                if pdh.PdhAddEnglishCounterW(q, "\\GPU Engine(*engtype_3D)\\Utilization Percentage",
+                                             None, ctypes.byref(c)) != 0:
+                    self._pdh = False
+                    return None
+                pdh.PdhCollectQueryData(q)
+                self._pdh = (q, c)
+                return None
+            if self._pdh is False:
+                return None
+            q, c = self._pdh
+            pdh.PdhCollectQueryData(q)
+            size, count = ctypes.c_ulong(0), ctypes.c_ulong(0)
+            pdh.PdhGetFormattedCounterArrayW(c, 0x200, ctypes.byref(size), ctypes.byref(count), None)
+            if not size.value:
+                return 0.0
+            buf = (ctypes.c_byte * size.value)()
+            if pdh.PdhGetFormattedCounterArrayW(c, 0x200, ctypes.byref(size), ctypes.byref(count), buf) != 0:
+                return None
+            items = ctypes.cast(buf, ctypes.POINTER(_PdhItem))
+            total = sum(items[i].FmtValue.doubleValue for i in range(count.value) if items[i].FmtValue.CStatus in (0, 1))
+            return round(min(100.0, total), 1)
+        except (OSError, AttributeError, ValueError):
+            self._pdh = False
+            return None
+
+    def sample(self) -> Dict:
+        self._last_poll = time.monotonic()
+        vm = psutil.virtual_memory()
+        freq = psutil.cpu_freq()
+        now = time.monotonic()
+        dio = psutil.disk_io_counters()
+        rd = wr = 0.0
+        if dio and self._disk_prev:
+            t, r0, w0 = self._disk_prev
+            dt = max(0.1, now - t)
+            rd, wr = (dio.read_bytes - r0) / dt / 1024 ** 2, (dio.write_bytes - w0) / dt / 1024 ** 2
+        if dio:
+            self._disk_prev = (now, dio.read_bytes, dio.write_bytes)
+        try:
+            du = psutil.disk_usage(os.environ.get("SystemDrive", "C:") + "\\" if IS_WIN else "/")
+            disk = {"pct": round(du.percent), "free_gb": round(du.free / 1024 ** 3)}
+        except OSError:
+            disk = {"pct": None, "free_gb": None}
+        bat = None
+        try:
+            b = psutil.sensors_battery()
+            if b:
+                bat = {"pct": round(b.percent), "plugged": bool(b.power_plugged)}
+        except (AttributeError, OSError):
+            pass
+        return {"cpu": round(psutil.cpu_percent(None)), "cores": [round(x) for x in psutil.cpu_percent(None, percpu=True)],
+                "mhz": round(freq.current) if freq else None, "gpu": self._gpu, "temp": self._temp,
+                "ram_used": round(vm.used / 1024 ** 3, 1), "ram_total": round(vm.total / 1024 ** 3, 1),
+                "ram_pct": round(vm.percent), "disk": disk, "disk_rd": round(rd, 1), "disk_wr": round(wr, 1),
+                "battery": bat, "uptime_s": int(time.time() - psutil.boot_time()), "top": self._top}
+
+
+def _system_info() -> Dict:
+    cpu = platform.processor() or "CPU"
+    os_name = platform.platform()
+    gpus: List[str] = []
+    if IS_WIN:
+        try:
+            import winreg
+            k = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+            cpu = winreg.QueryValueEx(k, "ProcessorNameString")[0].strip()
+            k = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion")
+            build = int(winreg.QueryValueEx(k, "CurrentBuildNumber")[0])
+            try:
+                ver = winreg.QueryValueEx(k, "DisplayVersion")[0]
+            except OSError:
+                ver = ""
+            os_name = ("Windows 11 " if build >= 22000 else "Windows 10 ") + ver + " (build %d)" % build
+        except (OSError, ValueError):
+            pass
+        rc, out = ps("(Get-CimInstance Win32_VideoController).Name")
+        gpus = [l.strip() for l in out.splitlines() if l.strip()] if rc == 0 else []
+    freq = psutil.cpu_freq()
+    mode = current_mode()
+    return {"cpu": cpu, "cores": psutil.cpu_count(logical=False), "threads": psutil.cpu_count(),
+            "max_mhz": round(freq.max) if freq and freq.max else None,
+            "ram_gb": round(psutil.virtual_memory().total / 1024 ** 3), "gpus": gpus or ["Unknown GPU"],
+            "os": os_name, "display": ("%d×%d @ %d Hz" % tuple(mode)) if mode else "—"}
+
+
+def _read_temp() -> Optional[float]:
+    """ACPI thermal zone in °C; many PCs don't expose it, then None."""
+    if not IS_WIN:
+        return None
+    rc, out = ps("(Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature "
+                 "-ErrorAction Stop | Measure-Object CurrentTemperature -Maximum).Maximum", timeout=10)
+    try:
+        k = float(out.strip().splitlines()[-1])
+        c = k / 10 - 273.15
+        return round(c, 1) if 0 < c < 120 else None
+    except (ValueError, IndexError):
+        return None
 
 
 def list_schemes() -> List[str]:
