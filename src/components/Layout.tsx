@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { User, Page, AppNotification } from "../lib/types";
 import { api } from "../lib/api";
+import { Modal } from "./Modal";
+import { useToast } from "../contexts/Toast";
 import type { UserWithStats, Job, Payment } from "../lib/types";
 
 interface Props {
@@ -19,7 +21,10 @@ const ownerNav: NavItem[] = [
   { page: "owner-activity",       label: "Activity",        icon: <ActivityIcon /> },
   { page: "owner-schedule",       label: "Schedule",        icon: <CalendarIcon /> },
   { page: "owner-leave",          label: "Leave Requests",  icon: <LeaveIcon /> },
+  { page: "owner-tasks",          label: "Tasks",           icon: <CheckIcon /> },
   { page: "owner-jobs",           label: "Jobs",            icon: <JobIcon /> },
+  { page: "owner-clients",        label: "Clients",         icon: <ClientIcon /> },
+  { page: "owner-invoices",       label: "Invoices",        icon: <InvoiceIcon /> },
   { page: "owner-team",           label: "Team",            icon: <TeamIcon /> },
   { page: "owner-time",           label: "Time Tracking",   icon: <ClockIcon /> },
   { page: "owner-payroll",        label: "Payroll",         icon: <PayIcon /> },
@@ -33,6 +38,7 @@ const ownerNav: NavItem[] = [
 
 const employeeNav: NavItem[] = [
   { page: "employee-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
+  { page: "employee-tasks",          label: "My Tasks",       icon: <CheckIcon /> },
   { page: "employee-schedule",       label: "My Schedule",    icon: <CalendarIcon /> },
   { page: "employee-leave",          label: "My Leave",       icon: <LeaveIcon /> },
   { page: "employee-jobs",           label: "My Jobs",        icon: <JobIcon /> },
@@ -58,14 +64,34 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [bellOpen, setBellOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
+  const [curPin, setCurPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [pinErr, setPinErr] = useState("");
+  const { toast } = useToast();
+
+  function go(p: Page) { onNavigate(p); setMenuOpen(false); }
+
+  async function savePin(e: React.FormEvent) {
+    e.preventDefault();
+    setPinErr("");
+    try {
+      await api.changePin(curPin, newPin);
+      setPinOpen(false); setCurPin(""); setNewPin("");
+      toast("PIN updated");
+    } catch (err) { setPinErr(err instanceof Error ? err.message : "Failed"); }
+  }
 
   const unread = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     api.getCompany().then(c => setCompany(c.name)).catch(() => {});
     loadNotifications();
-    const interval = setInterval(loadNotifications, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => { if (document.visibilityState === "visible") loadNotifications(); }, 30000);
+    const onVis = () => { if (document.visibilityState === "visible") loadNotifications(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { clearInterval(interval); document.removeEventListener("visibilitychange", onVis); };
   }, []);
 
   async function loadNotifications() {
@@ -95,7 +121,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
         e.preventDefault();
         setSearchOpen(s => !s);
       }
-      if (e.key === "Escape") setSearchOpen(false);
+      if (e.key === "Escape") { setSearchOpen(false); setBellOpen(false); setMenuOpen(false); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -130,7 +156,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
   }
 
   function goSearch(r: SearchResult) {
-    onNavigate(r.page);
+    go(r.page);
     setSearchOpen(false);
   }
 
@@ -138,7 +164,16 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <header className="mobile-topbar">
+        <button className="icon-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu">☰</button>
+        <div className="company-name">{company || "WorkBase"}</div>
+        <button className="icon-btn" onClick={() => setBellOpen(b => !b)} aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>
+          <span style={{ width: 16, height: 16, display: "flex" }}><BellIcon /></span>
+          {unread > 0 && <span style={{ position: "absolute", top: -4, right: -4, background: "var(--danger)", color: "#fff", borderRadius: 10, fontSize: 10, fontWeight: 700, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread > 9 ? "9+" : unread}</span>}
+        </button>
+      </header>
+      {menuOpen && <div className="sidebar-scrim" onClick={() => setMenuOpen(false)} />}
+      <aside className={`sidebar${menuOpen ? " open" : ""}`}>
         <div className="sidebar-top">
           <div className="sidebar-logo">
             <svg viewBox="0 0 20 20" fill="none" width="19" height="19">
@@ -171,7 +206,8 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
             <button
               key={item.page}
               className={`nav-item${page === item.page ? " active" : ""}`}
-              onClick={() => onNavigate(item.page)}
+              onClick={() => go(item.page)}
+              aria-current={page === item.page ? "page" : undefined}
             >
               {item.icon}
               {item.label}
@@ -190,6 +226,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
             <button
               onClick={() => setBellOpen(b => !b)}
               title="Notifications"
+              aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}
               style={{ position: "relative", marginLeft: "auto", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "all 0.16s", color: "var(--text-secondary)" }}
             >
               <span style={{ width: 14, height: 14, display: "flex" }}><BellIcon /></span>
@@ -204,13 +241,16 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
               {dark ? "☀" : "🌙"}
             </button>
           </div>
-          <button className="sidebar-signout" onClick={onLogout}>Sign out</button>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="sidebar-signout" style={{ flex: 1 }} onClick={() => { setPinOpen(true); setPinErr(""); setMenuOpen(false); }}>Change PIN</button>
+            <button className="sidebar-signout" style={{ flex: 1 }} onClick={onLogout}>Sign out</button>
+          </div>
         </div>
 
         {/* Notification panel */}
         {bellOpen && (
           <div onClick={() => setBellOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 900 }}>
-            <div onClick={e => e.stopPropagation()} style={{ position: "fixed", bottom: 80, left: 8, width: 300, maxHeight: 420, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,0.18)", overflow: "hidden", display: "flex", flexDirection: "column", zIndex: 901 }}>
+            <div className="notif-panel" role="dialog" aria-label="Notifications" onClick={e => e.stopPropagation()} style={{ position: "fixed", bottom: 80, left: 8, width: 300, maxHeight: 420, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,0.18)", overflow: "hidden", display: "flex", flexDirection: "column", zIndex: 901 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
                 <span style={{ fontWeight: 700, fontSize: 13 }}>Notifications {unread > 0 && <span style={{ background: "var(--danger)", color: "#fff", borderRadius: 9, fontSize: 10, padding: "1px 5px", marginLeft: 4 }}>{unread}</span>}</span>
                 {unread > 0 && <button onClick={handleMarkAllRead} style={{ fontSize: 11, color: "var(--primary)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Mark all read</button>}
@@ -235,6 +275,26 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
       </aside>
 
       <main className="main-content">{children}</main>
+
+      {pinOpen && (
+        <Modal title="Change PIN" onClose={() => setPinOpen(false)}
+          footer={<>
+            <button className="btn btn-secondary" onClick={() => setPinOpen(false)}>Cancel</button>
+            <button className="btn btn-primary" form="pin-form" type="submit" disabled={newPin.length < 4}>Save PIN</button>
+          </>}>
+          <form id="pin-form" onSubmit={savePin}>
+            <div className="form-group">
+              <label>Current PIN</label>
+              <input type="password" inputMode="numeric" autoComplete="current-password" value={curPin} onChange={e => setCurPin(e.target.value.replace(/\D/g, "").slice(0, 8))} autoFocus />
+            </div>
+            <div className="form-group">
+              <label>New PIN (4–8 digits)</label>
+              <input type="password" inputMode="numeric" autoComplete="new-password" value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 8))} />
+            </div>
+            {pinErr && <p className="error-msg">{pinErr}</p>}
+          </form>
+        </Modal>
+      )}
 
       {/* Search overlay */}
       {searchOpen && (
@@ -275,7 +335,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
               <div style={{ padding: "16px 16px", color: "var(--text-muted)", fontSize: 12 }}>
                 <div style={{ marginBottom: 8, fontWeight: 600 }}>Quick navigation</div>
                 {nav.slice(0, 5).map(n => (
-                  <button key={n.page} onClick={() => { onNavigate(n.page); setSearchOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 4px", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 13, borderRadius: 6, textAlign: "left" }}>
+                  <button key={n.page} onClick={() => { go(n.page); setSearchOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 4px", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 13, borderRadius: 6, textAlign: "left" }}>
                     <span style={{ width: 18, height: 18 }}>{n.icon}</span>{n.label}
                   </button>
                 ))}
@@ -329,6 +389,15 @@ function CalendarIcon() {
 }
 function LeaveIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="5" r="2.5" /><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" /><path d="M6 11.5l2 2 2-2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function CheckIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1.5" y="1.5" width="13" height="13" rx="3" /><path d="M5 8.2l2 2 4-4.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function ClientIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1.5" y="3" width="13" height="10" rx="1.5" /><circle cx="6" cy="7.2" r="1.6" /><path d="M3.5 11c.4-1.2 1.4-1.8 2.5-1.8s2.1.6 2.5 1.8M10 6.5h2.5M10 9h2.5" strokeLinecap="round" /></svg>;
+}
+function InvoiceIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 1.5h10v13l-2-1.2-1.7 1.2L8 13.3l-1.3 1.2L5 13.3l-2 1.2z" strokeLinejoin="round" /><path d="M5.5 5h5M5.5 7.5h5M5.5 10h3" strokeLinecap="round" /></svg>;
 }
 function BellIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1.5a5 5 0 015 5v3l1.5 2H1.5L3 9.5v-3a5 5 0 015-5z" strokeLinejoin="round" /><path d="M6.5 13a1.5 1.5 0 003 0" strokeLinecap="round" /></svg>;

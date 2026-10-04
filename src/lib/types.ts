@@ -99,6 +99,68 @@ export interface Job {
   createdAt: string;
   completedAt: string | null;
   dueDate: string | null;
+  clientId?: string;
+}
+
+export interface PublicUser {
+  id: string;
+  name: string;
+  title: string;
+  role: "owner" | "employee";
+  hasPin: boolean;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes: string;
+  createdAt: string;
+}
+
+export interface InvoiceItem { description: string; quantity: number; unitPrice: number; }
+
+export interface Invoice {
+  id: string;
+  number: string;
+  clientId: string;
+  jobId?: string;
+  items: InvoiceItem[];
+  taxRate: number;
+  status: "draft" | "sent" | "paid";
+  issueDate: string;
+  dueDate: string;
+  notes: string;
+  paidAt: string | null;
+  createdAt: string;
+  clientName: string;
+  clientEmail: string;
+  clientAddress: string;
+  total: number;
+  overdue: boolean;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  assignedTo: string;
+  assigneeName?: string;
+  dueDate: string | null;
+  done: boolean;
+  doneAt: string | null;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface Insight {
+  id: string;
+  level: "critical" | "warning" | "info" | "success";
+  title: string;
+  detail: string;
+  page?: Page;
 }
 
 export interface Payment {
@@ -163,6 +225,9 @@ export type Page =
   | "owner-settings"
   | "owner-schedule"
   | "owner-leave"
+  | "owner-tasks"
+  | "owner-clients"
+  | "owner-invoices"
   | "employee-dashboard"
   | "employee-jobs"
   | "employee-time"
@@ -170,4 +235,5 @@ export type Page =
   | "employee-payments"
   | "employee-announcements"
   | "employee-schedule"
-  | "employee-leave";
+  | "employee-leave"
+  | "employee-tasks";

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import type { User, UserWithStats, Job } from "../lib/types";
+import type { User, UserWithStats, Insight, Page } from "../lib/types";
 import { StatCard } from "../components/StatCard";
 
 function greeting() {
@@ -12,7 +12,10 @@ function greeting() {
 
 interface Props {
   user: User;
+  onNavigate: (p: Page) => void;
 }
+
+const INSIGHT_ICON: Record<Insight["level"], string> = { critical: "🚨", warning: "⚠️", info: "💡", success: "✅" };
 
 function fmt(h: number): string {
   const hrs = Math.floor(h);
@@ -29,23 +32,22 @@ function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function OwnerDashboard({ user }: Props) {
+export function OwnerDashboard({ user, onNavigate }: Props) {
   const [team, setTeam] = useState<UserWithStats[]>([]);
-  const [overdueJobs, setOverdueJobs] = useState<Job[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 30000);
+    const t = setInterval(() => { if (document.visibilityState === "visible") load(); }, 30000);
     return () => clearInterval(t);
   }, []);
 
   async function load() {
     try {
-      const [data, jobs] = await Promise.all([api.getTeam(), api.getJobs()]);
+      const [data, ins] = await Promise.all([api.refreshTeam(), api.getInsights()]);
       setTeam(data.filter(u => u.active && u.role !== "owner"));
-      const now = new Date();
-      setOverdueJobs(jobs.filter(j => j.status !== "completed" && j.dueDate && new Date(j.dueDate) < now));
+      setInsights(ins);
     } catch {
       /* ignore */
     } finally {
@@ -53,6 +55,7 @@ export function OwnerDashboard({ user }: Props) {
     }
   }
 
+  const attention = insights.filter(i => i.level === "critical" || i.level === "warning").length;
   const totalEmployees = team.length;
   const clockedIn = team.filter(u => u.clockedIn).length;
   const totalWeekHours = team.reduce((s, u) => s + u.weekHours, 0);
@@ -77,15 +80,26 @@ export function OwnerDashboard({ user }: Props) {
         </div>
       </div>
 
-      {/* Overdue jobs alert */}
-      {overdueJobs.length > 0 && (
-        <div className="alert-strip">
-          <span className="alert-strip-icon"><WarnIcon /></span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13.5, color: "var(--warning)", marginBottom: 2 }}>{overdueJobs.length} overdue job{overdueJobs.length > 1 ? "s" : ""}</div>
-            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-              {overdueJobs.slice(0, 3).map(j => j.title).join(", ")}{overdueJobs.length > 3 ? ` +${overdueJobs.length - 3} more` : ""}
-            </div>
+      {insights.length > 0 && (
+        <div className="card" style={{ marginBottom: 22 }}>
+          <div className="card-header">
+            <span className="card-title">Smart Insights</span>
+            <span className="td-muted" style={{ fontSize: 12 }}>{attention === 0 ? "Nothing urgent" : `${attention} item${attention === 1 ? "" : "s"} need${attention === 1 ? "s" : ""} attention`}</span>
+          </div>
+          <div className="insights">
+            {insights.slice(0, 8).map(i => {
+              const body = (<>
+                <span className="insight-icon" aria-hidden>{INSIGHT_ICON[i.level]}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="insight-title">{i.title}</div>
+                  <div className="insight-detail">{i.detail}</div>
+                </div>
+                {i.page && <span className="td-muted" aria-hidden>→</span>}
+              </>);
+              return i.page
+                ? <button key={i.id} className={`insight ${i.level}`} onClick={() => onNavigate(i.page!)}>{body}</button>
+                : <div key={i.id} className={`insight ${i.level}`}>{body}</div>;
+            })}
           </div>
         </div>
       )}
@@ -168,4 +182,3 @@ function BoltIcon() { return <svg {...sv}><path d="M11 2L4 11h5l-1 7 7-9h-5l1-7z
 function ClockIcon() { return <svg {...sv}><circle cx="10" cy="10" r="8" /><path d="M10 5.5V10l3 2" /></svg>; }
 function WalletIcon() { return <svg {...sv}><rect x="2.5" y="5" width="15" height="11" rx="2.5" /><path d="M2.5 9h15" /><circle cx="14" cy="12.5" r="1" fill="currentColor" stroke="none" /></svg>; }
 function CoinIcon() { return <svg {...sv}><ellipse cx="10" cy="6" rx="6.5" ry="2.8" /><path d="M3.5 6v8c0 1.5 2.9 2.8 6.5 2.8s6.5-1.3 6.5-2.8V6" /><path d="M3.5 10c0 1.5 2.9 2.8 6.5 2.8s6.5-1.3 6.5-2.8" /></svg>; }
-function WarnIcon() { return <svg {...sv} width={16} height={16}><path d="M10 2.5l8 14H2l8-14z" /><path d="M10 8v3.5M10 14h.01" /></svg>; }

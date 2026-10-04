@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.join(__dirname, "..", "data.json");
@@ -21,6 +21,56 @@ export interface User {
   createdAt: string;
   active: boolean;
   title: string;
+  pinHash?: string;
+}
+
+export interface Session {
+  token: string;
+  userId: string;
+  createdAt: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes: string;
+  createdAt: string;
+}
+
+export interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface Invoice {
+  id: string;
+  number: string;
+  clientId: string;
+  jobId?: string;
+  items: InvoiceItem[];
+  taxRate: number;
+  status: "draft" | "sent" | "paid";
+  issueDate: string;
+  dueDate: string;
+  notes: string;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  assignedTo: string;
+  dueDate: string | null;
+  done: boolean;
+  doneAt: string | null;
+  createdBy: string;
+  createdAt: string;
 }
 
 export interface BreakEntry {
@@ -92,6 +142,7 @@ export interface Job {
   createdAt: string;
   completedAt: string | null;
   dueDate: string | null;
+  clientId?: string;
 }
 
 export interface Payment {
@@ -140,6 +191,10 @@ interface DbData {
   leaveRequests: LeaveRequest[];
   notifications: AppNotification[];
   employeeNotes: EmployeeNote[];
+  sessions: Session[];
+  clients: Client[];
+  invoices: Invoice[];
+  tasks: Task[];
 }
 
 export interface UserWithStats extends User {
@@ -153,9 +208,13 @@ export interface UserWithStats extends User {
   totalOwed: number;
 }
 
+function emptyDb(): DbData {
+  return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [], shifts: [], leaveRequests: [], notifications: [], employeeNotes: [], sessions: [], clients: [], invoices: [], tasks: [] };
+}
+
 function read(): DbData {
   try {
-    if (!fs.existsSync(DB_PATH)) return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [], shifts: [], leaveRequests: [], notifications: [], employeeNotes: [] };
+    if (!fs.existsSync(DB_PATH)) return emptyDb();
     const raw = JSON.parse(fs.readFileSync(DB_PATH, "utf-8")) as Partial<DbData>;
     return {
       company: raw.company ?? null,
@@ -169,17 +228,46 @@ function read(): DbData {
       leaveRequests: raw.leaveRequests ?? [],
       notifications: raw.notifications ?? [],
       employeeNotes: raw.employeeNotes ?? [],
+      sessions: raw.sessions ?? [],
+      clients: raw.clients ?? [],
+      invoices: raw.invoices ?? [],
+      tasks: raw.tasks ?? [],
     };
   } catch {
-    return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [], shifts: [], leaveRequests: [], notifications: [], employeeNotes: [] };
+    return emptyDb();
   }
 }
 
 function write(data: DbData): void {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+  const tmp = `${DB_PATH}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+  fs.renameSync(tmp, DB_PATH);
 }
 
-function hoursFor(entry: TimeEntry): number {
+export function hashPin(pin: string): string {
+  const salt = randomBytes(16).toString("hex");
+  return `${salt}:${scryptSync(pin, salt, 32).toString("hex")}`;
+}
+
+export function verifyPin(pin: string, stored: string): boolean {
+  const [salt, hash] = stored.split(":");
+  if (!salt || !hash) return false;
+  const a = Buffer.from(hash, "hex");
+  const b = scryptSync(pin, salt, 32);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function newJoinCode(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  return Array.from(randomBytes(6), b => alphabet[b % alphabet.length]).join("");
+}
+
+export function invoiceTotal(inv: Pick<Invoice, "items" | "taxRate">): number {
+  const sub = inv.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+  return Math.round(sub * (1 + inv.taxRate / 100) * 100) / 100;
+}
+
+export function hoursFor(entry: TimeEntry): number {
   const start = new Date(entry.clockIn).getTime();
   const end = entry.clockOut ? new Date(entry.clockOut).getTime() : Date.now();
   let breakMs = 0;
@@ -203,7 +291,7 @@ function dayStart(): number {
 
 function enrichUser(user: User, entries: TimeEntry[], payments: Payment[]): UserWithStats {
   const ws = weekStart(), ms = monthStart(), ds = dayStart();
-  let todayHours = 0, weekHours = 0, monthHours = 0, clockedIn = false;
+  let todayHours = 0, weekHours = 0, monthHours = 0, totalHours = 0, clockedIn = false;
   for (const e of entries.filter(e => e.userId === user.id)) {
     const start = new Date(e.clockIn).getTime();
     if (e.clockOut === null) clockedIn = true;
@@ -211,11 +299,13 @@ function enrichUser(user: User, entries: TimeEntry[], payments: Payment[]): User
     if (start >= ds) todayHours += h;
     if (start >= ws) weekHours += h;
     if (start >= ms) monthHours += h;
+    totalHours += h;
   }
   const totalPaid = payments.filter(p => p.userId === user.id).reduce((s, p) => s + p.amount, 0);
   const weekPay = weekHours * user.hourlyRate;
   const monthPay = monthHours * user.hourlyRate;
-  return { ...user, clockedIn, todayHours, weekHours, monthHours, weekPay, monthPay, totalPaid, totalOwed: monthPay - totalPaid };
+  const { pinHash: _pin, ...safe } = user;
+  return { ...safe, clockedIn, todayHours, weekHours, monthHours, weekPay, monthPay, totalPaid, totalOwed: Math.max(0, Math.round((totalHours * user.hourlyRate - totalPaid) * 100) / 100) };
 }
 
 export interface DailyHours {
@@ -227,10 +317,10 @@ export interface DailyHours {
 export const db = {
   isSetup: (): boolean => read().company !== null,
 
-  setup(companyName: string, ownerName: string): { company: Company; user: User } {
+  setup(companyName: string, ownerName: string, pin: string): { company: Company; user: User } {
     const data = read();
-    const company: Company = { id: randomUUID(), name: companyName, joinCode: Math.random().toString(36).substring(2,8).toUpperCase(), createdAt: new Date().toISOString() };
-    const user: User = { id: randomUUID(), name: ownerName, role: "owner", hourlyRate: 0, createdAt: new Date().toISOString(), active: true, title: "Owner" };
+    const company: Company = { id: randomUUID(), name: companyName, joinCode: newJoinCode(), createdAt: new Date().toISOString() };
+    const user: User = { id: randomUUID(), name: ownerName, role: "owner", hourlyRate: 0, createdAt: new Date().toISOString(), active: true, title: "Owner", pinHash: hashPin(pin) };
     data.company = company; data.users = [user];
     write(data); return { company, user };
   },
@@ -244,6 +334,7 @@ export const db = {
     write(data); return data.company;
   },
   getUsers: (): User[] => read().users,
+  getPublicUsers: () => read().users.filter(u => u.active).map(u => ({ id: u.id, name: u.name, title: u.title, role: u.role, hasPin: !!u.pinHash })),
   getUserById: (id: string): User | null => read().users.find(u => u.id === id) ?? null,
   getUserByName: (name: string): User | null => read().users.find(u => u.name.toLowerCase() === name.toLowerCase()) ?? null,
 
@@ -260,13 +351,47 @@ export const db = {
     data.users[i] = { ...data.users[i], ...updates }; write(data); return data.users[i];
   },
 
-  joinByCode(code: string, name: string): User | null {
+  joinByCode(code: string, name: string, pin: string): User | "taken" | null {
     const data = read();
     if (!data.company || data.company.joinCode !== code.toUpperCase()) return null;
     const existing = data.users.find(u => u.name.toLowerCase() === name.toLowerCase());
-    if (existing) return existing;
-    const user: User = { id: randomUUID(), name, role: "employee", hourlyRate: 0, createdAt: new Date().toISOString(), active: true, title: "Employee" };
+    if (existing) {
+      // Owner-added employees have no PIN yet; the invite code lets them claim the account once.
+      if (existing.pinHash || existing.role === "owner") return "taken";
+      existing.pinHash = hashPin(pin);
+      write(data); return existing;
+    }
+    const user: User = { id: randomUUID(), name, role: "employee", hourlyRate: 0, createdAt: new Date().toISOString(), active: true, title: "Employee", pinHash: hashPin(pin) };
     data.users.push(user); write(data); return user;
+  },
+
+  setPin(userId: string, pin: string): void {
+    const data = read();
+    const u = data.users.find(x => x.id === userId);
+    if (!u) return;
+    u.pinHash = hashPin(pin); write(data);
+  },
+
+  createSession(userId: string): string {
+    const data = read();
+    const token = randomBytes(32).toString("hex");
+    data.sessions.push({ token, userId, createdAt: new Date().toISOString() });
+    const cutoff = Date.now() - 30 * 24 * 3600 * 1000;
+    data.sessions = data.sessions.filter(s => new Date(s.createdAt).getTime() > cutoff);
+    write(data); return token;
+  },
+
+  getSessionUser(token: string): User | null {
+    const data = read();
+    const s = data.sessions.find(x => x.token === token);
+    if (!s || Date.now() - new Date(s.createdAt).getTime() > 30 * 24 * 3600 * 1000) return null;
+    const u = data.users.find(x => x.id === s.userId);
+    return u && u.active ? u : null;
+  },
+
+  deleteSession(token: string): void {
+    const data = read();
+    data.sessions = data.sessions.filter(s => s.token !== token); write(data);
   },
 
   clockIn(userId: string, notes: string, jobId?: string): TimeEntry | null {
@@ -322,7 +447,7 @@ export const db = {
   regenerateJoinCode(): string | null {
     const data = read();
     if (!data.company) return null;
-    data.company.joinCode = Math.random().toString(36).substring(2,8).toUpperCase();
+    data.company.joinCode = newJoinCode();
     write(data); return data.company.joinCode;
   },
 
@@ -553,6 +678,90 @@ export const db = {
     const i = data.employeeNotes.findIndex(n => n.id === id);
     if (i === -1) return false;
     data.employeeNotes.splice(i, 1); write(data); return true;
+  },
+
+  // ── Clients ──
+
+  getClients: (): Client[] => read().clients,
+
+  createClient(c: Omit<Client,"id"|"createdAt">): Client {
+    const data = read();
+    const client: Client = { ...c, id: randomUUID(), createdAt: new Date().toISOString() };
+    data.clients.push(client); write(data); return client;
+  },
+
+  updateClient(id: string, updates: Partial<Omit<Client,"id"|"createdAt">>): Client | null {
+    const data = read();
+    const i = data.clients.findIndex(c => c.id === id);
+    if (i === -1) return null;
+    data.clients[i] = { ...data.clients[i], ...updates }; write(data); return data.clients[i];
+  },
+
+  deleteClient(id: string): boolean {
+    const data = read();
+    const i = data.clients.findIndex(c => c.id === id);
+    if (i === -1) return false;
+    data.clients.splice(i, 1); write(data); return true;
+  },
+
+  // ── Invoices ──
+
+  getInvoices: (): Invoice[] => read().invoices,
+
+  createInvoice(inv: Omit<Invoice,"id"|"number"|"createdAt"|"paidAt">): Invoice {
+    const data = read();
+    const max = data.invoices.reduce((m, x) => Math.max(m, parseInt(x.number.replace(/\D/g, ""), 10) || 0), 1000);
+    const invoice: Invoice = { ...inv, id: randomUUID(), number: `INV-${max + 1}`, paidAt: inv.status === "paid" ? new Date().toISOString() : null, createdAt: new Date().toISOString() };
+    data.invoices.push(invoice); write(data); return invoice;
+  },
+
+  updateInvoice(id: string, updates: Partial<Omit<Invoice,"id"|"number"|"createdAt">>): Invoice | null {
+    const data = read();
+    const i = data.invoices.findIndex(x => x.id === id);
+    if (i === -1) return null;
+    const prev = data.invoices[i];
+    const next = { ...prev, ...updates };
+    if (updates.status === "paid" && prev.status !== "paid") next.paidAt = new Date().toISOString();
+    if (updates.status && updates.status !== "paid") next.paidAt = null;
+    data.invoices[i] = next; write(data); return next;
+  },
+
+  deleteInvoice(id: string): boolean {
+    const data = read();
+    const i = data.invoices.findIndex(x => x.id === id);
+    if (i === -1) return false;
+    data.invoices.splice(i, 1); write(data); return true;
+  },
+
+  // ── Tasks ──
+
+  getTasks: (userId?: string): Task[] => {
+    const t = read().tasks;
+    return userId ? t.filter(x => x.assignedTo === userId) : t;
+  },
+
+  getTask: (id: string): Task | null => read().tasks.find(t => t.id === id) ?? null,
+
+  createTask(t: Omit<Task,"id"|"createdAt"|"done"|"doneAt">): Task {
+    const data = read();
+    const task: Task = { ...t, id: randomUUID(), done: false, doneAt: null, createdAt: new Date().toISOString() };
+    data.tasks.push(task); write(data); return task;
+  },
+
+  updateTask(id: string, updates: Partial<Pick<Task,"title"|"description"|"assignedTo"|"dueDate"|"done">>): Task | null {
+    const data = read();
+    const i = data.tasks.findIndex(t => t.id === id);
+    if (i === -1) return null;
+    const next = { ...data.tasks[i], ...updates };
+    if (updates.done !== undefined) next.doneAt = updates.done ? new Date().toISOString() : null;
+    data.tasks[i] = next; write(data); return next;
+  },
+
+  deleteTask(id: string): boolean {
+    const data = read();
+    const i = data.tasks.findIndex(t => t.id === id);
+    if (i === -1) return false;
+    data.tasks.splice(i, 1); write(data); return true;
   },
 
   // ── Analytics ──

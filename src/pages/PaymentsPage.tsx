@@ -4,6 +4,7 @@ import type { Payment, UserWithStats } from "../lib/types";
 import { Modal } from "../components/Modal";
 import { StatCard } from "../components/StatCard";
 import { useToast } from "../contexts/Toast";
+import { escapeHtml } from "../lib/escape";
 
 function exportPaymentsCSV(payments: Payment[]) {
   const header = ["Date", "Employee", "Type", "Description", "Amount"];
@@ -196,7 +197,7 @@ export function PaymentsPage() {
                 if (!w) return;
                 w.document.write(`<html><head><title>Receipt</title><style>body{font-family:monospace;font-size:13px;padding:24px;line-height:1.8}h2{text-align:center;font-size:16px;letter-spacing:1px}.row{display:flex;justify-content:space-between;gap:12px}.muted{color:#888}.total{font-size:20px;font-weight:800;color:#0ea372}.hr{border:none;border-top:2px dashed #ccc;margin:12px 0}</style></head><body>`);
                 w.document.write(`<h2>PAYMENT RECEIPT</h2><p style="text-align:center;color:#888;font-size:11px">WorkBase Payroll System</p><hr class="hr">`);
-                [["Receipt #", stubPayment.id.slice(0,8).toUpperCase()],["Employee",stubPayment.userName??"-"],["Date",new Date(stubPayment.paidAt).toLocaleDateString()],["Type",stubPayment.type],["Description",stubPayment.description||"-"]].forEach(([k,v]) => w.document.write(`<div class="row"><span class="muted">${k}:</span><span>${v}</span></div>`));
+                [["Receipt #", stubPayment.id.slice(0,8).toUpperCase()],["Employee",stubPayment.userName??"-"],["Date",new Date(stubPayment.paidAt).toLocaleDateString()],["Type",stubPayment.type],["Description",stubPayment.description||"-"]].forEach(([k,v]) => w.document.write(`<div class="row"><span class="muted">${escapeHtml(k)}:</span><span>${escapeHtml(v)}</span></div>`));
                 w.document.write(`<hr class="hr"><div class="row"><span style="font-weight:800;font-size:15px">TOTAL PAID</span><span class="total">${money(stubPayment.amount)}</span></div></body></html>`);
                 w.document.close(); w.print();
               }}>🖨 Print</button>

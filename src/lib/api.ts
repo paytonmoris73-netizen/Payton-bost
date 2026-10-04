@@ -1,8 +1,25 @@
-import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement, ActivityEvent, Shift, LeaveRequest, AppNotification, EmployeeNote } from "./types";
+import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement, ActivityEvent, Shift, LeaveRequest, AppNotification, EmployeeNote, PublicUser, Client, Invoice, InvoiceItem, Task, Insight } from "./types";
 import { cacheGet, cacheSet, cacheInvalidate } from "./cache";
 
+const TOKEN_KEY = "workbase_token";
+let onUnauthorized: (() => void) | null = null;
+
+export const auth = {
+  getToken: (): string | null => { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } },
+  setToken: (t: string) => { try { localStorage.setItem(TOKEN_KEY, t); } catch { /* storage unavailable */ } },
+  clear: () => { try { localStorage.removeItem(TOKEN_KEY); } catch { /* storage unavailable */ } cacheInvalidate(""); },
+  onUnauthorized: (fn: () => void) => { onUnauthorized = fn; },
+};
+
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...options });
+  const token = auth.getToken();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(url, { ...options, headers });
+  if (res.status === 401 && token && !url.startsWith("/api/auth/login")) {
+    auth.clear();
+    onUnauthorized?.();
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Request failed" })) as { error: string };
     throw new Error(err.error ?? "Request failed");
@@ -35,11 +52,15 @@ export const api = {
   getCompany: () => cached("company", () => req<Company>("/api/company")),
   updateCompany: (name: string) => { cacheInvalidate("company"); return req<Company>("/api/company", { method: "PATCH", body: JSON.stringify({ name }) }); },
 
-  setup: (companyName: string, ownerName: string) =>
-    req<{ company: Company; user: User }>("/api/setup", { method: "POST", body: JSON.stringify({ companyName, ownerName }) }),
+  setup: (companyName: string, ownerName: string, pin: string) =>
+    req<{ company: Company; user: User; token: string }>("/api/setup", { method: "POST", body: JSON.stringify({ companyName, ownerName, pin }) }),
 
-  login: (name: string) => req<User>("/api/auth/login", { method: "POST", body: JSON.stringify({ name }) }),
-  join: (code: string, name: string) => req<User>("/api/auth/join", { method: "POST", body: JSON.stringify({ code, name }) }),
+  getLoginUsers: () => req<PublicUser[]>("/api/auth/users"),
+  login: (name: string, pin: string, code?: string) => req<{ user: User; token: string }>("/api/auth/login", { method: "POST", body: JSON.stringify({ name, pin, code }) }),
+  join: (code: string, name: string, pin: string) => req<{ user: User; token: string }>("/api/auth/join", { method: "POST", body: JSON.stringify({ code, name, pin }) }),
+  authMe: () => req<UserWithStats>("/api/auth/me"),
+  logout: () => req<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+  changePin: (currentPin: string, newPin: string) => req<{ ok: boolean }>("/api/auth/pin", { method: "POST", body: JSON.stringify({ currentPin, newPin }) }),
 
   getTeam: () => cached("team", () => req<UserWithStats[]>("/api/team")),
   refreshTeam: () => { cacheInvalidate("team"); return req<UserWithStats[]>("/api/team").then(d => { cacheSet("team", d); return d; }); },
@@ -117,7 +138,7 @@ export const api = {
     return req<Job[]>(url).then(d => { cacheSet(`jobs:${userId ?? "all"}`, d); return d; });
   },
 
-  createJob: (job: { title: string; description: string; category: string; payType: string; payAmount: number; assignedTo: string[]; priority: string; dueDate: string | null }) => {
+  createJob: (job: { title: string; description: string; category: string; payType: string; payAmount: number; assignedTo: string[]; priority: string; dueDate: string | null; clientId?: string }) => {
     cacheInvalidate("jobs:");
     return req<Job>("/api/jobs", { method: "POST", body: JSON.stringify(job) });
   },
@@ -214,6 +235,31 @@ export const api = {
     req<EmployeeNote>(`/api/team/${encodeURIComponent(userId)}/notes`, { method: "POST", body: JSON.stringify({ text, authorId }) }),
   deleteEmployeeNote: (noteId: string) =>
     req<{ ok: boolean }>(`/api/team/notes/${noteId}`, { method: "DELETE" }),
+
+  // ── Tasks ──
+  getTasks: (userId?: string) => req<Task[]>(`/api/tasks${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
+  createTask: (t: { title: string; description: string; assignedTo: string; dueDate: string | null }) =>
+    req<Task>("/api/tasks", { method: "POST", body: JSON.stringify(t) }),
+  updateTask: (id: string, updates: Partial<Pick<Task, "title" | "description" | "assignedTo" | "dueDate" | "done">>) =>
+    req<Task>(`/api/tasks/${id}`, { method: "PATCH", body: JSON.stringify(updates) }),
+  deleteTask: (id: string) => req<{ ok: boolean }>(`/api/tasks/${id}`, { method: "DELETE" }),
+
+  // ── Clients ──
+  getClients: () => req<Client[]>("/api/clients"),
+  createClient: (c: Omit<Client, "id" | "createdAt">) => req<Client>("/api/clients", { method: "POST", body: JSON.stringify(c) }),
+  updateClient: (id: string, c: Partial<Omit<Client, "id" | "createdAt">>) => req<Client>(`/api/clients/${id}`, { method: "PATCH", body: JSON.stringify(c) }),
+  deleteClient: (id: string) => req<{ ok: boolean }>(`/api/clients/${id}`, { method: "DELETE" }),
+
+  // ── Invoices ──
+  getInvoices: () => req<Invoice[]>("/api/invoices"),
+  createInvoice: (i: { clientId: string; jobId?: string; items: InvoiceItem[]; taxRate: number; status: Invoice["status"]; issueDate: string; dueDate: string; notes: string }) =>
+    req<Invoice>("/api/invoices", { method: "POST", body: JSON.stringify(i) }),
+  updateInvoice: (id: string, updates: Partial<{ clientId: string; items: InvoiceItem[]; taxRate: number; status: Invoice["status"]; issueDate: string; dueDate: string; notes: string }>) =>
+    req<Invoice>(`/api/invoices/${id}`, { method: "PATCH", body: JSON.stringify(updates) }),
+  deleteInvoice: (id: string) => req<{ ok: boolean }>(`/api/invoices/${id}`, { method: "DELETE" }),
+
+  // ── Insights ──
+  getInsights: () => req<Insight[]>("/api/insights"),
 
   // ── Activity ──
   getActivity: () => req<ActivityEvent[]>("/api/activity"),

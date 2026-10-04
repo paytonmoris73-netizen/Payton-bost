@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import type { Job, UserWithStats } from "../lib/types";
+import type { Client, Job, UserWithStats } from "../lib/types";
 import { Modal } from "../components/Modal";
 
 const CATEGORIES = ["General", "Development", "Design", "Marketing", "Sales", "Support", "Operations", "Finance", "Other"];
@@ -29,13 +29,15 @@ interface FormState {
   payType: "fixed" | "hourly"; payAmount: string;
   assignedTo: string[]; priority: "normal" | "high" | "urgent";
   dueDate: string;
+  clientId: string;
 }
 
-const blankForm = (): FormState => ({ title: "", description: "", category: "General", payType: "fixed", payAmount: "", assignedTo: [], priority: "normal", dueDate: "" });
+const blankForm = (): FormState => ({ title: "", description: "", category: "General", payType: "fixed", payAmount: "", assignedTo: [], priority: "normal", dueDate: "", clientId: "" });
 
 export function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [team, setTeam] = useState<UserWithStats[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [editJob, setEditJob] = useState<Job | null>(null);
@@ -51,7 +53,8 @@ export function JobsPage() {
 
   async function load() {
     try {
-      const [j, t] = await Promise.all([api.getJobs(), api.getTeam()]);
+      const [j, t, c] = await Promise.all([api.getJobs(), api.getTeam(), api.getClients().catch(() => [] as Client[])]);
+      setClients(c);
       setJobs(j);
       setTeam(t.filter(u => u.role !== "owner" && u.active));
     } catch {/* ignore */}
@@ -63,7 +66,7 @@ export function JobsPage() {
     if (!form.title.trim()) return;
     setSaving(true); setError("");
     try {
-      await api.createJob({ title: form.title.trim(), description: form.description.trim(), category: form.category, payType: form.payType, payAmount: parseFloat(form.payAmount) || 0, assignedTo: form.assignedTo, priority: form.priority, dueDate: form.dueDate || null });
+      await api.createJob({ title: form.title.trim(), description: form.description.trim(), category: form.category, payType: form.payType, payAmount: parseFloat(form.payAmount) || 0, assignedTo: form.assignedTo, priority: form.priority, dueDate: form.dueDate || null, clientId: form.clientId || undefined });
       setShowCreate(false); setForm(blankForm());
       const j = await api.refreshJobs(); setJobs(j);
     } catch (err) { setError(err instanceof Error ? err.message : "Failed"); }
@@ -75,7 +78,7 @@ export function JobsPage() {
     if (!editJob) return;
     setSaving(true); setError("");
     try {
-      await api.updateJob(editJob.id, { title: form.title.trim(), description: form.description.trim(), category: form.category, payType: form.payType, payAmount: parseFloat(form.payAmount) || 0, assignedTo: form.assignedTo, priority: form.priority, dueDate: form.dueDate || null });
+      await api.updateJob(editJob.id, { title: form.title.trim(), description: form.description.trim(), category: form.category, payType: form.payType, payAmount: parseFloat(form.payAmount) || 0, assignedTo: form.assignedTo, priority: form.priority, dueDate: form.dueDate || null, clientId: form.clientId });
       setEditJob(null); setForm(blankForm());
       const j = await api.refreshJobs(); setJobs(j);
     } catch (err) { setError(err instanceof Error ? err.message : "Failed"); }
@@ -108,7 +111,7 @@ export function JobsPage() {
   }
 
   function openEdit(job: Job) {
-    setForm({ title: job.title, description: job.description, category: job.category, payType: job.payType, payAmount: String(job.payAmount), assignedTo: job.assignedTo, priority: job.priority, dueDate: job.dueDate ?? "" });
+    setForm({ title: job.title, description: job.description, category: job.category, payType: job.payType, payAmount: String(job.payAmount), assignedTo: job.assignedTo, priority: job.priority, dueDate: job.dueDate ?? "", clientId: job.clientId ?? "" });
     setEditJob(job); setError("");
   }
 
@@ -258,6 +261,15 @@ export function JobsPage() {
               <label>Job Title *</label>
               <input type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Build landing page" autoFocus required />
             </div>
+            {clients.length > 0 && (
+              <div className="form-group">
+                <label>Client</label>
+                <select value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))} style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--border)", borderRadius: "var(--radius)", fontSize: 14 }}>
+                  <option value="">No client (internal)</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div className="form-group">
                 <label>Category</label>

@@ -4,7 +4,7 @@ interface Props {
   label: string;
   value: string | number;
   sub?: string;
-  color?: "green" | "blue" | "orange";
+  color?: "green" | "blue" | "orange" | "red";
   icon?: ReactNode;
   delta?: { value: string; up: boolean };
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api } from "./lib/api";
+import { api, auth } from "./lib/api";
 import type { User, UserWithStats, Page } from "./lib/types";
 import { SetupPage } from "./pages/SetupPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -24,9 +24,10 @@ import { ActivityPage } from "./pages/ActivityPage";
 import { SchedulePage } from "./pages/SchedulePage";
 import { MySchedulePage } from "./pages/MySchedulePage";
 import { LeavePage } from "./pages/LeavePage";
+import { TasksPage } from "./pages/TasksPage";
+import { ClientsPage } from "./pages/ClientsPage";
+import { InvoicesPage } from "./pages/InvoicesPage";
 import { ToastProvider } from "./contexts/Toast";
-
-const AUTH_KEY = "workbase_uid";
 
 // On first load, auto-detect OS dark mode if user hasn't set a preference yet
 if (!localStorage.getItem("theme")) {
@@ -42,6 +43,7 @@ export default function App() {
   const [page, setPage] = useState<Page>("owner-dashboard");
 
   useEffect(() => {
+    auth.onUnauthorized(() => setUser(null));
     init();
   }, []);
 
@@ -50,14 +52,14 @@ export default function App() {
       const status = await api.getStatus();
       setIsSetup(status.setup);
       if (status.setup) {
-        const saved = localStorage.getItem(AUTH_KEY);
-        if (saved) {
+        localStorage.removeItem("workbase_uid");
+        if (auth.getToken()) {
           try {
-            const me = await api.getMe(saved);
+            const me = await api.authMe();
             setUser(me);
             setPage(me.role === "owner" ? "owner-dashboard" : "employee-dashboard");
           } catch {
-            localStorage.removeItem(AUTH_KEY);
+            auth.clear();
           }
         }
       }
@@ -65,20 +67,22 @@ export default function App() {
     finally { setLoading(false); }
   }
 
-  function handleLogin(u: User) {
-    localStorage.setItem(AUTH_KEY, u.id);
+  function handleLogin(u: User, token: string) {
+    auth.clear();
+    auth.setToken(token);
     setUser(u);
     setPage(u.role === "owner" ? "owner-dashboard" : "employee-dashboard");
   }
 
   function handleLogout() {
-    localStorage.removeItem(AUTH_KEY);
+    api.logout().catch(() => {});
+    auth.clear();
     setUser(null);
   }
 
-  function handleSetupDone(owner: User) {
+  function handleSetupDone(owner: User, token: string) {
     setIsSetup(true);
-    handleLogin(owner);
+    handleLogin(owner, token);
   }
 
   const handleUserUpdate = useCallback((updated: UserWithStats) => {
@@ -99,10 +103,14 @@ export default function App() {
   return (
     <ToastProvider>
     <Layout user={user} page={page} onNavigate={setPage} onLogout={handleLogout}>
-      {page === "owner-dashboard" && <OwnerDashboard user={user} />}
+      {page === "owner-dashboard" && <OwnerDashboard user={user} onNavigate={setPage} />}
       {page === "owner-activity" && <ActivityPage />}
       {page === "owner-schedule" && <SchedulePage />}
       {page === "owner-leave" && <LeavePage user={user} />}
+      {page === "owner-tasks" && <TasksPage user={user} />}
+      {page === "owner-clients" && <ClientsPage />}
+      {page === "owner-invoices" && <InvoicesPage />}
+      {page === "employee-tasks" && <TasksPage user={user} />}
       {page === "owner-team" && <TeamPage user={user} onUserUpdate={setUser} />}
       {page === "owner-time" && <TimePage />}
       {page === "owner-payroll" && <PayrollPage />}
