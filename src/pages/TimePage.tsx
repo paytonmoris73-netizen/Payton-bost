@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import type { TimeEntry, UserWithStats } from "../lib/types";
+import type { TimeEntry, User, UserWithStats } from "../lib/types";
 import { useToast } from "../contexts/Toast";
 import { Modal } from "../components/Modal";
+import { mapLink } from "../lib/geo";
+import { TimeRequests } from "../components/TimeRequests";
 
 function fmt(h: number): string {
   const hrs = Math.floor(h);
@@ -43,7 +45,7 @@ function exportCSV(entries: TimeEntry[]) {
   URL.revokeObjectURL(url);
 }
 
-export function TimePage() {
+export function TimePage({ user }: { user: User }) {
   const { toast } = useToast();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [team, setTeam] = useState<UserWithStats[]>([]);
@@ -51,6 +53,11 @@ export function TimePage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(true);
+  const [siteRadius, setSiteRadius] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.getCompany().then(c => setSiteRadius(c.settings?.geofence.enabled ? c.settings.geofence.radiusM : null)).catch(() => {});
+  }, []);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editEntry, setEditEntry] = useState<TimeEntry | null>(null);
   const [editClockIn, setEditClockIn] = useState("");
@@ -165,6 +172,8 @@ export function TimePage() {
         </div>
       </div>
 
+      <TimeRequests user={user} onChange={load} />
+
       <div className="card">
         {/* Toolbar */}
         <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -211,6 +220,7 @@ export function TimePage() {
                   <th>Clock In</th>
                   <th>Clock Out</th>
                   <th>Duration</th>
+                  <th>Location</th>
                   <th>Notes</th>
                   <th></th>
                 </tr>
@@ -232,7 +242,22 @@ export function TimePage() {
                         ? fmtTime(entry.clockOut)
                         : <span className="badge badge-green"><span className="badge-dot" />Active</span>}
                     </td>
-                    <td style={{ fontWeight: 500 }}>{fmt(entry.hours ?? 0)}</td>
+                    <td style={{ fontWeight: 500 }}>
+                      {fmt(entry.hours ?? 0)}
+                      {entry.edits && entry.edits.length > 0 && (
+                        <span className="badge badge-gray" style={{ marginLeft: 6, fontSize: 10 }}
+                          title={entry.edits.map(x => `${new Date(x.at).toLocaleString()}: ${x.byName} changed ${x.field}${x.field === "notes" ? "" : ` from ${x.from ? new Date(x.from).toLocaleString() : "—"} to ${x.to ? new Date(x.to).toLocaleString() : "—"}`}`).join("\n")}>
+                          edited
+                        </span>
+                      )}
+                    </td>
+                    <td className="td-muted" style={{ whiteSpace: "nowrap" }}>
+                      {entry.location ? (
+                        <a href={mapLink(entry.location)} target="_blank" rel="noreferrer" style={{ color: entry.distanceM !== undefined && entry.distanceM > (siteRadius ?? Infinity) ? "var(--danger)" : undefined }}>
+                          📍 {entry.distanceM !== undefined ? (entry.distanceM >= 1000 ? `${(entry.distanceM / 1000).toFixed(1)} km away` : `${entry.distanceM} m away`) : "View"}
+                        </a>
+                      ) : "—"}
+                    </td>
                     <td className="td-muted" style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.notes || "—"}</td>
                     <td>
                       <div className="td-actions">

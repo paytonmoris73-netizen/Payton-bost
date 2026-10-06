@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { localDate } from "../lib/dates";
 import type { Expense } from "../lib/types";
 import { Modal } from "../components/Modal";
 import { StatCard } from "../components/StatCard";
@@ -10,7 +11,7 @@ function money(n: number): string { return "$" + n.toFixed(2).replace(/\B(?=(\d{
 function fmtDate(iso: string): string { return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
 
 interface FormState { title: string; amount: string; category: string; vendor: string; notes: string; date: string; recurring: boolean; }
-const blank = (): FormState => ({ title: "", amount: "", category: "General", vendor: "", notes: "", date: new Date().toISOString().split("T")[0], recurring: false });
+const blank = (): FormState => ({ title: "", amount: "", category: "General", vendor: "", notes: "", date: localDate(), recurring: false });
 
 export function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -59,11 +60,11 @@ export function ExpensesPage() {
     setEditExp(exp); setError("");
   }
 
-  const thisMonthStr = new Date().toISOString().slice(0, 7);
+  const thisMonthStr = localDate().slice(0, 7);
   const recurringMissing = expenses.filter(e => e.recurring && !expenses.some(e2 => e2.title === e.title && e2.recurring && e2.date.startsWith(thisMonthStr) && e2.id !== e.id));
 
   async function applyRecurring() {
-    const today = new Date().toISOString().split("T")[0];
+    const today = localDate();
     for (const e of recurringMissing) {
       await api.createExpense({ title: e.title, amount: e.amount, category: e.category, vendor: e.vendor, notes: e.notes, date: today, recurring: true });
     }
@@ -72,8 +73,8 @@ export function ExpensesPage() {
 
   const shown = filterCat === "all" ? expenses : expenses.filter(e => e.category === filterCat);
   const total = expenses.reduce((s, e) => s + e.amount, 0);
-  const thisMonth = expenses.filter(e => new Date(e.date) >= new Date(new Date().setDate(1))).reduce((s, e) => s + e.amount, 0);
-  const thisWeek = (() => { const w = new Date(); w.setHours(0,0,0,0); w.setDate(w.getDate() - w.getDay()); return expenses.filter(e => new Date(e.date) >= w).reduce((s, e) => s + e.amount, 0); })();
+  const thisMonth = expenses.filter(e => e.date.startsWith(thisMonthStr)).reduce((s, e) => s + e.amount, 0);
+  const thisWeek = (() => { const w = new Date(); w.setDate(w.getDate() - w.getDay()); const ws = localDate(w); return expenses.filter(e => e.date >= ws).reduce((s, e) => s + e.amount, 0); })();
 
   const catTotals = CATEGORIES.map(c => ({ cat: c, total: expenses.filter(e => e.category === c).reduce((s, e) => s + e.amount, 0) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total);
 

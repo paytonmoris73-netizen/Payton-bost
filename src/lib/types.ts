@@ -1,8 +1,36 @@
+export interface Geofence { enabled: boolean; enforce: boolean; lat: number; lng: number; radiusM: number; label: string; }
+export interface CompanySettings { overtimeThreshold: number; overtimeMultiplier: number; geofence: Geofence; }
+
 export interface Company {
   id: string;
   name: string;
   joinCode: string;
   createdAt: string;
+  settings: CompanySettings;
+}
+
+export interface GeoPoint { lat: number; lng: number; accuracy: number; }
+export interface TimeEdit { at: string; by: string; byName: string; field: string; from: string | null; to: string | null; }
+
+export interface ChatChannel {
+  channel: string;
+  name: string;
+  title: string;
+  userId: string | null;
+  unread: number;
+  last: ChatMessage | null;
+}
+
+export interface ChatMessage { id: string; channel: string; senderId: string; senderName?: string; text: string; createdAt: string; }
+
+export interface ReportData {
+  from: string;
+  to: string;
+  totals: { revenue: number; invoiced: number; laborCost: number; expenses: number; profit: number; hours: number; overtimeHours: number; wagesPaid: number };
+  byEmployee: Array<{ userId: string; name: string; hours: number; regularHours: number; overtimeHours: number; laborCost: number; shifts: number }>;
+  byJob: Array<{ jobId: string; title: string; clientName: string; hours: number; laborCost: number; revenue: number; profit: number }>;
+  byClient: Array<{ clientId: string; name: string; invoiced: number; collected: number; laborCost: number }>;
+  expensesByCategory: Array<{ category: string; amount: number }>;
 }
 
 export interface User {
@@ -24,6 +52,10 @@ export interface UserWithStats extends User {
   monthPay: number;
   totalPaid: number;
   totalOwed: number;
+  weekOvertimeHours: number;
+  ytdHours: number;
+  ytdPay: number;
+  totalEarned: number;
 }
 
 export interface BreakEntry {
@@ -41,6 +73,10 @@ export interface TimeEntry {
   breaks: BreakEntry[];
   userName?: string;
   hours?: number;
+  location?: GeoPoint;
+  distanceM?: number;
+  clockOutLocation?: GeoPoint;
+  edits?: TimeEdit[];
 }
 
 export interface Shift {
@@ -53,6 +89,7 @@ export interface Shift {
   note: string;
   createdAt: string;
   userName?: string;
+  dropRequested?: boolean;
 }
 
 export interface LeaveRequest {
@@ -228,6 +265,8 @@ export type Page =
   | "owner-tasks"
   | "owner-clients"
   | "owner-invoices"
+  | "owner-reports"
+  | "owner-chat"
   | "employee-dashboard"
   | "employee-jobs"
   | "employee-time"
@@ -236,4 +275,17 @@ export type Page =
   | "employee-announcements"
   | "employee-schedule"
   | "employee-leave"
-  | "employee-tasks";
+  | "employee-tasks"
+  | "employee-chat";
+
+export interface TimeRequest {
+  id: string;
+  userId: string;
+  userName?: string;
+  clockIn: string;
+  clockOut: string;
+  reason: string;
+  status: "pending" | "approved" | "denied";
+  createdAt: string;
+  reviewedAt: string | null;
+}

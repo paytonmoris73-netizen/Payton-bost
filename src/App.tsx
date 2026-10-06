@@ -27,6 +27,8 @@ import { LeavePage } from "./pages/LeavePage";
 import { TasksPage } from "./pages/TasksPage";
 import { ClientsPage } from "./pages/ClientsPage";
 import { InvoicesPage } from "./pages/InvoicesPage";
+import { ReportsPage } from "./pages/ReportsPage";
+import { ChatPage } from "./pages/ChatPage";
 import { ToastProvider } from "./contexts/Toast";
 
 // On first load, auto-detect OS dark mode if user hasn't set a preference yet
@@ -111,8 +113,10 @@ export default function App() {
       {page === "owner-clients" && <ClientsPage />}
       {page === "owner-invoices" && <InvoicesPage />}
       {page === "employee-tasks" && <TasksPage user={user} />}
+      {page === "owner-reports" && <ReportsPage />}
+      {(page === "owner-chat" || page === "employee-chat") && <ChatPage user={user} />}
       {page === "owner-team" && <TeamPage user={user} onUserUpdate={setUser} />}
-      {page === "owner-time" && <TimePage />}
+      {page === "owner-time" && <TimePage user={user} />}
       {page === "owner-payroll" && <PayrollPage />}
       {page === "owner-jobs" && <JobsPage />}
       {page === "owner-payments" && <PaymentsPage />}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { User, UserWithStats, EmployeeNote } from "../lib/types";
 import { Modal } from "../components/Modal";
+import { useToast } from "../contexts/Toast";
 
 interface Props {
   user: User;
@@ -18,6 +19,7 @@ function fmt(h: number): string { const hrs = Math.floor(h); const mins = Math.r
 type SortKey = "name" | "weekHours" | "monthHours" | "weekPay" | "monthPay";
 
 export function TeamPage({ user }: Props) {
+  const { toast } = useToast();
   const [team, setTeam] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -111,6 +113,14 @@ export function TeamPage({ user }: Props) {
     if (!viewUser) return;
     await api.deleteEmployeeNote(noteId);
     setNotes(await api.getEmployeeNotes(viewUser.id));
+  }
+
+  async function handleResetPin(u: UserWithStats) {
+    if (!confirm(`Reset ${u.name}'s PIN? They'll be signed out and will set a new PIN next time using your invite code.`)) return;
+    try {
+      await api.resetEmployeePin(u.id);
+      toast(`${u.name}'s PIN was reset`);
+    } catch (err) { toast(err instanceof Error ? err.message : "Reset failed", "error"); }
   }
 
   async function handleDeactivate(u: UserWithStats) {
@@ -253,6 +263,7 @@ export function TeamPage({ user }: Props) {
                           <div className="td-actions">
                             <button className="btn btn-ghost btn-sm" onClick={() => openView(member)}>View</button>
                             <button className="btn btn-ghost btn-sm" onClick={() => { setEditUser(member); setError(""); }}>Edit</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => handleResetPin(member)} title="Use when someone forgets their PIN">Reset PIN</button>
                             <button className="btn btn-ghost btn-sm" style={{ color: "var(--danger)" }} onClick={() => handleDeactivate(member)}>Remove</button>
                           </div>
                         </td>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { User, TimeEntry } from "../lib/types";
+import { TimeRequests } from "../components/TimeRequests";
 
 interface Props {
   user: User;
@@ -45,6 +46,8 @@ export function MyTimePage({ user }: Props) {
           Total: {fmt(totalHours)}
         </div>
       </div>
+
+      <TimeRequests user={user} />
 
       <div className="card">
         {loading ? (

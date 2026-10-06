@@ -4,14 +4,62 @@ import { fileURLToPath } from "node:url";
 import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, "..", "data.json");
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, "..", "data.json");
+
+export interface Geofence {
+  enabled: boolean;
+  enforce: boolean;
+  lat: number;
+  lng: number;
+  radiusM: number;
+  label: string;
+}
+
+export interface CompanySettings {
+  overtimeThreshold: number;
+  overtimeMultiplier: number;
+  geofence: Geofence;
+}
+
+export const DEFAULT_SETTINGS: CompanySettings = {
+  overtimeThreshold: 40,
+  overtimeMultiplier: 1.5,
+  geofence: { enabled: false, enforce: false, lat: 0, lng: 0, radiusM: 200, label: "" },
+};
 
 export interface Company {
   id: string;
   name: string;
   joinCode: string;
   createdAt: string;
+  settings: CompanySettings;
 }
+
+export interface GeoPoint { lat: number; lng: number; accuracy: number; }
+
+export interface TimeEdit { at: string; by: string; byName: string; field: string; from: string | null; to: string | null; }
+
+export interface Message {
+  id: string;
+  channel: string;
+  senderId: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface TimeRequest {
+  id: string;
+  userId: string;
+  clockIn: string;
+  clockOut: string;
+  reason: string;
+  status: "pending" | "approved" | "denied";
+  createdAt: string;
+  reviewedAt: string | null;
+  entryId?: string;
+}
+
+export interface ChatRead { userId: string; channel: string; readAt: string; }
 
 export interface User {
   id: string;
@@ -86,10 +134,15 @@ export interface TimeEntry {
   notes: string;
   jobId?: string;
   breaks: BreakEntry[];
+  location?: GeoPoint;
+  distanceM?: number;
+  clockOutLocation?: GeoPoint;
+  edits?: TimeEdit[];
 }
 
 export interface Shift {
   id: string;
+  /** Empty string means an open shift anyone can claim. */
   userId: string;
   date: string;
   startTime: string;
@@ -97,6 +150,7 @@ export interface Shift {
   title: string;
   note: string;
   createdAt: string;
+  dropRequested?: boolean;
 }
 
 export interface LeaveRequest {
@@ -195,6 +249,9 @@ interface DbData {
   clients: Client[];
   invoices: Invoice[];
   tasks: Task[];
+  messages: Message[];
+  chatReads: ChatRead[];
+  timeRequests: TimeRequest[];
 }
 
 export interface UserWithStats extends User {
@@ -206,10 +263,14 @@ export interface UserWithStats extends User {
   monthPay: number;
   totalPaid: number;
   totalOwed: number;
+  weekOvertimeHours: number;
+  ytdHours: number;
+  ytdPay: number;
+  totalEarned: number;
 }
 
 function emptyDb(): DbData {
-  return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [], shifts: [], leaveRequests: [], notifications: [], employeeNotes: [], sessions: [], clients: [], invoices: [], tasks: [] };
+  return { company: null, users: [], timeEntries: [], jobs: [], payments: [], expenses: [], announcements: [], shifts: [], leaveRequests: [], notifications: [], employeeNotes: [], sessions: [], clients: [], invoices: [], tasks: [], messages: [], chatReads: [], timeRequests: [] };
 }
 
 function read(): DbData {
@@ -217,7 +278,7 @@ function read(): DbData {
     if (!fs.existsSync(DB_PATH)) return emptyDb();
     const raw = JSON.parse(fs.readFileSync(DB_PATH, "utf-8")) as Partial<DbData>;
     return {
-      company: raw.company ?? null,
+      company: raw.company ? { ...raw.company, settings: { ...DEFAULT_SETTINGS, ...(raw.company.settings ?? {}), geofence: { ...DEFAULT_SETTINGS.geofence, ...(raw.company.settings?.geofence ?? {}) } } } : null,
       users: raw.users ?? [],
       timeEntries: (raw.timeEntries ?? []).map(e => ({ ...e, breaks: e.breaks ?? [] })),
       jobs: raw.jobs ?? [],
@@ -232,6 +293,9 @@ function read(): DbData {
       clients: raw.clients ?? [],
       invoices: raw.invoices ?? [],
       tasks: raw.tasks ?? [],
+      messages: raw.messages ?? [],
+      chatReads: raw.chatReads ?? [],
+      timeRequests: raw.timeRequests ?? [],
     };
   } catch {
     return emptyDb();
@@ -289,24 +353,64 @@ function dayStart(): number {
   const d = new Date(); d.setHours(0,0,0,0); return d.getTime();
 }
 
-function enrichUser(user: User, entries: TimeEntry[], payments: Payment[]): UserWithStats {
+function weekKey(iso: string): number {
+  const d = new Date(iso); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - d.getDay()); return d.getTime();
+}
+
+export interface LaborLine { entry: TimeEntry; hours: number; regularHours: number; overtimeHours: number; pay: number; }
+
+/**
+ * Splits each entry into regular and overtime hours. Overtime is any time past the
+ * weekly threshold (weeks start Sunday), allocated in clock-in order.
+ */
+export function laborLines(entries: TimeEntry[], rateFor: (userId: string) => number, settings: CompanySettings = DEFAULT_SETTINGS): LaborLine[] {
+  const sorted = [...entries].sort((a, b) => a.clockIn.localeCompare(b.clockIn));
+  const used = new Map<string, number>();
+  return sorted.map(entry => {
+    const hours = hoursFor(entry);
+    const key = `${entry.userId}:${weekKey(entry.clockIn)}`;
+    const before = used.get(key) ?? 0;
+    const regularHours = Math.max(0, Math.min(hours, settings.overtimeThreshold - before));
+    const overtimeHours = hours - regularHours;
+    used.set(key, before + hours);
+    const rate = rateFor(entry.userId);
+    const pay = regularHours * rate + overtimeHours * rate * settings.overtimeMultiplier;
+    return { entry, hours, regularHours, overtimeHours, pay };
+  });
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+function enrichUser(user: User, entries: TimeEntry[], payments: Payment[], settings: CompanySettings): UserWithStats {
   const ws = weekStart(), ms = monthStart(), ds = dayStart();
-  let todayHours = 0, weekHours = 0, monthHours = 0, totalHours = 0, clockedIn = false;
-  for (const e of entries.filter(e => e.userId === user.id)) {
-    const start = new Date(e.clockIn).getTime();
-    if (e.clockOut === null) clockedIn = true;
-    const h = hoursFor(e);
-    if (start >= ds) todayHours += h;
-    if (start >= ws) weekHours += h;
-    if (start >= ms) monthHours += h;
-    totalHours += h;
+  const ys = new Date(new Date().getFullYear(), 0, 1).getTime();
+  let todayHours = 0, weekHours = 0, monthHours = 0, ytdHours = 0, weekOvertimeHours = 0;
+  let weekPay = 0, monthPay = 0, ytdPay = 0, totalEarned = 0, clockedIn = false;
+  for (const l of laborLines(entries.filter(e => e.userId === user.id), () => user.hourlyRate, settings)) {
+    const start = new Date(l.entry.clockIn).getTime();
+    if (l.entry.clockOut === null) clockedIn = true;
+    if (start >= ds) todayHours += l.hours;
+    if (start >= ws) { weekHours += l.hours; weekPay += l.pay; weekOvertimeHours += l.overtimeHours; }
+    if (start >= ms) { monthHours += l.hours; monthPay += l.pay; }
+    if (start >= ys) { ytdHours += l.hours; ytdPay += l.pay; }
+    totalEarned += l.pay;
   }
   const totalPaid = payments.filter(p => p.userId === user.id).reduce((s, p) => s + p.amount, 0);
-  const weekPay = weekHours * user.hourlyRate;
-  const monthPay = monthHours * user.hourlyRate;
   const { pinHash: _pin, ...safe } = user;
-  return { ...safe, clockedIn, todayHours, weekHours, monthHours, weekPay, monthPay, totalPaid, totalOwed: Math.max(0, Math.round((totalHours * user.hourlyRate - totalPaid) * 100) / 100) };
+  return {
+    ...safe, clockedIn, todayHours, weekHours, monthHours, weekPay: round2(weekPay), monthPay: round2(monthPay), totalPaid,
+    totalOwed: Math.max(0, round2(totalEarned - totalPaid)), weekOvertimeHours, ytdHours, ytdPay: round2(ytdPay), totalEarned: round2(totalEarned),
+  };
 }
+
+export function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371000, toRad = (d: number) => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+export function dmChannel(a: string, b: string): string { return `dm:${[a, b].sort().join(":")}`; }
 
 export interface DailyHours {
   date: string;
@@ -319,13 +423,20 @@ export const db = {
 
   setup(companyName: string, ownerName: string, pin: string): { company: Company; user: User } {
     const data = read();
-    const company: Company = { id: randomUUID(), name: companyName, joinCode: newJoinCode(), createdAt: new Date().toISOString() };
+    const company: Company = { id: randomUUID(), name: companyName, joinCode: newJoinCode(), createdAt: new Date().toISOString(), settings: structuredClone(DEFAULT_SETTINGS) };
     const user: User = { id: randomUUID(), name: ownerName, role: "owner", hourlyRate: 0, createdAt: new Date().toISOString(), active: true, title: "Owner", pinHash: hashPin(pin) };
     data.company = company; data.users = [user];
     write(data); return { company, user };
   },
 
   getCompany: (): Company | null => read().company,
+
+  updateSettings(settings: CompanySettings): Company | null {
+    const data = read();
+    if (!data.company) return null;
+    data.company.settings = settings;
+    write(data); return data.company;
+  },
 
   updateCompany(updates: Partial<Pick<Company,"name">>): Company | null {
     const data = read();
@@ -389,32 +500,52 @@ export const db = {
     return u && u.active ? u : null;
   },
 
+  /** Clears a PIN and signs the user out everywhere; they set a new PIN on next sign-in. */
+  resetPin(userId: string): boolean {
+    const data = read();
+    const u = data.users.find(x => x.id === userId);
+    if (!u) return false;
+    delete u.pinHash;
+    data.sessions = data.sessions.filter(s => s.userId !== userId);
+    write(data); return true;
+  },
+
   deleteSession(token: string): void {
     const data = read();
     data.sessions = data.sessions.filter(s => s.token !== token); write(data);
   },
 
-  clockIn(userId: string, notes: string, jobId?: string): TimeEntry | null {
+  clockIn(userId: string, notes: string, jobId?: string, location?: GeoPoint, distanceM?: number): TimeEntry | null {
     const data = read();
     if (data.timeEntries.find(e => e.userId === userId && e.clockOut === null)) return null;
-    const entry: TimeEntry = { id: randomUUID(), userId, clockIn: new Date().toISOString(), clockOut: null, notes, jobId, breaks: [] };
+    const entry: TimeEntry = { id: randomUUID(), userId, clockIn: new Date().toISOString(), clockOut: null, notes, jobId, breaks: [], location, distanceM };
     data.timeEntries.push(entry); write(data); return entry;
   },
 
-  clockOut(userId: string, notes?: string): TimeEntry | null {
+  clockOut(userId: string, notes?: string, location?: GeoPoint): TimeEntry | null {
     const data = read();
     const i = data.timeEntries.findIndex(e => e.userId === userId && e.clockOut === null);
     if (i === -1) return null;
     data.timeEntries[i].clockOut = new Date().toISOString();
+    if (location) data.timeEntries[i].clockOutLocation = location;
     if (notes?.trim()) data.timeEntries[i].notes = notes.trim();
     write(data); return data.timeEntries[i];
   },
 
-  updateTimeEntry(id: string, updates: Partial<Pick<TimeEntry,"clockIn"|"clockOut"|"notes">>): TimeEntry | null {
+  updateTimeEntry(id: string, updates: Partial<Pick<TimeEntry,"clockIn"|"clockOut"|"notes">>, editor?: User): TimeEntry | null {
     const data = read();
     const i = data.timeEntries.findIndex(e => e.id === id);
     if (i === -1) return null;
-    data.timeEntries[i] = { ...data.timeEntries[i], ...updates };
+    const prev = data.timeEntries[i];
+    const edits = [...(prev.edits ?? [])];
+    if (editor) {
+      for (const field of ["clockIn", "clockOut", "notes"] as const) {
+        if (field in updates && updates[field] !== prev[field]) {
+          edits.push({ at: new Date().toISOString(), by: editor.id, byName: editor.name, field, from: prev[field] ?? null, to: updates[field] ?? null });
+        }
+      }
+    }
+    data.timeEntries[i] = { ...prev, ...updates, edits };
     write(data); return data.timeEntries[i];
   },
 
@@ -435,13 +566,14 @@ export const db = {
 
   getUsersWithStats(): UserWithStats[] {
     const data = read();
-    return data.users.map(u => enrichUser(u, data.timeEntries, data.payments));
+    const settings = data.company?.settings ?? DEFAULT_SETTINGS;
+    return data.users.map(u => enrichUser(u, data.timeEntries, data.payments, settings));
   },
 
   getUserWithStats(userId: string): UserWithStats | null {
     const data = read();
     const user = data.users.find(u => u.id === userId);
-    return user ? enrichUser(user, data.timeEntries, data.payments) : null;
+    return user ? enrichUser(user, data.timeEntries, data.payments, data.company?.settings ?? DEFAULT_SETTINGS) : null;
   },
 
   regenerateJoinCode(): string | null {
@@ -679,6 +811,88 @@ export const db = {
     if (i === -1) return false;
     data.employeeNotes.splice(i, 1); write(data); return true;
   },
+
+  // ── Shift marketplace ──
+
+  getShift: (id: string): Shift | null => read().shifts.find(s => s.id === id) ?? null,
+
+  // ── Chat ──
+
+  getMessages(channel: string, limit = 200): Message[] {
+    return read().messages.filter(m => m.channel === channel).slice(-limit);
+  },
+
+  addMessage(channel: string, senderId: string, text: string): Message {
+    const data = read();
+    const msg: Message = { id: randomUUID(), channel, senderId, text, createdAt: new Date().toISOString() };
+    data.messages.push(msg);
+    const r = data.chatReads.find(x => x.userId === senderId && x.channel === channel);
+    if (r) r.readAt = msg.createdAt; else data.chatReads.push({ userId: senderId, channel, readAt: msg.createdAt });
+    write(data); return msg;
+  },
+
+  markChannelRead(userId: string, channel: string): void {
+    const data = read();
+    const now = new Date().toISOString();
+    const r = data.chatReads.find(x => x.userId === userId && x.channel === channel);
+    if (r) r.readAt = now; else data.chatReads.push({ userId, channel, readAt: now });
+    write(data);
+  },
+
+  chatSummary(userId: string, channels: string[]): Array<{ channel: string; last: Message | null; unread: number }> {
+    const data = read();
+    return channels.map(channel => {
+      const msgs = data.messages.filter(m => m.channel === channel);
+      const readAt = data.chatReads.find(r => r.userId === userId && r.channel === channel)?.readAt ?? "";
+      return { channel, last: msgs[msgs.length - 1] ?? null, unread: msgs.filter(m => m.senderId !== userId && m.createdAt > readAt).length };
+    });
+  },
+
+  // ── Time correction requests ──
+
+  getTimeRequests: (userId?: string): TimeRequest[] => {
+    const all = read().timeRequests;
+    return (userId ? all.filter(r => r.userId === userId) : all).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  },
+
+  createTimeRequest(r: Pick<TimeRequest, "userId" | "clockIn" | "clockOut" | "reason">): TimeRequest {
+    const data = read();
+    const req: TimeRequest = { ...r, id: randomUUID(), status: "pending", createdAt: new Date().toISOString(), reviewedAt: null };
+    data.timeRequests.push(req); write(data); return req;
+  },
+
+  /** Approving creates the missing time entry and logs who added it. */
+  reviewTimeRequest(id: string, status: "approved" | "denied", reviewer: User): TimeRequest | null {
+    const data = read();
+    const r = data.timeRequests.find(x => x.id === id);
+    if (!r || r.status !== "pending") return null;
+    r.status = status;
+    r.reviewedAt = new Date().toISOString();
+    if (status === "approved") {
+      const entry: TimeEntry = {
+        id: randomUUID(), userId: r.userId, clockIn: r.clockIn, clockOut: r.clockOut, notes: r.reason, breaks: [],
+        edits: [{ at: r.reviewedAt, by: reviewer.id, byName: reviewer.name, field: "created from correction request", from: null, to: null }],
+      };
+      data.timeEntries.push(entry);
+      r.entryId = entry.id;
+    }
+    write(data); return r;
+  },
+
+  // ── Backup ──
+
+  exportAll() {
+    const data = read();
+    return {
+      exportedAt: new Date().toISOString(),
+      ...data,
+      users: data.users.map(({ pinHash: _p, ...u }) => u),
+      sessions: undefined,
+      chatReads: undefined,
+    };
+  },
+
+  getAllData: (): DbData => read(),
 
   // ── Clients ──
 

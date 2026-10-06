@@ -1,0 +1,4 @@
+/** YYYY-MM-DD in the viewer's own timezone (toISOString would give the UTC day). */
+export function localDate(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}

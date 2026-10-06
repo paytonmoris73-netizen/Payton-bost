@@ -19,6 +19,7 @@ interface NavItem { page: Page; label: string; icon: ReactNode; }
 const ownerNav: NavItem[] = [
   { page: "owner-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
   { page: "owner-activity",       label: "Activity",        icon: <ActivityIcon /> },
+  { page: "owner-chat",           label: "Messages",        icon: <ChatIcon /> },
   { page: "owner-schedule",       label: "Schedule",        icon: <CalendarIcon /> },
   { page: "owner-leave",          label: "Leave Requests",  icon: <LeaveIcon /> },
   { page: "owner-tasks",          label: "Tasks",           icon: <CheckIcon /> },
@@ -30,6 +31,7 @@ const ownerNav: NavItem[] = [
   { page: "owner-payroll",        label: "Payroll",         icon: <PayIcon /> },
   { page: "owner-payments",       label: "Payments",        icon: <LedgerIcon /> },
   { page: "owner-expenses",       label: "Expenses",        icon: <ExpenseIcon /> },
+  { page: "owner-reports",        label: "Reports",         icon: <ReportIcon /> },
   { page: "owner-analytics",      label: "Analytics",       icon: <ChartIcon /> },
   { page: "owner-announcements",  label: "Announcements",   icon: <MegaphoneIcon /> },
   { page: "owner-billing",        label: "Plan & Billing",  icon: <BillingIcon /> },
@@ -39,6 +41,7 @@ const ownerNav: NavItem[] = [
 const employeeNav: NavItem[] = [
   { page: "employee-dashboard",      label: "Dashboard",      icon: <DashIcon /> },
   { page: "employee-tasks",          label: "My Tasks",       icon: <CheckIcon /> },
+  { page: "employee-chat",           label: "Messages",       icon: <ChatIcon /> },
   { page: "employee-schedule",       label: "My Schedule",    icon: <CalendarIcon /> },
   { page: "employee-leave",          label: "My Leave",       icon: <LeaveIcon /> },
   { page: "employee-jobs",           label: "My Jobs",        icon: <JobIcon /> },
@@ -64,6 +67,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [bellOpen, setBellOpen] = useState(false);
+  const [chatUnread, setChatUnread] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [curPin, setCurPin] = useState("");
@@ -96,7 +100,10 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
 
   async function loadNotifications() {
     try { setNotifications(await api.getNotifications(user.id)); } catch {/* ignore */}
+    try { setChatUnread((await api.getChannels()).reduce((s, c) => s + c.unread, 0)); } catch {/* ignore */}
   }
+
+  useEffect(() => { loadNotifications(); }, [page]);
 
   async function handleMarkAllRead() {
     await api.markAllNotificationsRead(user.id);
@@ -211,6 +218,9 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
             >
               {item.icon}
               {item.label}
+              {item.label === "Messages" && chatUnread > 0 && page !== item.page && (
+                <span className="nav-badge" aria-label={`${chatUnread} unread`}>{chatUnread > 99 ? "99+" : chatUnread}</span>
+              )}
             </button>
           ))}
         </nav>
@@ -389,6 +399,12 @@ function CalendarIcon() {
 }
 function LeaveIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="5" r="2.5" /><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" /><path d="M6 11.5l2 2 2-2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function ChatIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v6a1.5 1.5 0 01-1.5 1.5H6l-3.5 3V11h0A1.5 1.5 0 012 9.5z" strokeLinejoin="round" /><path d="M5 5.5h6M5 8h4" strokeLinecap="round" /></svg>;
+}
+function ReportIcon() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="1.5" width="12" height="13" rx="1.5" /><path d="M5 11V8.5M8 11V5.5M11 11V7" strokeLinecap="round" /></svg>;
 }
 function CheckIcon() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1.5" y="1.5" width="13" height="13" rx="3" /><path d="M5 8.2l2 2 4-4.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;

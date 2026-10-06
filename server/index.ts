@@ -3,8 +3,8 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { db, hoursFor, verifyPin, invoiceTotal } from "./db.js";
-import type { User, TimeEntry, InvoiceItem } from "./db.js";
+import { db, hoursFor, verifyPin, invoiceTotal, laborLines, distanceMeters, dmChannel, DEFAULT_SETTINGS } from "./db.js";
+import type { User, TimeEntry, InvoiceItem, GeoPoint, CompanySettings } from "./db.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 8787;
@@ -26,6 +26,14 @@ function validPin(pin: unknown): pin is string { return typeof pin === "string" 
 function withHours(e: TimeEntry, names: Map<string, string>) {
   return { ...e, userName: names.get(e.userId) ?? "Unknown", hours: hoursFor(e) };
 }
+function parseGeo(v: unknown): GeoPoint | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const { lat, lng, accuracy } = v as Record<string, unknown>;
+  const la = Number(lat), ln = Number(lng), ac = Number(accuracy);
+  if (!isFinite(la) || !isFinite(ln) || Math.abs(la) > 90 || Math.abs(ln) > 180) return undefined;
+  return { lat: la, lng: ln, accuracy: isFinite(ac) && ac >= 0 ? Math.round(ac) : 0 };
+}
+function settings(): CompanySettings { return db.getCompany()?.settings ?? DEFAULT_SETTINGS; }
 function nameMap() { return new Map(db.getUsers().map(u => [u.id, u.name])); }
 
 // Brute-force protection: 5 bad PINs locks the account for 5 minutes.
@@ -133,6 +141,33 @@ app.patch("/api/company", ownerOnly, (req, res) => {
   res.json(c);
 });
 
+app.put("/api/company/settings", ownerOnly, (req, res) => {
+  const b = req.body ?? {};
+  const g = b.geofence ?? {};
+  const threshold = Number(b.overtimeThreshold), mult = Number(b.overtimeMultiplier);
+  if (!(threshold >= 1 && threshold <= 168)) { res.status(400).json({ error: "Overtime threshold must be 1–168 hours." }); return; }
+  if (!(mult >= 1 && mult <= 5)) { res.status(400).json({ error: "Overtime multiplier must be between 1 and 5." }); return; }
+  const lat = Number(g.lat), lng = Number(g.lng), radiusM = Number(g.radiusM);
+  const enabled = g.enabled === true;
+  if (enabled && (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || (lat === 0 && lng === 0))) {
+    res.status(400).json({ error: "Set a work location before turning on the job-site fence." }); return;
+  }
+  if (enabled && !(radiusM >= 25 && radiusM <= 50000)) { res.status(400).json({ error: "Fence radius must be 25 m – 50 km." }); return; }
+  const c = db.updateSettings({
+    overtimeThreshold: threshold,
+    overtimeMultiplier: mult,
+    geofence: { enabled, enforce: enabled && g.enforce === true, lat: isFinite(lat) ? lat : 0, lng: isFinite(lng) ? lng : 0, radiusM: isFinite(radiusM) ? radiusM : 200, label: str(g.label, 100) },
+  });
+  if (!c) { res.status(404).json({ error: "Not set up." }); return; }
+  res.json(c);
+});
+
+app.get("/api/backup", ownerOnly, (_req, res) => {
+  const stamp = new Date().toISOString().slice(0, 10);
+  res.setHeader("Content-Disposition", `attachment; filename="workbase-backup-${stamp}.json"`);
+  res.json(db.exportAll());
+});
+
 app.post("/api/company/regenerate-code", ownerOnly, (_req, res) => {
   const code = db.regenerateJoinCode();
   if (!code) { res.status(404).json({ error: "Not set up." }); return; }
@@ -159,6 +194,15 @@ app.post("/api/team", ownerOnly, (req, res) => {
   res.json(publicUser(db.addUser(name, Math.max(0, Number(req.body?.hourlyRate) || 0), str(req.body?.title, 100) || "Employee")));
 });
 
+app.post("/api/team/:id/reset-pin", ownerOnly, (req, res) => {
+  const target = db.getUserById(req.params.id);
+  if (!target) { res.status(404).json({ error: "User not found." }); return; }
+  if (target.role === "owner") { res.status(400).json({ error: "Owners change their own PIN from the menu." }); return; }
+  db.resetPin(target.id);
+  failures.delete(target.id);
+  res.json({ ok: true });
+});
+
 app.patch("/api/team/:id", ownerOnly, (req, res) => {
   const updates = pick(req.body ?? {}, ["name", "hourlyRate", "active", "title"]) as Partial<{ name: string; hourlyRate: number; active: boolean; title: string }>;
   if (req.params.id === me(res).id && updates.active === false) { res.status(400).json({ error: "You can't deactivate yourself." }); return; }
@@ -178,7 +222,19 @@ app.get("/api/time", (req, res) => {
 
 app.post("/api/time/clock-in", (req, res) => {
   const jobId = typeof req.body?.jobId === "string" && req.body.jobId ? req.body.jobId : undefined;
-  const entry = db.clockIn(me(res).id, str(req.body?.notes, 500), jobId);
+  const location = parseGeo(req.body?.location);
+  const fence = settings().geofence;
+  let distanceM: number | undefined;
+  if (location && fence.enabled) distanceM = Math.round(distanceMeters(location, fence));
+  if (fence.enabled && fence.enforce) {
+    if (!location) { res.status(403).json({ error: "Location is required to clock in. Allow location access and try again." }); return; }
+    // Give the benefit of GPS error, capped so a vague fix can't clear any fence.
+    const slack = Math.min(location.accuracy, 150);
+    if ((distanceM ?? Infinity) > fence.radiusM + slack) {
+      res.status(403).json({ error: `You're ${formatDistance(distanceM!)} from ${fence.label || "the work site"}. Move closer to clock in.` }); return;
+    }
+  }
+  const entry = db.clockIn(me(res).id, str(req.body?.notes, 500), jobId, location, distanceM);
   if (!entry) { res.status(409).json({ error: "Already clocked in." }); return; }
   res.json(entry);
 });
@@ -186,7 +242,7 @@ app.post("/api/time/clock-in", (req, res) => {
 app.post("/api/time/clock-out", (req, res) => {
   const open = db.getOpenEntry(me(res).id);
   if (open?.breaks.some(b => !b.breakEnd)) db.endBreak(open.id);
-  const entry = db.clockOut(me(res).id, str(req.body?.notes, 500));
+  const entry = db.clockOut(me(res).id, str(req.body?.notes, 500), parseGeo(req.body?.location));
   if (!entry) { res.status(409).json({ error: "Not clocked in." }); return; }
   res.json(entry);
 });
@@ -200,7 +256,7 @@ app.patch("/api/time/:id", ownerOnly, (req, res) => {
   if (updates.clockIn && updates.clockOut && Date.parse(updates.clockOut) < Date.parse(updates.clockIn)) {
     res.status(400).json({ error: "Clock-out must be after clock-in." }); return;
   }
-  const e = db.updateTimeEntry(req.params.id, updates);
+  const e = db.updateTimeEntry(req.params.id, updates, me(res));
   if (!e) { res.status(404).json({ error: "Entry not found." }); return; }
   res.json(withHours(e, nameMap()));
 });
@@ -384,28 +440,81 @@ app.delete("/api/announcements/:id", ownerOnly, (req, res) => {
 // ── Shifts ────────────────────────────────────────────────
 const TIME_RE = /^\d{2}:\d{2}$/, DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+function shiftOut(s: ReturnType<typeof db.getShifts>[number], names: Map<string, string>) {
+  return { ...s, userName: s.userId ? names.get(s.userId) ?? "Unknown" : "Open shift" };
+}
+function localDateOf(d: Date | string): string {
+  const x = typeof d === "string" ? new Date(d) : d;
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+}
+function todayStr(): string { return localDateOf(new Date()); }
+function activeEmployees() { return db.getUsers().filter(u => u.role !== "owner" && u.active); }
+function notifyOwners(message: string, type: "info" | "success" | "warning" = "info") {
+  db.getUsers().filter(u => u.role === "owner").forEach(o => db.addNotification({ userId: o.id, message, type }));
+}
+
 app.get("/api/shifts", (req, res) => {
-  const userId = isOwner(res) ? (req.query.userId as string | undefined) : me(res).id;
   const names = nameMap();
-  res.json(db.getShifts(userId).map(s => ({ ...s, userName: names.get(s.userId) ?? "Unknown" })));
+  if (isOwner(res)) {
+    res.json(db.getShifts(req.query.userId as string | undefined).map(s => shiftOut(s, names)));
+    return;
+  }
+  const mine = me(res).id, today = todayStr();
+  res.json(db.getShifts().filter(s => s.userId === mine || (s.userId === "" && s.date >= today)).map(s => shiftOut(s, names)));
 });
 
 app.post("/api/shifts", ownerOnly, (req, res) => {
   const { userId, date, startTime, endTime } = req.body ?? {};
   if (typeof userId !== "string" || !DATE_RE.test(date) || !TIME_RE.test(startTime) || !TIME_RE.test(endTime)) {
-    res.status(400).json({ error: "Employee, date, start and end time required." }); return;
+    res.status(400).json({ error: "Date, start and end time required." }); return;
   }
-  const user = db.getUserById(userId);
-  if (!user) { res.status(404).json({ error: "User not found." }); return; }
+  if (startTime === endTime) { res.status(400).json({ error: "Start and end time can't be the same." }); return; }
+  const user = userId ? db.getUserById(userId) : null;
+  if (userId && !user) { res.status(404).json({ error: "User not found." }); return; }
   const shift = db.createShift({ userId, date, startTime, endTime, title: str(req.body.title, 100), note: str(req.body.note, 500) });
-  db.addNotification({ userId, message: `New shift: ${date} ${startTime}–${endTime}`, type: "info" });
-  res.json({ ...shift, userName: user.name });
+  if (user) db.addNotification({ userId, message: `New shift: ${date} ${startTime}–${endTime}`, type: "info" });
+  else activeEmployees().forEach(u => db.addNotification({ userId: u.id, message: `Open shift available: ${date} ${startTime}–${endTime}. First to claim gets it.`, type: "info" }));
+  res.json(shiftOut(shift, nameMap()));
+});
+
+app.post("/api/shifts/:id/claim", (req, res) => {
+  const shift = db.getShift(req.params.id);
+  if (!shift) { res.status(404).json({ error: "Shift not found." }); return; }
+  if (shift.userId) { res.status(409).json({ error: "Someone already claimed this shift." }); return; }
+  if (shift.date < todayStr()) { res.status(400).json({ error: "This shift has already passed." }); return; }
+  const u = me(res);
+  const clash = db.getShifts(u.id).some(s => s.date === shift.date && s.startTime < shift.endTime && shift.startTime < s.endTime);
+  if (clash) { res.status(409).json({ error: "You already have a shift at that time." }); return; }
+  const updated = db.updateShift(shift.id, { userId: u.id, dropRequested: false });
+  notifyOwners(`${u.name} claimed the open shift on ${shift.date} ${shift.startTime}–${shift.endTime}`, "success");
+  res.json(shiftOut(updated!, nameMap()));
+});
+
+app.post("/api/shifts/:id/drop", (req, res) => {
+  const shift = db.getShift(req.params.id);
+  if (!shift || shift.userId !== me(res).id) { res.status(404).json({ error: "Shift not found." }); return; }
+  if (shift.date < todayStr()) { res.status(400).json({ error: "This shift has already passed." }); return; }
+  const updated = db.updateShift(shift.id, { dropRequested: true });
+  notifyOwners(`${me(res).name} asked to drop their shift on ${shift.date} ${shift.startTime}–${shift.endTime}`, "warning");
+  res.json(shiftOut(updated!, nameMap()));
+});
+
+app.post("/api/shifts/:id/drop/:decision", ownerOnly, (req, res) => {
+  const shift = db.getShift(req.params.id);
+  if (!shift || !shift.dropRequested) { res.status(404).json({ error: "No pending drop request." }); return; }
+  const approve = req.params.decision === "approve";
+  if (!approve && req.params.decision !== "deny") { res.status(400).json({ error: "Decision must be approve or deny." }); return; }
+  const prevUser = shift.userId;
+  const updated = db.updateShift(shift.id, approve ? { userId: "", dropRequested: false } : { dropRequested: false });
+  db.addNotification({ userId: prevUser, message: `Your request to drop the ${shift.date} shift was ${approve ? "approved" : "denied"}`, type: approve ? "success" : "warning" });
+  if (approve) activeEmployees().filter(u => u.id !== prevUser).forEach(u => db.addNotification({ userId: u.id, message: `Open shift available: ${shift.date} ${shift.startTime}–${shift.endTime}`, type: "info" }));
+  res.json(shiftOut(updated!, nameMap()));
 });
 
 app.patch("/api/shifts/:id", ownerOnly, (req, res) => {
   const shift = db.updateShift(req.params.id, pick(req.body ?? {}, ["userId", "date", "startTime", "endTime", "title", "note"]) as Parameters<typeof db.updateShift>[1]);
   if (!shift) { res.status(404).json({ error: "Shift not found." }); return; }
-  res.json(shift);
+  res.json(shiftOut(shift, nameMap()));
 });
 
 app.delete("/api/shifts/:id", ownerOnly, (req, res) => {
@@ -577,6 +686,152 @@ app.delete("/api/invoices/:id", ownerOnly, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Time correction requests ──────────────────────────────
+app.get("/api/time-requests", (_req, res) => {
+  const names = nameMap();
+  res.json(db.getTimeRequests(isOwner(res) ? undefined : me(res).id).map(r => ({ ...r, userName: names.get(r.userId) ?? "Unknown" })));
+});
+
+app.post("/api/time-requests", (req, res) => {
+  const { clockIn, clockOut } = req.body ?? {};
+  const ci = Date.parse(clockIn), co = Date.parse(clockOut);
+  if (!isFinite(ci) || !isFinite(co)) { res.status(400).json({ error: "Start and end time required." }); return; }
+  if (co <= ci) { res.status(400).json({ error: "End time must be after start time." }); return; }
+  if (co - ci > 24 * 3600e3) { res.status(400).json({ error: "A single entry can't be longer than 24 hours." }); return; }
+  if (co > Date.now() + 5 * 60e3) { res.status(400).json({ error: "You can't add time in the future." }); return; }
+  const reason = str(req.body?.reason, 500);
+  if (!reason) { res.status(400).json({ error: "Tell your manager what happened." }); return; }
+  const u = me(res);
+  const r = db.createTimeRequest({ userId: u.id, clockIn: new Date(ci).toISOString(), clockOut: new Date(co).toISOString(), reason });
+  notifyOwners(`${u.name} asked to add missed time (${((co - ci) / 3600e3).toFixed(1)}h on ${localDateOf(new Date(ci))})`, "info");
+  res.json({ ...r, userName: u.name });
+});
+
+app.patch("/api/time-requests/:id", ownerOnly, (req, res) => {
+  const status = req.body?.status;
+  if (status !== "approved" && status !== "denied") { res.status(400).json({ error: "status must be approved or denied." }); return; }
+  const r = db.reviewTimeRequest(req.params.id, status, me(res));
+  if (!r) { res.status(404).json({ error: "Request not found or already reviewed." }); return; }
+  db.addNotification({ userId: r.userId, message: `Your time correction for ${localDateOf(r.clockIn)} was ${status}`, type: status === "approved" ? "success" : "warning" });
+  res.json(r);
+});
+
+// ── Team chat ─────────────────────────────────────────────
+function canUseChannel(u: User, channel: string): boolean {
+  if (channel === "team") return true;
+  const m = /^dm:([\w-]+):([\w-]+)$/.exec(channel);
+  if (!m || (m[1] !== u.id && m[2] !== u.id)) return false;
+  const other = m[1] === u.id ? m[2] : m[1];
+  return !!db.getUserById(other);
+}
+
+app.get("/api/chat/channels", (_req, res) => {
+  const u = me(res);
+  const people = db.getUsers().filter(x => x.id !== u.id && x.active);
+  const channels = ["team", ...people.map(p => dmChannel(u.id, p.id))];
+  const summary = db.chatSummary(u.id, channels);
+  res.json(summary.map((s, i) => ({
+    ...s,
+    name: i === 0 ? "Whole team" : people[i - 1].name,
+    title: i === 0 ? `${people.length + 1} members` : people[i - 1].title,
+    userId: i === 0 ? null : people[i - 1].id,
+  })));
+});
+
+app.get("/api/chat/:channel", (req, res) => {
+  if (!canUseChannel(me(res), req.params.channel)) { res.status(403).json({ error: "Forbidden." }); return; }
+  const names = nameMap();
+  res.json(db.getMessages(req.params.channel).map(m => ({ ...m, senderName: names.get(m.senderId) ?? "Former member" })));
+});
+
+app.post("/api/chat/:channel", (req, res) => {
+  const u = me(res);
+  if (!canUseChannel(u, req.params.channel)) { res.status(403).json({ error: "Forbidden." }); return; }
+  const text = str(req.body?.text, 2000);
+  if (!text) { res.status(400).json({ error: "Message can't be empty." }); return; }
+  const msg = db.addMessage(req.params.channel, u.id, text);
+  res.json({ ...msg, senderName: u.name });
+});
+
+app.post("/api/chat/:channel/read", (req, res) => {
+  if (!canUseChannel(me(res), req.params.channel)) { res.status(403).json({ error: "Forbidden." }); return; }
+  db.markChannelRead(me(res).id, req.params.channel);
+  res.json({ ok: true });
+});
+
+// ── Reports ───────────────────────────────────────────────
+app.get("/api/reports", ownerOnly, (req, res) => {
+  const from = DATE_RE.test(String(req.query.from)) ? String(req.query.from) : "0000-01-01";
+  const to = DATE_RE.test(String(req.query.to)) ? String(req.query.to) : "9999-12-31";
+  const data = db.getAllData();
+  const rate = new Map(data.users.map(u => [u.id, u.hourlyRate]));
+  const names = new Map(data.users.map(u => [u.id, u.name]));
+  const localDate = localDateOf;
+  const inRange = (d: string) => d >= from && d <= to;
+  const lines = laborLines(data.timeEntries, id => rate.get(id) ?? 0, data.company?.settings ?? DEFAULT_SETTINGS).filter(l => inRange(localDate(l.entry.clockIn)));
+
+  const byEmployee = new Map<string, { userId: string; name: string; hours: number; regularHours: number; overtimeHours: number; laborCost: number; shifts: number }>();
+  const byJob = new Map<string, { jobId: string; title: string; clientName: string; hours: number; laborCost: number; revenue: number }>();
+  const jobs = new Map(data.jobs.map(j => [j.id, j]));
+  const clients = new Map(data.clients.map(c => [c.id, c]));
+  for (const l of lines) {
+    const e = byEmployee.get(l.entry.userId) ?? { userId: l.entry.userId, name: names.get(l.entry.userId) ?? "Former employee", hours: 0, regularHours: 0, overtimeHours: 0, laborCost: 0, shifts: 0 };
+    e.hours += l.hours; e.regularHours += l.regularHours; e.overtimeHours += l.overtimeHours; e.laborCost += l.pay; e.shifts += 1;
+    byEmployee.set(l.entry.userId, e);
+    if (l.entry.jobId) {
+      const job = jobs.get(l.entry.jobId);
+      const j = byJob.get(l.entry.jobId) ?? { jobId: l.entry.jobId, title: job?.title ?? "Deleted job", clientName: job?.clientId ? clients.get(job.clientId)?.name ?? "" : "", hours: 0, laborCost: 0, revenue: 0 };
+      j.hours += l.hours; j.laborCost += l.pay;
+      byJob.set(l.entry.jobId, j);
+    }
+  }
+
+  const invoicesIssued = data.invoices.filter(i => inRange(i.issueDate));
+  const invoicesPaid = data.invoices.filter(i => i.status === "paid" && i.paidAt && inRange(localDate(i.paidAt)));
+  for (const inv of invoicesPaid) {
+    if (!inv.jobId) continue;
+    const job = jobs.get(inv.jobId);
+    const j = byJob.get(inv.jobId) ?? { jobId: inv.jobId, title: job?.title ?? "Deleted job", clientName: clients.get(inv.clientId)?.name ?? "", hours: 0, laborCost: 0, revenue: 0 };
+    j.revenue += invoiceTotal(inv);
+    byJob.set(inv.jobId, j);
+  }
+
+  const byClient = data.clients.map(c => ({
+    clientId: c.id,
+    name: c.name,
+    invoiced: invoicesIssued.filter(i => i.clientId === c.id).reduce((s, i) => s + invoiceTotal(i), 0),
+    collected: invoicesPaid.filter(i => i.clientId === c.id).reduce((s, i) => s + invoiceTotal(i), 0),
+    laborCost: lines.filter(l => l.entry.jobId && jobs.get(l.entry.jobId)?.clientId === c.id).reduce((s, l) => s + l.pay, 0),
+  })).filter(c => c.invoiced || c.collected || c.laborCost);
+
+  const expenses = data.expenses.filter(e => inRange(e.date));
+  const expensesByCategory = new Map<string, number>();
+  for (const e of expenses) expensesByCategory.set(e.category, (expensesByCategory.get(e.category) ?? 0) + e.amount);
+
+  const revenue = invoicesPaid.reduce((s, i) => s + invoiceTotal(i), 0);
+  const laborCost = lines.reduce((s, l) => s + l.pay, 0);
+  const expenseTotal = expenses.reduce((s, e) => s + e.amount, 0);
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+
+  res.json({
+    from, to,
+    totals: {
+      revenue: r2(revenue),
+      invoiced: r2(invoicesIssued.reduce((s, i) => s + invoiceTotal(i), 0)),
+      laborCost: r2(laborCost),
+      expenses: r2(expenseTotal),
+      profit: r2(revenue - laborCost - expenseTotal),
+      hours: lines.reduce((s, l) => s + l.hours, 0),
+      overtimeHours: lines.reduce((s, l) => s + l.overtimeHours, 0),
+      wagesPaid: r2(data.payments.filter(p => inRange(localDate(p.paidAt))).reduce((s, p) => s + p.amount, 0)),
+    },
+    byEmployee: [...byEmployee.values()].map(e => ({ ...e, laborCost: r2(e.laborCost) })).sort((a, b) => b.hours - a.hours),
+    byJob: [...byJob.values()].map(j => ({ ...j, laborCost: r2(j.laborCost), revenue: r2(j.revenue), profit: r2(j.revenue - j.laborCost) })).sort((a, b) => b.laborCost - a.laborCost),
+    byClient: byClient.map(c => ({ ...c, invoiced: r2(c.invoiced), collected: r2(c.collected), laborCost: r2(c.laborCost) })).sort((a, b) => b.collected - a.collected),
+    expensesByCategory: [...expensesByCategory.entries()].map(([category, amount]) => ({ category, amount: r2(amount) })).sort((a, b) => b.amount - a.amount),
+  });
+});
+
 // ── Notifications ─────────────────────────────────────────
 app.get("/api/notifications", (_req, res) => { res.json(db.getNotifications(me(res).id)); });
 
@@ -628,11 +883,12 @@ app.get("/api/insights", ownerOnly, (_req, res) => {
     if (u) insights.push({ id: `forgot-${e.id}`, level: "critical", title: `${u.name} may have forgotten to clock out`, detail: `Clocked in for ${hoursFor(e).toFixed(1)} hours straight.`, page: "owner-time" });
   }
 
-  for (const u of team.filter(t => t.weekHours > 40)) {
-    insights.push({ id: `ot-${u.id}`, level: "warning", title: `${u.name} is in overtime`, detail: `${u.weekHours.toFixed(1)}h this week (${(u.weekHours - 40).toFixed(1)}h over 40).`, page: "owner-time" });
+  const ot = settings().overtimeThreshold;
+  for (const u of team.filter(t => t.weekHours > ot)) {
+    insights.push({ id: `ot-${u.id}`, level: "warning", title: `${u.name} is in overtime`, detail: `${u.weekHours.toFixed(1)}h this week (${(u.weekHours - ot).toFixed(1)}h over ${ot}).`, page: "owner-time" });
   }
-  for (const u of team.filter(t => t.weekHours > 34 && t.weekHours <= 40)) {
-    insights.push({ id: `near-ot-${u.id}`, level: "info", title: `${u.name} is close to overtime`, detail: `${u.weekHours.toFixed(1)}h logged; ${(40 - u.weekHours).toFixed(1)}h left before 40.`, page: "owner-schedule" });
+  for (const u of team.filter(t => t.weekHours > ot * 0.85 && t.weekHours <= ot)) {
+    insights.push({ id: `near-ot-${u.id}`, level: "info", title: `${u.name} is close to overtime`, detail: `${u.weekHours.toFixed(1)}h logged; ${(ot - u.weekHours).toFixed(1)}h left before ${ot}.`, page: "owner-schedule" });
   }
 
   const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -642,9 +898,24 @@ app.get("/api/insights", ownerOnly, (_req, res) => {
     if (nowMin < h * 60 + m + 15) continue;
     if (approvedLeave.some(r => r.userId === s.userId)) continue;
     const u = team.find(t => t.id === s.userId);
-    const showedUp = db.getTimeEntries(s.userId).some(e => e.clockIn.slice(0, 10) === today || !e.clockOut);
+    const showedUp = db.getTimeEntries(s.userId).some(e => localDateOf(e.clockIn) === today || !e.clockOut);
     if (u && !showedUp) insights.push({ id: `noshow-${s.id}`, level: "critical", title: `${u.name} hasn't clocked in`, detail: `Shift started at ${s.startTime}.`, page: "owner-schedule" });
   }
+
+  const weekAhead = localDateOf(new Date(now.getTime() + 7 * 864e5));
+  const openSoon = db.getShifts().filter(s => !s.userId && s.date >= today && s.date <= weekAhead).length;
+  if (openSoon) insights.push({ id: "open-shifts", level: "warning", title: `${openSoon} open shift${openSoon > 1 ? "s" : ""} not yet claimed`, detail: "Unfilled shifts in the next 7 days.", page: "owner-schedule" });
+  const drops = db.getShifts().filter(s => s.dropRequested && s.date >= today).length;
+  if (drops) insights.push({ id: "drops", level: "warning", title: `${drops} shift drop request${drops > 1 ? "s" : ""}`, detail: "Approve or deny so coverage is clear.", page: "owner-schedule" });
+  const fence = settings().geofence;
+  if (fence.enabled && !fence.enforce) {
+    const weekAgo = localDateOf(new Date(now.getTime() - 7 * 864e5));
+    const offsite = db.getTimeEntries().filter(e => localDateOf(e.clockIn) >= weekAgo && (e.distanceM ?? 0) > fence.radiusM);
+    if (offsite.length) insights.push({ id: "offsite", level: "warning", title: `${offsite.length} clock-in${offsite.length > 1 ? "s" : ""} outside the work site`, detail: "In the last 7 days. Check Time Tracking for locations.", page: "owner-time" });
+  }
+
+  const pendingFixes = db.getTimeRequests().filter(r => r.status === "pending").length;
+  if (pendingFixes) insights.push({ id: "time-fixes", level: "warning", title: `${pendingFixes} time correction${pendingFixes > 1 ? "s" : ""} to review`, detail: "Employees reported missed clock-ins.", page: "owner-time" });
 
   const pendingLeave = db.getLeaveRequests().filter(r => r.status === "pending").length;
   if (pendingLeave) insights.push({ id: "leave", level: "warning", title: `${pendingLeave} leave request${pendingLeave > 1 ? "s" : ""} awaiting review`, detail: "Employees are waiting on an answer.", page: "owner-leave" });
@@ -719,6 +990,10 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
   res.status(500).json({ error: "Something went wrong. Please try again." });
 });
+
+function formatDistance(m: number): string {
+  return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
+}
 
 if (process.env.NODE_ENV === "production") {
   const clientDist = path.join(__dirname, "..", "dist", "client");

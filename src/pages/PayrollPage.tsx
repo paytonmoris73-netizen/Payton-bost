@@ -93,6 +93,7 @@ export function PayrollPage() {
   const totalWeekPay = team.reduce((s, u) => s + u.weekPay, 0);
   const totalMonthPay = team.reduce((s, u) => s + u.monthPay, 0);
   const totalWeekHours = team.reduce((s, u) => s + u.weekHours, 0);
+  const totalWeekOT = team.reduce((s, u) => s + u.weekOvertimeHours, 0);
   const totalMonthHours = team.reduce((s, u) => s + u.monthHours, 0);
 
   const now = new Date();
@@ -112,10 +113,11 @@ export function PayrollPage() {
       </div>
 
       <div className="stats-grid">
-        <StatCard label="Week Hours" value={fmt(totalWeekHours)} sub="all employees" color="blue" />
+        <StatCard label="Week Hours" value={fmt(totalWeekHours)} sub={totalWeekOT > 0 ? `${fmt(totalWeekOT)} overtime` : "all employees"} color="blue" />
         <StatCard label="Week Payroll" value={money(totalWeekPay)} sub="due this week" color="green" />
         <StatCard label="Month Hours" value={fmt(totalMonthHours)} sub="current month" />
         <StatCard label="Month Payroll" value={money(totalMonthPay)} sub="current month" color="orange" />
+        <StatCard label="Year to date" value={money(team.reduce((s, u) => s + u.ytdPay, 0))} sub={`${fmt(team.reduce((s, u) => s + u.ytdHours, 0))} worked this year`} />
       </div>
 
       {weeklyPayroll.length > 0 && <PayrollSparkline weeks={weeklyPayroll} />}
@@ -173,7 +175,10 @@ export function PayrollPage() {
                     </td>
                     <td>{member.hourlyRate > 0 ? money(member.hourlyRate) + "/hr" : <span className="td-muted">—</span>}</td>
                     <td>{fmt(member.todayHours)}</td>
-                    <td>{fmt(member.weekHours)}</td>
+                    <td>
+                      {fmt(member.weekHours)}
+                      {member.weekOvertimeHours > 0 && <span className="badge badge-orange" style={{ marginLeft: 6, fontSize: 10 }} title="Overtime hours this week">{fmt(member.weekOvertimeHours)} OT</span>}
+                    </td>
                     <td className="text-right pay-total">{member.hourlyRate > 0 ? money(member.weekPay) : <span className="td-muted">—</span>}</td>
                     <td>{fmt(member.monthHours)}</td>
                     <td className="text-right pay-total">{member.hourlyRate > 0 ? money(member.monthPay) : <span className="td-muted">—</span>}</td>

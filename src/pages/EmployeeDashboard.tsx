@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import type { User, UserWithStats, TimeEntry, Job, BreakEntry } from "../lib/types";
 import { StatCard } from "../components/StatCard";
 import { useToast } from "../contexts/Toast";
+import { getPosition } from "../lib/geo";
 
 interface Props {
   user: User;
@@ -111,10 +112,13 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     setShowClockInNote(false);
     setActionLoading(true);
     try {
-      await api.clockIn(user.id, note, clockInJobId || undefined);
+      const location = await getPosition();
+      await api.clockIn(user.id, note, clockInJobId || undefined, location);
       toast("Clocked in successfully");
       await load();
-    } catch {/* ignore */}
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Couldn't clock in", "error");
+    }
     finally { setActionLoading(false); }
   }
 
@@ -130,7 +134,9 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
         toast("Break started");
       }
       await load();
-    } catch {/* ignore */}
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Couldn't update break", "error");
+    }
     finally { setActionLoading(false); }
   }
 
@@ -143,10 +149,13 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     setShowNoteModal(false);
     setActionLoading(true);
     try {
-      await api.clockOut(user.id, note);
+      const location = await getPosition(5000);
+      await api.clockOut(user.id, note, location);
       toast("Clocked out successfully");
       await load();
-    } catch {/* ignore */}
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Couldn't clock out", "error");
+    }
     finally { setActionLoading(false); }
   }
 

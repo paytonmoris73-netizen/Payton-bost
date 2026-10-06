@@ -1,4 +1,4 @@
-import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement, ActivityEvent, Shift, LeaveRequest, AppNotification, EmployeeNote, PublicUser, Client, Invoice, InvoiceItem, Task, Insight } from "./types";
+import type { Company, User, UserWithStats, TimeEntry, Job, Payment, DailyHours, Expense, Announcement, ActivityEvent, Shift, LeaveRequest, AppNotification, EmployeeNote, PublicUser, Client, Invoice, InvoiceItem, Task, Insight, CompanySettings, GeoPoint, ChatChannel, ChatMessage, ReportData, TimeRequest } from "./types";
 import { cacheGet, cacheSet, cacheInvalidate } from "./cache";
 
 const TOKEN_KEY = "workbase_token";
@@ -83,9 +83,9 @@ export const api = {
     return req<TimeEntry[]>(`/api/time${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`).then(d => { cacheSet(`time:${userId ?? "all"}`, d); return d; });
   },
 
-  clockIn: (userId: string, notes?: string, jobId?: string) => {
+  clockIn: (userId: string, notes?: string, jobId?: string, location?: GeoPoint) => {
     cacheInvalidate("time:"); cacheInvalidate("team"); cacheInvalidate("me:");
-    return req<TimeEntry>("/api/time/clock-in", { method: "POST", body: JSON.stringify({ userId, notes, jobId }) });
+    return req<TimeEntry>("/api/time/clock-in", { method: "POST", body: JSON.stringify({ userId, notes, jobId, location }) });
   },
 
   startBreak: (entryId: string) => {
@@ -98,9 +98,9 @@ export const api = {
     return req<TimeEntry>(`/api/time/${entryId}/break/end`, { method: "POST" });
   },
 
-  clockOut: (userId: string, notes?: string) => {
+  clockOut: (userId: string, notes?: string, location?: GeoPoint) => {
     cacheInvalidate("time:"); cacheInvalidate("team"); cacheInvalidate("me:");
-    return req<TimeEntry>("/api/time/clock-out", { method: "POST", body: JSON.stringify({ userId, notes }) });
+    return req<TimeEntry>("/api/time/clock-out", { method: "POST", body: JSON.stringify({ userId, notes, location }) });
   },
 
   updateTimeEntry: (id: string, updates: { clockIn?: string; clockOut?: string | null; notes?: string }) => {
@@ -229,6 +229,8 @@ export const api = {
     req<{ ok: boolean }>("/api/notifications/read-all", { method: "POST", body: JSON.stringify({ userId }) }),
 
   // ── Employee Notes ──
+  resetEmployeePin: (userId: string) => req<{ ok: boolean }>(`/api/team/${encodeURIComponent(userId)}/reset-pin`, { method: "POST" }),
+
   getEmployeeNotes: (userId: string) =>
     req<EmployeeNote[]>(`/api/team/${encodeURIComponent(userId)}/notes`),
   addEmployeeNote: (userId: string, text: string, authorId: string) =>
@@ -257,6 +259,32 @@ export const api = {
   updateInvoice: (id: string, updates: Partial<{ clientId: string; items: InvoiceItem[]; taxRate: number; status: Invoice["status"]; issueDate: string; dueDate: string; notes: string }>) =>
     req<Invoice>(`/api/invoices/${id}`, { method: "PATCH", body: JSON.stringify(updates) }),
   deleteInvoice: (id: string) => req<{ ok: boolean }>(`/api/invoices/${id}`, { method: "DELETE" }),
+
+  // ── Settings / backup ──
+  updateSettings: (settings: CompanySettings) => { cacheInvalidate("company"); return req<Company>("/api/company/settings", { method: "PUT", body: JSON.stringify(settings) }); },
+  downloadBackup: () => req<unknown>("/api/backup"),
+
+  // ── Shift marketplace ──
+  claimShift: (id: string) => { cacheInvalidate("shifts:"); return req<Shift>(`/api/shifts/${id}/claim`, { method: "POST" }); },
+  dropShift: (id: string) => { cacheInvalidate("shifts:"); return req<Shift>(`/api/shifts/${id}/drop`, { method: "POST" }); },
+  decideDrop: (id: string, decision: "approve" | "deny") => { cacheInvalidate("shifts:"); return req<Shift>(`/api/shifts/${id}/drop/${decision}`, { method: "POST" }); },
+
+  // ── Time corrections ──
+  getTimeRequests: () => req<TimeRequest[]>("/api/time-requests"),
+  createTimeRequest: (r: { clockIn: string; clockOut: string; reason: string }) => req<TimeRequest>("/api/time-requests", { method: "POST", body: JSON.stringify(r) }),
+  reviewTimeRequest: (id: string, status: "approved" | "denied") => {
+    cacheInvalidate("time:"); cacheInvalidate("team"); cacheInvalidate("me:"); cacheInvalidate("payroll");
+    return req<TimeRequest>(`/api/time-requests/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+  },
+
+  // ── Chat ──
+  getChannels: () => req<ChatChannel[]>("/api/chat/channels"),
+  getMessages: (channel: string) => req<ChatMessage[]>(`/api/chat/${encodeURIComponent(channel)}`),
+  sendMessage: (channel: string, text: string) => req<ChatMessage>(`/api/chat/${encodeURIComponent(channel)}`, { method: "POST", body: JSON.stringify({ text }) }),
+  markChannelRead: (channel: string) => req<{ ok: boolean }>(`/api/chat/${encodeURIComponent(channel)}/read`, { method: "POST" }),
+
+  // ── Reports ──
+  getReport: (from: string, to: string) => req<ReportData>(`/api/reports?from=${from}&to=${to}`),
 
   // ── Insights ──
   getInsights: () => req<Insight[]>("/api/insights"),
