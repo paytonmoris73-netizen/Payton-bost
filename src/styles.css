@@ -846,3 +846,57 @@ button.insight:hover { background: var(--surface-hover); }
 .profit-pos { color: var(--success); }
 .profit-neg { color: var(--danger); }
 .nav-badge { margin-left: auto; background: var(--primary); color: #fff; border-radius: 10px; font-size: 10px; font-weight: 700; padding: 1px 7px; line-height: 1.5; }
+
+/* ── Plan & usage ── */
+.usage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.usage-tile { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.usage-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.usage-value { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.usage-unit { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.plan-card { position: relative; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 24px; box-shadow: var(--shadow-xs); }
+.plan-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 20px; white-space: nowrap; }
+.plan-fit { position: absolute; top: 14px; right: 14px; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.04em; }
+
+/* ── Mini bar chart ── */
+.mini-bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; padding: 18px 20px 14px; height: 190px; }
+.mini-bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.mini-bar-value { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.mini-bar-track { flex: 1; width: 100%; max-width: 64px; display: flex; align-items: flex-end; }
+.mini-bar { width: 100%; border-radius: 6px 6px 3px 3px; background: var(--primary); opacity: 0.35; transition: height 0.4s var(--ease-out); }
+.mini-bar-col.current .mini-bar { opacity: 1; }
+.mini-bar-col.current .mini-bar-value, .mini-bar-col.current .mini-bar-label { color: var(--primary); font-weight: 700; }
+.mini-bar-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+/* ── Links inside content ── */
+.main-content a:not(.btn) { color: var(--primary); text-decoration: none; font-weight: 500; }
+.main-content a:not(.btn):hover { text-decoration: underline; }
+
+/* ── Dark mode fixes ── */
+[data-theme="dark"] .auth-page { background: linear-gradient(150deg, #1f1712 0%, #17130f 55%, #22170f 100%); }
+[data-theme="dark"] .auth-page::before, [data-theme="dark"] .auth-page::after { opacity: 0.18; }
+[data-theme="dark"] .join-code-box { background: linear-gradient(135deg, rgba(255,122,61,0.14), rgba(255,122,61,0.06)); border-color: rgba(255,122,61,0.3); }
+.auth-logo-icon svg { width: 28px; height: 28px; }
+
+@media (max-width: 860px) {
+  .page [style*="grid-template-columns: 1fr 1fr"],
+  .page [style*="grid-template-columns: 2fr 1fr"],
+  .page [style*="grid-template-columns: 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  .table-wrap table { min-width: 620px; }
+  .td-name, td.td-muted:first-child { white-space: nowrap; }
+}
+
+.contact-strip { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 10px 14px; margin-bottom: 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
+.account-section { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 10px; }
+.modal a:not(.btn) { color: var(--primary); text-decoration: none; font-weight: 500; }
+
+/* ── Getting started ── */
+.getting-started { margin-bottom: 22px; }
+.gs-progress { height: 6px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin: 0 18px 6px; }
+.gs-progress > div { height: 100%; background: var(--success); transition: width 0.4s var(--ease-out); }
+.gs-step { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 18px; border: none; border-top: 1px solid var(--border); background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.gs-step:hover { background: var(--surface-hover); }
+.gs-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.gs-step.done .gs-dot { background: var(--success); border-color: var(--success); }
+.gs-step.done .gs-title { color: var(--text-muted); text-decoration: line-through; }
+.gs-title { font-weight: 600; font-size: 14px; }
+.gs-sub { font-size: 12px; color: var(--text-muted); }

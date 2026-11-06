@@ -67,7 +67,7 @@ export function MyPayPage({ user }: Props) {
         </div>
       </div>
 
-      <div className="stats-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+      <div className="stats-grid">
         <StatCard label="Hourly Rate" value={money(stats.hourlyRate)} sub="per hour" color="blue" />
         <StatCard label="Week Pay" value={money(stats.weekPay)} sub={`${fmt(stats.weekHours)} worked${stats.weekOvertimeHours > 0 ? ` · ${fmt(stats.weekOvertimeHours)} overtime` : ""}`} color="green" />
         <StatCard label="Month Pay" value={money(stats.monthPay)} sub={`${fmt(stats.monthHours)} worked`} color="orange" />

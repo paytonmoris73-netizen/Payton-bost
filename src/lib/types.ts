@@ -41,6 +41,9 @@ export interface User {
   createdAt: string;
   active: boolean;
   title: string;
+  phone?: string;
+  email?: string;
+  emergencyContact?: string;
 }
 
 export interface UserWithStats extends User {

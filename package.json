@@ -12,7 +12,8 @@
     "start": "NODE_ENV=production tsx server/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
-    "reset-owner-pin": "tsx server/reset-owner-pin.ts"
+    "reset-owner-pin": "tsx server/reset-owner-pin.ts",
+    "demo": "tsx server/seed-demo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

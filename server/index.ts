@@ -203,8 +203,24 @@ app.post("/api/team/:id/reset-pin", ownerOnly, (req, res) => {
   res.json({ ok: true });
 });
 
+function contactFields(b: Record<string, unknown>) {
+  const out: { phone?: string; email?: string; emergencyContact?: string } = {};
+  if ("phone" in b) out.phone = str(b.phone, 40);
+  if ("email" in b) out.email = str(b.email, 200);
+  if ("emergencyContact" in b) out.emergencyContact = str(b.emergencyContact, 200);
+  return out;
+}
+
+app.patch("/api/me/profile", (req, res) => {
+  const fields = contactFields(req.body ?? {});
+  if (fields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) { res.status(400).json({ error: "That email address doesn't look right." }); return; }
+  const u = db.updateUser(me(res).id, fields);
+  res.json(u ? publicUser(u) : null);
+});
+
 app.patch("/api/team/:id", ownerOnly, (req, res) => {
-  const updates = pick(req.body ?? {}, ["name", "hourlyRate", "active", "title"]) as Partial<{ name: string; hourlyRate: number; active: boolean; title: string }>;
+  const updates = { ...pick(req.body ?? {}, ["name", "hourlyRate", "active", "title"]), ...contactFields(req.body ?? {}) } as Partial<{ name: string; hourlyRate: number; active: boolean; title: string; phone: string; email: string; emergencyContact: string }>;
+  if (updates.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updates.email)) { res.status(400).json({ error: "That email address doesn't look right." }); return; }
   if (req.params.id === me(res).id && updates.active === false) { res.status(400).json({ error: "You can't deactivate yourself." }); return; }
   const u = db.updateUser(req.params.id, updates);
   if (!u) { res.status(404).json({ error: "User not found." }); return; }
@@ -370,7 +386,7 @@ app.post("/api/payments", ownerOnly, (req, res) => {
     periodStart: typeof b.periodStart === "string" ? b.periodStart : undefined,
     periodEnd: typeof b.periodEnd === "string" ? b.periodEnd : undefined,
   });
-  db.addNotification({ userId: user.id, message: `You received a payment of $${payment.amount.toFixed(2)}`, type: "success" });
+  db.addNotification({ userId: user.id, message: `You received a payment of ${usd(payment.amount)}`, type: "success" });
   res.json({ ...payment, userName: user.name });
 });
 
@@ -382,7 +398,7 @@ app.post("/api/payroll/bulk", ownerOnly, (req, res) => {
   for (const u of targets) {
     if (u.totalOwed > 0) {
       const p = db.addPayment({ userId: u.id, amount: u.totalOwed, type: "payroll", description: "Bulk payroll" });
-      db.addNotification({ userId: u.id, message: `Payroll paid: $${p.amount.toFixed(2)}`, type: "success" });
+      db.addNotification({ userId: u.id, message: `Payroll paid: ${usd(p.amount)}`, type: "success" });
       results.push({ ...p, userName: u.name });
     }
   }
@@ -924,7 +940,7 @@ app.get("/api/insights", ownerOnly, (_req, res) => {
   const overdue = invoices.filter(i => i.overdue);
   if (overdue.length) {
     const amt = overdue.reduce((s, i) => s + i.total, 0);
-    insights.push({ id: "inv-overdue", level: "critical", title: `${overdue.length} overdue invoice${overdue.length > 1 ? "s" : ""}`, detail: `$${amt.toFixed(2)} past due. Follow up with clients.`, page: "owner-invoices" });
+    insights.push({ id: "inv-overdue", level: "critical", title: `${overdue.length} overdue invoice${overdue.length > 1 ? "s" : ""}`, detail: `${usd(amt)} past due. Follow up with clients.`, page: "owner-invoices" });
   }
   const drafts = invoices.filter(i => i.status === "draft").length;
   if (drafts) insights.push({ id: "inv-draft", level: "info", title: `${drafts} draft invoice${drafts > 1 ? "s" : ""} not sent`, detail: "Send them to get paid sooner.", page: "owner-invoices" });
@@ -942,7 +958,7 @@ app.get("/api/insights", ownerOnly, (_req, res) => {
   const owed = team.filter(u => u.totalOwed > 0);
   if (owed.length) {
     const amt = owed.reduce((s, u) => s + u.totalOwed, 0);
-    insights.push({ id: "owed", level: "info", title: `$${amt.toFixed(2)} in unpaid wages`, detail: `${owed.length} employee${owed.length > 1 ? "s" : ""} with a balance.`, page: "owner-payroll" });
+    insights.push({ id: "owed", level: "info", title: `${usd(amt)} in unpaid wages`, detail: `${owed.length} employee${owed.length > 1 ? "s" : ""} with a balance.`, page: "owner-payroll" });
   }
 
   const unscheduled = team.filter(u => !db.getShifts(u.id).some(s => s.date >= today));
@@ -990,6 +1006,10 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
   res.status(500).json({ error: "Something went wrong. Please try again." });
 });
+
+function usd(n: number): string {
+  return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 function formatDistance(m: number): string {
   return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;

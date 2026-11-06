@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../lib/api";
+import { Logo } from "../components/Logo";
 import type { User } from "../lib/types";
 
 interface Props {
@@ -34,7 +35,7 @@ export function SetupPage({ onSetup }: Props) {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-icon">🏢</div>
+          <div className="auth-logo-icon"><Logo /></div>
           <h1>WorkBase</h1>
           <p>Set up your company workspace</p>
         </div>

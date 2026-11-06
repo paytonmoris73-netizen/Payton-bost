@@ -31,12 +31,16 @@ import { ReportsPage } from "./pages/ReportsPage";
 import { ChatPage } from "./pages/ChatPage";
 import { ToastProvider } from "./contexts/Toast";
 
-// On first load, auto-detect OS dark mode if user hasn't set a preference yet
-if (!localStorage.getItem("theme")) {
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  localStorage.setItem("theme", prefersDark ? "dark" : "light");
-  document.documentElement.setAttribute("data-theme", prefersDark ? "dark" : "light");
-}
+// Apply the saved theme (or the OS preference) before the first paint, sign-in included.
+(() => {
+  let theme: string | null = null;
+  try { theme = localStorage.getItem("theme"); } catch { /* storage blocked */ }
+  if (theme !== "dark" && theme !== "light") {
+    theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    try { localStorage.setItem("theme", theme); } catch { /* storage blocked */ }
+  }
+  document.documentElement.setAttribute("data-theme", theme);
+})();
 
 export default function App() {
   const [loading, setLoading] = useState(true);

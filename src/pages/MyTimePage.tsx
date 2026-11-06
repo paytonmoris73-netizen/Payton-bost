@@ -67,7 +67,7 @@ export function MyTimePage({ user }: Props) {
               <tbody>
                 {entries.map(entry => (
                   <tr key={entry.id}>
-                    <td>{fmtDate(entry.clockIn)}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{fmtDate(entry.clockIn)}</td>
                     <td>{fmtTime(entry.clockIn)}</td>
                     <td>
                       {entry.clockOut

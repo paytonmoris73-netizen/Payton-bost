@@ -84,7 +84,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     if (!clocked || !clockEntry) { setElapsed(0); return; }
     const start = new Date(clockEntry.clockIn).getTime();
     const totalBreakMs = (clockEntry.breaks ?? []).filter((b: BreakEntry) => b.breakEnd).reduce((s: number, b: BreakEntry) => s + (new Date(b.breakEnd!).getTime() - new Date(b.breakStart).getTime()), 0);
-    const tick = () => setElapsed(Math.floor((Date.now() - start - totalBreakMs) / 1000));
+    const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - start - totalBreakMs) / 1000)));
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
@@ -96,7 +96,7 @@ export function EmployeeDashboard({ user, onUserUpdate }: Props) {
     const activeBreak = (clockEntry.breaks ?? []).find((b: BreakEntry) => !b.breakEnd);
     if (!activeBreak) { setBreakElapsed(0); return; }
     const breakStart = new Date(activeBreak.breakStart).getTime();
-    const tick = () => setBreakElapsed(Math.floor((Date.now() - breakStart) / 1000));
+    const tick = () => setBreakElapsed(Math.max(0, Math.floor((Date.now() - breakStart) / 1000)));
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);

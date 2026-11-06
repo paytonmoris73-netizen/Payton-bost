@@ -60,6 +60,7 @@ export const api = {
   join: (code: string, name: string, pin: string) => req<{ user: User; token: string }>("/api/auth/join", { method: "POST", body: JSON.stringify({ code, name, pin }) }),
   authMe: () => req<UserWithStats>("/api/auth/me"),
   logout: () => req<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+  updateMyProfile: (p: { phone: string; email: string; emergencyContact: string }) => { cacheInvalidate("team"); return req<User>("/api/me/profile", { method: "PATCH", body: JSON.stringify(p) }); },
   changePin: (currentPin: string, newPin: string) => req<{ ok: boolean }>("/api/auth/pin", { method: "POST", body: JSON.stringify({ currentPin, newPin }) }),
 
   getTeam: () => cached("team", () => req<UserWithStats[]>("/api/team")),
@@ -70,7 +71,7 @@ export const api = {
     return req<User>("/api/team", { method: "POST", body: JSON.stringify({ name, hourlyRate, title }) });
   },
 
-  updateEmployee: (id: string, updates: Partial<{ name: string; hourlyRate: number; active: boolean; title: string }>) => {
+  updateEmployee: (id: string, updates: Partial<{ name: string; hourlyRate: number; active: boolean; title: string; phone: string; email: string; emergencyContact: string }>) => {
     cacheInvalidate("team");
     return req<User>(`/api/team/${id}`, { method: "PATCH", body: JSON.stringify(updates) });
   },

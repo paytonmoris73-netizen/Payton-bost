@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { Logo } from "../components/Logo";
 import type { PublicUser, User } from "../lib/types";
 
 interface Props {
@@ -14,11 +15,12 @@ const digitsOnly = (v: string) => v.replace(/\D/g, "").slice(0, 8);
 
 export function LoginPage({ onLogin }: Props) {
   const [users, setUsers] = useState<PublicUser[]>([]);
-  const [mode, setMode] = useState<"list" | "pin" | "join">("list");
+  const inviteCode = (() => { try { return (new URLSearchParams(window.location.search).get("join") ?? "").toUpperCase().slice(0, 12); } catch { return ""; } })();
+  const [mode, setMode] = useState<"list" | "pin" | "join">(inviteCode ? "join" : "list");
   const [selected, setSelected] = useState<PublicUser | null>(null);
   const [pin, setPin] = useState("");
   const [claimCode, setClaimCode] = useState("");
-  const [joinCode, setJoinCode] = useState("");
+  const [joinCode, setJoinCode] = useState(inviteCode);
   const [joinName, setJoinName] = useState("");
   const [joinPin, setJoinPin] = useState("");
   const [loading, setLoading] = useState(false);
@@ -70,7 +72,7 @@ export function LoginPage({ onLogin }: Props) {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-icon">🏢</div>
+          <div className="auth-logo-icon"><Logo /></div>
           <h1>WorkBase</h1>
           <p>Sign in to your workspace</p>
         </div>

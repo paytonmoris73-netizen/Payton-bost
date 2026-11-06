@@ -7,36 +7,24 @@ import { useToast } from "../contexts/Toast";
 function PayrollSparkline({ weeks }: { weeks: Array<{ label: string; amount: number }> }) {
   if (weeks.length === 0) return null;
   const max = Math.max(...weeks.map(w => w.amount), 1);
-  const W = 480, H = 80, pad = 4, barW = Math.floor((W - pad * (weeks.length + 1)) / weeks.length);
+  const total = weeks.reduce((s, w) => s + w.amount, 0);
   return (
     <div className="card" style={{ marginBottom: 20 }}>
-      <div className="card-header"><span className="card-title">Last 6 Weeks — Payroll Paid Out</span></div>
-      <div style={{ padding: "16px 20px 8px" }}>
-        <svg viewBox={`0 0 ${W} ${H + 24}`} style={{ width: "100%", maxWidth: W, display: "block" }}>
-          {weeks.map((w, i) => {
-            const barH = Math.max(4, Math.round((w.amount / max) * H));
-            const x = pad + i * (barW + pad);
-            const y = H - barH;
-            const isLast = i === weeks.length - 1;
-            return (
-              <g key={w.label}>
-                <rect x={x} y={y} width={barW} height={barH}
-                  rx={3} fill={isLast ? "var(--primary)" : "var(--border-strong)"}
-                  style={{ transition: "height 0.4s ease, y 0.4s ease" }} />
-                <text x={x + barW / 2} y={H + 16} textAnchor="middle"
-                  style={{ fontSize: 9, fill: "var(--text-muted)", fontFamily: "inherit" }}>
-                  {w.label}
-                </text>
-                {w.amount > 0 && (
-                  <text x={x + barW / 2} y={y - 4} textAnchor="middle"
-                    style={{ fontSize: 9, fill: isLast ? "var(--primary)" : "var(--text-muted)", fontWeight: isLast ? 700 : 400, fontFamily: "inherit" }}>
-                    ${w.amount >= 1000 ? (w.amount / 1000).toFixed(1) + "k" : w.amount.toFixed(0)}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </svg>
+      <div className="card-header">
+        <span className="card-title">Payroll paid out — last 6 weeks</span>
+        <span className="td-muted" style={{ fontSize: 12 }}>{money(total)} total</span>
+      </div>
+      <div className="mini-bars" role="img" aria-label={weeks.map(w => `Week of ${w.label}: ${money(w.amount)}`).join(", ")}>
+        {weeks.map((w, i) => {
+          const isLast = i === weeks.length - 1;
+          return (
+            <div key={w.label} className={`mini-bar-col${isLast ? " current" : ""}`}>
+              <div className="mini-bar-value">{w.amount > 0 ? (w.amount >= 1000 ? `$${(w.amount / 1000).toFixed(1)}k` : `$${Math.round(w.amount)}`) : "—"}</div>
+              <div className="mini-bar-track"><div className="mini-bar" style={{ height: `${Math.max(2, (w.amount / max) * 100)}%` }} /></div>
+              <div className="mini-bar-label">{isLast ? "This week" : w.label}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -155,7 +143,7 @@ export function PayrollPage() {
                   <th className="text-right">Week Pay</th>
                   <th>Month Hours</th>
                   <th className="text-right">Month Pay</th>
-                  <th>Balance</th>
+                  <th>Unpaid</th>
                   <th></th>
                 </tr>
               </thead>
@@ -184,8 +172,8 @@ export function PayrollPage() {
                     <td className="text-right pay-total">{member.hourlyRate > 0 ? money(member.monthPay) : <span className="td-muted">—</span>}</td>
                     <td>
                       {member.totalOwed > 0
-                        ? <span style={{ fontWeight: 700, color: "var(--danger)", fontSize: 13 }}>-{money(member.totalOwed)}</span>
-                        : <span style={{ color: "var(--success)", fontSize: 13 }}>✓ Even</span>}
+                        ? <span style={{ fontWeight: 700, color: "var(--warning)", fontSize: 13 }}>{money(member.totalOwed)} owed</span>
+                        : <span style={{ color: "var(--success)", fontSize: 13 }}>✓ Paid up</span>}
                     </td>
                     <td>
                       {member.totalOwed > 0 && (

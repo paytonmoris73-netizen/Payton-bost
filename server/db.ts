@@ -70,6 +70,9 @@ export interface User {
   active: boolean;
   title: string;
   pinHash?: string;
+  phone?: string;
+  email?: string;
+  emergencyContact?: string;
 }
 
 export interface Session {
@@ -233,7 +236,7 @@ export interface Announcement {
   createdAt: string;
 }
 
-interface DbData {
+export interface DbData {
   company: Company | null;
   users: User[];
   timeEntries: TimeEntry[];
@@ -455,7 +458,7 @@ export const db = {
     data.users.push(user); write(data); return user;
   },
 
-  updateUser(id: string, updates: Partial<Pick<User,"name"|"hourlyRate"|"active"|"title">>): User | null {
+  updateUser(id: string, updates: Partial<Pick<User,"name"|"hourlyRate"|"active"|"title"|"phone"|"email"|"emergencyContact">>): User | null {
     const data = read();
     const i = data.users.findIndex(u => u.id === id);
     if (i === -1) return null;
@@ -1008,7 +1011,7 @@ export const db = {
       const amount = data.payments
         .filter(p => { const d = new Date(p.paidAt); return d >= start && d <= end; })
         .reduce((s, p) => s + p.amount, 0);
-      result.push({ label: `W${weeks - i}`, amount });
+      result.push({ label: start.toLocaleDateString("en-US", { month: "short", day: "numeric" }), amount });
     }
     return result;
   },

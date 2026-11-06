@@ -75,7 +75,7 @@ export function LeavePage({ user }: Props) {
       {user.role === "owner" && pending.length > 0 && (
         <div style={{ background: "rgba(255,107,53,0.08)", border: "1px solid rgba(255,107,53,0.25)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 16 }}>⏳</span>
-          <span style={{ fontWeight: 600, color: "var(--primary)" }}>{pending.length} pending request{pending.length !== 1 ? "s" : ""} need review</span>
+          <span style={{ fontWeight: 600, color: "var(--primary)" }}>{pending.length} pending request{pending.length !== 1 ? "s need" : " needs"} review</span>
         </div>
       )}
 

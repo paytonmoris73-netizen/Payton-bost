@@ -34,7 +34,7 @@ const ownerNav: NavItem[] = [
   { page: "owner-reports",        label: "Reports",         icon: <ReportIcon /> },
   { page: "owner-analytics",      label: "Analytics",       icon: <ChartIcon /> },
   { page: "owner-announcements",  label: "Announcements",   icon: <MegaphoneIcon /> },
-  { page: "owner-billing",        label: "Plan & Billing",  icon: <BillingIcon /> },
+  { page: "owner-billing",        label: "Plan & Usage",    icon: <BillingIcon /> },
   { page: "owner-settings",       label: "Settings",        icon: <SettingsIcon /> },
 ];
 
@@ -73,6 +73,18 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
   const [curPin, setCurPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [pinErr, setPinErr] = useState("");
+  const [profile, setProfile] = useState({ phone: user.phone ?? "", email: user.email ?? "", emergencyContact: user.emergencyContact ?? "" });
+  const [profileErr, setProfileErr] = useState("");
+
+  async function saveProfile(e: React.FormEvent) {
+    e.preventDefault();
+    setProfileErr("");
+    try {
+      const u = await api.updateMyProfile(profile);
+      if (u) setProfile({ phone: u.phone ?? "", email: u.email ?? "", emergencyContact: u.emergencyContact ?? "" });
+      toast("Contact details saved");
+    } catch (err) { setProfileErr(err instanceof Error ? err.message : "Failed"); }
+  }
   const { toast } = useToast();
 
   function go(p: Page) { onNavigate(p); setMenuOpen(false); }
@@ -252,7 +264,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
             </button>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button className="sidebar-signout" style={{ flex: 1 }} onClick={() => { setPinOpen(true); setPinErr(""); setMenuOpen(false); }}>Change PIN</button>
+            <button className="sidebar-signout" style={{ flex: 1 }} onClick={() => { setPinOpen(true); setPinErr(""); setProfileErr(""); setMenuOpen(false); }}>My account</button>
             <button className="sidebar-signout" style={{ flex: 1 }} onClick={onLogout}>Sign out</button>
           </div>
         </div>
@@ -287,12 +299,20 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
       <main className="main-content">{children}</main>
 
       {pinOpen && (
-        <Modal title="Change PIN" onClose={() => setPinOpen(false)}
-          footer={<>
-            <button className="btn btn-secondary" onClick={() => setPinOpen(false)}>Cancel</button>
-            <button className="btn btn-primary" form="pin-form" type="submit" disabled={newPin.length < 4}>Save PIN</button>
-          </>}>
+        <Modal title="My account" onClose={() => setPinOpen(false)}
+          footer={<button className="btn btn-secondary" onClick={() => setPinOpen(false)}>Done</button>}>
+          <form onSubmit={saveProfile} style={{ marginBottom: 20 }}>
+            <div className="account-section">Contact details</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="form-group"><label>Phone</label><input type="tel" value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} placeholder="(555) 123-4567" /></div>
+              <div className="form-group"><label>Email</label><input type="email" value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} placeholder="you@email.com" /></div>
+            </div>
+            <div className="form-group"><label>Emergency contact</label><input type="text" value={profile.emergencyContact} onChange={e => setProfile({ ...profile, emergencyContact: e.target.value })} placeholder="Name, relationship, phone" /></div>
+            {profileErr && <p className="error-msg">{profileErr}</p>}
+            <button className="btn btn-secondary btn-sm" type="submit">Save details</button>
+          </form>
           <form id="pin-form" onSubmit={savePin}>
+            <div className="account-section">Change PIN</div>
             <div className="form-group">
               <label>Current PIN</label>
               <input type="password" inputMode="numeric" autoComplete="current-password" value={curPin} onChange={e => setCurPin(e.target.value.replace(/\D/g, "").slice(0, 8))} autoFocus />
@@ -302,6 +322,7 @@ export function Layout({ user, page, onNavigate, onLogout, children }: Props) {
               <input type="password" inputMode="numeric" autoComplete="new-password" value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 8))} />
             </div>
             {pinErr && <p className="error-msg">{pinErr}</p>}
+            <button className="btn btn-primary btn-sm" type="submit" disabled={newPin.length < 4}>Save PIN</button>
           </form>
         </Modal>
       )}

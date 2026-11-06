@@ -72,7 +72,7 @@ function eventConfig(type: ActivityEvent["type"]): EventConfig {
 }
 
 /* mini live-count chip that animates on mount */
-function CountChip({ label, count, color }: { label: string; count: number; color: string }) {
+function CountChip({ label, count, color }: { label: string; count: number | string; color: string }) {
   const [show, setShow] = useState(false);
   useEffect(() => { const t = setTimeout(() => setShow(true), 60); return () => clearTimeout(t); }, []);
   return (
@@ -190,7 +190,7 @@ export function ActivityPage() {
           <CountChip label="Clock-ins" count={clockIns} color="var(--success)" />
           <CountChip label="Payments" count={payments} color="#8b5cf6" />
           <CountChip label="Jobs done" count={jobsDone} color="var(--primary)" />
-          <CountChip label="Total paid" count={Math.round(totalPayment)} color="#0891b2" />
+          <CountChip label="Total paid" count={"$" + Math.round(totalPayment).toLocaleString()} color="#0891b2" />
           <CountChip label="Events" count={events.length} color="var(--text-secondary)" />
         </div>
       )}

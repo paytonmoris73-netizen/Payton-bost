@@ -82,6 +82,9 @@ export function TeamPage({ user }: Props) {
         title: editUser.title,
         hourlyRate: editUser.hourlyRate,
         active: editUser.active,
+        phone: editUser.phone ?? "",
+        email: editUser.email ?? "",
+        emergencyContact: editUser.emergencyContact ?? "",
       });
       setEditUser(null);
       await load();
@@ -354,6 +357,20 @@ export function TeamPage({ user }: Props) {
               <label>Hourly Rate ($/hr)</label>
               <input type="number" value={editUser.hourlyRate} onChange={e => setEditUser({ ...editUser, hourlyRate: parseFloat(e.target.value) || 0 })} min="0" step="0.01" placeholder="0.00" />
             </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="form-group">
+                <label>Phone</label>
+                <input type="tel" value={editUser.phone ?? ""} onChange={e => setEditUser({ ...editUser, phone: e.target.value })} placeholder="(555) 123-4567" />
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input type="email" value={editUser.email ?? ""} onChange={e => setEditUser({ ...editUser, email: e.target.value })} placeholder="name@email.com" />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Emergency contact</label>
+              <input type="text" value={editUser.emergencyContact ?? ""} onChange={e => setEditUser({ ...editUser, emergencyContact: e.target.value })} placeholder="Name, relationship, phone" />
+            </div>
             <div className="form-group">
               <label>Status</label>
               <select value={editUser.active ? "active" : "inactive"} onChange={e => setEditUser({ ...editUser, active: e.target.value === "active" })}
@@ -385,6 +402,13 @@ export function TeamPage({ user }: Props) {
                 : <span className="badge badge-gray">Off</span>}
             </div>
           </div>
+          {(viewUser.phone || viewUser.email || viewUser.emergencyContact) && (
+            <div className="contact-strip">
+              {viewUser.phone && <a href={`tel:${viewUser.phone}`}>📞 {viewUser.phone}</a>}
+              {viewUser.email && <a href={`mailto:${viewUser.email}`}>✉️ {viewUser.email}</a>}
+              {viewUser.emergencyContact && <span>🚑 Emergency: {viewUser.emergencyContact}</span>}
+            </div>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
             {[
               { label: "Today", value: fmt(viewUser.todayHours) },
@@ -393,7 +417,7 @@ export function TeamPage({ user }: Props) {
               { label: "Hourly Rate", value: viewUser.hourlyRate > 0 ? money(viewUser.hourlyRate) + "/hr" : "Not set" },
               { label: "Month Owed", value: money(viewUser.monthPay), color: "var(--primary)" },
               { label: "Total Paid", value: money(viewUser.totalPaid), color: "var(--success)" },
-              { label: "Balance", value: viewUser.totalOwed > 0 ? `-${money(viewUser.totalOwed)}` : viewUser.totalOwed < 0 ? `+${money(Math.abs(viewUser.totalOwed))}` : "✓ Even", color: viewUser.totalOwed > 0 ? "var(--danger)" : "var(--success)" },
+              { label: "Unpaid", value: viewUser.totalOwed > 0 ? `${money(viewUser.totalOwed)} owed` : "✓ Paid up", color: viewUser.totalOwed > 0 ? "var(--warning)" : "var(--success)" },
               { label: "Joined", value: new Date(viewUser.createdAt).toLocaleDateString() },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "12px 14px" }}>
