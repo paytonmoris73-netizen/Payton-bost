@@ -54,6 +54,9 @@ class FpsTracker:
         self._started = 0.0
         self._error = ""
         self._last_second = 0
+        self.header: List[str] = []
+        self.rows_seen = 0
+        self.raw_sample: List[str] = []
 
     # ── lifecycle ──
     def start(self, prefer: Optional[List[str]] = None, exclude: Optional[set] = None) -> Dict:
@@ -123,18 +126,28 @@ class FpsTracker:
     def _read(self, proc):
         reader = csv.reader(proc.stdout)
         cols = None
+        ft_col = None
         for row in reader:
             if proc is not self._proc and self._proc is not None:
                 break
+            if len(self.raw_sample) < 6:
+                self.raw_sample.append(",".join(row)[:300])
             if cols is None:
                 if "Application" in row:
+                    self.header = row
                     cols = {name: i for i, name in enumerate(row)}
+                    # 1.x/2.x default name first, then the newer v2 metric names
+                    ft_col = next((cols[c] for c in ("MsBetweenPresents", "FrameTime", "MsBetweenAppStart",
+                                                     "MsBetweenSimulationStart") if c in cols), None)
+                    if ft_col is None:
+                        self._error = "Unrecognised PresentMon output columns."
                 continue
+            self.rows_seen += 1
             try:
                 app = row[cols["Application"]].lower()
                 pid = int(row[cols["ProcessID"]])
-                ft = float(row[cols["MsBetweenPresents"]])
-            except (KeyError, ValueError, IndexError):
+                ft = float(row[ft_col])
+            except (KeyError, ValueError, IndexError, TypeError):
                 continue
             if ft <= 0 or ft > 2000 or app in self._exclude:
                 continue
