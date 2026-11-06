@@ -19,6 +19,8 @@ from typing import Dict, List, Optional
 
 import psutil
 
+from frxst_fps import FpsTracker
+
 IS_WIN = sys.platform == "win32"
 NO_WINDOW = 0x08000000 if IS_WIN else 0
 
@@ -148,6 +150,7 @@ class Engine:
         self._res_orig: Optional[List[int]] = None
         self._stop = threading.Event()
         self._mon = Monitor(self._stop)
+        self.fps = FpsTracker()
         psutil.cpu_percent(None)
         threading.Thread(target=self._ping_loop, daemon=True).start()
         self.user_plan = self.plan_id_of(self.original_scheme) if self.original_scheme else "balanced"
@@ -514,6 +517,9 @@ class Engine:
                 else:
                     step("Game traffic prioritized (QoS)", False, "Only for the listed games.")
 
+            r = self.fps.start(prefer=GAME_EXES.get(self.game_id, []))
+            step("Live FPS tracking (PresentMon)", r["ok"], r.get("error", "") or
+                 ("Locks onto %s when it starts." % (game_name or "the game")))
             self._journal_save()
             return {"ok": True, "steps": steps, "freed_mb": round(freed),
                     "freed_cpu": round(min(30, len(self._lowered) * 1.5 + len(self._closed) * 2)),
@@ -521,6 +527,7 @@ class Engine:
 
     def _unboost_locked(self) -> Dict:
         restored = []
+        fps_summary = self.fps.stop()
         for pid, prio in list(self._game_pids.items()):
             try:
                 psutil.Process(pid).nice(prio)
@@ -550,7 +557,7 @@ class Engine:
         if r["ok"]:
             restored.append("power plan")
         self._journal_save()
-        return {"ok": True, "restored": restored}
+        return {"ok": True, "restored": restored, "fps": fps_summary}
 
     def _reopen_closed(self) -> List[str]:
         reopened = []
@@ -751,7 +758,11 @@ class Engine:
         return {"ok": True}
 
     # ── lifecycle ──
+    def fps_stats(self) -> Dict:
+        return self.fps.stats()
+
     def shutdown(self):
+        self.fps.stop()
         with self.lock:
             if self.boosting:
                 self._unboost_locked()

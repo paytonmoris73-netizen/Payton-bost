@@ -65,6 +65,9 @@ class Api:
     def stats(self):
         return self._e.stats()
 
+    def fps(self):
+        return self._e.fps_stats()
+
     def system_info(self):
         return self._e.system_info()
 

@@ -27,6 +27,21 @@ jobs:
       - name: Install
         run: pip install -r game-booster/desktop/requirements.txt pyinstaller==6.11.1 pillow
 
+      # Intel PresentMon (MIT) measures real frames for live FPS; bundled into FRXST.exe.
+      - name: Fetch PresentMon
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $bin = "game-booster/desktop/bin"
+          New-Item -ItemType Directory $bin -Force | Out-Null
+          gh release view --repo GameTechDev/PresentMon --json tagName,assets --jq '.tagName, .assets[].name'
+          gh release download --repo GameTechDev/PresentMon --pattern "PresentMon-*-x64.exe" --output "$bin/PresentMon.exe" --clobber
+          foreach ($n in 'LICENSE.txt','LICENSE') {
+            try { Invoke-WebRequest "https://raw.githubusercontent.com/GameTechDev/PresentMon/main/$n" -OutFile "$bin/PresentMon-LICENSE.txt"; break } catch {}
+          }
+          if (-not (Test-Path "$bin/PresentMon-LICENSE.txt")) { throw 'PresentMon license not found' }
+          Get-Item "$bin/PresentMon.exe" | Format-List Name,Length,VersionInfo
+
       - name: Engine smoke test on real Windows
         working-directory: game-booster/desktop
         run: python smoke_test.py
@@ -37,6 +52,8 @@ jobs:
           pyinstaller --noconfirm --onefile --windowed --uac-admin --name FRXST `
             --icon game-booster/desktop/frxst.ico `
             --add-data "game-booster/web/booster.html;." `
+            --add-binary "game-booster/desktop/bin/PresentMon.exe;." `
+            --add-data "game-booster/desktop/bin/PresentMon-LICENSE.txt;." `
             --paths game-booster/desktop `
             game-booster/desktop/frxst_desktop.py
 
@@ -53,6 +70,9 @@ jobs:
             if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'ui ready' -Quiet)) { $ok = $true; break }
             if ($p.HasExited) { break }
           }
+          $env:FRXST_PRESENTMON = (Resolve-Path game-booster/desktop/bin/PresentMon.exe).Path
+          python game-booster/desktop/fps_test.py
+          $fpsOk = $LASTEXITCODE -eq 0
           Start-Sleep 3
           Add-Type -AssemblyName System.Windows.Forms, System.Drawing
           try {
@@ -64,6 +84,7 @@ jobs:
           if (Test-Path $log) { Get-Content $log }
           Get-Process FRXST -ErrorAction SilentlyContinue | Stop-Process -Force
           if (-not $ok) { throw 'FRXST.exe did not reach ui ready' }
+          if (-not $fpsOk) { throw 'Live FPS capture test failed' }
 
       - uses: actions/upload-artifact@v4
         with:

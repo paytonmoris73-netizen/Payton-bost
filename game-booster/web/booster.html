@@ -708,6 +708,14 @@ html,body{background:var(--bg);font-size:14px;-webkit-font-smoothing:antialiased
 .l-metrics div{background:#0b1519;padding:12px 14px;display:flex;flex-direction:column;gap:3px}
 .l-metrics span{font-size:10.5px;color:var(--tx2);letter-spacing:.1em;text-transform:uppercase}
 .l-metrics b{font-family:var(--fn);font-size:20px;font-weight:700}
+.fps-live{display:flex;flex-direction:column;gap:12px}
+.fl-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fl-row div{display:flex;flex-direction:column;gap:2px}
+.fl-row span{font-size:10.5px;color:var(--tx2);letter-spacing:.1em;text-transform:uppercase}
+.fl-row b{font-family:var(--fn);font-size:20px;font-weight:700}
+.spark-wrap{height:56px;position:relative;border-radius:10px;overflow:hidden;background:rgba(0,0,0,.18)}
+.spark-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
+.fps-big.live .fps-lbl{color:var(--gn)}
 .l-metrics b span{font:inherit;color:inherit;letter-spacing:0;text-transform:none}
 
 /* vpn / monitor / upgrade */
@@ -878,7 +886,7 @@ html,body{background:var(--bg);font-size:14px;-webkit-font-smoothing:antialiased
 
         <div class="kpis">
           <div class="kpi"><span class="kpi-l">Ping</span><b class="kpi-v" id="homePingV">— ms</b><span class="kpi-s">to 1.1.1.1</span></div>
-          <div class="kpi"><span class="kpi-l">FPS gain</span><b class="kpi-v" id="homeFpsV">—</b><span class="kpi-s" id="homeFpsChg" style="display:none">boost active</span></div>
+          <div class="kpi"><span class="kpi-l" id="homeFpsLbl">FPS gain</span><b class="kpi-v" id="homeFpsV">—</b><span class="kpi-s" id="homeFpsChg" style="display:none">boost active</span></div>
           <div class="kpi"><span class="kpi-l">CPU</span><b class="kpi-v" id="homeCpuV">—</b><span class="kpi-s">all cores</span></div>
           <div class="kpi"><span class="kpi-l">RAM</span><b class="kpi-v" id="homeRamV">—</b><span class="kpi-s">in use</span></div>
         </div>
@@ -974,9 +982,9 @@ html,body{background:var(--bg);font-size:14px;-webkit-font-smoothing:antialiased
             <div class="stile-sub" id="pwrSub">standard</div>
           </div>
           <div class="stile" id="fpsTile">
-            <div class="stile-lbl">FPS Gain</div>
+            <div class="stile-lbl" id="fpsTileLbl">FPS Gain</div>
             <div class="stile-val" id="fpsV">—</div>
-            <div class="stile-sub">estimated</div>
+            <div class="stile-sub" id="fpsSub">estimated</div>
           </div>
         </div>
 
@@ -1139,7 +1147,15 @@ html,body{background:var(--bg);font-size:14px;-webkit-font-smoothing:antialiased
               </div>
             </div>
             <div class="launch-r">
-              <div class="fps-big"><span class="fps-num" id="launch-fps">+0</span><span class="fps-lbl">FPS, estimated</span></div>
+              <div class="fps-big"><span class="fps-num" id="launch-fps">+0</span><span class="fps-lbl" id="fpsLbl">FPS, estimated</span></div>
+              <div class="fps-live" id="fpsLive" hidden>
+                <div class="fl-row">
+                  <div><span>1% low</span><b id="fpsLow">—</b></div>
+                  <div><span>Frame time</span><b id="fpsFt">—</b></div>
+                  <div><span>Session avg</span><b id="fpsAvg">—</b></div>
+                </div>
+                <div class="spark-wrap"><canvas id="fpsSpark"></canvas></div>
+              </div>
               <div class="l-metrics">
                 <div><span>Ping</span><b id="launchPingV">—</b></div>
                 <div><span>CPU freed</span><b id="launchCpuV">—</b></div>
@@ -1604,7 +1620,7 @@ function updateStatus(){
   else if(vpnState==='connecting'){dot.className='sdot ac';txt.textContent='VPN connecting';}
   else{dot.className='sdot';txt.textContent='Idle';}
   fpsTile.classList.toggle('fps-on',boosting);
-  if(!boosting){setText('fpsV','—');setText('homeFpsV','—');}
+  if(!boosting){setText('fpsV','—');setText('homeFpsV','—');setText('fpsTileLbl','FPS Gain');setText('homeFpsLbl','FPS gain');}
   const hf=document.getElementById('homeFpsChg');if(hf)hf.style.display=boosting?'':'none';
   setText('pwrV',ppName);setStyle('pwrV','color',hot?'var(--gn)':'');
   setText('pwrSub',boosting&&pp!==userPower?'set by boost':hot?'active':'standard');
@@ -1817,8 +1833,8 @@ function renderHistory(){
   if(!h.length){el.innerHTML='<div class="empty">No boosts yet. Pick a game to start.</div>';return;}
   el.innerHTML=h.slice(0,4).map((r,i)=>`<div class="rbst-row">
     <div class="rbst-ico">${GAME_DATA[r.id]?GAME_DATA[r.id].icon:CUSTOM_ICON}</div>
-    <div style="flex:1;min-width:0"><div class="rbst-nm">${esc(r.game)}</div><div class="rbst-ago">${r.tier?LV_NAMES[r.tier]+' · ':''}${timeAgo(r.ts)}</div></div>
-    <div class="rbst-fps">+${Number(r.fps)||0} FPS</div>
+    <div style="flex:1;min-width:0"><div class="rbst-nm">${esc(r.game)}</div><div class="rbst-ago">${r.tier?LV_NAMES[r.tier]+' · ':''}${r.real?'1% low '+Number(r.real.low1)+' · ':''}${timeAgo(r.ts)}</div></div>
+    <div class="rbst-fps">${r.real?Number(r.real.avg)+' FPS avg':'+'+(Number(r.fps)||0)+' FPS'}</div>
     <button class="btn btn-sm" style="flex-shrink:0;margin-left:6px" onclick="boostAgain(${i})">Boost again</button>
   </div>`).join('');
 }
@@ -1970,6 +1986,7 @@ function completedBoost(fps){
   addHistory(gd,fps);
   showBoostState('bs-launch');
   setText('launchBtnTxt','Launch '+gd.name);
+  resetFpsUi();
   toast(gd.name+' boosted with '+LV_NAMES[lv]+'. +'+fps+' FPS estimated');
 }
 
@@ -2078,7 +2095,8 @@ function stopBoost(quiet){
   clearTimeout(boostAnimTimer);
   if(DESK){
     deskQ(()=>DESK.unboost()).then(r=>{
-      if(!quiet&&r&&r.restored&&r.restored.length)toast('Boost stopped. Restored: '+r.restored.join(', '));
+      if(r&&r.fps)saveSessionFps(r.fps);
+      if(!quiet&&r)toast((r.fps?'Session: '+r.fps.avg+' FPS avg, 1% low '+r.fps.low1+'. ':'')+(r.restored&&r.restored.length?'Restored: '+r.restored.join(', '):'Boost stopped'));
     });
   }
   stopBoostTimer();
@@ -2493,6 +2511,7 @@ function masterTick(){
   else if(vpnState==='on'&&document.getElementById('p-vpn').classList.contains('on'))updateVpnLive();
   if(tickN%2===1&&document.getElementById('p-home').classList.contains('on'))drawChart();
   if(tickN%2===0&&document.getElementById('p-monitor').classList.contains('on'))tickMonitor();
+  if(DESK&&boosting)deskFps();
 }
 setInterval(masterTick,1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){tickStats();tickNet();}});
@@ -2503,6 +2522,56 @@ requestAnimationFrame(()=>drawChart(false));
 let _tt;
 function copyEmail(){const e='paytonmoris73@gmail.com';try{navigator.clipboard.writeText(e).then(()=>toast('Support email copied: '+e),()=>toast('Support: '+e));}catch{toast('Support: '+e);}}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';clearTimeout(_tt);_tt=setTimeout(()=>el.style.opacity='0',3400);pushNotif(msg);}
+
+/* ── LIVE FPS (desktop: measured by PresentMon) ── */
+let fpsBusy=false,fpsWasLive=false;
+function deskFps(){
+  if(fpsBusy)return;fpsBusy=true;
+  DESK.fps().then(r=>{fpsBusy=false;if(boosting)renderFps(r);},()=>{fpsBusy=false;});
+}
+function resetFpsUi(){
+  fpsWasLive=false;
+  document.getElementById('fpsLive').hidden=true;
+  document.querySelector('.fps-big').classList.remove('live');
+  setText('fpsLbl',DESK?'FPS, estimated · starting live tracking…':'FPS, estimated');
+  setText('fpsSub','estimated');setText('fpsTileLbl','FPS Gain');setText('homeFpsLbl','FPS gain');
+}
+function renderFps(r){
+  if(!r)return;
+  const big=document.querySelector('.fps-big');
+  if(r.state==='live'){
+    if(!fpsWasLive){fpsWasLive=true;toast('Live FPS locked on '+r.app);}
+    big.classList.add('live');
+    document.getElementById('fpsLive').hidden=false;
+    setText('launch-fps',r.fps);setText('fpsLbl','FPS live · '+r.app);
+    setText('fpsLow',r.low1);setText('fpsFt',r.frametime+' ms');setText('fpsAvg',r.avg);
+    setText('fpsV',r.fps);setText('fpsSub','live FPS');setText('fpsTileLbl','FPS');setText('homeFpsLbl','FPS');
+    setText('homeFpsV',r.fps+' FPS');setText('homeFpsChg','live · 1% low '+r.low1);
+    setText('bbSub','Live: '+r.fps+' FPS · 1% low '+r.low1);
+    drawSpark(r.history||[]);
+    return;
+  }
+  big.classList.remove('live');
+  if(r.state==='waiting')setText('fpsLbl',r.app?'Waiting for frames from '+r.app+'…':'FPS, estimated · live FPS starts when the game draws frames');
+  else if(r.state==='error'){setText('fpsLbl','FPS, estimated · live tracking unavailable');big.title=r.error||'';}
+}
+function drawSpark(h){
+  const c=document.getElementById('fpsSpark');if(!c||!c.parentElement.clientWidth)return;
+  const W=c.parentElement.clientWidth,H=c.parentElement.clientHeight,dpr=Math.min(2,devicePixelRatio||1);
+  if(c.width!==Math.round(W*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);}
+  const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  if(h.length<2)return;
+  const max=Math.max(...h)*1.1,min=Math.max(0,Math.min(...h)*.85),n=Math.max(h.length,60);
+  const pt=i=>[(i+(n-h.length))/(n-1)*W,H-4-(h[i]-min)/((max-min)||1)*(H-8)];
+  x.beginPath();h.forEach((v,i)=>{const[a,b]=pt(i);i?x.lineTo(a,b):x.moveTo(a,b);});
+  x.strokeStyle='#3ddc97';x.lineWidth=1.8;x.stroke();
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(61,220,151,.25)');g.addColorStop(1,'rgba(61,220,151,0)');
+  x.lineTo(W,H);x.lineTo(pt(0)[0],H);x.closePath();x.fillStyle=g;x.fill();
+}
+function saveSessionFps(f){
+  const h=loadHistory();
+  if(h[0]){h[0].real={avg:f.avg,low1:f.low1};saveHistory(h);renderHistory();}
+}
 
 /* ── ACTIVITY (bell) ── */
 let notifs=[],notifOpen=false;
