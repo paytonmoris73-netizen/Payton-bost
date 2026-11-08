@@ -219,8 +219,10 @@ func test_gameplay() -> void:
 		if n is NPC and n.npc_id == "rowan":
 			rowan = n
 	p.global_position = rowan.global_position + Vector3(0, 0, 1.5)
-	await _frames(3)
-	check(p.current_interactable() == rowan, "Rowan becomes the contextual interactable")
+	for i in 4:
+		await get_tree().physics_frame
+	p._update_interactable()
+	check(p.current_interactable() == rowan, "Rowan becomes the contextual interactable (got %s locked=%s can=%s paused=%s)" % [p.current_interactable(), p.input_locked, rowan.can_interact(), get_tree().paused])
 	p.try_interact()
 	await _frames(2)
 	check(Quests.is_completed("q_main_01") and Quests.is_active("q_main_02"), "talking to Rowan advances the story")

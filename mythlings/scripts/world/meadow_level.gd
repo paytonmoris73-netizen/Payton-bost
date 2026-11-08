@@ -88,6 +88,7 @@ func build() -> void:
 	_build_water()
 	_build_scenery()
 	_build_village()
+	_build_details()
 	_build_woods()
 	_build_meadow_trees()
 	_build_oak_sanctuary()
@@ -327,6 +328,138 @@ func _build_village() -> void:
 	_windmill_blades.rotation.y = deg_to_rad(-30)
 	_windmill_blades.add_child(Props.node(Props.windmill_blades(), "solid"))
 	add_child(_windmill_blades)
+
+# ------------------------------------------------------------------ set dressing
+func _detail(mesh: Mesh, x: float, z: float, rot := 0.0, scl := 1.0, kind := "solid", collide_r := 0.0) -> void:
+	var p := ground(x, z)
+	add_child(Props.node(mesh, kind, p, rot, scl))
+	if collide_r > 0.0:
+		_cyl_collider(p, collide_r, 1.0)
+		_add_obstacle(p, collide_r + 0.2)
+
+func _build_details() -> void:
+	# Village life: barrels, crates, carts, planters, laundry, signpost.
+	for d in [[Props.barrel(), -9, 15, 0.0, 0.5], [Props.barrel(), -8, 16.2, 0.6, 0.5], [Props.crates(), 13, -12, 0.4, 0.8], [Props.barrel(), 15, -10.5, 0.2, 0.5],
+			[Props.crates(), -14, -9, -0.6, 0.8], [Props.cart(), -16, -2, 1.2, 1.2], [Props.planter(), 6, -15.5, 0.3, 0.0], [Props.planter(), -4, 15.8, 0.0, 0.0],
+			[Props.planter(), 15.5, 5, 1.5, 0.0], [Props.laundry_line(), -19, 9, 1.1, 0.0], [Props.barrel(), 4, -19, 0.0, 0.5], [Props.crates(), 18, 13, 2.0, 0.8]]:
+		_detail(d[0], d[1], d[2], d[3], 1.0, "solid", d[4])
+	_detail(Props.signpost(), 8.5, 6.5, 0.4, 1.0, "solid", 0.2)
+	for k in 5:
+		var a := TAU * k / 5.0
+		_detail(Props.hay_bale(), 34 + cos(a) * 6.5, 20 + sin(a) * 6.5, a, 1.0, "solid", 0.7)
+	_detail(Props.cart(), 28, 25, 2.4, 1.0, "solid", 1.0)
+	# Chimney smoke from every house.
+	var angles := [-50.0, -85.0, -158.0, 75.0, 110.0, 145.0]
+	for i in angles.size():
+		var a := deg_to_rad(angles[i])
+		var hp := Vector3(cos(a) * 18.0, 0, sin(a) * 18.0)
+		hp.y = terrain.height(hp.x, hp.z) - 0.2
+		var face := atan2(hp.x, hp.z)
+		var w := 5.0 + i * 0.6
+		var smoke := FX.motes(Color(0.92, 0.92, 0.9), 10, Vector3(0.2, 0.2, 0.2), 0.22)
+		smoke.lifetime = 5.0
+		smoke.direction = Vector3(0.3, 1, 0)
+		smoke.spread = 12.0
+		smoke.initial_velocity_min = 0.5
+		smoke.initial_velocity_max = 0.9
+		smoke.scale_amount_min = 1.0
+		smoke.scale_amount_max = 2.4
+		var mat := StandardMaterial3D.new()
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.albedo_color = Color(0.93, 0.93, 0.92, 0.45)
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		(smoke.mesh as SphereMesh).material = mat
+		smoke.position = hp + Basis(Vector3.UP, face) * Vector3(w * 0.28, 6.4, 0.6)
+		add_child(smoke)
+	# Riverbanks: reeds, lily pads, stones in the water.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	var reeds: Array = []
+	for i in 46:
+		var z := rng.randf_range(MeadowTerrain.CLIFF_Z + 4.0, 105.0)
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := MeadowTerrain.river_x(z) + side * rng.randf_range(5.5, 7.5)
+		if absf(z - 5.0) < 9.0:
+			continue
+		reeds.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.8, 1.3)), ground(x, z) - Vector3(0, 0.1, 0)))
+	Vegetation.instances(self, Props.reeds(), reeds, "foliage", false, 80.0)
+	var pads: Array = []
+	var pc := Vector2(MeadowTerrain.river_x(MeadowTerrain.CLIFF_Z + 9.0), MeadowTerrain.CLIFF_Z + 9.0)
+	for i in 6:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(4.0, 8.5)
+		pads.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU), Vector3(pc.x + cos(a) * r, MeadowTerrain.WATER_Y + 0.03, pc.y + sin(a) * r)))
+	for i in 8:
+		var z := rng.randf_range(20.0, 100.0)
+		pads.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU), Vector3(MeadowTerrain.river_x(z) + rng.randf_range(-6.0, -4.5), MeadowTerrain.WATER_Y + 0.03, z)))
+	Vegetation.instances(self, Props.lily_pads(), pads, "solid", false, 70.0)
+	var stones: Array = []
+	for i in 18:
+		var z := rng.randf_range(-60.0, 100.0)
+		var x := MeadowTerrain.river_x(z) + rng.randf_range(-4.0, 4.0)
+		stones.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.35, 0.7)), Vector3(x, -1.0, z)))
+	Vegetation.instances(self, Props.rock(1), stones, "solid", false, 90.0)
+	# Woods atmosphere: drifting leaves and glowing mushrooms.
+	var leaves := FX.motes(Color("c9a24a"), 40, Vector3(30, 6, 40), 0.07)
+	leaves.gravity = Vector3(0.15, -0.35, 0.05)
+	leaves.lifetime = 9.0
+	leaves.position = ground(-80, -10) + Vector3(0, 9, 0)
+	var lm := StandardMaterial3D.new()
+	lm.albedo_color = Color("b8862f")
+	(leaves.mesh as SphereMesh).material = lm
+	leaves.scale_amount_min = 0.8
+	leaves.scale_amount_max = 1.4
+	add_child(leaves)
+	for i in 14:
+		var x := rng.randf_range(-110, -55)
+		var z := rng.randf_range(-70, 45)
+		if not _tree_ok(x, z, 2.0):
+			continue
+		var g := Node3D.new()
+		for k in 3:
+			K.add(g, K.cyl(0.03, 0.04, 0.22, 5), K.mat(Color("e8e0d0")), Vector3(cos(k * 2.1) * 0.15, 0.11, sin(k * 2.1) * 0.15))
+			K.add(g, K.sphere(0.09, 8, 4), K.mat(Color("7ad8e8"), 0.4, Color("4ac8e0"), 1.4), Vector3(cos(k * 2.1) * 0.15, 0.24, sin(k * 2.1) * 0.15), Vector3.ZERO, Vector3(1, 0.55, 1))
+		g.position = ground(x, z)
+		add_child(g)
+	# Birds circling high over the meadow.
+	for f in 3:
+		var flock := Flock.new()
+		flock.setup(Vector3([20.0, -60.0, 50.0][f], [38.0, 46.0, 42.0][f], [10.0, -20.0, 50.0][f]), 5 + f)
+		add_child(flock)
+
+class Flock extends Node3D:
+	const K := preload("res://scripts/core/mesh_kit.gd")
+	var _birds: Array = []
+	var _t := 0.0
+	var _r := 30.0
+	func setup(c: Vector3, n: int) -> void:
+		position = c
+		_r = randf_range(22.0, 38.0)
+		_t = randf() * TAU
+		for i in n:
+			var b := Node3D.new()
+			K.add(b, K.capsule(0.08, 0.4), K.mat(Color("2f2a28")), Vector3.ZERO, Vector3(90, 0, 0))
+			var wings := []
+			for sx in [-1, 1]:
+				var w := K.pivot(b, Vector3(0.05 * sx, 0, 0))
+				K.add(w, K.box(Vector3(0.6, 0.02, 0.18)), K.mat(Color("2f2a28")), Vector3(0.3 * sx, 0, 0))
+				wings.append(w)
+			b.set_meta("wings", wings)
+			b.set_meta("off", Vector3(randf_range(-3, 3), randf_range(-1.5, 1.5), randf_range(-3, 3)))
+			add_child(b)
+			_birds.append(b)
+	func _process(delta: float) -> void:
+		_t += delta * 0.18
+		for i in _birds.size():
+			var b: Node3D = _birds[i]
+			var a := _t + i * 0.12
+			var off: Vector3 = b.get_meta("off")
+			b.position = Vector3(cos(a) * _r, sin(a * 2.0) * 1.5, sin(a) * _r) + off
+			b.rotation.y = -a
+			var flap := sin(Time.get_ticks_msec() * 0.012 + i) * 0.6
+			var wings: Array = b.get_meta("wings")
+			wings[0].rotation.z = flap
+			wings[1].rotation.z = -flap
 
 # ------------------------------------------------------------------ trees
 func _tree_ok(x: float, z: float, clear := 3.5) -> bool:

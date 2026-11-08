@@ -205,6 +205,19 @@ static func house(variant := 0) -> ArrayMesh:
 		m.put(K.box(Vector3(w + 0.1, 0.18, 0.2)), Vector3(0, 1.75, -d / 2 - 0.02), timber)
 		m.put(K.prism(Vector3(d + 1.2, 2.2, w + 0.8)), Vector3(0, 4.6, 0), roof, Vector3(0, 90, 0))
 		m.put(K.prism(Vector3(d - 0.1, 2.0, w - 0.3)), Vector3(0, 4.5, 0), wall, Vector3(0, 90, 0))
+		# Shingle rows on both roof slopes, ridge cap and window shutters.
+		var slope := atan2(2.2, (d + 1.2) * 0.5)
+		var run := (d + 1.2) * 0.5
+		for side in [-1, 1]:
+			for k in 6:
+				var t := (k + 0.5) / 6.0
+				var shade: Color = roof.darkened(0.12) if k % 2 == 0 else roof.lightened(0.06)
+				m.put(K.box(Vector3(w + 0.95, 0.07, run / cos(slope) / 6.0 * 1.12)), Vector3(0, 3.5 + 2.2 * t + 0.05, side * run * (1.0 - t)), shade, Vector3(rad_to_deg(slope) * side, 0, 0))
+		m.put(K.cyl(0.14, 0.14, w + 1.0, 6), Vector3(0, 5.72, 0), roof.darkened(0.25), Vector3(0, 0, 90))
+		for sx in [-1, 1]:
+			m.put(K.box(Vector3(0.32, 0.95, 0.06)), Vector3(w * 0.22 + 0.68 * sx, 2.2, -d / 2 - 0.1), roof.darkened(0.1))
+		m.put(K.box(Vector3(0.7, 0.12, 0.7)), Vector3(w * 0.28, 6.25, 0.6), Color("6a6058"))
+		m.put(K.box(Vector3(1.4, 0.12, 0.5)), Vector3(-w * 0.2, 2.5, -d / 2 - 0.3), timber)
 		m.put(K.box(Vector3(0.6, 1.6, 0.6)), Vector3(w * 0.28, 5.4, 0.6), Color("8a7e72"))
 		m.put(K.box(Vector3(1.1, 1.9, 0.12)), Vector3(-w * 0.2, 1.45, -d / 2 - 0.05), Color("7a4e2e"))
 		m.put(K.sphere(0.06, 6, 3), Vector3(-w * 0.2 + 0.35, 1.45, -d / 2 - 0.13), Color("e8c66a"))
@@ -483,4 +496,113 @@ static func mushroom_cluster() -> ArrayMesh:
 			var s := 1.0 - k * 0.18
 			m.put(K.cyl(0.05 * s, 0.07 * s, 0.35 * s, 6), p + Vector3(0, 0.17 * s, 0), Color("efe6d4"))
 			m.put(K.sphere(0.17 * s, 8, 4), p + Vector3(0, 0.36 * s, 0), Color("c4583f") if k % 2 == 0 else Color("e8b64c"), Vector3.ZERO, Vector3(1, 0.55, 1))
+		return m.commit())
+
+# ------------------------------------------------------------------ detail props
+static func barrel() -> ArrayMesh:
+	return cached("barrel", func():
+		var m := MeshMerger.new()
+		m.put(K.cyl(0.36, 0.36, 0.9, 12), Vector3(0, 0.45, 0), Color("8a5a32"))
+		m.put(K.cyl(0.42, 0.42, 0.5, 12), Vector3(0, 0.45, 0), Color("9a6a3e"))
+		for y in [0.12, 0.45, 0.78]:
+			m.put(K.cyl(0.43, 0.43, 0.06, 12), Vector3(0, y, 0), Color("4a4440"))
+		m.put(K.cyl(0.34, 0.34, 0.02, 12), Vector3(0, 0.91, 0), Color("c49a62"))
+		return m.commit())
+
+static func crates() -> ArrayMesh:
+	return cached("crates", func():
+		var m := MeshMerger.new()
+		for c in [[Vector3(0, 0.3, 0), 0.0], [Vector3(0.65, 0.3, 0.1), 12.0], [Vector3(0.3, 0.9, 0.05), -8.0]]:
+			m.put(K.box(Vector3(0.6, 0.6, 0.6)), c[0], Color("b08a55"), Vector3(0, c[1], 0))
+			for e in [-0.27, 0.27]:
+				m.put(K.box(Vector3(0.62, 0.08, 0.62)), c[0] + Vector3(0, e, 0), Color("7a5a36"), Vector3(0, c[1], 0))
+		m.put(K.sphere(0.12, 6, 3), Vector3(0.6, 0.66, 0.0), Color("e8576b"))
+		m.put(K.sphere(0.12, 6, 3), Vector3(0.75, 0.66, 0.2), Color("f2b33d"))
+		return m.commit())
+
+static func signpost() -> ArrayMesh:
+	return cached("signpost", func():
+		var m := MeshMerger.new()
+		m.put(K.cyl(0.08, 0.1, 2.4, 6), Vector3(0, 1.2, 0), Color("6b4a32"))
+		for a in [[20.0, 1.9, Color("e8dcc0")], [-130.0, 1.55, Color("dcd0b0")], [95.0, 1.2, Color("e8dcc0")]]:
+			var dir := Vector3(cos(deg_to_rad(a[0])), 0, sin(deg_to_rad(a[0])))
+			m.put(K.box(Vector3(1.0, 0.24, 0.06)), dir * 0.5 + Vector3(0, a[1], 0), a[2], Vector3(0, -a[0], 0))
+			m.put(K.prism(Vector3(0.3, 0.24, 0.06)), dir * 1.06 + Vector3(0, a[1], 0), a[2], Vector3(0, -a[0], -90))
+		return m.commit())
+
+static func cart() -> ArrayMesh:
+	return cached("cart", func():
+		var m := MeshMerger.new()
+		m.put(K.box(Vector3(1.6, 0.5, 1.0)), Vector3(0, 0.75, 0), Color("9a6a3e"))
+		m.put(K.box(Vector3(1.5, 0.1, 0.9)), Vector3(0, 1.02, 0), Color("c9a24a"))
+		for sz in [-1, 1]:
+			m.put(K.cyl(0.42, 0.42, 0.08, 12), Vector3(0, 0.42, 0.55 * sz), Color("6b4a32"), Vector3(90, 0, 0))
+			m.put(K.cyl(0.1, 0.1, 0.1, 8), Vector3(0, 0.42, 0.57 * sz), Color("4a4440"), Vector3(90, 0, 0))
+		m.put(K.box(Vector3(1.4, 0.06, 0.06)), Vector3(-1.4, 0.62, 0.3), Color("6b4a32"), Vector3(0, 0, 8))
+		m.put(K.box(Vector3(1.4, 0.06, 0.06)), Vector3(-1.4, 0.62, -0.3), Color("6b4a32"), Vector3(0, 0, 8))
+		for k in 5:
+			m.put(K.sphere(0.16, 6, 3), Vector3(-0.5 + k * 0.25, 1.15, -0.2 + (k % 2) * 0.35), [Color("f2b33d"), Color("e8576b"), Color("7fbf6a")][k % 3])
+		return m.commit())
+
+static func hay_bale() -> ArrayMesh:
+	return cached("hay", func():
+		var m := MeshMerger.new()
+		m.put(K.cyl(0.6, 0.6, 1.0, 12), Vector3(0, 0.6, 0), Color("d8b85a"), Vector3(0, 0, 90))
+		m.put(K.cyl(0.62, 0.62, 0.06, 12), Vector3(0.25, 0.6, 0), Color("b8983a"), Vector3(0, 0, 90))
+		m.put(K.cyl(0.62, 0.62, 0.06, 12), Vector3(-0.25, 0.6, 0), Color("b8983a"), Vector3(0, 0, 90))
+		return m.commit())
+
+static func planter() -> ArrayMesh:
+	return cached("planter", func():
+		var m := MeshMerger.new()
+		m.put(K.box(Vector3(2.0, 0.4, 0.7)), Vector3(0, 0.2, 0), Color("8a6a48"))
+		m.put(K.box(Vector3(1.9, 0.05, 0.6)), Vector3(0, 0.41, 0), Color("5a4030"))
+		for k in 9:
+			var x := -0.85 + k * 0.21
+			m.put(K.cyl(0.01, 0.015, 0.3, 3), Vector3(x, 0.55, (k % 2) * 0.15 - 0.07), Color("4f8a3a"), Vector3.ZERO, Vector3.ONE, 0.5)
+			m.put(K.sphere(0.09, 6, 3), Vector3(x, 0.72, (k % 2) * 0.15 - 0.07), [Color("e8576b"), Color("f4e27a"), Color("c49af0"), Color("ffffff")][k % 4], Vector3.ZERO, Vector3(1, 0.7, 1), 1.0)
+		return m.commit())
+
+static func laundry_line() -> ArrayMesh:
+	return cached("laundry", func():
+		var m := MeshMerger.new()
+		for sx in [-1, 1]:
+			m.put(K.cyl(0.06, 0.07, 2.2, 6), Vector3(2.2 * sx, 1.1, 0), Color("6b4a32"))
+		m.put(K.cyl(0.012, 0.012, 4.4, 4), Vector3(0, 2.05, 0), Color("dcd0b0"), Vector3(0, 0, 90))
+		var cols := [Color("f0ebe0"), Color("6c9ad0"), Color("e8b64c"), Color("c4583f"), Color("ffffff")]
+		for k in 5:
+			m.put(K.box(Vector3(0.55, 0.6 + (k % 2) * 0.2, 0.03)), Vector3(-1.6 + k * 0.8, 1.72 - (k % 2) * 0.1, 0), cols[k], Vector3(0, 0, 0), Vector3.ONE, 0.6)
+		return m.commit())
+
+static func reeds() -> ArrayMesh:
+	return cached("reeds", func():
+		var m := MeshMerger.new()
+		for k in 9:
+			var a := k * 2.4
+			var p := Vector3(cos(a) * 0.3 * (k % 3), 0, sin(a) * 0.3 * (k % 3))
+			var h := 0.9 + (k % 4) * 0.25
+			m.put(K.cyl(0.012, 0.025, h, 4), p + Vector3(0, h * 0.5, 0), Color("6f8f3a"), Vector3((k % 3 - 1) * 6.0, 0, (k % 2) * 8.0 - 4.0), Vector3.ONE, 0.8)
+			if k % 3 == 0:
+				m.put(K.capsule(0.04, 0.22), p + Vector3(0, h, 0), Color("6b4423"), Vector3.ZERO, Vector3.ONE, 1.0)
+		return m.commit())
+
+static func lily_pads() -> ArrayMesh:
+	return cached("lily", func():
+		var m := MeshMerger.new()
+		for k in 5:
+			var p := Vector3(cos(k * 1.9) * 0.9 * (k % 3), 0, sin(k * 1.9) * 0.9 * (k % 3))
+			m.put(K.cyl(0.32, 0.32, 0.02, 10), p, Color("4f8a3a").lerp(Color("7fae4a"), (k % 3) * 0.4))
+			if k % 2 == 0:
+				for q in 5:
+					m.put(K.sphere(0.06, 6, 3), p + Vector3(cos(q * 1.26) * 0.06, 0.06, sin(q * 1.26) * 0.06), Color("f6c6d8"), Vector3.ZERO, Vector3(1, 0.6, 1))
+				m.put(K.sphere(0.04, 6, 3), p + Vector3(0, 0.09, 0), Color("f5d04a"))
+		return m.commit())
+
+static func well_bucket_bench() -> ArrayMesh:
+	return decoration("deco_oak_bench")
+
+static func bird() -> ArrayMesh:
+	return cached("bird", func():
+		var m := MeshMerger.new()
+		m.put(K.capsule(0.06, 0.3), Vector3.ZERO, Color("3a3430"), Vector3(90, 0, 0))
 		return m.commit())

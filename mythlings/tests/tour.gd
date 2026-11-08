@@ -30,6 +30,8 @@ func _ready() -> void:
 		["dusk", Vector3(10, 0, 22), 0.4, -0.25, 0.79],
 		["night", Vector3(10, 0, 22), 0.4, -0.25, 0.92],
 	]
+	if "--detail" in OS.get_cmdline_user_args():
+		shots = [["plaza", Vector3(-6, 0, -14), 2.6, -0.28, 0.4], ["windmill", Vector3(24, 0, 30), -0.9, -0.15, 0.62], ["river", Vector3(-26, 0, 40), 1.3, -0.3, 0.45], ["glade", Vector3(-70, 0, 10), 0.6, -0.2, 0.36]]
 	if "--progress" in OS.get_cmdline_user_args():
 		shots = [["verdantus", Vector3(-68, 0, -36), 0.75, -0.08, 0.45], ["sanctuary", Vector3(46, 0, -14), -0.86, -0.2, 0.45], ["sanctuary_night", Vector3(46, 0, -14), -0.86, -0.2, 0.9], ["companion", Vector3(-60, 0, 0), 0.8, -0.3, 0.4]]
 	var lvl: MeadowLevel = MeadowLevel.current

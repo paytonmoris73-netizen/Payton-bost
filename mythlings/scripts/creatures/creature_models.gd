@@ -75,6 +75,15 @@ static func _mossbun(variant: String) -> CreatureRig:
 	var tail := K.pivot(v, Vector3(0, 0.24, 0.29), "Tail", Vector3(105, 0, 0))
 	for a in [-35, 0, 35]:
 		K.add(tail, K.petal(0.16, 0.08, 0.06), K.mat(leaf if a == 0 else leaf_in), Vector3.ZERO, Vector3(0, 0, a))
+	# Whiskers, smile and a tiny mushroom growing in the moss.
+	for sx in [-1, 1]:
+		for k in 2:
+			K.add(head, K.cyl(0.003, 0.003, 0.14, 3), K.mat(Color("e6ebc4")), Vector3(0.1 * sx, -0.02 - k * 0.025, -0.25), Vector3(0, 0, (80 + k * 14) * sx))
+	K.add(head, K.torus(0.012, 0.02, 10), K.mat(Color("5a3a30")), Vector3(0, -0.035, -0.282), Vector3(75, 0, 0), Vector3(1, 1, 0.5))
+	K.add(v, K.cyl(0.012, 0.016, 0.06, 5), K.mat(Color("efe6d4")), Vector3(-0.12, 0.5, 0.16))
+	K.add(v, K.sphere(0.035, 8, 4), K.mat(Color("c4583f")), Vector3(-0.12, 0.535, 0.16), Vector3.ZERO, Vector3(1, 0.55, 1))
+	for k in 3:
+		K.add(v, K.sphere(0.008, 4, 2), K.mat(Color.WHITE), Vector3(-0.12 + cos(k * 2.1) * 0.02, 0.552, 0.16 + sin(k * 2.1) * 0.02))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1])
 	r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", [sprout])
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.27, 0.02))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.16, -0.05)))
@@ -115,6 +124,9 @@ static func _cloverling(variant: String) -> CreatureRig:
 		var lp := K.pivot(v, Vector3(0.05 * sx, 0.07, 0))
 		K.add(lp, K.capsule(0.03, 0.1), K.mat(Color("6e5a3a")), Vector3(0, -0.04, -0.01), Vector3(-15, 0, 0))
 		legs.append(lp)
+	# A glistening dewdrop resting on the golden leaf.
+	K.add(sways[3], K.sphere(0.025, 10, 5), K.glass(Color("cfeeff"), 0.6), Vector3(0, 0.1, -0.03))
+	K.add(head, K.sphere(0.012, 6, 3), K.glow(Color.WHITE, 1.0), Vector3(0.0, 0.11, -0.12))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("legs", legs); r.reg("sway", sways + arms)
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.16, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.33, 0)))
 	return r
@@ -153,6 +165,11 @@ static func _pebblit(variant: String) -> CreatureRig:
 	var tail := K.pivot(v, Vector3(0, 0.2, 0.3), "Tail")
 	K.add(tail, K.sphere(0.07, 6, 3), K.flat(stone), Vector3(0, 0, 0.03))
 	K.add(tail, K.sphere(0.045, 6, 3), K.flat(dark), Vector3(0, -0.01, 0.1))
+	# Crystal shards sprouting between the plates.
+	for c in [[Vector3(0.12, 0.5, 0.14), Vector3(10, 0, -25), 0.14], [Vector3(-0.1, 0.48, 0.2), Vector3(-15, 0, 30), 0.11], [Vector3(0.02, 0.44, 0.3), Vector3(-35, 0, 5), 0.09]]:
+		K.add(v, K.cyl(0.0, 0.035, c[2], 5), K.mat(rune.lightened(0.3), 0.2, rune, 0.8), c[0], c[1])
+	for sx in [-1, 1]:
+		K.add(head, K.sphere(0.02, 6, 3), K.flat(stone.lightened(0.15)), Vector3(0.13 * sx, -0.05, -0.08))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", [tuft])
 	r.reg("acc_head", K.pivot(v, Vector3(0, 0.58, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.2, -0.22)))
 	return r
@@ -194,6 +211,14 @@ static func _sunfox(variant: String) -> CreatureRig:
 	tmi.material_override = K.mat(fur)
 	tail.add_child(tmi)
 	K.add(tail, K.sphere(0.078, 12, 6), K.mat(Color("fff3cf"), 0.5, glow_c, 1.6), Vector3(0, 0.37, 0.37), Vector3(20, 0, 0), Vector3(1, 1.35, 1))
+	# Whiskers, ear tufts and a flame-shaped blaze on the chest.
+	for sx in [-1, 1]:
+		for k in 2:
+			K.add(head, K.cyl(0.0015, 0.0015, 0.07, 3), K.mat(cream.darkened(0.15)), Vector3(0.06 * sx, -0.04 - k * 0.014, -0.17), Vector3(0, -35 * sx, (70 + k * 14) * sx))
+		K.add(ears[0 if sx < 0 else 1], K.cyl(0.0, 0.02, 0.05, 5), K.mat(cream), Vector3(0, 0.19, -0.005))
+	K.add(v, K.cyl(0.0, 0.05, 0.14, 6), K.mat(glow_c, 0.6, glow_c, 0.5), Vector3(0, 0.33, -0.29), Vector3(-20, 0, 0))
+	for k in 3:
+		K.add(v, K.sphere(0.035, 6, 3), K.mat(sock.lightened(0.15)), Vector3(0, 0.44, -0.05 + k * 0.12), Vector3.ZERO, Vector3(1.6, 0.4, 0.7))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail)
 	r.reg("glow_anchor", K.pivot(tail, Vector3(0, 0.36, 0.36)))
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.11, 0.0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.42, -0.2)))
@@ -225,6 +250,10 @@ static func _dewdrop(variant: String) -> CreatureRig:
 	for i in 3:
 		var a := TAU * i / 3.0
 		K.add(orbit, K.sphere(0.03, 10, 5), K.glass(water, 0.7, em), Vector3(cos(a) * 0.32, sin(a * 2.0) * 0.06, sin(a) * 0.32))
+	# Tiny bubbles suspended inside the droplet.
+	for k in 6:
+		K.add(v, K.sphere(0.012 + (k % 3) * 0.006, 6, 3), K.glass(Color.WHITE, 0.7), Vector3(cos(k * 1.7) * 0.1, 0.27 + k * 0.035, sin(k * 1.7) * 0.06 + 0.04))
+	K.add(head, K.torus(0.01, 0.017, 10), K.mat(Color("16213a")), Vector3(0, -0.04, -0.185), Vector3(80, 0, 0), Vector3(1, 1, 0.5))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("wings", fins); r.reg("orbit", orbit); r.reg("sway", [tip])
 	r.reg("acc_head", K.pivot(v, Vector3(0, 0.6, 0.02))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.2, -0.1)))
 	return r
@@ -266,6 +295,13 @@ static func _bloomtail(variant: String) -> CreatureRig:
 	K.add(tail, K.petal(0.64, 0.36, 0.38, 0.04), K.mat(leaf, 0.75))
 	K.add(tail, K.petal(0.5, 0.2, 0.36, 0.03), K.mat(leaf.lightened(0.25), 0.75), Vector3(0, 0.03, -0.015))
 	K.add(tail, K.cyl(0.006, 0.012, 0.5, 5), K.mat(leaf.darkened(0.3)), Vector3(0, 0.25, 0.05), Vector3(-8, 0, 0))
+	# Petal collar and leaf veins.
+	for k in 8:
+		var a := k * TAU / 8.0
+		var pp := K.pivot(v, Vector3(cos(a) * 0.1, 0.4, -0.2 + sin(a) * 0.08), "", Vector3(0, -rad_to_deg(a) - 90, 0))
+		K.add(pp, K.petal(0.1, 0.07, -0.04, 0.012), K.mat(petal_c.lightened(0.35) if k % 2 else Color("f7e9dc")), Vector3.ZERO, Vector3(-70, 0, 0))
+	for k in 4:
+		K.add(tail, K.cyl(0.003, 0.004, 0.16, 3), K.mat(leaf.darkened(0.3)), Vector3(0.0, 0.14 + k * 0.1, 0.05 + k * 0.03), Vector3(-8, 0, 50 if k % 2 else -50))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", [flower])
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.2, 0.02))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.4, -0.2)))
 	return r
@@ -369,6 +405,18 @@ static func _verdantus(variant: String) -> CreatureRig:
 	tail.add_child(tmi)
 	for a in [-40, 0, 40]:
 		K.add(tail, K.petal(0.9, 0.4, 0.2, 0.05), K.mat(moss_l), Vector3(0, -1.0, 1.2), Vector3(150, a, 0))
+	# Glowing shelf mushrooms on the legs and vines trailing from the shoulders.
+	for i in legs.size():
+		for k in 3:
+			K.add(legs[i], K.sphere(0.18, 8, 4), K.mat(Color("7ad8e8"), 0.4, Color("4ac8e0"), 1.2), Vector3(0.35 * (1 if i % 2 else -1), -1.2 - k * 0.35, 0.1 + k * 0.08), Vector3.ZERO, Vector3(1.3, 0.35, 1))
+	for sx in [-1, 1]:
+		for k in 3:
+			var vine := MeshInstance3D.new()
+			var st := Vector3(1.3 * sx, 0.3, -1.9 + k * 0.6)
+			vine.mesh = K.tube(K.bezier(st, st + Vector3(0.25 * sx, -0.8, 0.1), st + Vector3(0.15 * sx, -1.8 - k * 0.3, 0.2), 6), K.taper(6, 0.05, 0.025), 5)
+			vine.material_override = K.mat(Color("4f8a3a"))
+			torso.add_child(vine)
+			K.add(torso, K.petal(0.3, 0.14, 0.05), K.mat(moss_l), st + Vector3(0.2 * sx, -1.0, 0.15), Vector3(-30, 0, 40 * sx))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1])
 	r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", sways)
 	r.reg("feet", [legs[0], legs[1], legs[2], legs[3]])

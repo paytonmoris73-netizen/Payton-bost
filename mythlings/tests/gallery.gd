@@ -47,9 +47,9 @@ func _ready() -> void:
 		for i in ids.size():
 			var r := CreatureModels.build(ids[i])
 			add_child(r)
-			r.position = Vector3((i - 2.5) * 0.85, 0, 0)
-			r.rotation_degrees.y = 160 + (i % 2) * 30
-		cam.position = Vector3(0, 0.9, 3.4)
+			r.position = Vector3((i - 2.5) * 0.72, 0, 0)
+			r.rotation_degrees.y = 200 - i * 8
+		cam.position = Vector3(0, 0.75, 2.6)
 		cam.look_at(Vector3(0, 0.32, 0))
 		cam.fov = 45
 	await get_tree().create_timer(1.0).timeout
