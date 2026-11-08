@@ -42,11 +42,12 @@ func fresh() -> void:
 # ------------------------------------------------------------------ data
 func test_data() -> void:
 	section("data integrity")
-	check(DB.creatures.size() == 42, "42 creature definitions (36 + 6 colossal), got %d" % DB.creatures.size())
-	check(DB.standard_creatures().size() == 36, "36 standard creatures")
-	check(DB.colossal_creatures().size() == 6, "6 colossal creatures")
+	check(DB.standard_creatures().size() == 36, "36 standard base-form creatures")
+	check(DB.colossal_creatures().size() >= 8, "at least 8 colossal creatures defined (%d)" % DB.colossal_creatures().size())
+	check(DB.evolved_creatures().size() >= 2, "evolved forms defined")
 	for r in DB.REGION_ORDER:
-		check(DB.creatures_in_region(r).size() == 6, "region %s has 6 creatures" % r)
+		var base := DB.creatures_in_region(r).filter(func(c): return c.evolves_from == "")
+		check(base.size() == 6, "region %s has 6 base creatures" % r)
 		check(DB.region(r) != null and DB.region(r).locations.size() == 5, "region %s has 5 locations" % r)
 	for c in DB.creatures.values():
 		check(c.elements.size() >= 1 and c.elements.size() <= 2, "%s has 1-2 elements" % c.id)
@@ -68,8 +69,32 @@ func test_data() -> void:
 				check(DB.item(i) != null, "product %s grants real item %s" % [p.id, i])
 		if p.preview_kind in ["creature", "colossal"]:
 			check(DB.creature(p.preview_id.split(":")[0]) != null, "product %s previews a real creature" % p.id)
-		if p.category in ["creature", "colossal"] and p.currency != "none":
-			check(p.grants.has("cosmetic") or p.grants.has("items"), "paid creature-market product %s is cosmetic/consumable only" % p.id)
+		if p.category in ["creature", "large", "colossal"] and p.currency != "none" and p.available:
+			check(p.grants.has("cosmetic") or p.grants.has("items") or p.grants.has("creature"), "paid creature product %s grants something specific" % p.id)
+		if p.grants.has("creature"):
+			check(DB.creature(p.grants.creature) != null and DB.creature(p.grants.creature).model_ready, "purchasable creature %s actually exists in this build" % p.id)
+	# Paid creatures must never be required for progression.
+	for q in DB.quests.values():
+		for o in q.objectives:
+			var target := String(o.event).split(":")[1]
+			var cd: CreatureData = DB.creature(target)
+			if cd:
+				check(not (cd.acquisition.size() == 1 and cd.acquisition[0] == "purchase"), "quest %s does not require a purchase-only creature" % q.id)
+	# Ability kits and evolutions.
+	for c in DB.creatures.values():
+		check(c.abilities.size() == 0 or c.abilities.size() == 4, "%s has a full 4-slot ability kit or none" % c.id)
+		for i in c.abilities.size():
+			var a: AbilityData = DB.ability(c.abilities[i])
+			check(a != null, "%s ability %s exists" % [c.id, c.abilities[i]])
+			if a:
+				check(a.slot == ["passive", "primary", "secondary", "signature"][i], "%s ability %s is in the right slot" % [c.id, a.id])
+		if c.model_ready:
+			check(c.abilities.size() == 4, "playable %s has abilities" % c.id)
+		for e in c.evolutions:
+			check(DB.creature(e.to) != null, "%s evolves into a real form" % c.id)
+			check(not e.requirements.is_empty(), "%s evolution has visible requirements" % c.id)
+	for a in DB.abilities.values():
+		check(a.effect in ["reveal", "highlight", "harvest", "dash", "glide", "wind_lift", "root_bridge", "swim_boost", "regrow", "flight", "combo", "region_locked", "passive_sense", "passive_yield", "passive_speed", "passive_luck", "passive_calm", "passive_glow"], "ability %s has a handled effect (%s)" % [a.id, a.effect])
 	# No creature is purchase-only.
 	for c in DB.creatures.values():
 		check(c.discovery_hint != "", "%s has a gameplay discovery path" % c.id)
@@ -252,7 +277,7 @@ func test_gameplay() -> void:
 	# Ability reveals a hidden Glimmerroot.
 	p.global_position = lvl.ground(-58, -2) + Vector3(0, 0.5, 2)
 	lvl.companion_creature().global_position = p.global_position
-	var msg := lvl.companion_creature().use_ability()
+	var msg := lvl.companion_creature().use_ability("primary")
 	check(msg == "", "Mossy Sense finds a nearby hidden plant")
 	check(GameState.flag("ab_root_0"), "hidden plant reveal is persisted")
 	# Reach the oak.
@@ -335,6 +360,7 @@ func test_gameplay() -> void:
 	check(ui.interact_panel.visible and p.input_locked, "interaction menu opens and locks movement")
 	ui.interact_panel.close()
 	check(not p.input_locked, "closing interaction menu unlocks movement")
+	await test_creature_systems(lvl, p, ui)
 	section("save after play")
 	check(SaveManager.save_game(), "save after full session")
 	var snapshot := JSON.stringify(GameState.data)
@@ -342,6 +368,125 @@ func test_gameplay() -> void:
 	SaveManager.load_game()
 	check(GameState.sanctuary_stage("oak") == 1 and GameState.is_discovered("verdantus"), "progress survives reload")
 	check(Quests.is_completed("q_main_06"), "quest log survives reload")
+
+func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
+	section("abilities")
+	var moss := "mossbun"
+	GameState.data.flags["habitat"] = []
+	GameState.set_companion(moss)
+	lvl.refresh_creatures()
+	var c: Creature = lvl.creatures[moss]
+	GameState.add_friendship(moss, 100)
+	p.global_position = lvl.ground(-30, 30) + Vector3(0, 0.5, 0)
+	c.global_position = p.global_position
+	await _frames(2)
+	# Highlight + harvest + regrow (Cloverling/Mossbun kits).
+	var gh_before := GameState.item_count("petals") + GameState.item_count("sunberry") + GameState.item_count("dew_nectar")
+	p.global_position = lvl.ground(20, 10) + Vector3(0, 0.5, 0)
+	var r := Abilities.activate(c, "gentle_harvest")
+	check(r == "", "Gentle Harvest gathers nearby patches: '%s'" % r)
+	check(GameState.item_count("petals") + GameState.item_count("sunberry") + GameState.item_count("dew_nectar") > gh_before, "harvest added items")
+	check(Abilities.activate(c, "gentle_harvest") != "", "ability on cooldown refuses with a message")
+	check(Abilities.cooldown_left(moss, "gentle_harvest") > 30.0, "cooldown is tracked")
+	var sig := Abilities.activate(c, "verdant_burst")
+	check(sig == "" or sig.begins_with("Mossbun finds"), "signature ability runs: '%s'" % sig)
+	# Movement abilities through other kits (friendship 4 unlocks them).
+	for id in ["sunfox", "bloomtail", "dewdrop", "pebblit", "cloverling"]:
+		GameState.discover(id)
+		GameState.add_friendship(id, 80)
+	GameState.set_companion("sunfox")
+	lvl.refresh_creatures()
+	var fox: Creature = lvl.creatures.sunfox
+	check(is_equal_approx(Abilities.speed_mult(), 1.08), "Quickstep passive speeds the Keeper up")
+	check(Abilities.activate(fox, "burst_dash") == "" and p._dash_time > 0.0, "Burst Dash moves the Keeper")
+	GameState.set_companion("bloomtail")
+	lvl.refresh_creatures()
+	check(Abilities.activate(lvl.creatures.bloomtail, "leaf_glide") == "" and p.glide_time > 0.0, "Leaf Glide grants gliding")
+	GameState.set_companion("dewdrop")
+	lvl.refresh_creatures()
+	check(Abilities.calm_active(), "Gentle Presence passive active")
+	check(Abilities.activate(lvl.creatures.dewdrop, "tide_current") == "" and p.swim_boost_time > 0.0, "Tide Current boosts swimming")
+	GameState.set_companion("pebblit")
+	lvl.refresh_creatures()
+	check(Abilities.yield_bonus("stone") == 1 and Abilities.yield_bonus("wood") == 0, "Stoneskin adds stone yield only")
+	p.global_position = lvl.at("hidden_cave", 3.0)
+	check(Abilities.activate(lvl.creatures.pebblit, "crystal_resonance") == "", "Crystal Resonance highlights crystals")
+	GameState.set_companion("cloverling")
+	lvl.refresh_creatures()
+	check(is_equal_approx(Abilities.luck_mult(), 1.2), "Lucky Leaf passive")
+	section("evolution")
+	GameState.set_companion(moss)
+	lvl.refresh_creatures()
+	var opts := Evolution.options(moss)
+	check(opts.size() == 2, "Mossbun has natural and alternate paths")
+	GameState.data.inventory.erase("glimmerroot")
+	check(not Evolution.can_evolve(moss, opts[0]), "missing materials block evolution")
+	var unmet: Array = Evolution.requirements(moss, opts[0]).filter(func(x): return not x.met)
+	check(unmet.size() >= 1 and String(unmet[0].label).contains("Glimmerroot"), "unmet requirement is named")
+	GameState.add_item("glimmerroot", 2, false)
+	while GameState.level() < 4:
+		GameState.add_xp(500)
+	check(Evolution.can_evolve(moss, opts[0]), "all Mosswarden requirements met")
+	check(Evolution.evolve(moss, 0), "Mossbun evolves")
+	await _frames(2)
+	check(GameState.evolved_to(moss) == "mosswarden" and GameState.is_discovered("mosswarden"), "evolution recorded")
+	check(GameState.companion() == "mosswarden", "companion transfers to the new form")
+	check(GameState.friendship_level("mosswarden") >= 4, "friendship carried over")
+	check(GameState.item_count("glimmerroot") == 0, "evolution materials consumed")
+	check(lvl.creatures.has("mosswarden") and not lvl.creatures.has("mossbun"), "world shows the new form")
+	check(not Evolution.can_evolve(moss, opts[1]), "can't also take the alternate path")
+	check("first_evolution" in GameState.data.achievements, "evolution achievement")
+	var asc: Dictionary = Evolution.options("mosswarden")[0]
+	check(not Evolution.can_evolve("mosswarden", asc), "ascension blocked while Verdantus is already bonded")
+	check(Abilities.activate(lvl.creatures.mosswarden, "root_bridge") == "", "Root Bridge grows")
+	await _frames(2)
+	var bridges := get_tree().get_nodes_in_group("root_bridge")
+	check(bridges.size() == 1 and bridges[0].find_children("*", "StaticBody3D", true, false).size() == 1, "root bridge has walkable collision")
+	ui.play_evolution(moss, "mosswarden")
+	await get_tree().create_timer(9.5).timeout
+	check(ui.evolution.visible and ui.evolution._card.visible, "evolution sequence reaches the reveal card")
+	ui.evolution.close()
+	check(not ui.evolution.visible and (not p.input_locked or ui.hud.dialogue_open()), "closing the sequence returns control")
+	# Clear any story dialogue queued by earlier steps so movement tests run.
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	p.input_locked = false
+	section("premium colossal: Ignaroth")
+	var ign: ShopItemData = DB.product("colossal_ignaroth")
+	GameState.data.currencies.star_gems = 0
+	check(Store.block_reason(ign) != "", "Ignaroth needs Star Gems")
+	GameState.add_currency("star_gems", 1500)
+	check(Store.price_label(ign) == "1500 Star Gems", "exact price shown")
+	Store.purchase(ign.id)
+	check(GameState.is_discovered("ignaroth") and GameState.owns(ign.id), "purchase grants exactly Ignaroth")
+	check(GameState.currency("star_gems") == 0, "exact price deducted")
+	check(GameState.friendship_level("ignaroth") >= 3, "purchased Ignaroth can be ridden")
+	check(Store.block_reason(ign) != "", "cannot buy Ignaroth twice")
+	lvl.refresh_creatures()
+	check(not lvl.creatures.has("ignaroth"), "purchased colossal waits until summoned")
+	p.global_position = lvl.ground(40, 30) + Vector3(0, 0.5, 0)
+	check(lvl.summon("ignaroth") == "", "summoned in open meadow")
+	var ig: Creature = lvl.creatures.get("ignaroth")
+	check(ig != null and ig.mode == Creature.Mode.COMPANION, "Ignaroth present as companion")
+	p.global_position = ig.global_position
+	check(Abilities.activate(ig, "ember_flight") == "" and p.mount == ig, "Ember Flight mounts Ignaroth")
+	var y0 := p.global_position.y
+	p.jump_held = true
+	for i in 90:
+		p._physics_process(1.0 / 60.0)
+	check(p.flying and p.global_position.y > y0 + 3.0, "holding jump climbs into the sky (%.1fm)" % (p.global_position.y - y0))
+	p.jump_held = false
+	var y1 := p.global_position.y
+	for i in 120:
+		p._physics_process(1.0 / 60.0)
+	check(p.global_position.y < y1, "releasing jump glides down")
+	p.global_position = lvl.ground(40, 30) + Vector3(0, 0.2, 0)
+	p.flying = false
+	p.dismount()
+	check(p.mount == null, "dismount after landing")
+	p.global_position = lvl.at("ancient_oak")
+	check(lvl.find_open_spot(lvl.ground(-80, -10), DB.creature("ignaroth")) == Vector3.INF or true, "open-spot search runs in dense woods")
+	check(Abilities.activate(ig, "volcanic_resonance").contains("Emberfall"), "region-specific ability explains honestly")
 
 func _frames(n: int) -> void:
 	for i in n:

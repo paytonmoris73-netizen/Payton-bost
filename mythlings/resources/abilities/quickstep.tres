@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "quickstep"
+display_name = "Quickstep"
+slot = "passive"
+category = "movement"
+description = "You move 8% faster with Sunfox at your side."
+effect = "passive_speed"
+params = {
+"mult": 1.08
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "burst"
+color = Color(1.0, 0.812, 0.416, 1)

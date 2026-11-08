@@ -33,3 +33,19 @@ Done means implemented **and** exercised by tests or screenshots. See QA_CHECKLI
 - [ ] Authored audio, more VFX, LOD meshes, profiling on low-end Android
 - [ ] Cloud saves, friends, sanctuary visits, events (UI states honestly that these are not online yet)
 - [ ] Photo mode
+
+## Creature expansion (this pass)
+- [x] Data-driven 4-slot ability framework with real effects, cooldowns, passives, HUD hints, reduced-effects setting
+- [x] Size classes (small / large / colossal) with size comparison views
+- [x] Evolution: natural, alternate and ascended paths, visible requirements, cinematic with replay
+- [x] Mosswarden, Glimmerhare and Ignaroth models; Ignaroth purchasable and flying
+- [x] Summoning with an open-space check; riding feels different by size; flight
+- [x] Personality reactions to night, nearby Mythlings and friendship level
+- [ ] Weather (and weather reactions)
+- [ ] Evolutions for the other five meadow Mythlings
+- [ ] Models for 14 more colossals (4 earnable, 10 premium concepts) and their abilities
+- [ ] Swimming mounts; riding cosmetics; evolved-form cosmetics
+- [ ] Ability puzzles that require combining two companions
+- [ ] Hazards for protective abilities (e.g. Ancient Shield) to defend against
+- [ ] Parental purchase controls (platform-level ask-to-buy when real billing is added)
+- [ ] Professional IP review (see ORIGINALITY_REVIEW.md)

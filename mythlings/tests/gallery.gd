@@ -35,7 +35,23 @@ func _ready() -> void:
 	var cam := Camera3D.new()
 	add_child(cam)
 	var colossal := "--colossal" in OS.get_cmdline_user_args()
-	if colossal:
+	var only := ""
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--only="):
+			only = a.trim_prefix("--only=")
+	if only != "":
+		var r := CreatureModels.build(only)
+		add_child(r)
+		r.rotation_degrees.y = 145
+		var h: float = DB.creature(only).height
+		cam.position = Vector3(0, h * 0.75, h * 2.2 + 1.2)
+		cam.look_at(Vector3(0, h * 0.45, 0))
+		cam.fov = 50
+		if only == "ignaroth":
+			cam.position = Vector3(-14, 8, 10)
+			cam.look_at(Vector3(0, 5, 0))
+			cam.fov = 55
+	elif colossal:
 		var r := CreatureModels.build("verdantus")
 		add_child(r)
 		r.rotation_degrees.y = 145

@@ -39,6 +39,8 @@ func block_reason(p: ShopItemData) -> String:
 		return "Already owned."
 	if GameState.level() < p.min_level:
 		return "Requires Keeper level %d." % p.min_level
+	if p.grants.has("creature") and GameState.is_discovered(String(p.grants.creature)):
+		return "Already in your collection."
 	if p.requires_owned != "" and not (GameState.is_discovered(p.requires_owned) or GameState.owns(p.requires_owned)):
 		var c: CreatureData = DB.creature(p.requires_owned)
 		return "Befriend %s first." % (c.display_name if c else p.requires_owned)
@@ -90,6 +92,14 @@ func _grant(p: ShopItemData) -> void:
 	if g.has("items"):
 		for id in g.items:
 			GameState.add_item(id, int(g.items[id]), false)
+	if g.has("creature"):
+		# Guaranteed, specific creature: exactly the one shown in the listing.
+		var cid: String = g.creature
+		GameState.discover(cid, "grand_market")
+		var e: Dictionary = GameState.data.creatures[cid]
+		e.friendship = maxi(int(e.friendship), int(g.get("friendship", 0)))
+		e.purchased = true
+		Events.friendship_changed.emit(cid, int(e.friendship), GameState.friendship_level(cid))
 	if not p.stackable:
 		GameState.grant_ownership(p.id)
 	Events.emit_game_event("purchase", p.id)

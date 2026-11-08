@@ -22,7 +22,7 @@ func _ready() -> void:
 func interact(player: Node) -> void:
 	if not enabled:
 		return
-	var n := randi_range(amount_min, amount_max)
+	var n := randi_range(amount_min, amount_max) + Abilities.yield_bonus(item_id)
 	var got := GameState.add_item(item_id, n)
 	if got <= 0:
 		return

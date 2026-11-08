@@ -35,6 +35,7 @@ const ELEMENT := {
 	"ice": Color("8fd3ec"),
 	"earth": Color("a6814f"),
 	"celestial": Color("8b74e6"),
+	"storm": Color("4aa8e8"),
 }
 
 

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "steady_root"
+display_name = "Steady Root"
+slot = "passive"
+category = "support"
+description = "+1 wood from every log pile while Mosswarden is with you."
+effect = "passive_yield"
+params = {
+"items": ["wood"],
+"bonus": 1
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.435, 0.612, 0.294, 1)

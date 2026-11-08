@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "mossy_sense"
+display_name = "Mossy Sense"
+slot = "passive"
+category = "exploration"
+description = "Mossbun's ears twitch when a hidden plant is within 22 m. The HUD tells you which way."
+effect = "passive_sense"
+params = {
+"kinds": ["hidden_plant"],
+"radius": 22.0
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.525, 0.769, 0.369, 1)

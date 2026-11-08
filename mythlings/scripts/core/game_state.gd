@@ -47,7 +47,7 @@ func default_settings() -> Dictionary:
 	return {
 		"master": 0.9, "music": 0.7, "sfx": 0.9, "muted": false,
 		"sensitivity": 1.0, "invert_y": false, "graphics": "medium",
-		"show_fps": false, "ui_scale": 1.0, "joystick_size": 1.0, "reduce_motion": false,
+		"show_fps": false, "ui_scale": 1.0, "joystick_size": 1.0, "reduce_motion": false, "reduced_effects": false,
 	}
 
 # ---------------------------------------------------------------- helpers
@@ -209,7 +209,7 @@ func discovered_count(region_id: String = "", standard_only := true) -> int:
 		var c: CreatureData = DB.creature(id)
 		if c == null:
 			continue
-		if standard_only and c.is_colossal():
+		if standard_only and (c.is_colossal() or c.evolves_from != ""):
 			continue
 		if region_id != "" and c.region != region_id:
 			continue
@@ -264,6 +264,24 @@ func add_friendship(id: String, amount: int, kind: String = "") -> int:
 	data.stats.interactions = int(data.stats.interactions) + 1
 	check_achievements()
 	return amount
+
+## The species this creature turned into, or "" if it hasn't evolved.
+func evolved_to(id: String) -> String:
+	return String(data.creatures.get(id, {}).get("evolved_to", ""))
+
+func is_favorite(id: String) -> bool:
+	return id in data.flags.get("favorites", [])
+
+func toggle_favorite(id: String) -> void:
+	var f: Array = data.flags.get("favorites", [])
+	if id in f:
+		f.erase(id)
+	else:
+		f.append(id)
+	data.flags["favorites"] = f
+
+func add_stat(key: String, n := 1) -> void:
+	data.stats[key] = int(data.stats.get(key, 0)) + n
 
 func set_companion(id: String) -> void:
 	if id != "" and (not is_discovered(id) or friendship_level(id) < 1):
@@ -341,6 +359,7 @@ func stat_value(stat: String) -> int:
 					n += 1
 			return n
 		"resources_collected": return int(data.stats.resources_collected)
+		"evolutions": return (data.flags.get("evolution_log", []) as Array).size()
 	if stat.begins_with("discovered_"):
 		return discovered_count(stat.trim_prefix("discovered_"))
 	return 0
@@ -355,6 +374,8 @@ func check_achievements() -> void:
 				add_currency("gold", int(a.gold))
 			if a.has("crystals"):
 				add_currency("crystals", int(a.crystals))
+			if a.has("star_gems"):
+				add_currency("star_gems", int(a.star_gems))
 			Events.achievement_unlocked.emit(a.id)
 			Events.toast.emit("Achievement: " + a.name, a.desc, "trophy")
 

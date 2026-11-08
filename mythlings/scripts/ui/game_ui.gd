@@ -11,6 +11,7 @@ var interact_panel: CreatureInteractPanel
 var discover_panel: DiscoverPanel
 var play_game: PlayGame
 var tutorial: TutorialDirector
+var evolution: EvolutionCinematic
 
 const PANEL_CLASSES := {
 	"journal": "JournalPanel", "inventory": "InventoryPanel", "quests": "QuestsPanel",
@@ -24,6 +25,7 @@ func setup(p: Player, l: MeadowLevel) -> void:
 	player = p
 	level = l
 	layer = 10
+	add_to_group("game_ui")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	hud = GameHUD.new()
 	add_child(hud)
@@ -39,16 +41,24 @@ func setup(p: Player, l: MeadowLevel) -> void:
 	play_game = PlayGame.new()
 	add_child(play_game)
 	play_game.build()
+	evolution = EvolutionCinematic.new()
+	add_child(evolution)
+	evolution.finished.connect(_on_panel_closed)
+	Evolution.evolved.connect(func(_a, _b): l.refresh_creatures())
 	tutorial = TutorialDirector.new()
 	add_child(tutorial)
 	tutorial.setup(self)
 	Events.request_panel.connect(open_panel)
 
+func play_evolution(from_id: String, to_id: String) -> void:
+	player.input_locked = true
+	evolution.play(from_id, to_id)
+
 func any_panel_open() -> bool:
 	for p in panels.values():
 		if p.visible:
 			return true
-	return interact_panel.visible or discover_panel.visible or play_game.visible
+	return interact_panel.visible or discover_panel.visible or play_game.visible or evolution.visible
 
 func open_panel(name_: String, args: Dictionary) -> void:
 	match name_:

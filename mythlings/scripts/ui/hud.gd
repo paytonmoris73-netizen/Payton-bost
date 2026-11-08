@@ -20,6 +20,12 @@ var _interact_btn: Button
 var _interact_label: Label
 var _ability_btn: Button
 var _ability_label: Label
+var _ab_buttons: Dictionary = {}  # slot -> Button
+var _ab_labels: Dictionary = {}
+var _ab_cd: Dictionary = {}
+var _hint: Label
+var _hint_t := 0.0
+var _useful := ""
 var _ride_btn: Button
 var _jump_btn: Button
 var _cam_btn: Button
@@ -75,7 +81,7 @@ func build(p: Player, l: MeadowLevel) -> void:
 	_build_nav(root)
 	_build_actions(root)
 	_build_overlays(root)
-	cam_zone.blockers = [_interact_btn, _ability_btn, _ride_btn, _jump_btn, _cam_btn, _nav, _quest_card]
+	cam_zone.blockers = [_interact_btn, _ride_btn, _jump_btn, _cam_btn, _nav, _quest_card] + _ab_buttons.values()
 	# Signals
 	Events.xp_changed.connect(func(_a, _b, _c): _refresh_profile())
 	Events.currency_changed.connect(func(_c, _a): _refresh_currencies())
@@ -180,6 +186,9 @@ func _build_top_left(root: Control) -> void:
 	qh.add_child(av)
 	_quest_card.add_child(qh)
 	col.add_child(_quest_card)
+	_hint = UIKit.label("", "HudLabel", 17, Palette.MOSS_LIGHT, true)
+	_hint.custom_minimum_size.x = 340
+	col.add_child(_hint)
 	_fps = UIKit.label("", "HudLabel", 16)
 	_fps.visible = GameState.setting("show_fps")
 	col.add_child(_fps)
@@ -271,7 +280,10 @@ func _build_actions(root: Control) -> void:
 	root.add_child(cluster)
 	_jump_btn = _round_button("jump", 112)
 	_jump_btn.position = Vector2(-128, -232)
-	_jump_btn.pressed.connect(_on_jump)
+	_jump_btn.button_down.connect(func():
+		player.jump_held = true
+		_on_jump())
+	_jump_btn.button_up.connect(func(): player.jump_held = false)
 	cluster.add_child(_jump_btn)
 	_interact_btn = _round_button("hand", 126)
 	_interact_btn.position = Vector2(-270, -270)
@@ -282,17 +294,30 @@ func _build_actions(root: Control) -> void:
 	_interact_label.size = Vector2(246, 30)
 	_interact_btn.add_child(_interact_label)
 	cluster.add_child(_interact_btn)
-	_ability_btn = _round_button("leaf", 96)
-	_ability_btn.position = Vector2(-116, -370)
-	_ability_btn.pressed.connect(_use_ability)
-	_ability_label = UIKit.label("", "HudLabel", 15)
-	_ability_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_ability_label.position = Vector2(-40, 96)
-	_ability_label.size = Vector2(176, 24)
-	_ability_btn.add_child(_ability_label)
-	cluster.add_child(_ability_btn)
+	var slots := [["primary", 96, Vector2(-116, -370)], ["secondary", 78, Vector2(-206, -440)], ["signature", 84, Vector2(-112, -520)]]
+	for sl in slots:
+		var b := _round_button("leaf", sl[1])
+		b.position = sl[2]
+		var slot_name: String = sl[0]
+		b.pressed.connect(func(): _use_ability(slot_name))
+		var l := UIKit.label("", "HudLabel", 14)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.position = Vector2(-50, sl[1] - 2)
+		l.size = Vector2(sl[1] + 100, 22)
+		b.add_child(l)
+		var cd := UIKit.label("", "HudLabel", 24)
+		cd.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cd.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		cd.size = Vector2(sl[1], sl[1])
+		b.add_child(cd)
+		cluster.add_child(b)
+		_ab_buttons[slot_name] = b
+		_ab_labels[slot_name] = l
+		_ab_cd[slot_name] = cd
+	_ability_btn = _ab_buttons.primary
+	_ability_label = _ab_labels.primary
 	_cam_btn = _round_button("camera", 72)
-	_cam_btn.position = Vector2(-96, -470)
+	_cam_btn.position = Vector2(-236, -540)
 	_cam_btn.pressed.connect(func():
 		_cam_far = not _cam_far
 		player.set_camera_distance(7.5 if _cam_far else 5.2))
@@ -411,12 +436,15 @@ func _refresh_currencies() -> void:
 func _refresh_ability() -> void:
 	var cid := GameState.companion()
 	var c: CreatureData = DB.creature(cid)
-	_ability_btn.visible = c != null and c.ability_id != ""
-	if c:
-		var g: IconGlyph = _ability_btn.get_node("Icon")
-		g.icon = IconGlyph.element_icon(c.primary_element())
-		g.color = Palette.element_color(c.primary_element()).lightened(0.35)
-		_ability_label.text = c.ability_name
+	for slot in _ab_buttons:
+		var b: Button = _ab_buttons[slot]
+		var a: AbilityData = Abilities.in_slot(cid, slot) if c else null
+		b.visible = a != null and Abilities.unlocked(cid, a) and a.effect != "region_locked"
+		if a:
+			var g: IconGlyph = b.get_node("Icon")
+			g.icon = {"movement": "jump", "support": "bag", "environmental": "hammer", "signature": "sparkle"}.get(a.category, IconGlyph.element_icon(c.primary_element()))
+			g.color = a.color.lightened(0.3) if slot != "signature" else Palette.GOLD
+			_ab_labels[slot].text = a.display_name
 	_refresh_ride()
 
 func _refresh_quest() -> void:
@@ -463,13 +491,14 @@ func _toggle_ride() -> void:
 			player.mount_creature(c)
 	_refresh_ride()
 
-func _use_ability() -> void:
+func _use_ability(slot := "primary") -> void:
 	var c: Creature = level.companion_creature()
 	if c == null:
 		return
-	var msg := c.use_ability()
-	if msg != "":
-		show_toast(c.data.ability_name, msg, IconGlyph.element_icon(c.data.primary_element()))
+	var a := Abilities.in_slot(c.data.id, slot)
+	var msg := c.use_ability(slot)
+	if msg != "" and a:
+		show_toast(a.display_name, msg, IconGlyph.element_icon(c.data.primary_element()))
 
 # ------------------------------------------------------------------ toasts / banner / dialogue
 func show_toast(title: String, body: String, icon := "star") -> void:
@@ -557,7 +586,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		player.try_interact()
 	elif event.is_action_pressed("ability"):
-		_use_ability()
+		_use_ability("primary")
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F:
+		_use_ability("secondary")
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_G:
+		_use_ability("signature")
 	elif event.is_action_pressed("mount"):
 		_toggle_ride()
 
@@ -577,7 +610,26 @@ func _process(_delta: float) -> void:
 			_quest_arrow.rotation = a
 	if player.mount == null and _ride_btn.visible and player.current_interactable() == null:
 		_ride_btn.visible = false
-	# Ability cooldown feedback.
+	# Ability cooldowns, "useful here" pulse and passive sense hint.
 	var c: Creature = level.companion_creature() if level else null
 	if c:
-		_ability_btn.modulate.a = 1.0 if c.ability_ready() else 0.5
+		var t := Time.get_ticks_msec() * 0.006
+		for slot in _ab_buttons:
+			var a := Abilities.in_slot(c.data.id, slot)
+			if a == null:
+				continue
+			var cd := Abilities.cooldown_left(c.data.id, a.id)
+			_ab_cd[slot].text = str(ceili(cd)) if cd > 0.0 else ""
+			var b: Button = _ab_buttons[slot]
+			b.modulate = Color(1, 1, 1, 0.55) if cd > 0.0 else (Color(1.0, 0.92 + sin(t) * 0.08, 0.6 + sin(t) * 0.2) if a.id == _useful else Color.WHITE)
+		_hint_t -= _delta
+		if _hint_t <= 0.0:
+			_hint_t = 0.5
+			_useful = Abilities.useful_ability_for(c.data.id, player)
+			var sense := Abilities.sense_hint(player.global_position)
+			if sense.has("text"):
+				_hint.text = sense.text
+			elif _useful != "":
+				_hint.text = "%s could help here!" % DB.ability(_useful).display_name
+			else:
+				_hint.text = ""

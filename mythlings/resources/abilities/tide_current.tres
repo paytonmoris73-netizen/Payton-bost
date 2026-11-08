@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "tide_current"
+display_name = "Tide Current"
+slot = "secondary"
+category = "movement"
+description = "Surrounds you with a current: swim twice as fast and wade without slowing for 20 seconds."
+effect = "swim_boost"
+params = {
+"duration": 20.0,
+"mult": 2.0
+}
+cooldown = 30
+unlock_friendship = 2
+requires_evolved = false
+vfx = "water_ring"
+color = Color(0.498, 0.827, 0.961, 1)

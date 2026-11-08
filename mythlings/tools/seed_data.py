@@ -116,19 +116,21 @@ COLOSSAL = [
  ("thornvine_titan","Thornvine Titan","sunpetal","Jungle Titan Grove",["nature","earth"],"legendary","calm","An enormous jungle guardian of bark armour, giant vines and flowering limbs.","Patient, wise and protective.","ancient_plant","Rootcall","Interacts with ancient jungle plants.","honey_drop",["4a3a25","6fb04a"],"quad",2.6,7.5,0.45,"Restore the Ancient Grove of Sunpetal Jungle.",False,True),
  ("astravyth","Astravyth","starfall","Celestial Sky Sanctuary",["celestial"],"mythic","calm","A majestic celestial flyer with midnight-blue wings, galaxy markings and a long flowing tail.","Mysterious, intelligent, elegant and peaceful.","celestial_location","Starwake","Reveals hidden celestial locations.","dew_nectar",["101a4a","9fb3ff"],"fly",4.5,7.0,0.6,"Uncover the secrets of the Dreamlight Observatory.",False,True),
 ]
-for row in C + COLOSSAL:
+EXTRA = {}  # filled in below; merged into each creature resource
+exec(open(os.path.join(os.path.dirname(__file__), "creature_extras.py")).read())
+for row in C + COLOSSAL + NEW_CREATURES:
     (cid, name, region, habitat, els, rar, pers, desc, ptext, ab, abn, abt, treat, pal, loco, spd, h, pitch, hint, ready) = row[:20]
-    colossal = len(row) > 20
+    colossal = len(row) > 20 and row[20] is True
     v, s, a = STATS[rar]
     if colossal: v, s, a = v * 3, s * 2, a
     notes = ["Prefers %s as a treat." % treat.replace("_", " "), "Often found near %s." % habitat, ptext, "Ability: %s." % (abn or "unknown")]
     write("creatures", "CreatureData", "creature_data", {
         "id": cid, "display_name": name, "region": region, "habitat": habitat, "elements": PSA(els), "rarity": rar,
-        "size_class": "colossal" if colossal else "small", "personality": pers, "description": desc, "personality_text": ptext,
+        "size_class": "colossal" if colossal else EXTRA.get(cid, {}).get("size_class", "small"), "personality": pers, "description": desc, "personality_text": ptext,
         "ability_id": ab, "ability_name": abn, "ability_text": abt, "favorite_treat": treat,
         "base_stats": {"vitality": v, "spirit": s, "agility": a}, "palette": PCA(pal), "model_id": cid,
         "locomotion": loco, "move_speed": spd, "height": h, "sound_pitch": pitch, "friendship_notes": PSA(notes),
-        "discovery_hint": hint, "rideable": colossal, "model_ready": ready})
+        "discovery_hint": hint, "rideable": colossal, "model_ready": ready, **EXTRA.get(cid, {})})
 
 # ------------------------------------------------------------------ items
 I = [
@@ -294,4 +296,14 @@ P("rot_spring_bloom","Spring Bloom Set","rotating","A flower arch and Mythling f
 P("rot_starlit_night","Starlit Night Set","rotating","A star lamp and star collar. Returns in future rotations.","star_gems",120,{"decoration":"deco_star_lamp","cosmetic":"acc:star_collar","bundle":["deco_star_lamp","acc_star_collar"]},rarity="epic",preview_kind="decoration",preview_id="deco_star_lamp",includes=["Star Lamp","Star Collar"],tags=["bundle"])
 for (pid, gems, label) in [("gems_100",100,"$0.99"),("gems_550",550,"$4.99"),("gems_1200",1200,"$9.99")]:
     P(pid, "%d Star Gems" % gems, "currency", "Optional premium currency for cosmetics. Never required to play.", "real_money", 0, {"star_gems": gems}, stackable=True, real_price_label=label, preview_kind="icon", preview_id="gem", tags=["currency"])
+for cid in ["mosswarden", "glimmerhare"]:
+    row = [r for r in NEW_CREATURES if r[0] == cid][0]
+    P("creature_" + cid, row[1], "large" if cid == "mosswarden" else "creature", row[7], "none", 0, rarity=row[5], preview_kind="creature", preview_id=cid,
+      earn_path="Free — earned by evolving Mossbun.", tags=["evolved"])
+P("colossal_ignaroth", "Ignaroth, the Volcanic Emperor", "colossal", "A guaranteed, specific colossal companion: you receive exactly this Ignaroth, already trusting enough to ride and fly. Optional, cosmetic in power, never required for the story.", "star_gems", 1500,
+  {"creature": "ignaroth", "friendship": 45}, rarity="mythic", preview_kind="colossal", preview_id="ignaroth", featured=True, tags=["colossal", "rideable", "flying"],
+  includes=["Ignaroth (rideable, flying)", "Abilities: Warm Glow, Ember Flight, Volcanic Resonance, Infernal Crown", "Journal entry and lore"])
+for (cid, name, *_rest) in PREMIUM:
+    P("colossal_" + cid, name, "colossal", [r for r in NEW_CREATURES if r[0] == cid][0][7], "star_gems", 0, {}, rarity=[r for r in NEW_CREATURES if r[0] == cid][0][5],
+      preview_kind="colossal", preview_id=cid, available=False, unavailable_reason="In development: model not built yet. Not purchasable.", tags=["concept"])
 print("data written")

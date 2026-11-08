@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "glimmerhare"
+display_name = "Glimmerhare"
+region = "meadow"
+habitat = "Butterfly Clearing"
+elements = PackedStringArray("nature", "celestial")
+rarity = "rare"
+size_class = "small"
+personality = "energetic"
+description = "A lean, long-legged runner whose ears have stretched into glowing root-antennae. Pale speckles shimmer along its back when it sprints."
+personality_text = "Energetic and curious. Glimmerhare darts ahead, circles back and bounces when it finds something."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.812, 0.902, 0.831, 1, 0.478, 0.949, 0.722, 1, 0.239, 0.353, 0.29, 1)
+model_id = "glimmerhare"
+locomotion = "quad"
+move_speed = 4.4
+height = 0.95
+sound_pitch = 1.5
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Butterfly Clearing.", "Energetic and curious. Glimmerhare darts ahead, circles back and bounces when it finds something.", "Ability: unknown.")
+discovery_hint = "Evolve Mossbun by exploring and using its senses often."
+rideable = false
+model_ready = true
+abilities = PackedStringArray("fleetfoot", "glimmer_sight", "burst_dash", "moonleap")
+family = "mossbun"
+stage = 2
+evolves_from = "mossbun"
+acquisition = PackedStringArray("evolve")
+lore = "Glimmerhares are rarely seen standing still. Children leave dew nectar out for them on summer nights."

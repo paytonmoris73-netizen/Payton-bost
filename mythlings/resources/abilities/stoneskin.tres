@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "stoneskin"
+display_name = "Stoneskin"
+slot = "passive"
+category = "support"
+description = "+1 stone from every stone pile while Pebblit is with you."
+effect = "passive_yield"
+params = {
+"items": ["stone"],
+"bonus": 1
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.388, 0.949, 0.847, 1)

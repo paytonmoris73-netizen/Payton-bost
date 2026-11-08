@@ -30,9 +30,33 @@ extends Resource
 @export var discovery_hint: String = ""
 @export var rideable: bool = false
 @export var model_ready: bool = false  # true when a playable model exists in this build
+## Ability kit: [passive, primary, secondary, signature] AbilityData ids ("" = none).
+@export var abilities: PackedStringArray = PackedStringArray()
+## Evolution options from this form. Each: {"to": id, "path": "natural|alternate|ascended",
+## "requirements": {"friendship": n, "level": n, "items": {id: n}, "ability_uses": {kind: n},
+## "sanctuary": {site: stage}, "quest": id, "visited": [ids], "not_owned": id}, "text": flavour}
+@export var evolutions: Array[Dictionary] = []
+@export var evolves_from: String = ""
+@export var family: String = ""
+@export var stage: int = 1
+## How it can be obtained: explore, evolve, quest, purchase.
+@export var acquisition: PackedStringArray = PackedStringArray()
+@export_multiline var lore: String = ""
+@export var flight: bool = false  # rideable in the air
+@export var originality_notes: String = ""
 
 func primary_element() -> String:
 	return elements[0] if elements.size() > 0 else "nature"
 
 func is_colossal() -> bool:
 	return size_class == "colossal"
+
+func is_large() -> bool:
+	return size_class == "large"
+
+func size_label() -> String:
+	return {"small": "Small", "large": "Large", "colossal": "Colossal"}.get(size_class, "Small")
+
+func ability_in(slot_name: String) -> String:
+	var i := ["passive", "primary", "secondary", "signature"].find(slot_name)
+	return abilities[i] if i >= 0 and i < abilities.size() else ""

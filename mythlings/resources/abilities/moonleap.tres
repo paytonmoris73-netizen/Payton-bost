@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "moonleap"
+display_name = "Moonleap"
+slot = "signature"
+category = "signature"
+description = "Glimmerhare kicks off the air itself: you are lifted 12 m and glide for 8 seconds."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "wind_lift",
+"params": {
+"height": 12.0
+}
+}, {
+"effect": "glide",
+"params": {
+"duration": 8.0
+}
+}]
+}
+cooldown = 45
+unlock_friendship = 4
+requires_evolved = false
+vfx = "wind_column"
+color = Color(0.624, 0.91, 0.816, 1)

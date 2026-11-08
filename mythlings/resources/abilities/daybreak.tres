@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "daybreak"
+display_name = "Daybreak"
+slot = "signature"
+category = "signature"
+description = "Sunfox's tail flares like sunrise: lights every lantern within 40 m and launches you forward."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["dark_lantern"],
+"radius": 40.0
+}
+}, {
+"effect": "dash",
+"params": {
+"speed": 18.0,
+"time": 0.35
+}
+}]
+}
+cooldown = 75
+unlock_friendship = 4
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.812, 0.416, 1)

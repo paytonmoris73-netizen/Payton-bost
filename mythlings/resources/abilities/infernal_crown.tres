@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "infernal_crown"
+display_name = "Infernal Crown"
+slot = "signature"
+category = "signature"
+description = "Ignaroth rears and its horns blaze into a crown of magma, kindling every old lantern within 45 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["dark_lantern"],
+"radius": 45.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 3
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.416, 0.122, 1)

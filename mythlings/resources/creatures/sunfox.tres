@@ -33,3 +33,7 @@ friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often foun
 discovery_hint = "Races through the sunny hills near the village windmill."
 rideable = false
 model_ready = true
+abilities = PackedStringArray("quickstep", "sunglow", "burst_dash", "daybreak")
+family = "sunfox"
+stage = 1
+acquisition = PackedStringArray("explore")

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "verdant_burst"
+display_name = "Verdant Burst"
+slot = "signature"
+category = "signature"
+description = "Mossbun puffs up and releases a wave of spores: reveals every hidden plant within 35 m and regrows gathered resources within 15 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["hidden_plant"],
+"radius": 35.0
+}
+}, {
+"effect": "regrow",
+"params": {
+"radius": 15.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.525, 0.769, 0.369, 1)

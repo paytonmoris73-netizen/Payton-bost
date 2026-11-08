@@ -33,3 +33,4 @@ friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often fo
 discovery_hint = "Uncover the secrets of the Dreamlight Observatory."
 rideable = true
 model_ready = false
+abilities = PackedStringArray("starveil", "sky_passage", "astral_vision", "cosmic_bloom")

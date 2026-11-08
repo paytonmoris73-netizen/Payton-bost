@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "volcanic_resonance"
+display_name = "Volcanic Resonance"
+slot = "secondary"
+category = "environmental"
+description = "Awakens ancient volcanic mechanisms within 40 m. These appear in Emberfall Highlands, which is not in this build yet."
+effect = "reveal"
+params = {
+"kinds": ["volcanic_structure"],
+"radius": 40.0
+}
+cooldown = 10
+unlock_friendship = 0
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.416, 0.122, 1)

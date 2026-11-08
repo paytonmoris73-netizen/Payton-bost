@@ -5,20 +5,18 @@
 [resource]
 script = ExtResource("1_s")
 id = "colossal_ignaroth"
-display_name = "Ignaroth"
+display_name = "Ignaroth, the Volcanic Emperor"
 category = "colossal"
-description = "A gigantic volcanic quadruped with obsidian armour, magma veins and vast fire-coloured wings."
-currency = "none"
-price = 0
+description = "A guaranteed, specific colossal companion: you receive exactly this Ignaroth, already trusting enough to ride and fly. Optional, cosmetic in power, never required for the story."
+currency = "star_gems"
+price = 1500
 grants = {
-
+"creature": "ignaroth",
+"friendship": 45
 }
-rarity = "legendary"
+rarity = "mythic"
 preview_kind = "colossal"
 preview_id = "ignaroth"
 featured = true
-available = false
-unavailable_reason = "Arrives with the Emberfall Highlands region update. Not purchasable."
-earn_path = "Free — earned through play: Explore the Forgotten Forge and complete Emberfall's volcanic quest."
-tags = PackedStringArray("colossal")
-includes = PackedStringArray("Ability: Forgefire", "Habitat: Volcanic Guardian Grounds", "Rideable after earning its trust")
+tags = PackedStringArray("colossal", "rideable", "flying")
+includes = PackedStringArray("Ignaroth (rideable, flying)", "Abilities: Warm Glow, Ember Flight, Volcanic Resonance, Infernal Crown", "Journal entry and lore")

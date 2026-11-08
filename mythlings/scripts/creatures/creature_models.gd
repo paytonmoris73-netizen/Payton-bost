@@ -9,7 +9,7 @@ static func has_model(id: String) -> bool:
 	var c: CreatureData = DB.creature(id) if Engine.get_main_loop() else null
 	if c and c.model_scene:
 		return true
-	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus"]
+	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth"]
 
 ## variant: cosmetic palette variant id ("" = default)
 static func build(id: String, variant := "", accessory := "") -> CreatureRig:
@@ -27,6 +27,9 @@ static func build(id: String, variant := "", accessory := "") -> CreatureRig:
 		"dewdrop": rig = _dewdrop(variant)
 		"bloomtail": rig = _bloomtail(variant)
 		"verdantus": rig = _verdantus(variant)
+		"mosswarden": rig = _mosswarden(variant)
+		"glimmerhare": rig = _glimmerhare(variant)
+		"ignaroth": rig = _ignaroth(variant)
 		_:
 			rig = _unknown()
 	rig.name = "Rig_" + id
@@ -444,6 +447,255 @@ static func _branch(parent: Node3D, start: Vector3, dir: Vector3, length: float,
 		var p := start.lerp(end, min(t, 1.0))
 		var side := Vector3(signf(dir.x) * rng.randf_range(0.1, 0.7), rng.randf_range(0.4, 1.0), rng.randf_range(-0.6, 0.4))
 		_branch(parent, p, (dir + side).normalized(), length * (0.55 if depth == 0 else 0.6), radius * 0.6, depth + 1, rng, col, glow_c, leaf, blossom, blossoms)
+
+# ===================================================================== MOSSWARDEN (Large, evolved)
+static func _mosswarden(_variant: String) -> CreatureRig:
+	## Heavy, round, upright-sitting forest keeper. Its leaf ears have grown into a
+	## draping cloak; a sapling crowns its head; it cradles a glowing lantern-seed.
+	var r := _rig("hop")
+	r.gait_speed = 0.55
+	r.bob_height = 0.08
+	var v := r.visual
+	var moss := Color("4f7a36"); var moss_l := Color("7aa64c"); var belly := Color("d6dcb0"); var bark := Color("6b4a32"); var seed := Color("c8ffb0")
+	K.add(v, K.sphere(1.0, 26, 13), K.mat(moss, 0.95), Vector3(0, 1.05, 0.05), Vector3.ZERO, Vector3(1.0, 1.0, 0.95), "Body")
+	K.add(v, K.sphere(0.72, 20, 10), K.mat(belly), Vector3(0, 0.9, -0.42), Vector3.ZERO, Vector3(0.95, 1.0, 0.55))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 91
+	for i in 16:
+		var a := rng.randf() * TAU
+		var y := rng.randf_range(1.1, 1.9)
+		var rad := sqrt(maxf(0.05, 1.0 - pow((y - 1.05), 2))) * 1.0
+		if sin(a) < -0.4:
+			continue
+		K.add(v, K.sphere(0.22, 10, 5), K.mat(moss_l if i % 2 else moss.darkened(0.1), 1.0), Vector3(cos(a) * rad, y, sin(a) * rad * 0.95 + 0.05), Vector3.ZERO, Vector3(1, 0.5, 1))
+	var head := K.pivot(v, Vector3(0, 1.55, -0.55), "Head")
+	K.add(head, K.sphere(0.55, 20, 10), K.mat(moss), Vector3(0, 0.05, 0.1), Vector3.ZERO, Vector3(1.0, 0.9, 0.9))
+	K.add(head, K.sphere(0.3, 14, 7), K.mat(belly), Vector3(0, -0.12, -0.32), Vector3.ZERO, Vector3(1.3, 0.8, 0.7))
+	K.add(head, K.sphere(0.06, 8, 4), K.mat(Color("3a2a22"), 0.35), Vector3(0, -0.04, -0.52))
+	var eyes := []
+	for sx in [-1, 1]:
+		var e := K.eye(head, Vector3(0.2 * sx, 0.12, -0.38), 0.09, Color("1d2a1a"), Vector3(0.3 * sx, 0, -1), Color("6dffb0"))
+		e.scale = Vector3(1, 0.7, 1)  # calm, heavy-lidded
+		eyes.append(e)
+		K.add(head, K.sphere(0.13, 8, 4), K.mat(moss.darkened(0.25)), Vector3(0.21 * sx, 0.23, -0.34), Vector3(0, 0, -20 * sx), Vector3(1.3, 0.35, 0.6))
+	# Cloak ears drape down the back.
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.32 * sx, 0.3, 0.15), "Ear", Vector3(120, 0, -25 * sx))
+		K.add(ep, K.petal(1.5, 0.75, 0.35, 0.08), K.mat(moss_l, 0.85))
+		K.add(ep, K.petal(1.2, 0.4, 0.33, 0.05), K.mat(moss.darkened(0.15)), Vector3(0, 0.1, 0.03))
+		ears.append(ep)
+	var crown := K.pivot(head, Vector3(0, 0.48, 0.05), "Crown")
+	K.add(crown, K.cyl(0.04, 0.07, 0.6, 6), K.mat(bark), Vector3(0, 0.3, 0))
+	K.add(crown, K.sphere(0.3, 10, 5), K.mat(Color("6fae4a")), Vector3(0, 0.68, 0), Vector3.ZERO, Vector3(1, 0.75, 1))
+	for k in 5:
+		K.add(crown, K.sphere(0.06, 6, 3), K.mat([Color("f2a7c3"), Color("ffffff"), Color("f4e27a")][k % 3], 0.6), Vector3(cos(k * 1.3) * 0.24, 0.75 + (k % 2) * 0.1, sin(k * 1.3) * 0.24))
+	# Small forepaws holding the lantern-seed in a cage of roots.
+	var arms := []
+	for sx in [-1, 1]:
+		var ap := K.pivot(v, Vector3(0.45 * sx, 1.15, -0.72), "Arm", Vector3(-60, 0, 25 * sx))
+		K.add(ap, K.capsule(0.16, 0.6), K.mat(moss), Vector3(0, -0.25, 0))
+		K.add(ap, K.cyl(0.17, 0.17, 0.22, 8), K.mat(bark), Vector3(0, -0.3, 0))
+		arms.append(ap)
+	var lantern := K.pivot(v, Vector3(0, 0.95, -1.05), "Lantern")
+	K.add(lantern, K.sphere(0.18, 12, 6), K.glow(seed, 1.8))
+	for k in 5:
+		var a := k * TAU / 5.0
+		var root := MeshInstance3D.new()
+		root.mesh = K.tube(K.bezier(Vector3(0, 0.28, 0), Vector3(cos(a) * 0.3, 0.05, sin(a) * 0.3), Vector3(cos(a) * 0.12, -0.24, sin(a) * 0.12), 5), K.taper(5, 0.03, 0.02), 5)
+		root.material_override = K.mat(bark)
+		lantern.add_child(root)
+	var lamp := OmniLight3D.new()
+	lamp.light_color = seed
+	lamp.omni_range = 4.0
+	lamp.light_energy = 0.9
+	lantern.add_child(lamp)
+	var legs := []
+	for p in [Vector3(-0.55, 0.3, -0.35), Vector3(0.55, 0.3, -0.35), Vector3(-0.6, 0.3, 0.45), Vector3(0.6, 0.3, 0.45)]:
+		var lp := K.pivot(v, p)
+		K.add(lp, K.sphere(0.32, 12, 6), K.mat(belly), Vector3(0, -0.18, -0.08), Vector3.ZERO, Vector3(1, 0.65, 1.3))
+		for k in 3:
+			K.add(lp, K.sphere(0.07, 6, 3), K.mat(bark.darkened(0.2)), Vector3(-0.12 + k * 0.12, -0.24, -0.45))
+		legs.append(lp)
+	var tail := K.pivot(v, Vector3(0, 0.75, 0.95), "Tail", Vector3(70, 0, 0))
+	for a in [-50, -25, 0, 25, 50]:
+		K.add(tail, K.petal(0.7, 0.18, 0.2, 0.03), K.mat(moss_l if a % 50 else moss), Vector3.ZERO, Vector3(0, 0, a))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1])
+	r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", [crown, lantern] + arms)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.45, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 1.35, -0.6)))
+	r.reg("saddle", K.pivot(v, Vector3(0, 2.05, 0.25)))
+	return r
+
+# ===================================================================== GLIMMERHARE (Small, alternate evolution)
+static func _glimmerhare(_variant: String) -> CreatureRig:
+	## Lean long-legged sprinter; ears have become glowing root-antennae.
+	var r := _rig("quad")
+	r.gait_speed = 1.3
+	r.bob_height = 0.05
+	var v := r.visual
+	var fur := Color("cfe6d4"); var dark := Color("3d5a4a"); var glow_c := Color("7af2b8")
+	K.add(v, K.capsule(0.11, 0.5), K.mat(fur, 0.9), Vector3(0, 0.48, 0.02), Vector3(80, 0, 0), Vector3.ONE, "Body")
+	K.add(v, K.sphere(0.12, 12, 6), K.mat(fur.lightened(0.2)), Vector3(0, 0.47, -0.18), Vector3.ZERO, Vector3(0.9, 1.0, 0.8))
+	for k in 7:
+		K.add(v, K.sphere(0.018, 6, 3), K.glow(glow_c, 1.5), Vector3((k % 2) * 0.06 - 0.03, 0.59 - k * 0.006, -0.1 + k * 0.05))
+	var head := K.pivot(v, Vector3(0, 0.64, -0.3), "Head")
+	K.add(head, K.sphere(0.11, 14, 7), K.mat(fur), Vector3.ZERO, Vector3.ZERO, Vector3(0.85, 0.9, 1.15))
+	K.add(head, K.sphere(0.07, 10, 5), K.mat(dark), Vector3(0, 0.02, -0.06), Vector3.ZERO, Vector3(1.6, 0.6, 1.0))
+	K.add(head, K.cyl(0.0, 0.045, 0.1, 8), K.mat(fur), Vector3(0, -0.02, -0.14), Vector3(-90, 0, 0))
+	K.add(head, K.sphere(0.014, 6, 3), K.mat(Color("2a2a30")), Vector3(0, -0.02, -0.19))
+	var eyes := [K.eye(head, Vector3(-0.05, 0.03, -0.085), 0.026, Color("0f2a20"), Vector3(-0.5, 0, -1), glow_c), K.eye(head, Vector3(0.05, 0.03, -0.085), 0.026, Color("0f2a20"), Vector3(0.5, 0, -1), glow_c)]
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.04 * sx, 0.08, 0.04), "Ear", Vector3(-20, 0, -12 * sx))
+		var ant := MeshInstance3D.new()
+		ant.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0.05 * sx, 0.3, 0.1), Vector3(0.14 * sx, 0.5, 0.28), 8), K.taper(8, 0.022, 0.008), 5)
+		ant.material_override = K.mat(Color("8a6a48"))
+		ep.add_child(ant)
+		K.add(ep, K.sphere(0.04, 8, 4), K.glow(glow_c, 2.0), Vector3(0.14 * sx, 0.5, 0.28))
+		K.add(ep, K.petal(0.12, 0.05, 0.03), K.mat(Color("8fd88a")), Vector3(0.05 * sx, 0.3, 0.1), Vector3(0, 0, -60 * sx))
+		ears.append(ep)
+	var legs := []
+	for p in [Vector3(-0.06, 0.42, -0.2), Vector3(0.06, 0.42, -0.2), Vector3(-0.07, 0.44, 0.22), Vector3(0.07, 0.44, 0.22)]:
+		var lp := K.pivot(v, p)
+		var back: bool = p.z > 0
+		K.add(lp, K.cyl(0.022, 0.03, 0.36, 6), K.mat(fur.darkened(0.08)), Vector3(0, -0.18, 0.04 if back else 0.0), Vector3(-12 if back else 0, 0, 0))
+		K.add(lp, K.sphere(0.035, 6, 3), K.mat(dark), Vector3(0, -0.4, -0.02), Vector3.ZERO, Vector3(1, 0.6, 1.6))
+		legs.append(lp)
+	var tail := K.pivot(v, Vector3(0, 0.55, 0.3), "Tail", Vector3(45, 0, 0))
+	K.add(tail, K.petal(0.28, 0.08, 0.22, 0.015), K.mat(glow_c.darkened(0.2), 0.6, glow_c, 0.4))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.12, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.55, -0.22)))
+	return r
+
+# ===================================================================== IGNAROTH (Colossal, premium)
+static func _membrane(pts: PackedVector3Array, col_a: Color, col_b: Color) -> ArrayMesh:
+	## Triangle fan from pts[0] (wing root) across the spar tips: a wing membrane.
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(1, pts.size() - 1):
+		for p in [pts[0], pts[i], pts[i + 1]]:
+			var t := clampf(p.distance_to(pts[0]) / 9.0, 0.0, 1.0)
+			st.set_color(col_a.lerp(col_b, t))
+			st.add_vertex(p)
+	st.generate_normals()
+	var m := st.commit()
+	m.set_meta("arrays", st.commit_to_arrays())
+	return m
+
+static func _ignaroth(_variant: String) -> CreatureRig:
+	var r := _rig("quad")
+	r.is_colossal = true
+	r.gait_speed = 0.4
+	r.bob_height = 0.16
+	var v := r.visual
+	var obs := Color("221d1d"); var obs_l := Color("3a302c"); var magma := Color("ff6a1f"); var horn := Color("cfc2ae")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 777
+	var torso := K.pivot(v, Vector3(0, 5.0, 0), "Torso")
+	K.add(torso, K.sphere(1.0, 22, 11), K.flat(obs, 0.6), Vector3.ZERO, Vector3.ZERO, Vector3(2.0, 1.7, 3.6))
+	K.add(torso, K.sphere(1.0, 16, 8), K.mat(Color("4a2a20"), 0.8), Vector3(0, -0.7, -0.3), Vector3.ZERO, Vector3(1.6, 1.0, 3.0))
+	# Overlapping obsidian scutes down the spine, each with a molten seam.
+	for i in 9:
+		var z := -2.8 + i * 0.75
+		var sc := K.add(torso, K.sphere(0.9, 6, 3), K.flat(obs_l if i % 2 else obs, 0.5), Vector3(0, 1.45 - absf(z) * 0.1, z), Vector3(-20, 45, 0), Vector3(1.1 - absf(z) * 0.08, 0.45, 0.9))
+		K.add(sc, K.box(Vector3(1.2, 0.05, 0.05)), K.glow(magma, 2.2), Vector3(0, 0.3, 0.6))
+	# Magma veins across the flanks.
+	for sx in [-1, 1]:
+		for k in 6:
+			K.add(torso, K.capsule(0.06, 1.0 + (k % 3) * 0.4), K.glow(magma, 2.0), Vector3(1.95 * sx, rng.randf_range(-0.6, 0.6), -2.4 + k * 0.95), Vector3(rng.randf_range(20, 70), 0, 15 * sx))
+	# Heavy legs with glowing joints and pale talons.
+	var legs := []
+	for p in [Vector3(-1.3, 4.6, -2.3), Vector3(1.3, 4.6, -2.3), Vector3(-1.4, 4.6, 2.4), Vector3(1.4, 4.6, 2.4)]:
+		var lp := K.pivot(v, p, "Leg")
+		K.add(lp, K.capsule(0.75, 2.6), K.flat(obs, 0.6), Vector3(0, -1.1, 0))
+		K.add(lp, K.sphere(0.45, 10, 5), K.glow(magma, 1.8), Vector3(0, -2.3, -0.25), Vector3.ZERO, Vector3(1, 0.6, 0.6))
+		K.add(lp, K.cyl(0.5, 0.65, 2.0, 8), K.flat(obs_l, 0.6), Vector3(0, -3.3, 0))
+		for k in 3:
+			K.add(lp, K.cyl(0.0, 0.16, 0.7, 5), K.mat(horn, 0.5), Vector3(-0.35 + k * 0.35, -4.4, -0.6), Vector3(-75, 0, 0))
+		legs.append(lp)
+	# S-curved neck and wedge head with crown horns sweeping back, cheek horns curling forward.
+	var neck := MeshInstance3D.new()
+	neck.mesh = K.tube(K.bezier(Vector3(0, 5.6, -3.0), Vector3(0, 8.4, -3.4), Vector3(0, 8.0, -5.6), 12), K.taper(12, 1.2, 0.7, 0.1), 12)
+	neck.material_override = K.flat(obs, 0.6)
+	v.add_child(neck)
+	for k in 5:
+		K.add(v, K.sphere(0.4, 6, 3), K.flat(obs_l, 0.5), Vector3(0, 6.6 + k * 0.4, -3.1 - k * 0.45), Vector3(-30, 45, 0), Vector3(1.0, 0.4, 1.0))
+	var head := K.pivot(v, Vector3(0, 8.1, -5.8), "Head")
+	K.add(head, K.sphere(1.0, 12, 6), K.flat(obs, 0.6), Vector3(0, 0.1, -0.2), Vector3(-6, 0, 0), Vector3(0.78, 0.6, 1.05))
+	K.add(head, K.cyl(0.32, 0.62, 1.6, 8), K.flat(obs_l, 0.6), Vector3(0, -0.02, -1.35), Vector3(-92, 0, 0), Vector3(1.0, 1.0, 0.75))
+	K.add(head, K.cyl(0.25, 0.5, 1.5, 8), K.flat(Color("2e2522"), 0.6), Vector3(0, -0.42, -1.05), Vector3(-80, 0, 0), Vector3(1.0, 1.0, 0.5))
+	K.add(head, K.sphere(0.2, 8, 4), K.glow(magma, 1.6), Vector3(0, -0.2, -2.1), Vector3.ZERO, Vector3(1.4, 0.5, 0.6))
+	for k in 4:
+		K.add(head, K.cyl(0.0, 0.08, 0.3, 4), K.mat(horn), Vector3(-0.4 + k * 0.27, -0.33, -1.7), Vector3(180, 0, 0))
+	var eyes := []
+	for sx in [-1, 1]:
+		eyes.append(K.eye(head, Vector3(0.62 * sx, 0.35, -0.9), 0.16, Color("3a0a00"), Vector3(0.8 * sx, 0, -1), Color("ffb347")))
+		K.add(head, K.box(Vector3(0.5, 0.12, 0.6)), K.flat(obs_l, 0.5), Vector3(0.55 * sx, 0.55, -0.85), Vector3(0, 0, 18 * sx))
+		K.add(head, K.capsule(0.04, 0.9), K.glow(magma, 2.2), Vector3(0.5 * sx, -0.05, -0.9), Vector3(80, 0, 0))
+		var cheek := MeshInstance3D.new()
+		cheek.mesh = K.tube(K.bezier(Vector3(0.7 * sx, -0.1, 0.2), Vector3(1.4 * sx, -0.2, -0.3), Vector3(1.2 * sx, 0.1, -1.1), 8), K.taper(8, 0.18, 0.03), 7)
+		cheek.material_override = K.mat(horn, 0.5)
+		head.add_child(cheek)
+	var crown := K.pivot(head, Vector3(0, 0.6, 0.4), "Crown")
+	var lens := [3.2, 2.6, 2.0, 2.6, 3.2]
+	for i in 5:
+		var off := (i - 2) * 0.32
+		var h := MeshInstance3D.new()
+		h.mesh = K.tube(K.bezier(Vector3(off, 0, 0), Vector3(off * 1.6, 0.9, lens[i] * 0.5), Vector3(off * 2.2, 0.5 + (2 - absf(i - 2)) * 0.25, lens[i]), 10), K.taper(10, 0.22, 0.03), 7)
+		h.material_override = K.mat(horn.darkened(0.15 * absf(i - 2)), 0.5)
+		crown.add_child(h)
+		K.add(crown, K.sphere(0.12, 6, 3), K.glow(magma, 2.0), Vector3(off * 1.6, 0.85, lens[i] * 0.5))
+	# Asymmetric wings: the left is larger than the right.
+	var wings := []
+	for sx in [-1, 1]:
+		var big: bool = sx < 0
+		var span: float = 11.0 if big else 8.5
+		var wp := K.pivot(torso, Vector3(1.2 * sx, 1.1, -1.2), "Wing", Vector3(0, 0, 18 * sx))
+		var arm_end := Vector3(span * 0.45 * sx, 2.4, 0.6)
+		var arm := MeshInstance3D.new()
+		arm.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(span * 0.2 * sx, 2.0, -0.4), arm_end, 8), K.taper(8, 0.35, 0.18), 8)
+		arm.material_override = K.flat(obs, 0.6)
+		wp.add_child(arm)
+		var tips := PackedVector3Array([Vector3(0, 0, 1.5)])
+		var fingers := 4
+		for f in fingers:
+			var t := float(f) / (fingers - 1)
+			var tip := arm_end + Vector3(span * (0.55 - 0.15 * t) * sx, -1.0 - t * 3.0, 1.2 + t * 3.5)
+			var spar := MeshInstance3D.new()
+			spar.mesh = K.tube(K.bezier(arm_end, arm_end.lerp(tip, 0.5) + Vector3(0, 0.4, 0), tip, 6), K.taper(6, 0.14, 0.04), 5)
+			spar.material_override = K.flat(obs_l, 0.6)
+			wp.add_child(spar)
+			K.add(wp, K.cyl(0.0, 0.1, 0.5, 4), K.mat(horn), tip, Vector3(0, 0, 90 * sx))
+			tips.append(tip)
+		tips.insert(1, arm_end)
+		var mem := MeshInstance3D.new()
+		mem.mesh = _membrane(tips, Color("5a1a10"), Color("e8642f"))
+		mem.material_override = K.vcol(0.7, true)
+		wp.add_child(mem)
+		for f in 3:
+			K.add(wp, K.capsule(0.05, 2.5), K.glow(magma.darkened(0.2), 1.4), arm_end + Vector3(span * 0.25 * sx, -1.4 - f, 1.5 + f * 1.1), Vector3(60, 0, 30 * sx))
+		wings.append(wp)
+	# Tail ending in a basalt club.
+	var tail := K.pivot(v, Vector3(0, 5.2, 3.4), "Tail")
+	var tmi := MeshInstance3D.new()
+	tmi.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0, -1.0, 3.5), Vector3(0, -2.6, 7.0), 14), K.taper(14, 0.9, 0.3), 10)
+	tmi.material_override = K.flat(obs, 0.6)
+	tail.add_child(tmi)
+	for k in 6:
+		var t := float(k) / 6.0
+		K.add(tail, K.cyl(0.0, 0.22, 0.6, 4), K.mat(horn, 0.5), Vector3(0, -0.15 - t * 2.3 + 0.7 - t * 0.2, t * 6.6), Vector3(-20, 0, 0))
+	var club := K.add(tail, K.sphere(0.85, 7, 4), K.flat(Color("2b2624"), 0.5), Vector3(0, -2.7, 7.2), Vector3(20, 30, 0), Vector3(1, 0.8, 1.2))
+	for k in 5:
+		K.add(club, K.cyl(0.0, 0.18, 0.7, 4), K.mat(horn), Vector3(cos(k * 1.26) * 0.7, sin(k * 1.26) * 0.7, 0.2), Vector3(0, 0, rad_to_deg(k * 1.26) - 90))
+	K.add(club, K.sphere(0.5, 8, 4), K.glow(magma, 1.6), Vector3(0, 0, 0.5), Vector3.ZERO, Vector3(1, 1, 0.4))
+	var embers := FX.motes(Color("ffb347"), 24, Vector3(2.5, 2.0, 4.0), 0.06)
+	embers.position = Vector3(0, 5.5, 0)
+	v.add_child(embers)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("legs", legs); r.reg("tail", tail); r.reg("wings", wings)
+	r.reg("sway", [crown]); r.reg("feet", legs)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.7, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 7.0, -3.4)))
+	r.reg("saddle", K.pivot(torso, Vector3(0, 1.6, -1.0)))
+	return r
 
 # ===================================================================== fallback
 static func _unknown() -> CreatureRig:

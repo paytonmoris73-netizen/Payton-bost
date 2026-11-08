@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "guardians_gaze"
+display_name = "Guardian's Gaze"
+slot = "primary"
+category = "exploration"
+description = "Reveals hidden treasure and hidden plants within 40 m."
+effect = "reveal"
+params = {
+"kinds": ["hidden_treasure", "hidden_plant"],
+"radius": 40.0
+}
+cooldown = 8
+unlock_friendship = 0
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.224, 0.898, 0.549, 1)

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "sunglow"
+display_name = "Sunglow"
+slot = "primary"
+category = "environmental"
+description = "Kindles old lanterns within 14 m."
+effect = "reveal"
+params = {
+"kinds": ["dark_lantern"],
+"radius": 14.0
+}
+cooldown = 3
+unlock_friendship = 0
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.812, 0.416, 1)

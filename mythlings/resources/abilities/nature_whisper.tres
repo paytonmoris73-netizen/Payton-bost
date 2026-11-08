@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "nature_whisper"
+display_name = "Nature Whisper"
+slot = "secondary"
+category = "exploration"
+description = "Reveals hidden plants within 28 m."
+effect = "reveal"
+params = {
+"kinds": ["hidden_plant"],
+"radius": 28.0
+}
+cooldown = 6
+unlock_friendship = 2
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.525, 0.769, 0.369, 1)

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "ember_flight"
+display_name = "Ember Flight"
+slot = "primary"
+category = "movement"
+description = "Mount Ignaroth and take to the sky. Hold Jump to climb; release to descend slowly."
+effect = "flight"
+params = {
+
+}
+cooldown = 2
+unlock_friendship = 0
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.416, 0.122, 1)

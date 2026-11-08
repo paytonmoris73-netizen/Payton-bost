@@ -33,3 +33,4 @@ friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often fo
 discovery_hint = "Restore the Ancient Grove of Sunpetal Jungle."
 rideable = true
 model_ready = false
+abilities = PackedStringArray("rootcall", "vine_lift", "jungle_sense", "verdant_colossus")

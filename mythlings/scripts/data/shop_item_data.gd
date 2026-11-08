@@ -4,7 +4,7 @@ extends Resource
 
 @export var id: String = ""
 @export var display_name: String = ""
-@export_enum("creature", "colossal", "clothing", "creature_cosmetic", "sanctuary", "collection", "rotating", "currency") var category: String = "clothing"
+@export_enum("creature", "large", "colossal", "clothing", "creature_cosmetic", "sanctuary", "collection", "rotating", "currency") var category: String = "clothing"
 @export_multiline var description: String = ""
 @export_enum("gold", "crystals", "star_gems", "real_money", "none") var currency: String = "gold"
 @export var price: int = 0

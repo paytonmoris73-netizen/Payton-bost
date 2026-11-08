@@ -33,3 +33,35 @@ friendship_notes = PackedStringArray("Prefers clover cookie as a treat.", "Often
 discovery_hint = "Seen nibbling clover beneath the trees of Whispering Woods."
 rideable = false
 model_ready = true
+abilities = PackedStringArray("mossy_sense", "hidden_sense", "gentle_harvest", "verdant_burst")
+family = "mossbun"
+stage = 1
+acquisition = PackedStringArray("explore")
+lore = "Villagers say every Mossbun carries a seed of the first forest in its moss. Most never notice. A few grow into something much larger."
+evolutions = Array[Dictionary]([{
+"to": "mosswarden",
+"path": "natural",
+"requirements": {
+"friendship": 4,
+"level": 4,
+"items": {
+"glimmerroot": 2
+},
+"sanctuary": {
+"oak": 1
+}
+},
+"text": "Rooted in a restored sanctuary, Mossbun's moss deepens into a cloak and its seed begins to glow."
+}, {
+"to": "glimmerhare",
+"path": "alternate",
+"requirements": {
+"friendship": 3,
+"ability_uses": {
+"hidden_plant": 5
+},
+"visited": ["whispering_woods", "butterfly_clearing", "sunstone_falls"]
+},
+"text": "A Mossbun that spends its days chasing Glimmerroot grows light, quick and luminous instead."
+}])
+originality_notes = "Round moss-covered body with leaf ears and a sprout. Checked against well-known franchise creatures: no specific match found, but needs professional review."

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "burst_dash"
+display_name = "Burst Dash"
+slot = "secondary"
+category = "movement"
+description = "A quick forward dash, great for crossing gaps."
+effect = "dash"
+params = {
+"speed": 16.0,
+"time": 0.28
+}
+cooldown = 4
+unlock_friendship = 2
+requires_evolved = false
+vfx = "wind_column"
+color = Color(1.0, 0.914, 0.659, 1)

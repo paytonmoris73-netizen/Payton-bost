@@ -33,3 +33,7 @@ friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often fo
 discovery_hint = "Hovers in the mist of the waterfall pool upriver."
 rideable = false
 model_ready = true
+abilities = PackedStringArray("gentle_presence", "ripple_call", "tide_current", "rainveil")
+family = "dewdrop"
+stage = 1
+acquisition = PackedStringArray("explore")

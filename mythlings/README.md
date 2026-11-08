@@ -16,7 +16,7 @@ offline.
    godot --path mythlings
    ```
 Desktop controls (for testing): WASD to move, Shift to run, Space to jump,
-E to interact, Q for companion ability, R to ride/dismount, right-mouse drag
+E to interact, Q / F / G for companion primary / secondary / signature abilities, R to ride/dismount, right-mouse drag
 to look, Esc to pause. On touch devices, use the on-screen joystick and buttons.
 
 ## Tests
@@ -24,10 +24,11 @@ to look, Esc to pause. On touch devices, use the on-screen joystick and buttons.
 ```bash
 godot --path mythlings --headless res://tests/test_runner.tscn
 ```
-406 automated checks: data integrity, inventory, saves (including corruption
+795 automated checks: data integrity, inventory, saves (including corruption
 recovery and migration), store and mock billing, friendship cooldowns, the
 whole onboarding quest chain, creature AI, companion following, riding, and
-every UI panel opening and closing. Exit code 0 means everything passed.
+every UI panel opening and closing, every ability effect, all three evolution paths, buying Ignaroth, summoning and flying. Exit code 0 means everything passed.
+See `docs/CREATURE_SYSTEM.md` for the creature design and `docs/ORIGINALITY_REVIEW.md` for the originality notes.
 
 Visual checks (need a display; `xvfb-run` works):
 `res://tests/tour.tscn -- --out=DIR [--progress]` and

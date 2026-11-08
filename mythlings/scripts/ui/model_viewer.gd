@@ -29,6 +29,7 @@ func _init() -> void:
 	vp.add_child(stage)
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
+	environment = e
 	var sky := Sky.new()
 	var sm := ProceduralSkyMaterial.new()
 	sm.sky_top_color = Color("b8d8e8")
@@ -90,8 +91,16 @@ func clear() -> void:
 	rig = null
 
 ## kind: creature (id or "id:variant" or "id::accessory"), outfit ("top:x"), player, decoration, colossal
+var scale_ref := false
+var environment: Environment
+var _ref: PlayerModel
+
+## kind: creature/colossal (id or "id:variant:accessory"), outfit, player, decoration.
 func show_item(kind: String, id: String) -> void:
 	clear()
+	if _ref:
+		_ref.queue_free()
+		_ref = null
 	_yaw = 0.6
 	var height := 0.7
 	var scl := 1.0
@@ -145,7 +154,11 @@ func show_item(kind: String, id: String) -> void:
 		_:
 			var n := Node3D.new()
 			current = n
+	pivot.position.x = 0.0
 	pivot.add_child(current)
+	if scale_ref and kind in ["creature", "colossal"]:
+		_frame_with_reference(height)
+		return
 	# Frame the subject.
 	var big := height > 3.0
 	scl = 1.0 / height * (1.25 if not big else 1.6)
@@ -156,6 +169,57 @@ func show_item(kind: String, id: String) -> void:
 	var cp := Vector3(0, h * 0.62 + 0.15, 2.9 if not big else 3.1)
 	# Basis.looking_at works before the viewer is inside the tree.
 	cam.transform = Transform3D(Basis.looking_at(Vector3(0, h * 0.45, 0) - cp, Vector3.UP), cp)
+
+## Shows the creature at true scale beside the player's Keeper (1.75 m).
+func _frame_with_reference(height: float) -> void:
+	_ref = PlayerModel.new()
+	_ref.rebuild(GameState.data.appearance)
+	var gap := maxf(0.6, height * 0.55)
+	_ref.position = Vector3(-gap - 0.4, 0, height * 0.15)
+	_ref.rotation.y = 0.4
+	pivot.add_child(_ref)
+	current.position.x = 0.25
+	var span := maxf(height, 1.75)
+	var width := gap + 0.6 + height * 0.7
+	var fit := maxf(span, width * 0.62) * (1.45 if height > 4.0 else 1.0)
+	var scl := 1.15 / fit
+	pivot.scale = Vector3.ONE * scl
+	pivot.position.x = (gap * 0.5) * scl * 0.5
+	var h := span * scl
+	var cp := Vector3(0, h * 0.6 + 0.15, 3.0)
+	cam.transform = Transform3D(Basis.looking_at(Vector3(0, h * 0.5, 0) - cp, Vector3.UP), cp)
+
+## Plays a creature's ability presentation inside the viewer (demo before buying).
+func demo(ability_id: String) -> void:
+	var a: AbilityData = DB.ability(ability_id)
+	if a == null or rig == null:
+		return
+	rig.emote({"ember_crown": "roar", "root_wave": "stomp", "rune_pulse": "stomp"}.get(a.vfx, "discovery"), 1.6)
+	var c := a.color
+	for i in 3:
+		var ring := MeshKit.add(pivot, MeshKit.torus(0.3, 0.38, 24), MeshKit.glow(c, 1.6), Vector3(0, 0.05, 0), Vector3.ZERO, Vector3(1, 0.1, 1))
+		var tw := ring.create_tween()
+		tw.tween_interval(i * 0.25)
+		tw.tween_property(ring, "scale", Vector3(6, 0.1, 6) / maxf(pivot.scale.x, 0.01) * 0.25, 1.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_callback(ring.queue_free)
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.amount = 40
+	p.lifetime = 1.4
+	p.explosiveness = 0.8
+	p.spread = 60
+	p.initial_velocity_min = 1.5
+	p.initial_velocity_max = 3.0
+	var m := SphereMesh.new()
+	m.radius = 0.04
+	m.height = 0.08
+	m.material = MeshKit.glow(c, 1.5)
+	p.mesh = m
+	stage.add_child(p)
+	p.position = Vector3(0, 0.6, 0)
+	p.emitting = true
+	get_tree().create_timer(2.0).timeout.connect(p.queue_free)
+	Audio.play_sfx(a.sound)
 
 func play(anim: String) -> void:
 	if rig == null:

@@ -33,3 +33,4 @@ friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often fo
 discovery_hint = "Complete the ancient glacier expedition."
 rideable = true
 model_ready = false
+abilities = PackedStringArray("ice_passage", "frozen_discovery", "glacier_step", "winterheart")

@@ -33,3 +33,4 @@ friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often fo
 discovery_hint = "Discover the underwater sanctuary and restore the ocean currents."
 rideable = true
 model_ready = false
+abilities = PackedStringArray("deep_current", "tidal_echo", "ocean_passage", "abyssal_surge")

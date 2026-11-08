@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "vyrmora"
+display_name = "Vyrmora"
+region = "frostroot"
+habitat = "Storm Peaks"
+elements = PackedStringArray("storm")
+rarity = "mythic"
+size_class = "colossal"
+personality = "proud"
+description = "The Storm-Winged Titan: a long serpentine body carried by three pairs of layered wings, with electric-blue markings that crackle before a storm."
+personality_text = ""
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 84,
+"spirit": 56,
+"agility": 20
+}
+palette = PackedColorArray(0.188, 0.188, 0.29, 1, 0.541, 0.604, 0.91, 1)
+model_id = "vyrmora"
+locomotion = "fly"
+move_speed = 3.0
+height = 8.0
+sound_pitch = 0.5
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Storm Peaks.", "", "Ability: unknown.")
+discovery_hint = "Premium concept. Planned for a future update; not available yet."
+rideable = true
+model_ready = false
+abilities = PackedStringArray("storm_glide", "wind_lift_vy", "thunder_beacon", "tempest_rise")
+acquisition = PackedStringArray("purchase")
+lore = "Concept stage. Model, animations and abilities are not built yet."
+originality_notes = "Concept only; review against existing franchises before modelling."
+flight = true

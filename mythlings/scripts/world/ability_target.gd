@@ -62,6 +62,7 @@ func activate() -> bool:
 			FX.popup_text(get_parent(), global_position + Vector3(0, 1.6, 0), ", ".join(parts), Color("fff2b0"))
 	if on_activate.is_valid():
 		on_activate.call(self)
+	GameState.add_stat("ability_" + kind)
 	Events.emit_game_event("ability", kind)
 	activated.emit(self)
 	return true

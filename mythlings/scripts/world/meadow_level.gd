@@ -1138,31 +1138,48 @@ func _on_night(n: bool) -> void:
 func habitat_slots() -> int:
 	return [0, 2, 4, 6][clampi(GameState.sanctuary_stage("oak"), 0, 3)]
 
+const NATIVE := ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail"]
+
 func refresh_creatures() -> void:
 	var habitat: Array = GameState.data.flags.get("habitat", [])
 	var comp := GameState.companion()
+	var sanctuary := at("ancient_oak")
 	var wanted := {}
-	for id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus"]:
+	var candidates: Array = NATIVE.duplicate()
+	for c in DB.creatures.values():
+		if c.model_ready and not (c.id in candidates) and GameState.is_discovered(c.id):
+			candidates.append(c.id)
+	if not ("verdantus" in candidates):
+		candidates.append("verdantus")
+	for id in candidates:
 		var d: CreatureData = DB.creature(id)
-		if d == null:
+		if d == null or not d.model_ready:
+			continue
+		# A form the player evolved no longer appears; its new form does.
+		if GameState.evolved_to(id) != "":
 			continue
 		var mode := Creature.Mode.WILD
-		var home := at(id) if LOC.has(id) else Vector3.ZERO
-		if id == "bloomtail" and GameState.sanctuary_stage("oak") < 2 and not GameState.is_discovered(id):
-			continue
+		var home := at(id) if LOC.has(id) else sanctuary + Vector3(-8, 0, 9)
 		if id == "bloomtail":
-			home = at("ancient_oak") + Vector3(-5, 0, 7)
-		if id == "verdantus" and GameState.sanctuary_stage("shrine") < 1:
+			if GameState.sanctuary_stage("oak") < 2 and not GameState.is_discovered(id):
+				continue
+			home = sanctuary + Vector3(-5, 0, 7)
+		if id == "verdantus" and GameState.sanctuary_stage("shrine") < 1 and not GameState.is_discovered(id):
 			continue
+		var summon_only := d.acquisition.size() == 1 and d.acquisition[0] == "purchase"
 		if id == comp:
 			mode = Creature.Mode.COMPANION
 		elif id in habitat:
 			mode = Creature.Mode.HABITAT
 			var a := float(habitat.find(id)) * 1.1
-			home = at("ancient_oak") + Vector3(cos(a) * 7.0, 0, sin(a) * 7.0)
+			home = sanctuary + Vector3(cos(a) * 7.0, 0, sin(a) * 7.0)
+		elif summon_only:
+			continue  # purchased colossals appear only when summoned
 		wanted[id] = [mode, home]
 	for id in creatures.keys():
 		if not wanted.has(id):
+			if player and player.mount == creatures[id]:
+				continue
 			creatures[id].queue_free()
 			creatures.erase(id)
 	for id in wanted:
@@ -1175,7 +1192,8 @@ func refresh_creatures() -> void:
 			add_child(c)
 			creatures[id] = c
 			if mode == Creature.Mode.COMPANION and player:
-				c.global_position = player.global_position + Vector3(1.5, 0, 1.5)
+				var spot := find_open_spot(player.global_position, c.data) if c.data.size_class != "small" else player.global_position + Vector3(1.5, 0, 1.5)
+				c.global_position = spot
 		elif c.mode != Creature.Mode.MOUNT:
 			if c.mode != mode and mode != Creature.Mode.COMPANION:
 				c.global_position = home
@@ -1183,6 +1201,94 @@ func refresh_creatures() -> void:
 			c.home = home
 		if id == "verdantus" and mode == Creature.Mode.WILD:
 			c.home_radius = 10.0
+
+## Finds level, open ground near `near` with room for a creature of this size,
+## away from trees, buildings and water. Returns Vector3.INF if none.
+func find_open_spot(near: Vector3, d: CreatureData) -> Vector3:
+	var need := 7.0 if d.is_colossal() else (2.5 if d.is_large() else 0.8)
+	for ring in [need + 2.0, need + 6.0, need + 12.0, need + 20.0]:
+		for k in 12:
+			var a := TAU * k / 12.0
+			var p := near + Vector3(cos(a) * ring, 0, sin(a) * ring)
+			if Vector2(p.x, p.z).length() > 105.0 or terrain.is_water(p.x, p.z):
+				continue
+			if terrain.normal(p.x, p.z).y < 0.88:
+				continue
+			var clear := true
+			for o in obstacles:
+				if Vector2(o.x, o.y).distance_to(Vector2(p.x, p.z)) < o.z + need:
+					clear = false
+					break
+			if clear:
+				return ground(p.x, p.z)
+	return Vector3.INF
+
+## Summon a large or colossal Mythling as your companion. Returns "" or a reason.
+func summon(id: String) -> String:
+	var d: CreatureData = DB.creature(id)
+	if d == null or not GameState.is_discovered(id) or GameState.evolved_to(id) != "":
+		return "You haven't befriended that Mythling."
+	if not d.model_ready:
+		return "%s isn't available in this build." % d.display_name
+	var spot := find_open_spot(player.global_position, d)
+	if spot == Vector3.INF:
+		return "There isn't enough open space for %s here. Try an open meadow away from trees and houses." % d.display_name
+	GameState.set_companion(id)
+	if GameState.companion() != id:
+		return "%s needs a little more friendship first." % d.display_name
+	refresh_creatures()
+	var c: Creature = creatures.get(id)
+	if c:
+		c.global_position = spot
+		c.face_toward(player.global_position)
+		c.emote("roar" if d.is_colossal() else "happy", 1.6)
+		FX.burst(self, spot + Vector3(0, d.height * 0.4, 0), Palette.element_color(d.primary_element()), 80, 0.2 if d.is_colossal() else 0.08, 7.0, 1.6)
+		Audio.play_sfx("restore")
+	return ""
+
+## A temporary living bridge of roots in front of the player (Root Bridge ability).
+func spawn_root_bridge(p: Player, length: float, duration: float, width := 3.0) -> void:
+	var fwd := -p.global_transform.basis.z
+	fwd.y = 0
+	fwd = fwd.normalized()
+	var start := p.global_position - Vector3(0, 0.15, 0)
+	var end := start + fwd * length
+	var end_ground := terrain.height(end.x, end.z)
+	end.y = maxf(end.y, end_ground) - 0.15
+	var root := Node3D.new()
+	add_child(root)
+	root.global_position = start
+	root.look_at(end, Vector3.UP)
+	var dist := start.distance_to(end)
+	var m := MeshMerger.new()
+	var planks := int(dist / 0.55)
+	for i in planks:
+		var z := -0.3 - i * 0.55
+		m.put(K.cyl(0.18, 0.18, width, 6), Vector3(0, -0.05 + sin(float(i) / planks * PI) * 0.3, z), Color("6b4a32").lerp(Color("8a6a48"), float(i % 3) / 3.0), Vector3(0, 0, 90))
+	for sx in [-1, 1]:
+		m.add(K.tube(K.bezier(Vector3(sx * width * 0.5, 0.2, 0), Vector3(sx * width * 0.55, 0.9, -dist * 0.5), Vector3(sx * width * 0.5, 0.2, -dist), 10), K.taper(10, 0.12, 0.08), 6), Transform3D.IDENTITY, Color("5a4030"))
+		for k in int(dist / 1.5):
+			m.put(K.petal(0.4, 0.2, 0.1), Vector3(sx * width * 0.55, 0.5, -0.8 - k * 1.5), Color("6aa648"), Vector3(-30, 0, 40 * sx), Vector3.ONE, 0.8)
+	var vis := Props.node(m.commit(), "foliage")
+	root.add_child(vis)
+	var body := StaticBody3D.new()
+	body.collision_layer = 1
+	var cs := CollisionShape3D.new()
+	var bx := BoxShape3D.new()
+	bx.size = Vector3(width, 0.4, dist + 0.6)
+	cs.shape = bx
+	cs.position = Vector3(0, -0.15, -dist * 0.5)
+	body.add_child(cs)
+	root.add_child(body)
+	root.scale = Vector3(1, 1, 0.02)
+	var tw := root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.9).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(maxf(duration - 4.0, 0.5))
+	tw.tween_callback(func(): Events.toast.emit("Root Bridge", "The roots are starting to sink back into the earth.", "leaf"))
+	tw.tween_interval(3.0)
+	tw.tween_property(root, "scale", Vector3(1, 1, 0.02), 1.0)
+	tw.tween_callback(root.queue_free)
+	root.add_to_group("root_bridge")
 
 func companion_creature() -> Creature:
 	return creatures.get(GameState.companion())

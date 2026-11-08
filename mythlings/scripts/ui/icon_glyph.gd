@@ -253,6 +253,16 @@ func _draw() -> void:
 			draw_circle(P.call(0.36, 0.34), s * 0.14, c)
 			draw_circle(P.call(0.66, 0.38), s * 0.12, a)
 			draw_colored_polygon(PackedVector2Array([P.call(0.1, 0.84), P.call(0.16, 0.6), P.call(0.36, 0.52), P.call(0.56, 0.6), P.call(0.62, 0.84)]), c)
+		"bolt", "storm":
+			draw_colored_polygon(PackedVector2Array([P.call(0.58, 0.06), P.call(0.24, 0.56), P.call(0.48, 0.56), P.call(0.4, 0.94), P.call(0.78, 0.4), P.call(0.54, 0.4)]), c)
+		"evolve":
+			draw_arc(P.call(0.5, 0.5), s * 0.34, PI * 0.15, PI * 1.6, 24, c, w, true)
+			draw_colored_polygon(PackedVector2Array([P.call(0.84, 0.26), P.call(0.86, 0.5), P.call(0.64, 0.4)]), c)
+			draw_colored_polygon(PackedVector2Array([P.call(0.5, 0.3), P.call(0.58, 0.48), P.call(0.5, 0.7), P.call(0.42, 0.48)]), c)
+		"size":
+			draw_rect(Rect2(P.call(0.12, 0.62), Vector2(0.14, 0.26) * s), c, true)
+			draw_rect(Rect2(P.call(0.36, 0.42), Vector2(0.18, 0.46) * s), c, true)
+			draw_rect(Rect2(P.call(0.64, 0.14), Vector2(0.24, 0.74) * s), c, true)
 		"collection":
 			for k in 3:
 				draw_rect(Rect2(P.call(0.14 + k * 0.08, 0.5 - k * 0.14), Vector2(0.5, 0.34) * s), c.darkened(0.15 * (2 - k)), true)
@@ -260,7 +270,7 @@ func _draw() -> void:
 			draw_circle(P.call(0.5, 0.5), s * 0.3, c)
 
 static func element_icon(e: String) -> String:
-	return {"nature": "leaf", "fire": "fire", "water": "water", "ice": "ice", "earth": "earth", "celestial": "star"}.get(e, "star")
+	return {"nature": "leaf", "fire": "fire", "water": "water", "ice": "ice", "earth": "earth", "celestial": "star", "storm": "bolt"}.get(e, "star")
 
 static func currency_icon(c: String) -> String:
 	return {"gold": "coin", "crystals": "crystal", "star_gems": "gem"}.get(c, "coin")

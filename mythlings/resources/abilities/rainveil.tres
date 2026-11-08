@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "rainveil"
+display_name = "Rainveil"
+slot = "signature"
+category = "signature"
+description = "A soft rain falls around Dewdrop: gathers nearby dew nectar, raises stepping stones within 30 m and grants Tide Current."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "harvest",
+"params": {
+"items": ["dew_nectar"],
+"radius": 25.0,
+"max": 2
+}
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["ripple_stone"],
+"radius": 30.0
+}
+}, {
+"effect": "swim_boost",
+"params": {
+"duration": 20.0,
+"mult": 2.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "water_ring"
+color = Color(0.498, 0.827, 0.961, 1)

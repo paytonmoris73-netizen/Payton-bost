@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "gentle_harvest"
+display_name = "Gentle Harvest"
+slot = "secondary"
+category = "support"
+description = "Gathers up to two nearby flower, berry or nectar patches for you."
+effect = "harvest"
+params = {
+"items": ["petals", "sunberry", "dew_nectar"],
+"radius": 10.0,
+"max": 2
+}
+cooldown = 45
+unlock_friendship = 2
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.765, 0.89, 0.604, 1)

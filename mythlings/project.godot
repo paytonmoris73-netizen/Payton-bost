@@ -20,6 +20,8 @@ GameState="*res://scripts/core/game_state.gd"
 SaveManager="*res://scripts/saving/save_manager.gd"
 Quests="*res://scripts/quests/quest_manager.gd"
 Store="*res://scripts/store/store_service.gd"
+Abilities="*res://scripts/creatures/ability_system.gd"
+Evolution="*res://scripts/creatures/evolution_system.gd"
 Audio="*res://scripts/audio/audio_manager.gd"
 Router="*res://scripts/core/scene_router.gd"
 

@@ -28,6 +28,7 @@ var _step_t := 0.0
 var _flower_t := 0.0
 var _player_close_t := 0.0
 var rider: Node3D = null
+var _idle_bond := 0.0
 
 func setup(d: CreatureData, m: int, at: Vector3) -> void:
 	data = d
@@ -44,8 +45,8 @@ func setup(d: CreatureData, m: int, at: Vector3) -> void:
 		acc = acc_c
 	rig = CreatureModels.build(d.id, variant, acc)
 	add_child(rig)
-	radius = 8.5 if d.is_colossal() else 3.2
-	home_radius = 18.0 if d.is_colossal() else 8.0
+	radius = 8.5 if d.is_colossal() else (4.2 if d.is_large() else 3.2)
+	home_radius = 18.0 if d.is_colossal() else (10.0 if d.is_large() else 8.0)
 	_voice = AudioStreamPlayer3D.new()
 	_voice.bus = "SFX"
 	_voice.unit_size = 6.0 if not d.is_colossal() else 30.0
@@ -158,41 +159,16 @@ func _gain(n: int, kind: String) -> int:
 	return g
 
 # ------------------------------------------------------------------ ability
-func ability_ready() -> bool:
-	return _ability_cd <= 0.0
+func use_ability(slot := "primary") -> String:
+	## Activates the ability in a slot through the data-driven AbilitySystem.
+	var a := Abilities.in_slot(data.id, slot)
+	if a == null:
+		return "%s has no %s ability." % [data.display_name, slot]
+	return Abilities.activate(self, a.id)
 
-func use_ability() -> String:
-	if _ability_cd > 0.0:
-		return "%s is resting (%.0fs)." % [data.display_name, _ability_cd]
-	_ability_cd = 3.0
-	emote("discovery" if not data.is_colossal() else "stomp", 1.2)
-	Audio.play_sfx("ability", 1.0)
-	var p := player()
-	var origin: Vector3 = p.global_position if p else global_position
-	var reach := 40.0 if data.is_colossal() else 14.0
-	var kinds := [data.ability_id]
-	if data.is_colossal():
-		kinds.append("hidden_plant")  # guardians sense everything their forest hides
-	var hit := 0
-	var nearest: AbilityTarget = null
-	var nearest_d := INF
-	for t in get_tree().get_nodes_in_group("ability_target"):
-		var at := t as AbilityTarget
-		if at == null or at.done or not (at.kind in kinds):
-			continue
-		var d := at.global_position.distance_to(origin)
-		if d <= reach:
-			if at.activate():
-				hit += 1
-		elif d < nearest_d:
-			nearest_d = d
-			nearest = at
-	FX.burst(get_parent(), global_position + Vector3(0, data.height * 0.6, 0), Palette.element_color(data.primary_element()), 30 if not data.is_colossal() else 80, 0.07 if not data.is_colossal() else 0.2, 3.0 if not data.is_colossal() else 8.0, 1.2)
-	if hit > 0:
-		return ""
-	if nearest:
-		return "%s senses something to the %s (%dm)." % [data.display_name, _compass(nearest.global_position - origin), int(nearest_d)]
-	return "%s finds nothing new around here." % data.display_name
+func ability_ready(slot := "primary") -> bool:
+	var a := Abilities.in_slot(data.id, slot)
+	return a != null and Abilities.cooldown_left(data.id, a.id) <= 0.0
 
 static func _compass(v: Vector3) -> String:
 	var a := rad_to_deg(atan2(v.x, -v.z))
@@ -272,7 +248,7 @@ func _snap_ground(delta: float) -> void:
 	if data.locomotion in ["float", "fly"] or data.is_colossal():
 		y = maxf(g, w)
 	elif w > g:
-		y = maxf(g, w - 0.15)  # small creatures paddle at the surface
+		y = maxf(g, w - (0.15 if not data.is_large() else 0.8))  # paddle at the surface
 	global_position.y = lerpf(global_position.y, y, clampf(delta * 10.0, 0.0, 1.0))
 
 func _wild(delta: float) -> void:
@@ -285,7 +261,7 @@ func _wild(delta: float) -> void:
 	if data.is_colossal():
 		rig.lower_head = lerpf(rig.lower_head, 1.0 if (pd < 9.0 and discovered) else 0.0, delta * 1.5)
 	# Shy creatures startle when someone runs up to them.
-	if data.personality == "shy" and pd < 7.0 and player_running and _state != "flee":
+	if data.personality == "shy" and pd < 7.0 and player_running and _state != "flee" and not Abilities.calm_active():
 		_state = "flee"
 		_state_t = 2.5
 		rig.emote("startled", 0.6)
@@ -330,6 +306,26 @@ func _wild(delta: float) -> void:
 func _pick_wild_action(pd: float) -> void:
 	var r := randf()
 	var pers := data.personality
+	var night: bool = level().sky.is_night() if level().sky else false
+	# Most Mythlings settle down after dark; celestial ones come alive.
+	if night and not ("celestial" in data.elements) and r < 0.35:
+		_state = "sleep"
+		_state_t = randf_range(12.0, 25.0)
+		return
+	# Greet a nearby Mythling now and then.
+	if r > 0.85:
+		for other in level().creatures.values():
+			if other != self and is_instance_valid(other) and other.global_position.distance_to(global_position) < 4.0 + (6.0 if data.is_colossal() else 0.0):
+				face_toward(other.global_position)
+				rig.emote("happy" if pers != "proud" else "roar", 1.2)
+				_state = "idle"
+				_state_t = 2.0
+				return
+	if pers == "proud" and r < 0.2:
+		rig.emote("roar" if data.size_class != "small" else "happy", 1.4)
+	if pers == "mysterious" and r < 0.25:
+		rig.emote("sniff", 1.6)
+		FX.burst(get_parent(), global_position + Vector3(0, data.height, 0), Palette.element_color(data.primary_element()), 8, 0.04, 0.6, 1.5, 0.2)
 	if pers == "sleepy" and r < 0.45:
 		_state = "sleep"
 		_state_t = randf_range(10.0, 20.0)
@@ -342,11 +338,11 @@ func _pick_wild_action(pd: float) -> void:
 		_state = "chase"
 		_state_t = randf_range(4.0, 7.0)
 		return
-	if pers in ["curious", "excited"] and pd < 9.0 and pd > 2.2 and r < 0.4:
+	if pers in ["curious", "excited", "energetic", "gentle"] and pd < 9.0 and pd > 2.2 and r < 0.4:
 		_state = "approach"
 		_state_t = 3.0
 		return
-	if pers == "excited" and r < 0.6:
+	if pers in ["excited", "energetic"] and r < 0.6:
 		rig.emote("happy", 1.0)
 	_state = "wander"
 	_state_t = randf_range(4.0, 8.0)
@@ -384,11 +380,25 @@ func _companion(delta: float) -> void:
 	var spd := data.move_speed * (1.6 if d > 6.0 else 1.0)
 	if p.get("is_running") == true:
 		spd = maxf(spd, 7.5)
+	if data.personality == "protective":
+		target = p.global_position + back * (follow_d * 0.6) + side * 0.7
 	if global_position.distance_to(target) > 0.8:
 		_move_toward(target, spd, delta)
+		_idle_bond = 0.0
 	else:
 		_move_toward(global_position, 0, delta)
 		face_toward(p.global_position + -back * 3.0)
+		# Close friends show off special idle moments when you stand still.
+		_idle_bond += delta
+		var fl := GameState.friendship_level(data.id)
+		if fl >= 4 and _idle_bond > 7.0 and not rig.is_emoting():
+			_idle_bond = 0.0
+			if fl >= 5:
+				rig.emote("discovery", 1.8)
+				FX.burst(get_parent(), global_position + Vector3(0, data.height, 0), Color("ff8fb0"), 14, 0.05 * (6.0 if data.is_colossal() else 1.0), 1.6, 1.4, -0.4)
+			else:
+				rig.emote("happy", 1.4)
+				hearts()
 	if data.is_colossal():
 		rig.lower_head = lerpf(rig.lower_head, 0.6 if d < 9.0 else 0.0, delta)
 
@@ -410,10 +420,14 @@ func _colossal_fx(delta: float) -> void:
 			var feet = rig.part("feet")
 			var foot: Node3D = feet[randi() % feet.size()] if feet is Array else null
 			var fp := foot.global_position if foot else global_position
-			level().spawn_footstep_flowers(Vector3(fp.x, level().terrain.height(fp.x, fp.z), fp.z))
+			var gp := Vector3(fp.x, level().terrain.height(fp.x, fp.z), fp.z)
+			if data.id == "ignaroth":
+				FX.burst(get_parent(), gp + Vector3(0, 0.3, 0), Color("ff8a3a"), 12, 0.12, 2.5, 1.0, 1.0)
+			else:
+				level().spawn_footstep_flowers(gp)
 			if _player_dist() < 30.0:
 				Audio.play_sfx("stomp", randf_range(0.85, 1.0), -10.0)
-	if rig.sleeping:
+	if rig.sleeping and data.id == "verdantus":
 		_flower_t -= delta
 		if _flower_t <= 0.0:
 			_flower_t = 2.0

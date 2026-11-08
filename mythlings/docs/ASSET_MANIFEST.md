@@ -12,6 +12,8 @@ Honest status of every asset in this build. Nothing here is final production art
 | Asset | Built by | Status |
 |---|---|---|
 | Mossbun, Cloverling, Pebblit, Sunfox, Dewdrop, Bloomtail | `creature_models.gd` | Individually designed procedural models with procedural animation (idle, walk/hop/float/waddle, run, happy, sleep, interact/pet, discovery, startled). Placeholder quality. |
+| Mosswarden (large), Glimmerhare (small evolved), Ignaroth (colossal, flying) | `creature_models.gd` | Procedural models with procedural animation; Ignaroth wing membranes are generated meshes. Placeholder quality. |
+| Ability visual effects (leaf spiral, ember crown, star field, water ring, wind column, root wave, rune pulse) | `ability_fx.gd` | Particle and mesh effects |
 | Verdantus (colossal) | `creature_models.gd` | Procedural model, antlers, back flora, glowing markings, stomp/roar/rest emotes, footstep flowers. Placeholder quality. |
 | Cosmetic variants (autumn, moonlit, geode, twilight, rose, sunset, bloomguard) and accessories | `creature_models.gd` | Palette and attachment variants |
 | Keeper character with 6 hairstyles, 7 tops, 6 hats, 4 backpacks | `player_model.gd` | Procedural; simple limb rig |
@@ -21,7 +23,7 @@ Honest status of every asset in this build. Nothing here is final production art
 | Music (menu, meadow), ambience, ~25 SFX, creature voices | `tools/generate_audio.py` | Synthesised WAV placeholders |
 
 ## Temporary placeholders
-- Creatures without models (30 regular + 5 colossal): data and journal entries exist. Any preview shows a clearly marked "?" orb, and the UI says the model arrives with its region.
+- Creatures without models (30 regular + 4 earnable colossal + 10 premium concepts): data and journal entries exist. Any preview shows a clearly marked "?" orb, and the UI says the model arrives with its region.
 - The World Collections products are listed as unavailable until their regions ship.
 
 ## Required future artwork and audio

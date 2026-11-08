@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "lumoriel"
+display_name = "Lumoriel"
+region = "sunpetal"
+habitat = "Dreamlight Canopy"
+elements = PackedStringArray("celestial", "nature")
+rarity = "legendary"
+size_class = "colossal"
+personality = "gentle"
+description = "The Dreamlight Creature: a drifting organism of layered translucent veils and hanging light-ribbons, like a lantern made of jellyfish petals."
+personality_text = ""
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 72,
+"spirit": 44,
+"agility": 16
+}
+palette = PackedColorArray(0.188, 0.188, 0.29, 1, 0.541, 0.604, 0.91, 1)
+model_id = "lumoriel"
+locomotion = "float"
+move_speed = 3.0
+height = 8.0
+sound_pitch = 0.5
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Dreamlight Canopy.", "", "Ability: unknown.")
+discovery_hint = "Premium concept. Planned for a future update; not available yet."
+rideable = true
+model_ready = false
+abilities = PackedStringArray("dream_passage", "light_discovery", "gentle_flight", "luminous_awakening")
+acquisition = PackedStringArray("purchase")
+lore = "Concept stage. Model, animations and abilities are not built yet."
+originality_notes = "Concept only; review against existing franchises before modelling."
+flight = false

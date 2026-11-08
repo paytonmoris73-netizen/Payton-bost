@@ -33,7 +33,10 @@ func interact(player: Node) -> void:
 	if GameState.flag("chest_" + uid):
 		return
 	GameState.set_flag("chest_" + uid)
-	GameState.grant_rewards(reward)
+	var r := reward.duplicate(true)
+	if r.has("gold"):
+		r.gold = int(round(int(r.gold) * Abilities.luck_mult()))
+	GameState.grant_rewards(r)
 	_open_visual(true)
 	Audio.play_sfx("discovery", 1.2)
 	FX.burst(get_parent(), global_position + Vector3(0, 0.8, 0), Color("ffe08a"), 40, 0.08, 4.0, 1.2)

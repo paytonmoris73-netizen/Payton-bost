@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "springtide"
+display_name = "Springtide"
+slot = "signature"
+category = "signature"
+description = "Bloomtail's flower opens wide: revives every wilted flower within 40 m and regrows resources within 20 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["wilted_flower"],
+"radius": 40.0
+}
+}, {
+"effect": "regrow",
+"params": {
+"radius": 20.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.851, 0.282, 0.478, 1)

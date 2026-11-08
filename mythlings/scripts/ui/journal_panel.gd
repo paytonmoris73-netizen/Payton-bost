@@ -9,7 +9,8 @@ var _region_bar: HBoxContainer
 var _detail: VBoxContainer
 var _viewer: ModelViewer
 var _selected := ""
-var _filters := {"region": "all", "element": "all", "rarity": "all", "status": "all"}
+var _filters := {"region": "all", "element": "all", "rarity": "all", "status": "all", "size": "all"}
+var _scale := false
 
 func build_content() -> void:
 	setup_frame("Mythling Journal", "book")
@@ -17,7 +18,7 @@ func build_content() -> void:
 	_progress = UIKit.label("", "Title", 22, Palette.MOSS_DARK)
 	_progress.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(_progress)
-	for f in [["region", ["all"] + DB.REGION_ORDER + ["colossal"]], ["element", ["all", "nature", "fire", "water", "ice", "earth", "celestial"]], ["rarity", ["all", "common", "uncommon", "rare", "epic", "legendary", "mythic"]], ["status", ["all", "discovered", "undiscovered", "friends"]]]:
+	for f in [["region", ["all"] + DB.REGION_ORDER + ["colossal"]], ["size", ["all", "small", "large", "colossal"]], ["element", ["all", "nature", "fire", "water", "ice", "earth", "celestial", "storm"]], ["rarity", ["all", "common", "uncommon", "rare", "epic", "legendary", "mythic"]], ["status", ["all", "discovered", "undiscovered", "friends"]]]:
 		var ob := OptionButton.new()
 		ob.focus_mode = Control.FOCUS_NONE
 		ob.custom_minimum_size = Vector2(170, 52)
@@ -58,7 +59,11 @@ func on_open(args: Dictionary) -> void:
 
 func refresh() -> void:
 	var total := DB.standard_creatures().size()
-	_progress.text = "Collection  %d / %d discovered" % [GameState.discovered_count(), total]
+	var forms := 0
+	for c in DB.evolved_creatures():
+		if GameState.is_discovered(c.id):
+			forms += 1
+	_progress.text = "Collection  %d / %d  ·  Evolved forms %d / %d  ·  Colossal %d / %d" % [GameState.discovered_count(), total, forms, DB.evolved_creatures().size(), GameState.stat_value("colossal_discovered"), DB.colossal_creatures().size()]
 	UIKit.clear(_region_bar)
 	for r in DB.REGION_ORDER:
 		var reg: RegionData = DB.region(r)
@@ -78,6 +83,8 @@ func _passes(c: CreatureData) -> bool:
 			return false
 	elif f.region != "all" and c.region != f.region:
 		return false
+	if f.size != "all" and c.size_class != f.size:
+		return false
 	if f.element != "all" and not (f.element in c.elements):
 		return false
 	if f.rarity != "all" and c.rarity != f.rarity:
@@ -92,7 +99,7 @@ func _passes(c: CreatureData) -> bool:
 func _rebuild_grid() -> void:
 	UIKit.clear(_grid)
 	_grid.columns = 4 if get_viewport_rect().size.x > 1300 else 3
-	var list: Array = DB.standard_creatures() + DB.colossal_creatures()
+	var list: Array = DB.standard_creatures() + DB.evolved_creatures() + DB.colossal_creatures()
 	for c in list:
 		if _passes(c):
 			_grid.add_child(_card(c))
@@ -150,14 +157,22 @@ func _show_detail(id: String) -> void:
 	if disc:
 		_detail.add_child(_viewer)
 		var variant := GameState.creature_cosmetic(id)
+		_viewer.scale_ref = _scale
 		_viewer.show_item("colossal" if c.is_colossal() else "creature", id + (":" + variant.split(":")[2] if variant.begins_with("variant:") else ""))
 		var anims := UIKit.hbox(6)
-		for a in [["Idle", "idle"], ["Walk", "walk"], ["Happy", "happy"], ["Sleep", "sleep"], ["Discover", "discovery"]]:
+		for a in [["Idle", "idle"], ["Walk", "walk"], ["Happy", "happy"], ["Sleep", "sleep"]]:
 			var ab := UIKit.button(a[0], "", "", 46)
 			ab.add_theme_font_size_override("font_size", 17)
 			var anim: String = a[1]
 			ab.pressed.connect(func(): _viewer.play(anim))
 			anims.add_child(ab)
+		var sz := UIKit.button("Size", "size", "TabButton", 46, 20)
+		sz.toggle_mode = true
+		sz.button_pressed = _scale
+		sz.toggled.connect(func(v):
+			_scale = v
+			_show_detail(id))
+		anims.add_child(sz)
 		_detail.add_child(anims)
 		if not c.model_ready:
 			_detail.add_child(UIKit.label("3D model arrives with its region update.", "Caption", 16, Palette.DANGER))
@@ -172,6 +187,7 @@ func _show_detail(id: String) -> void:
 	var pills := HFlowContainer.new()
 	pills.add_theme_constant_override("h_separation", 6)
 	pills.add_theme_constant_override("v_separation", 6)
+	pills.add_child(UIKit.pill(c.size_label(), Palette.TEAL, Color.WHITE, "size"))
 	pills.add_child(UIKit.rarity_pill(c.rarity))
 	if disc:
 		for e in c.elements:
@@ -212,6 +228,36 @@ func _show_detail(id: String) -> void:
 	for s in c.base_stats:
 		stats.add_child(UIKit.pill("%s %d" % [String(s).capitalize(), int(c.base_stats[s])], Palette.TEAL))
 	_detail.add_child(stats)
+	_detail.add_child(UIKit.label("Abilities", "Title", 20))
+	for a in Abilities.kit(id):
+		var lock := Abilities.lock_reason(id, a)
+		_detail.add_child(UIKit.label("%s · %s — %s%s" % [a.slot.capitalize(), a.display_name, a.description, "" if lock == "" else "  (" + lock + ")"], "", 17, Palette.INK if lock == "" else Palette.INK_SOFT, true))
+	var fam: Array = DB.family(c.family)
+	if fam.size() > 1:
+		_detail.add_child(UIKit.label("Evolution", "Title", 20))
+		var chain := HFlowContainer.new()
+		chain.add_theme_constant_override("h_separation", 6)
+		for f in fam:
+			var known := GameState.is_discovered(f.id)
+			chain.add_child(UIKit.pill(("%s · %s" % [f.display_name, f.size_label()]) if known else "??? · stage %d" % f.stage, Palette.MOSS if f.id == id else (Palette.TEAL if known else Palette.INK_SOFT)))
+		_detail.add_child(chain)
+		for e in Evolution.options(id):
+			var t: CreatureData = DB.creature(e.to)
+			var reqs: Array = Evolution.requirements(id, e).map(func(r): return ("✓ " if r.met else "") + r.label)
+			_detail.add_child(UIKit.label("%s → %s: %s" % [Evolution.PATH_NAMES.get(e.path, e.path), t.display_name if GameState.is_discovered(t.id) else "a new form", "; ".join(reqs)], "", 16, Color(0, 0, 0, 0), true))
+		if c.evolves_from != "" and GameState.is_discovered(c.evolves_from):
+			var rp := UIKit.button("Replay evolution", "play", "", 50)
+			var src: String = c.evolves_from
+			rp.pressed.connect(func():
+				await close()
+				var gu = get_tree().get_first_node_in_group("game_ui")
+				if gu:
+					gu.play_evolution(src, id))
+			_detail.add_child(rp)
+	var how := {"explore": "Found in the wild", "evolve": "Evolution", "quest": "Story quest", "purchase": "Grand Market (optional)"}
+	_detail.add_child(UIKit.label("How to obtain: " + ", ".join(Array(c.acquisition).map(func(x): return how.get(x, x))), "", 17, Palette.MOSS_DARK, true))
+	if c.lore != "":
+		_detail.add_child(UIKit.label(c.lore, "", 17, Palette.INK_SOFT, true))
 	_detail.add_child(UIKit.label("Keeper's notes", "Title", 20))
 	for i in c.friendship_notes.size():
 		if fl >= i + 1:

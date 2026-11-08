@@ -7,6 +7,7 @@ var items: Dictionary = {}
 var quests: Dictionary = {}
 var regions: Dictionary = {}
 var shop: Dictionary = {}
+var abilities: Dictionary = {}
 
 const REGION_ORDER := ["meadow", "emberfall", "tideglass", "frostroot", "sunpetal", "starfall"]
 
@@ -17,10 +18,11 @@ const ACHIEVEMENTS := [
 	{"id": "best_friends", "name": "Best Friends", "desc": "Reach friendship level 5 with any Mythling.", "stat": "max_friendship", "goal": 5, "crystals": 10},
 	{"id": "sanctuary_restorer", "name": "Sanctuary Restorer", "desc": "Fully restore a sanctuary.", "stat": "sanctuary_max", "goal": 3, "crystals": 15},
 	{"id": "meadow_naturalist", "name": "Meadow Naturalist", "desc": "Discover all six Whispering Meadow Mythlings.", "stat": "discovered_meadow", "goal": 6, "crystals": 20},
-	{"id": "gentle_giant", "name": "Gentle Giant", "desc": "Earn the trust of a Colossal Mythling.", "stat": "colossal_discovered", "goal": 1, "crystals": 25},
+	{"id": "gentle_giant", "name": "Gentle Giant", "desc": "Earn the trust of a Colossal Mythling.", "stat": "colossal_discovered", "goal": 1, "crystals": 25, "star_gems": 50},
 	{"id": "gatherer", "name": "Gatherer", "desc": "Collect 50 resources.", "stat": "resources_collected", "goal": 50, "gold": 100},
 	{"id": "master_collector", "name": "Master Collector", "desc": "Discover all 36 standard Mythlings.", "stat": "discovered_standard", "goal": 36, "crystals": 100},
 	{"id": "ocean_adventurer", "name": "Ocean Adventurer", "desc": "Discover every Tideglass Coast Mythling.", "stat": "discovered_tideglass", "goal": 6, "crystals": 20},
+	{"id": "first_evolution", "name": "Grown Together", "desc": "Help a Mythling evolve.", "stat": "evolutions", "goal": 1, "crystals": 20},
 	{"id": "starfall_explorer", "name": "Starfall Explorer", "desc": "Discover every Starfall Isles Mythling.", "stat": "discovered_starfall", "goal": 6, "crystals": 30},
 ]
 
@@ -44,6 +46,7 @@ func _ready() -> void:
 	_load_dir("res://resources/quests", quests)
 	_load_dir("res://resources/regions", regions)
 	_load_dir("res://resources/shop", shop)
+	_load_dir("res://resources/abilities", abilities)
 	print("[DB] creatures=%d items=%d quests=%d regions=%d shop=%d" % [creatures.size(), items.size(), quests.size(), regions.size(), shop.size()])
 
 func _load_dir(path: String, into: Dictionary) -> void:
@@ -66,6 +69,9 @@ func _load_dir(path: String, into: Dictionary) -> void:
 func creature(id: String) -> CreatureData:
 	return creatures.get(id)
 
+func ability(id: String) -> AbilityData:
+	return abilities.get(id)
+
 func item(id: String) -> ItemData:
 	return items.get(id)
 
@@ -86,10 +92,33 @@ func creatures_in_region(region_id: String, include_colossal := false) -> Array:
 	out.sort_custom(func(a, b): return _rarity_rank(a.rarity) < _rarity_rank(b.rarity) or (_rarity_rank(a.rarity) == _rarity_rank(b.rarity) and a.display_name < b.display_name))
 	return out
 
+## Base-form species found in the wild (the "36" of the collection).
 func standard_creatures() -> Array:
 	var out: Array = []
 	for r in REGION_ORDER:
-		out.append_array(creatures_in_region(r))
+		for c in creatures_in_region(r):
+			if c.evolves_from == "":
+				out.append(c)
+	return out
+
+## Forms reached through evolution (excluding colossals).
+func evolved_creatures() -> Array:
+	var out: Array = []
+	for r in REGION_ORDER:
+		for c in creatures_in_region(r):
+			if c.evolves_from != "":
+				out.append(c)
+	return out
+
+## Every stage in a family, ordered by stage.
+func family(fam: String) -> Array:
+	var out: Array = []
+	if fam == "":
+		return out
+	for c in creatures.values():
+		if c.family == fam:
+			out.append(c)
+	out.sort_custom(func(a, b): return a.stage < b.stage or (a.stage == b.stage and a.display_name < b.display_name))
 	return out
 
 func colossal_creatures() -> Array:

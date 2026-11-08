@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "tidal_echo"
+display_name = "Tidal Echo"
+slot = "primary"
+category = "environmental"
+description = "Designed for a future region update. Not usable in this build."
+effect = "region_locked"
+params = {
+
+}
+cooldown = 10
+unlock_friendship = 0
+requires_evolved = false
+vfx = "burst"
+color = Color(0.714, 0.961, 0.784, 1)

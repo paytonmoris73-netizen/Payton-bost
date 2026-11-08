@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "eternal_grove"
+display_name = "Eternal Grove"
+slot = "signature"
+category = "signature"
+description = "The ground blossoms around Verdantus: resources within 40 m regrow, and hidden plants and wilted flowers within 45 m awaken."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "regrow",
+"params": {
+"radius": 40.0
+}
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["hidden_plant", "wilted_flower"],
+"radius": 45.0
+}
+}]
+}
+cooldown = 120
+unlock_friendship = 4
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.224, 0.898, 0.549, 1)

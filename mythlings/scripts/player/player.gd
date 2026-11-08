@@ -25,6 +25,14 @@ var swimming := false
 var wading := false
 var input_locked := false
 var mount: Creature = null
+var jump_held := false  # set by the HUD jump button (hold to climb while flying)
+var glide_time := 0.0
+var swim_boost_time := 0.0
+var swim_boost_mult := 2.0
+var _dash_time := 0.0
+var _dash_vel := Vector3.ZERO
+var _glow: OmniLight3D
+var flying := false
 
 var _yaw := 0.0
 var _pitch := -0.32
@@ -109,14 +117,48 @@ func _physics_process(delta: float) -> void:
 	var depth := wl - gy
 	swimming = mount == null and depth > 1.15 and global_position.y < wl - 0.4
 	wading = mount == null and not swimming and depth > 0.15 and global_position.y < wl + 0.1
-	var speed := (RUN if is_running else WALK) * inp.length()
+	var speed := (RUN if is_running else WALK) * inp.length() * Abilities.speed_mult()
+	var boosted := swim_boost_time > 0.0
 	if mount:
-		speed = (14.0 if is_running else 8.0) * inp.length()
+		var big := mount.data.is_colossal()
+		speed = ((14.0 if is_running else 8.0) if big else (11.0 if is_running else 6.5)) * inp.length()
+		if flying:
+			speed = (20.0 if is_running else 13.0) * inp.length()
 	elif swimming:
-		speed = SWIM * inp.length()
-	elif wading:
+		speed = SWIM * inp.length() * (swim_boost_mult if boosted else 1.0)
+	elif wading and not boosted:
 		speed *= 0.62
+	swim_boost_time = maxf(0.0, swim_boost_time - delta)
 	var climbing := _climb != null and inp.length() > 0.2 and dir.normalized().dot(-_climb.face_normal) > 0.3
+	var can_fly: bool = mount != null and mount.data.flight
+	var want_up: bool = not input_locked and (jump_held or Input.is_action_pressed("jump"))
+	if _dash_time > 0.0:
+		_dash_time -= delta
+		velocity.x = _dash_vel.x
+		velocity.z = _dash_vel.z
+		velocity.y = maxf(velocity.y, 0.0) if is_on_floor() else velocity.y - GRAVITY * delta * 0.5
+		move_and_slide()
+		_update_interactable()
+		return
+	if can_fly and (flying or want_up):
+		flying = true
+		var ground_y: float = gy if gy > -INF else global_position.y
+		var target_vy := 7.0 if want_up else -2.6
+		if global_position.y - ground_y > 45.0 and target_vy > 0.0:
+			target_vy = 0.0
+		velocity.x = lerpf(velocity.x, dir.x * speed, clampf(delta * 2.5, 0.0, 1.0))
+		velocity.z = lerpf(velocity.z, dir.z * speed, clampf(delta * 2.5, 0.0, 1.0))
+		velocity.y = lerpf(velocity.y, target_vy, clampf(delta * 6.0, 0.0, 1.0))
+		mount.rig.wing_spread = lerpf(mount.rig.wing_spread, 1.0, delta * 3.0)
+		mount.rig.locomotion = "fly"
+		move_and_slide()
+		if is_on_floor() and not want_up:
+			flying = false
+			mount.rig.locomotion = "quad"
+		_after_move(delta, Vector3(velocity.x, 0, velocity.z))
+		return
+	if mount and mount.rig.wing_spread > 0.01:
+		mount.rig.wing_spread = lerpf(mount.rig.wing_spread, 0.0, delta * 2.0)
 	if climbing:
 		velocity = -_climb.face_normal * 1.2 + Vector3.UP * 3.4
 	elif swimming:
@@ -131,24 +173,32 @@ func _physics_process(delta: float) -> void:
 		velocity.z = lerpf(velocity.z, dir.z * speed, clampf(delta * accel, 0.0, 1.0))
 		if not is_on_floor():
 			velocity.y -= GRAVITY * delta
+			if glide_time > 0.0 and velocity.y < -1.6:
+				velocity.y = -1.6
+				velocity.x = lerpf(velocity.x, dir.x * 7.0, delta * 2.0)
+				velocity.z = lerpf(velocity.z, dir.z * 7.0, delta * 2.0)
 		elif not input_locked and Input.is_action_just_pressed("jump"):
 			jump()
+	glide_time = maxf(0.0, glide_time - delta)
 	move_and_slide()
+	_after_move(delta, Vector3(velocity.x, 0, velocity.z))
+
+func _after_move(delta: float, flat: Vector3) -> void:
 	# Face movement direction.
-	var flat := Vector3(velocity.x, 0, velocity.z)
 	if flat.length() > 0.3:
 		var target_rot := atan2(-flat.x, -flat.z)
 		rotation.y = lerp_angle(rotation.y, target_rot, delta * (5.0 if mount else 12.0))
 	# Animation state.
 	var hs := flat.length()
 	model.speed = hs / WALK if not mount else 0.0
-	model.airborne = not is_on_floor() and not swimming and not climbing and mount == null
+	model.airborne = not is_on_floor() and not swimming and _climb == null and mount == null
 	model.swimming = swimming
 	model.riding = mount != null
 	if mount:
 		mount.global_position = global_position
 		mount.rotation.y = rotation.y
-		mount.set_mount_motion(hs / 6.0)
+		mount.set_mount_motion(hs / (6.0 if mount.data.is_colossal() else 4.0))
+	_update_glow()
 	# Landing / footsteps.
 	if is_on_floor() and _was_air:
 		Audio.play_sfx("land", 1.0, -6.0)
@@ -171,6 +221,27 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector3.ZERO
 	_update_interactable()
 
+func dash(speed: float, time: float) -> void:
+	var f := -global_transform.basis.z
+	f.y = 0
+	_dash_vel = f.normalized() * speed
+	_dash_time = time
+	if is_on_floor():
+		velocity.y = 2.5
+
+func _update_glow() -> void:
+	var want: bool = Abilities.glow_active() and MeadowLevel.current != null and MeadowLevel.current.sky.is_night()
+	if want and _glow == null:
+		_glow = OmniLight3D.new()
+		_glow.light_color = Color("ff9a4a")
+		_glow.omni_range = 9.0
+		_glow.light_energy = 1.2
+		_glow.position = Vector3(0, 2.0, 0)
+		add_child(_glow)
+	elif not want and _glow:
+		_glow.queue_free()
+		_glow = null
+
 func jump() -> void:
 	if swimming:
 		return
@@ -185,13 +256,13 @@ func _process(delta: float) -> void:
 	var moving := Vector3(velocity.x, 0, velocity.z).length() > 1.0
 	if moving and _cam_idle > 1.6 and GameState.setting("reduce_motion") != true:
 		_yaw = lerp_angle(_yaw, rotation.y, delta * 0.8)
-	var focus := global_position + Vector3(0, 1.45 if mount == null else 7.0, 0)
+	var focus := global_position + Vector3(0, 1.45 if mount == null else (7.0 if mount.data.is_colossal() else 3.0), 0)
 	if _focus_override != Vector3.INF:
 		focus = _focus_override
 	cam_yaw.global_position = cam_yaw.global_position.lerp(focus, clampf(delta * 10.0, 0.0, 1.0))
 	cam_yaw.rotation.y = _yaw
 	cam_pitch.rotation.x = _pitch
-	var target_d := _dist if mount == null else 12.0
+	var target_d := _dist if mount == null else (12.0 if mount.data.is_colossal() else 7.5)
 	spring.spring_length = lerpf(spring.spring_length, target_d, delta * 3.0)
 
 func set_camera_distance(d: float) -> void:
@@ -265,8 +336,13 @@ func mount_creature(c: Creature) -> void:
 func dismount() -> void:
 	if mount == null:
 		return
+	if flying:
+		Events.toast.emit("Land first", "Let go of Jump to glide down, then dismount.", "ride")
+		return
 	var c := mount
 	mount = null
+	c.rig.locomotion = "quad" if c.data.locomotion == "quad" else c.data.locomotion
+	c.rig.wing_spread = 0.0
 	c.mode = Creature.Mode.COMPANION if GameState.companion() == c.data.id else Creature.Mode.WILD
 	c.home = c.global_position
 	var side := global_transform.basis.x * 4.5

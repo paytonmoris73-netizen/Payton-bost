@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_glimmerhare"
+display_name = "Glimmerhare"
+category = "creature"
+description = "A lean, long-legged runner whose ears have stretched into glowing root-antennae. Pale speckles shimmer along its back when it sprints."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "rare"
+preview_kind = "creature"
+preview_id = "glimmerhare"
+earn_path = "Free — earned by evolving Mossbun."
+tags = PackedStringArray("evolved")

@@ -33,3 +33,7 @@ friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often fo
 discovery_hint = "Look where the butterflies gather in the clearing."
 rideable = false
 model_ready = true
+abilities = PackedStringArray("lucky_leaf", "lucky_find", "resource_finder", "fourfold_fortune")
+family = "cloverling"
+stage = 1
+acquisition = PackedStringArray("explore")

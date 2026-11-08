@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "green_thumb"
+display_name = "Green Thumb"
+slot = "passive"
+category = "support"
+description = "+1 petals from flower patches while Bloomtail is with you."
+effect = "passive_yield"
+params = {
+"items": ["petals"],
+"bonus": 1
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.851, 0.282, 0.478, 1)

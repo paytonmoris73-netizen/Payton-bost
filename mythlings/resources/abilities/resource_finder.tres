@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "resource_finder"
+display_name = "Resource Finder"
+slot = "secondary"
+category = "support"
+description = "Places glowing beacons over every gatherable resource within 30 m for 25 seconds."
+effect = "highlight"
+params = {
+"radius": 30.0,
+"duration": 25.0
+}
+cooldown = 30
+unlock_friendship = 2
+requires_evolved = false
+vfx = "burst"
+color = Color(1.0, 0.949, 0.69, 1)

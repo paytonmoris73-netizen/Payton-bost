@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "fourfold_fortune"
+display_name = "Fourfold Fortune"
+slot = "signature"
+category = "signature"
+description = "Cloverling spins its four leaves into a golden ring: reveals every lucky clover within 40 m and highlights resources within 40 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["lucky_clover"],
+"radius": 40.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"radius": 40.0,
+"duration": 30.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "star_field"
+color = Color(0.89, 0.761, 0.29, 1)

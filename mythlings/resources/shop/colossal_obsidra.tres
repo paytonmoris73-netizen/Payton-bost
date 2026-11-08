@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "colossal_obsidra"
+display_name = "Obsidra"
+category = "colossal"
+description = "The Void Armor Guardian: a squared four-legged colossus whose armour plates float a hand's width off its body, orbiting slowly around glowing geometric seams."
+currency = "star_gems"
+price = 0
+grants = {
+
+}
+rarity = "mythic"
+preview_kind = "colossal"
+preview_id = "obsidra"
+available = false
+unavailable_reason = "In development: model not built yet. Not purchasable."
+tags = PackedStringArray("concept")

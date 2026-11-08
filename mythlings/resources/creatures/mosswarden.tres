@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "mosswarden"
+display_name = "Mosswarden"
+region = "meadow"
+habitat = "Ancient Oak Sanctuary"
+elements = PackedStringArray("nature", "earth")
+rarity = "rare"
+size_class = "large"
+personality = "gentle"
+description = "A grown Mossbun the height of a cottage door. Its leaf ears have become a heavy mossy cloak, a sapling grows from its crown, and it carries a glowing lantern-seed in its small forepaws."
+personality_text = "Gentle and protective. Mosswarden stays close, walks slowly, and plants things wherever it rests."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "clover_cookie"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.31, 0.478, 0.212, 1, 0.435, 0.612, 0.294, 1, 0.784, 1.0, 0.69, 1)
+model_id = "mosswarden"
+locomotion = "hop"
+move_speed = 2.6
+height = 2.6
+sound_pitch = 0.8
+friendship_notes = PackedStringArray("Prefers clover cookie as a treat.", "Often found near Ancient Oak Sanctuary.", "Gentle and protective. Mosswarden stays close, walks slowly, and plants things wherever it rests.", "Ability: unknown.")
+discovery_hint = "Evolve Mossbun through friendship in a restored sanctuary."
+rideable = true
+model_ready = true
+abilities = PackedStringArray("steady_root", "root_bridge", "nature_whisper", "grove_call")
+family = "mossbun"
+stage = 2
+evolves_from = "mossbun"
+acquisition = PackedStringArray("evolve")
+lore = "The oldest Mosswardens are said to have planted the Whispering Woods one lantern-seed at a time."
+evolutions = Array[Dictionary]([{
+"to": "verdantus",
+"path": "ascended",
+"requirements": {
+"friendship": 5,
+"level": 6,
+"items": {
+"glimmerroot": 3,
+"crystal": 3
+},
+"sanctuary": {
+"shrine": 1
+},
+"not_owned": "verdantus"
+},
+"text": "At the rekindled shrine, a Mosswarden of perfect trust can take on the guardian's form."
+}])
+originality_notes = "Large round rabbit-like silhouette with draped leaf-cloak ears and a lantern-seed. Deliberately no horns, wood grain or lion-tail tuft."

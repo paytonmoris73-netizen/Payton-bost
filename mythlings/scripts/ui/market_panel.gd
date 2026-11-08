@@ -6,8 +6,9 @@ extends UIPanel
 
 const CATS := [
 	["featured", "Featured", "star"],
-	["creature", "Creature Market", "paw"],
-	["colossal", "Colossal Collection", "leaf"],
+	["creature", "Small Mythlings", "paw"],
+	["large", "Large Mythlings", "size"],
+	["colossal", "Colossal Mythlings", "leaf"],
 	["clothing", "Clothing", "person"],
 	["creature_cosmetic", "Creature Cosmetics", "sparkle"],
 	["sanctuary", "Sanctuary", "hammer"],
@@ -27,6 +28,7 @@ var _product := ""
 var _viewer: ModelViewer
 var _confirm: Control
 var _busy := false
+var _size_ref := false
 
 func build_content() -> void:
 	max_size = Vector2(1560, 900)
@@ -161,14 +163,15 @@ func _sort_products(a: ShopItemData, b: ShopItemData) -> bool:
 	return a.display_name < b.display_name
 
 func _owned(p: ShopItemData) -> bool:
-	if p.category in ["creature", "colossal"] and p.preview_id != "" and p.currency == "none":
+	if p.category in ["creature", "large", "colossal"] and p.preview_id != "" and (p.currency == "none" or p.grants.has("creature")):
 		return GameState.is_discovered(p.preview_id.split(":")[0])
 	return GameState.owns(p.id)
 
 # ------------------------------------------------------------------ grid
 func _render_grid(list: Array) -> void:
 	var desc := {
-		"creature": "Every Mythling is discovered for free in the world. Here you'll find treats and optional cosmetic coats.",
+		"creature": "Every small Mythling is discovered for free in the world. Here you'll find treats and optional cosmetic coats.",
+		"large": "Large Mythlings are earned by evolving your companions. Their requirements are always listed in full.",
 		"clothing": "Outfits for your Keeper. Preview any item on your character before buying.",
 		"creature_cosmetic": "Accessories for your Mythlings. Purely cosmetic — they never change abilities.",
 		"sanctuary": "Decorations appear in the Ancient Oak Sanctuary once its standing stones are restored.",
@@ -293,7 +296,8 @@ func _render_colossal() -> void:
 	stage.add_child(sh)
 	var c: CreatureData = DB.creature(sel_id)
 	var discovered := GameState.is_discovered(sel_id)
-	_viewer.custom_minimum_size = Vector2(560, 440)
+	_viewer.scale_ref = _size_ref
+	_viewer.custom_minimum_size = Vector2(500, 440)
 	_viewer.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	sh.add_child(_viewer)
 	_viewer.show_item("colossal", sel_id + (":bloomguard" if sel_id == "verdantus" and GameState.owns("verdantus_bloomguard") else ""))
@@ -309,10 +313,13 @@ func _render_colossal() -> void:
 	pills.add_child(UIKit.rarity_pill(c.rarity))
 	for e in c.elements:
 		pills.add_child(UIKit.element_pill(e))
-	pills.add_child(UIKit.pill("Owned" if discovered else "Undiscovered", Palette.MOSS if discovered else Palette.INK_SOFT, Color.WHITE, "check" if discovered else "lock"))
+	var purchase_only := c.acquisition.size() == 1 and c.acquisition[0] == "purchase"
+	pills.add_child(UIKit.pill("Owned" if discovered else ("Not owned" if purchase_only else "Undiscovered"), Palette.MOSS if discovered else Palette.INK_SOFT, Color.WHITE, "check" if discovered else "lock"))
 	info.add_child(pills)
 	info.add_child(UIKit.label(c.description, "", 18, Color("e8efe9"), true))
-	info.add_child(UIKit.label("Ability — %s: %s" % [c.ability_name, c.ability_text], "", 18, Palette.GOLD, true))
+	for a in Abilities.kit(sel_id):
+		if a.slot in ["primary", "signature"]:
+			info.add_child(UIKit.label("%s — %s" % [a.display_name, a.description], "", 17, Palette.GOLD, true))
 	if discovered:
 		var fr := UIKit.hbox(8)
 		fr.add_child(UIKit.label("Friendship", "", 18, Color.WHITE))
@@ -322,7 +329,20 @@ func _render_colossal() -> void:
 	info.add_child(UIKit.label("How to discover: " + c.discovery_hint, "", 18, Color("cfe0d6"), true))
 	if not c.model_ready:
 		info.add_child(UIKit.label("Arrives with the %s update. Not available for purchase." % reg.display_name, "", 17, Color("ffb3a0"), true))
-	var anims := UIKit.hbox(6)
+	info.add_child(UIKit.label("Size: Colossal · approx. %d m tall (your Keeper is 1.75 m)" % int(c.height), "", 16, Color("cfe0d6")))
+	var anims := HFlowContainer.new()
+	anims.add_theme_constant_override("h_separation", 6)
+	anims.add_theme_constant_override("v_separation", 6)
+	var szb := UIKit.button("Size", "size", "", 46, 20)
+	szb.pressed.connect(func():
+		_size_ref = not _size_ref
+		_render())
+	anims.add_child(szb)
+	var sigc := Abilities.in_slot(sel_id, "signature")
+	if sigc and c.model_ready:
+		var db := UIKit.button("Signature", "sparkle", "", 46, 20)
+		db.pressed.connect(func(): _viewer.demo(sigc.id))
+		anims.add_child(db)
 	for a in [["Idle", "idle"], ["Walk", "walk"], ["Stomp", "stomp"], ["Roar", "roar"], ["Rest", "sleep"]]:
 		var ab := UIKit.button(a[0], "", "", 46)
 		var an: String = a[1]
@@ -330,6 +350,16 @@ func _render_colossal() -> void:
 		ab.disabled = not c.model_ready
 		anims.add_child(ab)
 	info.add_child(anims)
+	var listing: ShopItemData = DB.product("colossal_" + sel_id)
+	if listing and listing.currency != "none" and listing.available:
+		var owned_c := GameState.is_discovered(sel_id)
+		var bb := UIKit.button(("Owned" if owned_c else "View & buy — " + Store.price_label(listing)), "cart", "GoldButton", 58)
+		bb.disabled = owned_c
+		bb.pressed.connect(func():
+			_product = listing.id
+			_render())
+		info.add_child(bb)
+		info.add_child(UIKit.label("Optional. You get exactly this creature. Never needed for the story.", "Caption", 15, Color("cfe0d6"), true))
 	var cosp: ShopItemData = DB.product("verdantus_bloomguard")
 	if sel_id == "verdantus" and cosp:
 		var cb := UIKit.button("Bloomguard appearance — " + Store.price_label(cosp), "gem", "GoldButton", 56)
@@ -337,7 +367,9 @@ func _render_colossal() -> void:
 			_product = cosp.id
 			_render())
 		info.add_child(cb)
-	sh.add_child(info)
+	var info_scroll := UIKit.scroll(info)
+	info_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sh.add_child(info_scroll)
 	_content.add_child(stage)
 	var strip := UIKit.hbox(10)
 	for col in list:
@@ -383,19 +415,35 @@ func _render_detail(p: ShopItemData) -> void:
 	_content.add_child(split)
 	var left := UIKit.vbox(8)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_viewer.custom_minimum_size = Vector2(480, 380)
-	_viewer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_viewer.custom_minimum_size = Vector2(520, 420)
+	_viewer.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	left.add_child(_viewer)
 	match p.preview_kind:
 		"creature", "colossal":
+			_viewer.scale_ref = _size_ref
 			_viewer.show_item(p.preview_kind, p.preview_id)
-			var anims := UIKit.hbox(6)
+			var anims := HFlowContainer.new()
+			anims.add_theme_constant_override("h_separation", 6)
+			anims.add_theme_constant_override("v_separation", 6)
 			for a in [["Idle", "idle"], ["Walk", "walk"], ["Happy", "happy"], ["Sleep", "sleep"]]:
 				var ab := UIKit.button(a[0], "", "", 46)
 				var an: String = a[1]
 				ab.pressed.connect(func(): _viewer.play(an))
 				anims.add_child(ab)
+			var sz := UIKit.button("Size vs Keeper", "size", "TabButton", 46, 20)
+			sz.toggle_mode = true
+			sz.button_pressed = _size_ref
+			sz.toggled.connect(func(v):
+				_size_ref = v
+				_render())
+			anims.add_child(sz)
 			left.add_child(anims)
+			var cid := p.preview_id.split(":")[0]
+			var sig := Abilities.in_slot(cid, "signature")
+			if sig and CreatureModels.has_model(cid):
+				var demo := UIKit.button("Demonstrate %s" % sig.display_name, "sparkle", "GoldButton", 50)
+				demo.pressed.connect(func(): _viewer.demo(sig.id))
+				left.add_child(demo)
 		"outfit":
 			_viewer.show_item("outfit", p.preview_id)
 			left.add_child(UIKit.label("Previewing on your Keeper", "Caption", 16))
@@ -423,9 +471,11 @@ func _render_detail(p: ShopItemData) -> void:
 	right.add_child(pills)
 	right.add_child(UIKit.label(p.description, "", 20, Color(0, 0, 0, 0), true))
 	var cd: CreatureData = DB.creature(p.preview_id.split(":")[0]) if p.preview_kind in ["creature", "colossal"] else null
-	if cd and p.currency == "none":
-		for row in [["Size", "Colossal" if cd.is_colossal() else "Small"], ["Element", ", ".join(Array(cd.elements)).capitalize()], ["Habitat", cd.habitat], ["Personality", cd.personality.capitalize()], ["Ability", cd.ability_name + " — " + cd.ability_text]]:
+	if cd and (p.currency == "none" or p.grants.has("creature")):
+		for row in [["Size", cd.size_label() + (" · about %.1f m tall" % cd.height)], ["Element", ", ".join(Array(cd.elements)).capitalize()], ["Habitat", cd.habitat], ["Personality", cd.personality.capitalize()]]:
 			right.add_child(UIKit.label("%s: %s" % row, "", 18, Palette.INK_SOFT, true))
+		for a in Abilities.kit(cd.id):
+			right.add_child(UIKit.label("%s — %s" % [a.display_name, a.description], "", 16, Palette.INK, true))
 	if p.includes.size() > 0:
 		right.add_child(UIKit.label("Includes", "Title", 20))
 		for inc in p.includes:
@@ -457,7 +507,9 @@ func _render_detail(p: ShopItemData) -> void:
 		right.add_child(buy)
 		if reason != "":
 			right.add_child(UIKit.label(reason, "Caption", 17, Palette.DANGER, true))
-	split.add_child(right)
+	var rs := UIKit.scroll(right)
+	rs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	split.add_child(rs)
 
 func _equip_button(p: ShopItemData) -> Button:
 	var g: String = p.grants.get("cosmetic", "")

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "grove_call"
+display_name = "Grove Call"
+slot = "signature"
+category = "signature"
+description = "Mosswarden plants its lantern-seed: resources within 25 m regrow and hidden plants within 30 m are revealed."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "regrow",
+"params": {
+"radius": 25.0
+}
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["hidden_plant"],
+"radius": 30.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.714, 0.961, 0.784, 1)

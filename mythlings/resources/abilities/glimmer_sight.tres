@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "glimmer_sight"
+display_name = "Glimmer Sight"
+slot = "primary"
+category = "exploration"
+description = "Its glowing ear-roots find Glimmerroot within 25 m."
+effect = "reveal"
+params = {
+"kinds": ["hidden_plant"],
+"radius": 25.0
+}
+cooldown = 3
+unlock_friendship = 0
+requires_evolved = false
+vfx = "star_field"
+color = Color(0.478, 0.949, 0.722, 1)
