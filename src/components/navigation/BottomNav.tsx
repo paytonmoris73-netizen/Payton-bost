@@ -1,35 +1,36 @@
 import { NavLink } from "react-router-dom";
 
 const NAV_ITEMS = [
-  { to: "/app/home", label: "Home", icon: HomeIcon },
-  { to: "/app/explore", label: "Explore", icon: ExploreIcon },
-  { to: "/app/world", label: "World", icon: WorldIcon },
-  { to: "/app/creatures", label: "Creatures", icon: CreaturesIcon },
-  { to: "/app/profile", label: "Profile", icon: ProfileIcon },
+  { to: "/app/home",     label: "Home",     icon: HomeIcon },
+  { to: "/app/explore",  label: "Explore",  icon: ExploreIcon },
+  { to: "/app/world",    label: "World",    icon: WorldIcon },
+  { to: "/app/rewards",  label: "Rewards",  icon: RewardsIcon },
+  { to: "/app/profile",  label: "Profile",  icon: ProfileIcon },
 ];
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-soft-gray dark:border-gray-700 shadow-nav lg:hidden">
-      <div className="flex items-stretch h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-pp-surface border-t border-pp-border shadow-nav lg:hidden">
+      <div className="flex items-stretch h-16 px-1">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 gap-0.5 text-xs font-bold transition-colors ${
-                isActive
-                  ? "text-purple dark:text-purple"
-                  : "text-gray-400 dark:text-gray-500 hover:text-adventure-navy dark:hover:text-white"
+              `flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-bold transition-all ${
+                isActive ? "text-pp-orange" : "text-pp-muted hover:text-pp-cream"
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <span className={`w-6 h-6 transition-transform ${isActive ? "scale-125" : ""}`}>
+                <span className={`w-6 h-6 transition-transform ${isActive ? "scale-110" : ""}`}>
                   <Icon active={isActive} />
                 </span>
-                <span className={isActive ? "text-purple" : ""}>{label}</span>
+                <span>{label}</span>
+                {isActive && (
+                  <span className="w-1 h-1 rounded-full bg-pp-orange" />
+                )}
               </>
             )}
           </NavLink>
@@ -61,17 +62,15 @@ function WorldIcon({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" strokeLinecap="round" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeLinecap="round" />
     </svg>
   );
 }
 
-function CreaturesIcon({ active }: { active: boolean }) {
+function RewardsIcon({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-      <path d="M12 2C8 2 4 6 4 10c0 2 1 4 2 5l-1 2h14l-1-2c1-1 2-3 2-5 0-4-4-8-8-8z" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9 10h.01M15 10h.01" strokeLinecap="round" />
-      <path d="M9 14s1 1 3 1 3-1 3-1" strokeLinecap="round" />
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

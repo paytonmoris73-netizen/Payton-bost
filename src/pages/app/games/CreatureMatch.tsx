@@ -110,22 +110,22 @@ export function CreatureMatchPage() {
   }, [cards, flippedIds, isChecking]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-mint/20 to-forest/5 dark:from-adventure-navy dark:to-gray-950 pb-24 lg:pb-8 flex flex-col">
+    <div className="min-h-screen bg-pp-navy pb-24 lg:pb-8 flex flex-col">
       {/* Header */}
-      <div className="flex items-center px-5 pt-5 pb-3 gap-3">
-        <button onClick={() => navigate("/app/mini-games")} className="text-gray-400 text-2xl">‹</button>
+      <div className="flex items-center px-5 pt-5 pb-3 gap-3 bg-pp-surface border-b border-pp-border">
+        <button onClick={() => navigate("/app/mini-games")} className="text-pp-muted text-2xl hover:text-pp-cream transition-colors">‹</button>
         <div className="flex-1">
-          <h1 className="font-display text-xl text-adventure-navy dark:text-white">Creature Match</h1>
+          <h1 className="font-display text-xl text-pp-cream">Creature Match</h1>
         </div>
         {gameState === "playing" && (
           <>
-            <div className="bg-white dark:bg-gray-800 rounded-xl px-3 py-1 shadow-card text-center">
-              <div className="text-xs text-gray-400">Moves</div>
-              <div className="font-display text-lg text-adventure-navy dark:text-white">{moves}</div>
+            <div className="bg-pp-card border border-pp-border rounded-xl px-3 py-1 text-center">
+              <div className="text-xs text-pp-muted">Moves</div>
+              <div className="font-display text-lg text-pp-cream">{moves}</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl px-3 py-1 shadow-card text-center">
-              <div className="text-xs text-gray-400">Time</div>
-              <div className="font-display text-lg text-purple">{elapsed}s</div>
+            <div className="bg-pp-card border border-pp-border rounded-xl px-3 py-1 text-center">
+              <div className="text-xs text-pp-muted">Time</div>
+              <div className="font-display text-lg text-pp-purple">{elapsed}s</div>
             </div>
           </>
         )}
@@ -133,14 +133,15 @@ export function CreatureMatchPage() {
 
       {gameState === "intro" && (
         <div className="flex-1 flex flex-col items-center justify-center px-5 gap-6">
-          <Pip expression="curious" size={120} showMessage />
+          <Pip expression="curious" size={120} />
           <div className="text-center">
-            <h2 className="font-display text-3xl text-adventure-navy dark:text-white mb-2">Creature Match!</h2>
-            <p className="text-gray-500">Flip the cards and find the matching pairs of Wonderworld creatures!</p>
+            <h2 className="font-display text-3xl text-pp-cream mb-2">Creature Match!</h2>
+            <p className="text-pp-muted">Flip the cards and find the matching pairs of Wonderworld creatures!</p>
           </div>
           <button
             onClick={startGame}
-            className="bg-gradient-to-r from-mint to-forest text-white font-display text-xl px-10 py-4 rounded-3xl active:scale-95 transition-transform"
+            className="text-white font-display text-xl px-10 py-4 rounded-3xl active:scale-95 transition-transform"
+            style={{ background: "linear-gradient(135deg, #22C55E, #14B8A6)" }}
           >
             Find the Creatures! 🐾
           </button>
@@ -148,13 +149,13 @@ export function CreatureMatchPage() {
       )}
 
       {gameState === "playing" && (
-        <div className="flex-1 px-4">
+        <div className="flex-1 px-4 pt-4">
           {/* Progress */}
           <div className="flex justify-between items-center mb-4 px-1">
-            <span className="text-sm text-gray-500">{matches}/{CARD_CREATURES.length} pairs found</span>
+            <span className="text-sm text-pp-muted">{matches}/{CARD_CREATURES.length} pairs found</span>
             <div className="flex gap-1">
               {Array.from({ length: CARD_CREATURES.length }).map((_, i) => (
-                <div key={i} className={`w-3 h-3 rounded-full ${i < matches ? "bg-mint" : "bg-gray-200"}`} />
+                <div key={i} className={`w-3 h-3 rounded-full ${i < matches ? "bg-pp-green" : "bg-pp-border"}`} />
               ))}
             </div>
           </div>
@@ -176,7 +177,7 @@ export function CreatureMatchPage() {
                       className="absolute inset-0 flex items-center justify-center rounded-2xl text-2xl border-2"
                       style={{
                         backgroundColor: card.color,
-                        borderColor: card.isMatched ? "#FFD93D" : "white",
+                        borderColor: card.isMatched ? "#FFD93D" : "#2E2B55",
                         boxShadow: card.isMatched ? "0 0 10px rgba(255,217,61,0.5)" : undefined,
                       }}
                     >
@@ -188,7 +189,8 @@ export function CreatureMatchPage() {
                       initial={{ rotateY: -90 }}
                       animate={{ rotateY: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute inset-0 bg-gradient-to-br from-purple to-sky-blue rounded-2xl flex items-center justify-center text-xl"
+                      className="absolute inset-0 rounded-2xl flex items-center justify-center text-xl"
+                      style={{ background: "linear-gradient(135deg, #7C3AED, #3B82F6)" }}
                     >
                       🌟
                     </motion.div>
@@ -204,23 +206,27 @@ export function CreatureMatchPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-5 gap-6">
           <Pip expression="celebrating" size={120} />
           <div className="text-center">
-            <h2 className="font-display text-3xl text-adventure-navy dark:text-white">You found them all! 🎊</h2>
+            <h2 className="font-display text-3xl text-pp-cream">You found them all! 🎊</h2>
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-card text-center">
-                <p className="font-display text-2xl text-purple">{moves}</p>
-                <p className="text-xs text-gray-400">moves</p>
+              <div className="bg-pp-card border border-pp-border rounded-2xl p-3 text-center">
+                <p className="font-display text-2xl text-pp-purple">{moves}</p>
+                <p className="text-xs text-pp-muted">moves</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-card text-center">
-                <p className="font-display text-2xl text-sky-blue">{elapsed}s</p>
-                <p className="text-xs text-gray-400">time</p>
+              <div className="bg-pp-card border border-pp-border rounded-2xl p-3 text-center">
+                <p className="font-display text-2xl text-pp-blue">{elapsed}s</p>
+                <p className="text-xs text-pp-muted">time</p>
               </div>
             </div>
           </div>
           <div className="flex gap-3">
-            <button onClick={startGame} className="bg-mint text-white font-display px-6 py-3 rounded-2xl active:scale-95 transition-transform">
+            <button
+              onClick={startGame}
+              className="text-white font-display px-6 py-3 rounded-2xl active:scale-95 transition-transform"
+              style={{ background: "#22C55E" }}
+            >
               Play Again
             </button>
-            <button onClick={() => navigate("/app/mini-games")} className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-bold px-6 py-3 rounded-2xl active:scale-95 transition-transform">
+            <button onClick={() => navigate("/app/mini-games")} className="bg-pp-card border border-pp-border text-pp-muted font-bold px-6 py-3 rounded-2xl active:scale-95 transition-transform">
               Exit
             </button>
           </div>

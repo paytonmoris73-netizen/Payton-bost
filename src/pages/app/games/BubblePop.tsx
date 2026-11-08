@@ -112,21 +112,21 @@ export function BubblePopPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-blue/20 to-adventure-navy/10 dark:from-adventure-navy dark:to-gray-950 pb-20 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-pp-navy pb-20 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center px-5 pt-5 pb-3 gap-3 z-10">
-        <button onClick={() => navigate("/app/mini-games")} className="text-gray-400 text-2xl">‹</button>
+      <div className="flex items-center px-5 pt-5 pb-3 gap-3 z-10 bg-pp-surface border-b border-pp-border">
+        <button onClick={() => navigate("/app/mini-games")} className="text-pp-muted text-2xl hover:text-pp-cream transition-colors">‹</button>
         <div className="flex-1">
-          <h1 className="font-display text-xl text-adventure-navy dark:text-white">Bubble Pop!</h1>
+          <h1 className="font-display text-xl text-pp-cream">Bubble Pop!</h1>
         </div>
         {gameState === "playing" && (
           <>
             <div className="flex gap-0.5">{Array.from({ length: 3 }).map((_, i) => <span key={i} className="text-lg">{i < lives ? "❤️" : "🖤"}</span>)}</div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl px-3 py-1 text-center shadow-card">
-              <div className="font-display text-lg text-purple">{timeLeft}s</div>
+            <div className="bg-pp-card border border-pp-border rounded-xl px-3 py-1 text-center">
+              <div className="font-display text-lg text-pp-purple">{timeLeft}s</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl px-3 py-1 text-center shadow-card">
-              <div className="font-display text-lg text-adventure-navy dark:text-white">{score}</div>
+            <div className="bg-pp-card border border-pp-border rounded-xl px-3 py-1 text-center">
+              <div className="font-display text-lg text-pp-gold">{score}</div>
             </div>
           </>
         )}
@@ -134,17 +134,18 @@ export function BubblePopPage() {
 
       {gameState === "intro" && (
         <div className="flex-1 flex flex-col items-center justify-center px-5 gap-6">
-          <Pip expression="excited" size={120} showMessage />
+          <Pip expression="excited" size={120} />
           <div className="text-center">
-            <h2 className="font-display text-3xl text-adventure-navy dark:text-white mb-2">Bubble Pop!</h2>
-            <p className="text-gray-500">Tap the bubbles before they float away! You have 3 lives and 60 seconds.</p>
+            <h2 className="font-display text-3xl text-pp-cream mb-2">Bubble Pop!</h2>
+            <p className="text-pp-muted">Tap the bubbles before they float away! You have 3 lives and 60 seconds.</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-card text-center">
-            <p className="text-xs text-gray-500">Best: <span className="font-bold text-sky-blue">{highScore} pts</span></p>
+          <div className="bg-pp-card border border-pp-border rounded-2xl p-3 text-center">
+            <p className="text-xs text-pp-muted">Best: <span className="font-bold text-pp-blue">{highScore} pts</span></p>
           </div>
           <button
             onClick={startGame}
-            className="bg-gradient-to-r from-sky-blue to-purple text-white font-display text-xl px-10 py-4 rounded-3xl active:scale-95 transition-transform"
+            className="text-white font-display text-xl px-10 py-4 rounded-3xl active:scale-95 transition-transform"
+            style={{ background: "linear-gradient(135deg, #3B82F6, #7C3AED)" }}
           >
             Pop Bubbles! 🫧
           </button>
@@ -154,7 +155,7 @@ export function BubblePopPage() {
       {gameState === "playing" && (
         <div ref={containerRef} className="flex-1 relative overflow-hidden">
           {combo >= 3 && (
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-sunny-yellow text-adventure-navy font-display text-sm px-3 py-1 rounded-full z-10">
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-pp-gold text-pp-navy font-display text-sm px-3 py-1 rounded-full z-10">
               {combo}x COMBO! 🔥
             </div>
           )}
@@ -205,19 +206,23 @@ export function BubblePopPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-5 gap-6">
           <Pip expression={score > highScore ? "celebrating" : "happy"} size={100} />
           <div className="text-center">
-            <h2 className="font-display text-3xl text-adventure-navy dark:text-white">
+            <h2 className="font-display text-3xl text-pp-cream">
               {lives <= 0 ? "No more lives!" : "Time's up!"}
             </h2>
-            <div className="mt-3 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-card">
-              <p className="text-3xl font-display text-purple">{score} pts</p>
-              {score > highScore && <p className="text-xs text-sunny-yellow font-bold">🏆 New High Score!</p>}
+            <div className="mt-3 bg-pp-card border border-pp-border rounded-2xl p-4">
+              <p className="text-3xl font-display text-pp-blue">{score} pts</p>
+              {score > highScore && <p className="text-xs text-pp-gold font-bold">🏆 New High Score!</p>}
             </div>
           </div>
           <div className="flex gap-3">
-            <button onClick={startGame} className="bg-sky-blue text-white font-display px-6 py-3 rounded-2xl active:scale-95 transition-transform">
+            <button
+              onClick={startGame}
+              className="text-white font-display px-6 py-3 rounded-2xl active:scale-95 transition-transform"
+              style={{ background: "#3B82F6" }}
+            >
               Play Again
             </button>
-            <button onClick={() => navigate("/app/mini-games")} className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-bold px-6 py-3 rounded-2xl active:scale-95 transition-transform">
+            <button onClick={() => navigate("/app/mini-games")} className="bg-pp-card border border-pp-border text-pp-muted font-bold px-6 py-3 rounded-2xl active:scale-95 transition-transform">
               Exit
             </button>
           </div>

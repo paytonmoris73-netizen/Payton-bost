@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/Button";
+import { motion } from "framer-motion";
 import { Pip } from "../../components/mascot/Pip";
 import { ACHIEVEMENTS } from "../../data/achievements";
 
@@ -19,74 +19,155 @@ export function ActivityCompletePage() {
   const activityName = state?.activityName ?? "Activity";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal/20 to-cream dark:from-teal/10 dark:to-gray-950 flex flex-col items-center justify-center px-6 text-center animate-fade-in">
-      {/* Celebration header */}
-      <div className="relative mb-6">
-        <div className="text-6xl animate-bounce-soft">🎉</div>
+    <motion.div
+      className="min-h-screen bg-pp-navy relative overflow-hidden flex flex-col items-center justify-center px-6 text-center pb-10"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+    >
+      <div className="absolute inset-0 stars-bg pointer-events-none" />
+
+      {/* Confetti burst (pure CSS) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(18)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 rounded-full"
+            style={{
+              left: `${10 + (i * 5) % 85}%`,
+              top: "-8px",
+              background: ["#FF6B35","#FFD93D","#22C55E","#3B82F6","#EC4899","#7C3AED"][i % 6],
+            }}
+            animate={{
+              y: ["0vh", `${60 + (i * 7) % 40}vh`],
+              rotate: [0, 360 + i * 20],
+              opacity: [1, 0],
+            }}
+            transition={{
+              duration: 1.6 + (i % 4) * 0.3,
+              delay: i * 0.08,
+              ease: "easeOut",
+            }}
+          />
+        ))}
       </div>
 
-      {/* PIP */}
-      <div className="mb-4">
-        <Pip expression="celebrating" size={120} animate />
-      </div>
-
-      <h1 className="font-black text-3xl text-navy dark:text-white mb-2">Amazing!</h1>
-      <p className="text-gray-500 text-sm mb-6">You completed <strong>{activityName}</strong>!</p>
-
-      {/* Points earned */}
-      <div className="bg-yellow rounded-3xl px-8 py-5 mb-4 shadow-card animate-pop">
-        <div className="text-3xl font-black text-navy">+{pointsEarned}</div>
-        <div className="text-sm font-bold text-navy/70">Play Points Earned!</div>
-      </div>
-
-      {/* New achievements */}
-      {newAchievements.length > 0 && (
-        <div className="w-full max-w-sm mb-4">
-          <div className="text-xs font-bold text-gray-400 mb-2">🏆 New Achievements!</div>
-          {newAchievements.map(achId => {
-            const ach = ACHIEVEMENTS.find(a => a.id === achId);
-            if (!ach) return null;
-            return (
-              <div key={achId} className="bg-white dark:bg-gray-800 rounded-2xl p-3 flex items-center gap-3 mb-2 shadow-card animate-pop">
-                <div className="w-10 h-10 rounded-full bg-yellow/30 flex items-center justify-center text-2xl">
-                  {ach.emoji}
-                </div>
-                <div className="text-left">
-                  <div className="font-black text-navy dark:text-white text-sm">{ach.name}</div>
-                  <div className="text-xs text-gray-400">{ach.description}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Encouraging message */}
-      <div className="bg-coral/10 rounded-2xl px-5 py-4 mb-6 max-w-xs">
-        <p className="text-sm font-bold text-coral">
-          {newAchievements.length > 0
-            ? "You unlocked new achievements! Keep exploring!"
-            : pointsEarned >= 50
-            ? "That was incredible! You're a movement superstar!"
-            : "Great job! Every activity makes you stronger and happier!"}
-        </p>
-      </div>
-
-      {/* Actions */}
-      <div className="w-full max-w-sm space-y-3">
-        <Button fullWidth size="lg" onClick={() => navigate("/app/explore")} className="font-black">
-          Try Another Activity 🔍
-        </Button>
-        <Button fullWidth variant="secondary" onClick={() => navigate("/app/home")}>
-          Back to Home
-        </Button>
-        <button
-          onClick={() => navigate("/app/rewards")}
-          className="text-coral font-bold text-sm"
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        {/* PIP celebrating */}
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 15, delay: 0.1 }}
+          className="mb-4"
         >
-          Spend your points in the shop →
-        </button>
+          <Pip expression="celebrating" size={140} animate />
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="font-display text-pp-gold text-4xl mb-1"
+        >
+          Amazing!
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-pp-muted text-sm mb-6"
+        >
+          You completed <span className="text-pp-cream font-bold">{activityName}</span>!
+        </motion.p>
+
+        {/* Points card */}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 15, delay: 0.5 }}
+          className="w-full rounded-3xl p-6 mb-4 text-center"
+          style={{ background: "linear-gradient(135deg, #FFD93D, #FF6B35)" }}
+        >
+          <div className="font-display text-pp-navy text-5xl">+{pointsEarned}</div>
+          <div className="text-pp-navy font-black text-sm mt-1">Spark Points Earned! ⚡</div>
+        </motion.div>
+
+        {/* New achievements */}
+        {newAchievements.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="w-full mb-4"
+          >
+            <div className="text-xs font-bold text-pp-gold mb-2 tracking-wider uppercase">🏆 New Achievements!</div>
+            {newAchievements.map((achId, i) => {
+              const ach = ACHIEVEMENTS.find(a => a.id === achId);
+              if (!ach) return null;
+              return (
+                <motion.div
+                  key={achId}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + i * 0.1 }}
+                  className="bg-pp-card border border-pp-gold/30 rounded-2xl p-3 flex items-center gap-3 mb-2"
+                >
+                  <div className="w-10 h-10 rounded-full bg-pp-gold/20 flex items-center justify-center text-2xl flex-shrink-0">
+                    {ach.emoji}
+                  </div>
+                  <div className="text-left">
+                    <div className="font-black text-pp-cream text-sm">{ach.name}</div>
+                    <div className="text-xs text-pp-muted">{ach.description}</div>
+                  </div>
+                  <span className="text-pp-gold ml-auto">★</span>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+
+        {/* PIP message */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="bg-pp-card border border-pp-orange/30 rounded-2xl px-5 py-4 mb-6 w-full"
+        >
+          <p className="text-sm font-bold text-pp-orange">
+            {newAchievements.length > 0
+              ? "You unlocked new achievements! You're legendary!"
+              : pointsEarned >= 50
+              ? "That was incredible! You're a movement superstar!"
+              : "Every activity makes you stronger and happier! Keep it up!"}
+          </p>
+        </motion.div>
+
+        {/* Action buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+          className="w-full space-y-3"
+        >
+          <button
+            onClick={() => navigate("/app/explore")}
+            className="w-full py-4 rounded-2xl font-black text-white text-base shadow-glow-orange hover:brightness-110 transition-all"
+            style={{ background: "linear-gradient(135deg, #FF6B35, #FF4500)" }}
+          >
+            Try Another Activity 🔍
+          </button>
+          <button
+            onClick={() => navigate("/app/home")}
+            className="w-full py-3.5 rounded-2xl font-bold text-pp-muted bg-pp-card border border-pp-border hover:text-pp-cream transition-colors"
+          >
+            Back to Home
+          </button>
+          <button
+            onClick={() => navigate("/app/rewards")}
+            className="text-pp-orange font-bold text-sm"
+          >
+            Spend your points in the shop →
+          </button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

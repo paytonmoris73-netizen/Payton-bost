@@ -89,33 +89,34 @@ export function RhythmRushPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple/20 to-sky-blue/10 dark:from-adventure-navy dark:to-gray-950 pb-24 lg:pb-8 flex flex-col">
+    <div className="min-h-screen bg-pp-navy pb-24 lg:pb-8 flex flex-col">
       {/* Header */}
-      <div className="flex items-center px-5 pt-5 pb-3 gap-3">
-        <button onClick={() => navigate("/app/mini-games")} className="text-gray-400 text-2xl">‹</button>
+      <div className="flex items-center px-5 pt-5 pb-3 gap-3 bg-pp-surface border-b border-pp-border">
+        <button onClick={() => navigate("/app/mini-games")} className="text-pp-muted text-2xl hover:text-pp-cream transition-colors">‹</button>
         <div className="flex-1">
-          <h1 className="font-display text-xl text-adventure-navy dark:text-white">Rhythm Rush</h1>
-          <p className="text-xs text-gray-500">Watch the pattern, then repeat it!</p>
+          <h1 className="font-display text-xl text-pp-cream">Rhythm Rush</h1>
+          <p className="text-xs text-pp-muted">Watch the pattern, then repeat it!</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl px-3 py-1.5 shadow-card text-center">
-          <div className="font-display text-lg text-adventure-navy dark:text-white">{score}</div>
-          <div className="text-xs text-gray-400">pts</div>
+        <div className="bg-pp-card border border-pp-border rounded-xl px-3 py-1.5 text-center">
+          <div className="font-display text-lg text-pp-gold">{score}</div>
+          <div className="text-xs text-pp-muted">pts</div>
         </div>
       </div>
 
       {phase === "intro" && (
         <div className="flex-1 flex flex-col items-center justify-center px-5 gap-6">
-          <Pip expression="excited" size={120} showMessage />
+          <Pip expression="excited" size={120} />
           <div className="text-center">
-            <h2 className="font-display text-3xl text-adventure-navy dark:text-white mb-2">Rhythm Rush</h2>
-            <p className="text-gray-500">Watch the colors light up, then tap them in the same order!</p>
+            <h2 className="font-display text-3xl text-pp-cream mb-2">Rhythm Rush</h2>
+            <p className="text-pp-muted">Watch the colors light up, then tap them in the same order!</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-card text-center">
-            <p className="text-xs text-gray-500">Best score: <span className="font-bold text-purple">{highScore}</span></p>
+          <div className="bg-pp-card border border-pp-border rounded-2xl p-3 text-center">
+            <p className="text-xs text-pp-muted">Best score: <span className="font-bold text-pp-gold">{highScore}</span></p>
           </div>
           <button
             onClick={startGame}
-            className="bg-gradient-to-r from-purple to-sky-blue text-white font-display text-xl px-10 py-4 rounded-3xl shadow-glow-purple active:scale-95 transition-transform"
+            className="text-white font-display text-xl px-10 py-4 rounded-3xl shadow-glow-purple active:scale-95 transition-transform"
+            style={{ background: "linear-gradient(135deg, #7C3AED, #3B82F6)" }}
           >
             Start Game! ⚡
           </button>
@@ -123,15 +124,15 @@ export function RhythmRushPage() {
       )}
 
       {(phase === "showing" || phase === "input" || phase === "correct" || phase === "wrong") && (
-        <div className="flex-1 flex flex-col items-center px-5 gap-4">
+        <div className="flex-1 flex flex-col items-center px-5 gap-4 pt-6">
           {/* Level indicator */}
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-gray-500">Level {level}</span>
+            <span className="text-sm font-bold text-pp-muted">Level {level}</span>
             <div className="flex gap-1">
               {sequence.map((_, i) => (
                 <div
                   key={i}
-                  className={`w-2 h-2 rounded-full ${i < playerInput.length ? "bg-mint" : "bg-gray-200"}`}
+                  className={`w-2 h-2 rounded-full ${i < playerInput.length ? "bg-pp-green" : "bg-pp-border"}`}
                 />
               ))}
             </div>
@@ -149,7 +150,7 @@ export function RhythmRushPage() {
               <motion.div
                 initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
                 className={`font-display text-2xl px-6 py-3 rounded-2xl ${
-                  phase === "correct" ? "bg-mint/20 text-forest" : "bg-coral/20 text-coral"
+                  phase === "correct" ? "bg-pp-green/20 text-pp-green" : "bg-pp-coral/20 text-pp-coral"
                 }`}
               >
                 {feedback}
@@ -159,8 +160,8 @@ export function RhythmRushPage() {
 
           {/* Phase indicator */}
           <div className={`text-sm font-bold px-4 py-2 rounded-xl ${
-            phase === "showing" ? "bg-purple/10 text-purple" :
-            phase === "input" ? "bg-mint/10 text-forest" : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+            phase === "showing" ? "bg-pp-purple/20 text-pp-purple" :
+            phase === "input" ? "bg-pp-green/20 text-pp-green" : "bg-pp-card text-pp-muted"
           }`}>
             {phase === "showing" ? "Watch carefully! 👀" : phase === "input" ? "Your turn! Tap! 👇" : ""}
           </div>
@@ -174,7 +175,7 @@ export function RhythmRushPage() {
                 whileTap={{ scale: 0.9 }}
                 animate={activeColor === c.id ? { scale: 1.15 } : { scale: 1 }}
                 transition={{ duration: 0.1 }}
-                className="h-28 rounded-3xl text-4xl font-bold shadow-card active:scale-90 transition-all select-none"
+                className="h-28 rounded-3xl text-4xl font-bold active:scale-90 transition-all select-none"
                 style={{
                   backgroundColor: activeColor === c.id ? c.active : c.bg,
                   boxShadow: activeColor === c.id ? `0 0 30px ${c.bg}` : undefined,
@@ -192,18 +193,18 @@ export function RhythmRushPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-5 gap-6">
           <Pip expression="encouraging" size={100} />
           <div className="text-center">
-            <h2 className="font-display text-3xl text-adventure-navy dark:text-white">Game Over!</h2>
-            <p className="text-gray-500 mt-1">You got to level {level}</p>
-            <div className="mt-3 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-card">
-              <p className="text-2xl font-display text-purple">{score} pts</p>
-              {score >= highScore && score > 0 && <p className="text-xs text-sunny-yellow font-bold">🏆 New High Score!</p>}
+            <h2 className="font-display text-3xl text-pp-cream">Game Over!</h2>
+            <p className="text-pp-muted mt-1">You got to level {level}</p>
+            <div className="mt-3 bg-pp-card border border-pp-border rounded-2xl p-4">
+              <p className="text-2xl font-display text-pp-purple">{score} pts</p>
+              {score >= highScore && score > 0 && <p className="text-xs text-pp-gold font-bold">🏆 New High Score!</p>}
             </div>
           </div>
           <div className="flex gap-3">
-            <button onClick={startGame} className="bg-purple text-white font-display px-6 py-3 rounded-2xl active:scale-95 transition-transform">
+            <button onClick={startGame} className="bg-pp-purple text-white font-display px-6 py-3 rounded-2xl active:scale-95 transition-transform">
               Try Again
             </button>
-            <button onClick={() => navigate("/app/mini-games")} className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-bold px-6 py-3 rounded-2xl active:scale-95 transition-transform">
+            <button onClick={() => navigate("/app/mini-games")} className="bg-pp-card border border-pp-border text-pp-muted font-bold px-6 py-3 rounded-2xl active:scale-95 transition-transform">
               Exit
             </button>
           </div>
@@ -214,14 +215,18 @@ export function RhythmRushPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-5 gap-6">
           <Pip expression="celebrating" size={120} />
           <div className="text-center">
-            <h2 className="font-display text-3xl text-adventure-navy dark:text-white">You Won! 🎊</h2>
-            <p className="text-gray-500">All 8 levels complete!</p>
-            <div className="mt-3 bg-gradient-to-r from-sunny-yellow/20 to-coral/20 rounded-2xl p-4 shadow-card">
-              <p className="text-3xl font-display text-adventure-navy dark:text-white">{score} pts</p>
-              <p className="text-xs text-sunny-yellow font-bold">🏆 Champion!</p>
+            <h2 className="font-display text-3xl text-pp-cream">You Won! 🎊</h2>
+            <p className="text-pp-muted">All 8 levels complete!</p>
+            <div className="mt-3 bg-pp-card border border-pp-gold/30 rounded-2xl p-4">
+              <p className="text-3xl font-display text-pp-gold">{score} pts</p>
+              <p className="text-xs text-pp-gold font-bold">🏆 Champion!</p>
             </div>
           </div>
-          <button onClick={startGame} className="bg-gradient-to-r from-purple to-sky-blue text-white font-display text-xl px-10 py-4 rounded-3xl active:scale-95 transition-transform">
+          <button
+            onClick={startGame}
+            className="text-white font-display text-xl px-10 py-4 rounded-3xl active:scale-95 transition-transform"
+            style={{ background: "linear-gradient(135deg, #7C3AED, #3B82F6)" }}
+          >
             Play Again!
           </button>
         </div>
