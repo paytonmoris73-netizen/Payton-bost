@@ -1,196 +1,213 @@
 import { useNavigate } from "react-router-dom";
-import { Pip } from "../../components/mascot/Pip";
-import { ActivityCard } from "../../components/activity/ActivityCard";
-import { Button } from "../../components/ui/Button";
+import { motion } from "framer-motion";
 import { useApp } from "../../contexts/AppContext";
 import { ACTIVITIES } from "../../data/activities";
-import { ADVENTURE_LOCATIONS } from "../../data/adventures";
+import { Pip } from "../../components/mascot/Pip";
+import { getCreatureById } from "../../data/creatures";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const HOUR = new Date().getHours();
+const GREETINGS = HOUR < 12 ? "Good morning" : HOUR < 17 ? "Good afternoon" : "Good evening";
+
+const REGION_BACKGROUNDS: Record<string, { from: string; to: string; label: string }> = {
+  "sunny-meadow": { from: "#6BCB77", to: "#A5D6A7", label: "🌻 Sunny Meadow" },
+  "whispering-forest": { from: "#2D6A4F", to: "#52B788", label: "🌲 Whispering Forest" },
+  "ocean-discovery": { from: "#0288D1", to: "#4FC3F7", label: "🌊 Ocean Discovery" },
+  "crystal-mountains": { from: "#546E7A", to: "#90A4AE", label: "⛰️ Crystal Mountains" },
+  "cloud-kingdom": { from: "#9B5DE5", to: "#CE93D8", label: "☁️ Cloud Kingdom" },
+  "starlight-space": { from: "#1A2744", to: "#4A148C", label: "🌌 Starlight Space" },
+};
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { activeProfile, state, profileSessions } = useApp();
+  const { activeProfile, state, levelInfo, worldRebloom, dailyMissions, isMissionCompleted } = useApp();
 
-  if (!activeProfile) return null;
+  const sessions = activeProfile
+    ? state.sessions.filter(s => s.profileId === activeProfile.id)
+    : [];
+  const totalActivities = sessions.length;
+  const pointsToNext = levelInfo.nextLevelPoints - (activeProfile?.points ?? 0);
+  const levelProgress = Math.min(100, ((activeProfile?.points ?? 0) / levelInfo.nextLevelPoints) * 100);
 
-  const sessions = profileSessions(activeProfile.id);
-  const today = new Date();
-  const hours = today.getHours();
-  const greeting = hours < 12 ? "Good morning" : hours < 17 ? "Hey" : "Good evening";
+  // Current region based on unlocked locations
+  const currentRegion = state.unlockedLocations[state.unlockedLocations.length - 1] ?? "sunny-meadow";
+  const regionBg = REGION_BACKGROUNDS[currentRegion] ?? REGION_BACKGROUNDS["sunny-meadow"];
 
-  // Weekly activity dots
-  const weekDots = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - 6 + i);
-    const dateStr = d.toDateString();
-    const hasActivity = sessions.some(s => new Date(s.completedAt).toDateString() === dateStr);
-    return { day: DAYS[d.getDay()], hasActivity, isToday: i === 6 };
-  });
+  const companion = activeProfile?.selectedCompanionId
+    ? getCreatureById(activeProfile.selectedCompanionId)
+    : null;
 
-  // Suggested activities based on preferences
-  const preferred = activeProfile.favoriteCategories;
-  const featured = preferred.length > 0
-    ? ACTIVITIES.filter(a => preferred.includes(a.category))
-    : ACTIVITIES;
-  const suggested = featured.slice(0, 3).concat(ACTIVITIES.slice(0, 3)).slice(0, 4);
-
-  // Featured adventure (first unlocked location)
-  const featuredLoc = ADVENTURE_LOCATIONS.find(l => state.unlockedLocations.includes(l.id));
-
-  // Weekly summary
-  const thisWeekSessions = sessions.filter(s => {
-    const d = new Date(s.completedAt);
-    const diff = (today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
-    return diff < 7;
-  });
+  // Featured activities (first 4)
+  const featuredActivities = ACTIVITIES.slice(0, 4);
+  const missionsRemaining = dailyMissions.filter(m => !isMissionCompleted(m.id)).length;
 
   return (
-    <div className="pb-24 lg:pb-8 animate-fade-in">
-      {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-cream/90 dark:bg-gray-950/90 backdrop-blur-sm px-5 py-3 flex items-center justify-between">
-        <div>
-          <div className="text-xs text-gray-400">👋 {greeting},</div>
-          <div className="font-black text-lg text-navy dark:text-white leading-tight">{activeProfile.nickname}!</div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="bg-yellow/20 text-navy dark:text-yellow px-3 py-1.5 rounded-full text-xs font-black">
-            ⭐ {activeProfile.points}
+    <div className="pb-24 lg:pb-8 overflow-x-hidden">
+      {/* Hero banner */}
+      <div
+        className="relative px-5 pt-6 pb-8"
+        style={{ background: `linear-gradient(135deg, ${regionBg.from}, ${regionBg.to})` }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-black/10 translate-y-1/2 -translate-x-1/2" />
+
+        <div className="relative flex items-start justify-between">
+          <div>
+            <p className="text-white/80 text-sm">{GREETINGS},</p>
+            <h1 className="font-display text-3xl text-white">{activeProfile?.nickname}! 👋</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">
+                Lv.{levelInfo.level} {levelInfo.title}
+              </span>
+              <span className="text-xs text-white/80">{regionBg.label}</span>
+            </div>
           </div>
-          <button
-            onClick={() => navigate("/app/profile")}
-            className="w-10 h-10 rounded-full bg-coral/10 flex items-center justify-center text-xl"
-          >
-            {activeProfile.avatarConfig.outfit}
-          </button>
+          <div className="text-right">
+            <div className="bg-white/20 rounded-2xl px-3 py-2 text-center">
+              <div className="text-xl">⚡</div>
+              <div className="font-display text-xl text-white">{activeProfile?.points ?? 0}</div>
+              <div className="text-xs text-white/70">Spark Pts</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Level XP bar */}
+        <div className="mt-4">
+          <div className="flex justify-between text-xs text-white/80 mb-1">
+            <span>Level Progress</span>
+            <span>{pointsToNext > 0 ? `${pointsToNext} pts to next level` : "Max level!"}</span>
+          </div>
+          <div className="h-2.5 bg-white/20 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-white rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${levelProgress}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
+          </div>
+        </div>
+
+        {/* PIP + companion */}
+        <div className="flex items-end justify-center gap-4 mt-4">
+          <Pip expression="happy" size={80} />
+          {companion && (
+            <motion.div
+              className="text-4xl mb-2"
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+            >
+              {companion.emoji}
+            </motion.div>
+          )}
         </div>
       </div>
 
-      <div className="px-5 space-y-6">
-        {/* PIP greeting card */}
-        <div className="bg-gradient-to-br from-coral to-coral-dark rounded-3xl p-5 relative overflow-hidden shadow-card">
-          <div className="absolute right-0 bottom-0 opacity-80">
-            <Pip expression="excited" size={110} />
-          </div>
-          <div className="relative z-10 max-w-[60%]">
-            <div className="text-white/70 text-xs font-bold mb-1">PIP says...</div>
-            <h2 className="text-white font-black text-lg leading-tight mb-3">
-              {sessions.length === 0
-                ? "Let's start our first adventure together!"
-                : thisWeekSessions.length > 0
-                ? `You've done ${thisWeekSessions.length} activities this week!`
-                : "Ready for something fun today?"}
-            </h2>
-            <Button
-              variant="yellow"
-              size="sm"
-              onClick={() => navigate("/app/explore")}
-              className="shadow-sm"
-            >
-              Explore Activities 🔍
-            </Button>
-          </div>
-        </div>
-
-        {/* Featured Adventure */}
-        {featuredLoc && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-black text-navy dark:text-white">🗺️ Featured Adventure</h3>
-              <button onClick={() => navigate("/app/adventures")} className="text-coral text-xs font-bold">See All →</button>
+      <div className="px-5 py-4 space-y-5">
+        {/* Daily Missions banner */}
+        {missionsRemaining > 0 && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => navigate("/app/home-base")}
+            className="w-full bg-gradient-to-r from-purple to-sky-blue rounded-3xl p-4 shadow-card flex items-center gap-3 active:scale-95 transition-transform"
+          >
+            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">📋</div>
+            <div className="flex-1 text-left">
+              <p className="font-display text-white text-base">{missionsRemaining} Daily Mission{missionsRemaining !== 1 ? "s" : ""}</p>
+              <p className="text-white/80 text-xs">Complete for Spark Points!</p>
             </div>
-            <button
-              onClick={() => navigate(`/app/adventure/${featuredLoc.id}`)}
-              className="w-full text-left rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-all active:scale-95"
-              style={{ backgroundColor: featuredLoc.bgColor }}
-            >
-              <div className="p-5 flex items-center gap-4">
-                <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl flex-shrink-0 shadow-sm"
-                  style={{ backgroundColor: featuredLoc.color }}
-                >
-                  {featuredLoc.emoji}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-black text-navy dark:text-white text-base">{featuredLoc.name}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{featuredLoc.theme}</div>
-                  <div className="text-xs text-gray-400 mt-1">{featuredLoc.activityIds.length} activities inside</div>
-                </div>
-                <div className="text-2xl">{featuredLoc.emoji}</div>
-              </div>
-            </button>
-          </div>
+            <div className="text-white text-xl">→</div>
+          </motion.button>
         )}
 
-        {/* Weekly overview */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-card">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-black text-navy dark:text-white">This Week</h3>
-              <p className="text-xs text-gray-400">
-                {thisWeekSessions.length === 0
-                  ? "No activities yet — the week is wide open!"
-                  : `${thisWeekSessions.length} adventure${thisWeekSessions.length !== 1 ? "s" : ""} completed!`}
-              </p>
+        {/* World Rebloom mini */}
+        <button
+          onClick={() => navigate("/app/world")}
+          className="w-full bg-white dark:bg-gray-800 rounded-3xl p-4 shadow-card flex items-center gap-3 active:scale-95 transition-transform"
+        >
+          <div className="flex-1">
+            <div className="flex justify-between mb-1.5">
+              <span className="text-sm font-bold text-adventure-navy dark:text-white">🌱 World Rebloom</span>
+              <span className="text-sm font-bold text-mint">{worldRebloom}%</span>
             </div>
-            <div className="text-2xl">{thisWeekSessions.length >= 5 ? "🔥" : thisWeekSessions.length >= 3 ? "⭐" : "💪"}</div>
+            <div className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-mint to-forest rounded-full" style={{ width: `${worldRebloom}%` }} />
+            </div>
           </div>
-          <div className="flex justify-between">
-            {weekDots.map(({ day, hasActivity, isToday }, i) => (
-              <div key={i} className="flex flex-col items-center gap-1.5">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                    hasActivity
-                      ? "bg-coral text-white"
-                      : isToday
-                      ? "border-2 border-coral"
-                      : "bg-soft-gray dark:bg-gray-700"
-                  }`}
-                >
-                  {hasActivity ? "✓" : ""}
-                </div>
-                <span className={`text-xs font-bold ${isToday ? "text-coral" : "text-gray-400"}`}>{day}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+          <div className="text-gray-400 text-xl">→</div>
+        </button>
 
-        {/* Today's Activities */}
+        {/* Quick adventures */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-black text-navy dark:text-white">Today's Activities</h3>
-            <button onClick={() => navigate("/app/explore")} className="text-coral text-xs font-bold">See More →</button>
+            <h2 className="font-display text-xl text-adventure-navy dark:text-white">Quick Adventures</h2>
+            <button onClick={() => navigate("/app/explore")} className="text-sm text-sky-blue font-bold">See All →</button>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {suggested.map(activity => (
-              <ActivityCard key={activity.id} activity={activity} />
+            {featuredActivities.map((activity, i) => (
+              <motion.button
+                key={activity.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate(`/app/activity/${activity.id}`)}
+                className="rounded-3xl overflow-hidden shadow-card text-left"
+                style={{ background: `linear-gradient(135deg, ${activity.color}, ${activity.color}99)` }}
+              >
+                <div className="p-4">
+                  <div className="text-4xl mb-2">{activity.emoji}</div>
+                  <p className="font-display text-white text-sm leading-tight">{activity.name}</p>
+                  <p className="text-white/70 text-xs mt-1">{activity.durationMin} min</p>
+                </div>
+              </motion.button>
             ))}
           </div>
         </div>
 
-        {/* Quick categories */}
-        <div>
-          <h3 className="font-black text-navy dark:text-white mb-3">Browse Categories</h3>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {[
-              { id: "dance", label: "Dance", emoji: "💃", color: "#B9A9EA" },
-              { id: "sports", label: "Sports", emoji: "⚽", color: "#58B9A9" },
-              { id: "outdoor", label: "Outdoor", emoji: "🌿", color: "#DDF2E7" },
-              { id: "quick-moves", label: "Quick", emoji: "⚡", color: "#FFD56A" },
-              { id: "relaxing", label: "Relax", emoji: "🧘", color: "#DDF2E7" },
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => navigate(`/app/explore?cat=${cat.id}`)}
-                className="flex-shrink-0 flex flex-col items-center gap-1 px-4 py-3 rounded-2xl text-center transition-all hover:scale-105 active:scale-95"
-                style={{ backgroundColor: cat.color }}
-              >
-                <span className="text-2xl">{cat.emoji}</span>
-                <span className="text-xs font-bold text-navy/80">{cat.label}</span>
-              </button>
-            ))}
-          </div>
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Adventures", value: totalActivities, emoji: "⚡", color: "#FF6B6B" },
+            { label: "Creatures", value: state.ownedCreatures.filter(c => c.profileId === activeProfile?.id).length, emoji: "🐾", color: "#6BCB77" },
+            { label: "Worlds", value: state.unlockedLocations.length, emoji: "🗺️", color: "#9B5DE5" },
+          ].map(stat => (
+            <div key={stat.label} className="bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-card text-center">
+              <div className="text-2xl mb-1">{stat.emoji}</div>
+              <div className="font-display text-xl text-adventure-navy dark:text-white">{stat.value}</div>
+              <div className="text-xs text-gray-400">{stat.label}</div>
+            </div>
+          ))}
         </div>
+
+        {/* Go to world map CTA */}
+        <button
+          onClick={() => navigate("/app/world")}
+          className="w-full rounded-3xl overflow-hidden shadow-card relative active:scale-95 transition-transform"
+          style={{ background: "linear-gradient(135deg, #1A2744, #4A148C)" }}
+        >
+          <div className="p-5 flex items-center gap-4">
+            <div className="text-5xl">🗺️</div>
+            <div className="text-left">
+              <p className="font-display text-xl text-white">Explore Wonderworld</p>
+              <p className="text-white/70 text-sm">{6 - state.unlockedLocations.length} regions left to discover</p>
+            </div>
+            <div className="ml-auto text-white text-2xl">→</div>
+          </div>
+        </button>
+
+        {/* Mini-games teaser */}
+        <button
+          onClick={() => navigate("/app/mini-games")}
+          className="w-full bg-gradient-to-r from-purple/90 to-sky-blue/90 rounded-3xl p-4 shadow-card flex items-center gap-3 active:scale-95 transition-transform"
+        >
+          <div className="text-4xl">🎮</div>
+          <div className="flex-1 text-left">
+            <p className="font-display text-white text-base">Mini-Game Hub</p>
+            <p className="text-white/70 text-xs">4 games ready to play!</p>
+          </div>
+          <div className="text-white text-xl">→</div>
+        </button>
       </div>
     </div>
   );

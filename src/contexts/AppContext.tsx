@@ -3,35 +3,42 @@ import {
   loadState, saveState, generateId,
   setParent, addProfile, updateProfile, deleteProfile, setActiveProfile,
   addSession, purchaseReward, deductPoints, unlockAchievement, unlockLocation,
-  getProfileSessions, getProfileOwnedRewards, getProfileAchievements,
+  discoverCreature, completeDailyMission, selectCompanion,
+  getProfileSessions, getProfileOwnedRewards, getProfileAchievements, getProfileCreatures,
+  getLevelFromPoints, getWorldRebloom,
 } from "../lib/store";
-import type { AppState, ParentAccount, ChildProfile, CompletedSession, OwnedReward, UnlockedAchievement } from "../lib/types";
+import type {
+  AppState, ParentAccount, ChildProfile, CompletedSession,
+  OwnedReward, UnlockedAchievement, OwnedCreature,
+} from "../lib/types";
 import { checkAchievements } from "../data/achievements";
 import { ACTIVITIES } from "../data/activities";
+import { CREATURES, getTodaysMissions } from "../data/creatures";
 
 interface AppContextValue {
   state: AppState;
-  // Auth
   login: (email: string, password: string) => boolean;
   register: (email: string, password: string, displayName: string) => boolean;
   logout: () => void;
-  // Profiles
   createProfile: (profile: Omit<ChildProfile, "id" | "parentId" | "createdAt">) => ChildProfile;
   updateChildProfile: (profile: ChildProfile) => void;
   removeProfile: (profileId: string) => void;
   selectProfile: (profileId: string | null) => void;
   activeProfile: ChildProfile | null;
-  // Activities
-  completeActivity: (activityId: string, durationMin: number) => { pointsEarned: number; newAchievements: string[] };
-  // Rewards
+  completeActivity: (activityId: string, durationMin: number) => { pointsEarned: number; newAchievements: string[]; newCreatures: string[] };
   buyReward: (profileId: string, rewardId: string, cost: number) => boolean;
   hasReward: (profileId: string, rewardId: string) => boolean;
-  // Settings
   updateParentSettings: (updates: Partial<ParentAccount>) => void;
-  // Data queries
   profileSessions: (profileId: string) => CompletedSession[];
   profileRewards: (profileId: string) => OwnedReward[];
   profileAchievements: (profileId: string) => UnlockedAchievement[];
+  profileCreatures: (profileId: string) => OwnedCreature[];
+  setCompanion: (creatureId: string) => void;
+  completeMission: (missionId: string) => void;
+  isMissionCompleted: (missionId: string) => boolean;
+  levelInfo: { level: number; title: string; nextLevelPoints: number };
+  worldRebloom: number;
+  dailyMissions: ReturnType<typeof getTodaysMissions>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -50,14 +57,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setState(current);
       return true;
     }
-    // Demo: allow any login if no account exists
     if (!current.parent) return false;
     return false;
   }, []);
 
   const register = useCallback((email: string, _password: string, displayName: string): boolean => {
     const current = loadState();
-    if (current.parent) return false; // already registered
+    if (current.parent) return false;
     const parent: ParentAccount = {
       id: generateId(),
       email,
@@ -67,8 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       notificationsEnabled: true,
       theme: "system",
     };
-    const next = setParent(current, parent);
-    persist(next);
+    persist(setParent(current, parent));
     return true;
   }, [persist]);
 
@@ -105,7 +110,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const completeActivity = useCallback((activityId: string, durationMin: number) => {
     let current = loadState();
     const profileId = current.activeProfileId;
-    if (!profileId) return { pointsEarned: 0, newAchievements: [] };
+    if (!profileId) return { pointsEarned: 0, newAchievements: [], newCreatures: [] };
 
     const pointsEarned = Math.max(10, durationMin * 5);
     const session: CompletedSession = {
@@ -117,10 +122,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       durationMin,
       pointsEarned,
     };
-
     current = addSession(current, session);
 
-    // Check achievements
     const profileSess = getProfileSessions(current, profileId);
     const totalActivities = profileSess.length;
     const totalPoints = current.profiles.find(p => p.id === profileId)?.points ?? 0;
@@ -132,52 +135,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     const ownedRewards = getProfileOwnedRewards(current, profileId).length;
     const unlockedAchievements = getProfileAchievements(current, profileId).map(a => a.achievementId);
-
     const newAchievementIds = checkAchievements(
-      profileId, totalActivities, totalPoints,
-      categoriesUsed, categoryCountMap,
-      current.unlockedLocations.length, ownedRewards,
-      unlockedAchievements
+      profileId, totalActivities, totalPoints, categoriesUsed, categoryCountMap,
+      current.unlockedLocations.length, ownedRewards, unlockedAchievements
     );
-
     for (const achId of newAchievementIds) {
       current = unlockAchievement(current, { profileId, achievementId: achId, unlockedAt: new Date().toISOString() });
     }
 
-    // Unlock adventure locations based on completed activities
+    // Unlock locations
     const locationThresholds: [number, string][] = [
-      [3, "rainbow-forest"],
-      [5, "ocean-discovery"],
-      [8, "mountain-playground"],
-      [12, "cloud-kingdom"],
-      [18, "space-explorer"],
+      [3, "whispering-forest"], [6, "ocean-discovery"],
+      [10, "crystal-mountains"], [15, "cloud-kingdom"], [20, "starlight-space"],
     ];
     for (const [threshold, locId] of locationThresholds) {
-      if (totalActivities >= threshold) {
-        current = unlockLocation(current, locId);
+      if (totalActivities >= threshold) current = unlockLocation(current, locId);
+    }
+
+    // Discover creatures based on activity count
+    const ownedCreatureIds = getProfileCreatures(current, profileId).map(c => c.creatureId);
+    const newCreatures: string[] = [];
+    for (const creature of CREATURES) {
+      if (!ownedCreatureIds.includes(creature.id) && totalActivities >= creature.activitiesRequired) {
+        current = discoverCreature(current, { profileId, creatureId: creature.id, discoveredAt: new Date().toISOString() });
+        newCreatures.push(creature.id);
+        if (newCreatures.length >= 1) break; // reveal one at a time
       }
     }
 
     persist(current);
-    return { pointsEarned, newAchievements: newAchievementIds };
+    return { pointsEarned, newAchievements: newAchievementIds, newCreatures };
   }, [persist]);
 
   const buyReward = useCallback((profileId: string, rewardId: string, cost: number): boolean => {
     let current = loadState();
     const profile = current.profiles.find(p => p.id === profileId);
     if (!profile || profile.points < cost) return false;
-
     current = deductPoints(current, profileId, cost);
     const owned: OwnedReward = { profileId, rewardId, purchasedAt: new Date().toISOString() };
     current = purchaseReward(current, owned);
-
-    // Check collector achievement
     const ownedCount = getProfileOwnedRewards(current, profileId).length;
     const unlockedIds = getProfileAchievements(current, profileId).map(a => a.achievementId);
     if (ownedCount >= 1 && !unlockedIds.includes("collector")) {
       current = unlockAchievement(current, { profileId, achievementId: "collector", unlockedAt: new Date().toISOString() });
     }
-
     persist(current);
     return true;
   }, [persist]);
@@ -189,21 +190,53 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateParentSettings = useCallback((updates: Partial<ParentAccount>) => {
     const current = loadState();
     if (!current.parent) return;
-    const next = setParent(current, { ...current.parent, ...updates });
-    persist(next);
+    persist(setParent(current, { ...current.parent, ...updates }));
   }, [persist]);
+
+  const setCompanion = useCallback((creatureId: string) => {
+    const current = loadState();
+    const profileId = current.activeProfileId;
+    if (!profileId) return;
+    persist(selectCompanion(current, profileId, creatureId));
+  }, [persist]);
+
+  const completeMission = useCallback((missionId: string) => {
+    const current = loadState();
+    const profileId = current.activeProfileId;
+    if (!profileId) return;
+    const today = new Date().toDateString();
+    persist(completeDailyMission(current, { profileId, missionId, completedDate: today }));
+  }, [persist]);
+
+  const isMissionCompleted = useCallback((missionId: string): boolean => {
+    const profileId = state.activeProfileId;
+    if (!profileId) return false;
+    const today = new Date().toDateString();
+    return state.completedDailyMissions.some(
+      m => m.profileId === profileId && m.missionId === missionId && m.completedDate === today
+    );
+  }, [state]);
+
+  const levelInfo = getLevelFromPoints(activeProfile?.points ?? 0);
+  const totalSessionsForProfile = activeProfile
+    ? state.sessions.filter(s => s.profileId === activeProfile.id).length
+    : 0;
+  const worldRebloom = getWorldRebloom(totalSessionsForProfile);
+  const dailyMissions = getTodaysMissions();
 
   const profileSessions = useCallback((profileId: string) => getProfileSessions(state, profileId), [state]);
   const profileRewards = useCallback((profileId: string) => getProfileOwnedRewards(state, profileId), [state]);
   const profileAchievements = useCallback((profileId: string) => getProfileAchievements(state, profileId), [state]);
+  const profileCreatures = useCallback((profileId: string) => getProfileCreatures(state, profileId), [state]);
 
   return (
     <AppContext.Provider value={{
       state, login, register, logout,
       createProfile, updateChildProfile, removeProfile, selectProfile, activeProfile,
-      completeActivity, buyReward, hasReward,
-      updateParentSettings,
-      profileSessions, profileRewards, profileAchievements,
+      completeActivity, buyReward, hasReward, updateParentSettings,
+      profileSessions, profileRewards, profileAchievements, profileCreatures,
+      setCompanion, completeMission, isMissionCompleted,
+      levelInfo, worldRebloom, dailyMissions,
     }}>
       {children}
     </AppContext.Provider>

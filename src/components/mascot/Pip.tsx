@@ -1,113 +1,153 @@
+import { motion, type TargetAndTransition } from "framer-motion";
+
+export type PipExpression =
+  | "idle" | "happy" | "excited" | "curious"
+  | "encouraging" | "sleeping" | "celebrating" | "running";
+
 interface PipProps {
-  expression?: "happy" | "excited" | "curious" | "encouraging" | "relaxed" | "celebrating";
+  expression?: PipExpression;
   size?: number;
   className?: string;
+  showMessage?: boolean;
   animate?: boolean;
 }
 
-export function Pip({ expression = "happy", size = 80, className = "", animate = false }: PipProps) {
-  const cls = [className, animate ? "animate-bounce-soft" : ""].filter(Boolean).join(" ");
+const MESSAGES: Record<PipExpression, string> = {
+  idle: "Ready for adventure! 🗺️",
+  happy: "That was amazing! 🎉",
+  excited: "Let's go, let's go! ⚡",
+  curious: "Ooh, what's over there? 🔍",
+  encouraging: "You can do it! 💪",
+  sleeping: "Zzzz... sweet dreams 😴",
+  celebrating: "WAHOO! You did it! 🎊",
+  running: "Adventure awaits! 🏃",
+};
 
-  const eyeExpressions = {
-    happy: { left: "M28 42 Q30 40 32 42", right: "M48 42 Q50 40 52 42", brows: "" },
-    excited: { left: "M27 41 Q30 38 33 41", right: "M47 41 Q50 38 53 41", brows: "M26 36 L33 33 M47 33 L54 36" },
-    curious: { left: "M28 42 Q30 40 32 42", right: "M48 41 Q51 39 52 42", brows: "M47 35 Q50 33 53 36" },
-    encouraging: { left: "M27 41 Q30 38 33 41", right: "M47 41 Q50 38 53 41", brows: "M26 35 L33 32 M47 32 L54 35" },
-    relaxed: { left: "M28 43 Q30 43 32 43", right: "M48 43 Q50 43 52 43", brows: "" },
-    celebrating: { left: "M27 40 Q30 37 33 40", right: "M47 40 Q50 37 53 40", brows: "M25 34 L33 31 M47 31 L55 34" },
+const bodyVariants: Record<PipExpression, TargetAndTransition> = {
+  idle: { y: [0, -6, 0], transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" } },
+  happy: { y: [0, -10, 0, -6, 0], transition: { duration: 0.8, repeat: Infinity, ease: "easeInOut" } },
+  excited: { rotate: [-5, 5, -5], y: [0, -8, 0], transition: { duration: 0.5, repeat: Infinity } },
+  curious: { rotate: [0, -8, 0], transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" } },
+  encouraging: { y: [0, -4, 0], transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" } },
+  sleeping: { y: [0, -2, 0], transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } },
+  celebrating: { y: [0, -15, 0], rotate: [-10, 10, -10], transition: { duration: 0.7, repeat: Infinity } },
+  running: { x: [0, 3, 0, -3, 0], y: [0, -4, 0], transition: { duration: 0.4, repeat: Infinity } },
+};
+
+export function Pip({ expression = "idle", size = 80, className = "", showMessage = false }: PipProps) {
+  const scale = size / 100;
+
+  const eyeExpression = () => {
+    switch (expression) {
+      case "sleeping": return <><ellipse cx="37" cy="47" rx="5" ry="2" fill="#3D2E1A" /><ellipse cx="63" cy="47" rx="5" ry="2" fill="#3D2E1A" /></>;
+      case "happy": return <><path d="M32 44 Q37 51 42 44" fill="none" stroke="#3D2E1A" strokeWidth="2" strokeLinecap="round" /><path d="M58 44 Q63 51 68 44" fill="none" stroke="#3D2E1A" strokeWidth="2" strokeLinecap="round" /></>;
+      case "excited": return <><circle cx="37" cy="47" r="6" fill="#3D2E1A" /><circle cx="63" cy="47" r="6" fill="#3D2E1A" /><circle cx="40" cy="44" r="2" fill="white" /><circle cx="66" cy="44" r="2" fill="white" /></>;
+      case "celebrating": return <><path d="M32 44 Q37 50 42 44" fill="none" stroke="#3D2E1A" strokeWidth="2.5" strokeLinecap="round" /><path d="M58 44 Q63 50 68 44" fill="none" stroke="#3D2E1A" strokeWidth="2.5" strokeLinecap="round" /></>;
+      default:
+        return (
+          <>
+            <circle cx="37" cy="47" r="5.5" fill="#3D2E1A" />
+            <circle cx="63" cy="47" r="5.5" fill="#3D2E1A" />
+            <circle cx="39.5" cy="44.5" r="1.8" fill="white" />
+            <circle cx="65.5" cy="44.5" r="1.8" fill="white" />
+          </>
+        );
+    }
   };
-
-  const expr = eyeExpressions[expression];
-
-  const mouthExpressions = {
-    happy: "M34 54 Q40 60 46 54",
-    excited: "M32 52 Q40 62 48 52",
-    curious: "M36 55 Q40 58 44 55",
-    encouraging: "M33 53 Q40 61 47 53",
-    relaxed: "M36 56 Q40 58 44 56",
-    celebrating: "M31 51 Q40 63 49 51",
-  };
-
-  const cheeks = expression === "celebrating" || expression === "excited" || expression === "encouraging";
 
   return (
-    <svg
-      viewBox="0 0 80 90"
-      width={size}
-      height={size}
-      className={cls}
-      style={{ display: "block" }}
-      aria-label="PIP the fox mascot"
-    >
-      {/* Tail */}
-      <ellipse cx="68" cy="78" rx="12" ry="8" fill="#FF8C42" transform="rotate(-20 68 78)" />
-      <ellipse cx="69" cy="76" rx="6" ry="4" fill="#FFF5EC" transform="rotate(-20 69 76)" />
-
-      {/* Body */}
-      <ellipse cx="40" cy="72" rx="20" ry="16" fill="#FF8C42" />
-      {/* Chest */}
-      <ellipse cx="40" cy="74" rx="12" ry="10" fill="#FFF5EC" />
-
-      {/* Shoes - left */}
-      <ellipse cx="31" cy="85" rx="7" ry="4" fill="#263342" />
-      <ellipse cx="29" cy="85" rx="4" ry="3" fill="#58B9A9" />
-      {/* Shoes - right */}
-      <ellipse cx="49" cy="85" rx="7" ry="4" fill="#263342" />
-      <ellipse cx="51" cy="85" rx="4" ry="3" fill="#58B9A9" />
-
-      {/* Arms */}
-      <ellipse cx="22" cy="66" rx="6" ry="10" fill="#FF8C42" transform="rotate(-15 22 66)" />
-      <ellipse cx="58" cy="66" rx="6" ry="10" fill="#FF8C42" transform="rotate(15 58 66)" />
-
-      {/* Head */}
-      <circle cx="40" cy="40" r="26" fill="#FF8C42" />
-
-      {/* Ears */}
-      <polygon points="18,20 12,4 28,14" fill="#FF8C42" />
-      <polygon points="20,19 15,7 26,15" fill="#E06028" />
-      <polygon points="62,20 68,4 52,14" fill="#FF8C42" />
-      <polygon points="60,19 65,7 54,15" fill="#E06028" />
-
-      {/* Face — cream patch */}
-      <ellipse cx="40" cy="44" rx="16" ry="13" fill="#FFF5EC" />
-
-      {/* Nose */}
-      <ellipse cx="40" cy="49" rx="4" ry="3" fill="#E06028" />
-      {/* Nostrils */}
-      <circle cx="38.5" cy="49.5" r="1" fill="#C04010" />
-      <circle cx="41.5" cy="49.5" r="1" fill="#C04010" />
-
-      {/* Eyes background */}
-      <circle cx="30" cy="41" r="5" fill="white" />
-      <circle cx="50" cy="41" r="5" fill="white" />
-      {/* Pupils */}
-      <circle cx="30" cy="41" r="3" fill="#263342" />
-      <circle cx="50" cy="41" r="3" fill="#263342" />
-      {/* Eye shine */}
-      <circle cx="31.5" cy="39.5" r="1" fill="white" />
-      <circle cx="51.5" cy="39.5" r="1" fill="white" />
-
-      {/* Eyebrow expressions */}
-      {expr.brows && (
-        <path d={expr.brows} stroke="#C04010" strokeWidth="2" strokeLinecap="round" fill="none" />
+    <div className={`flex flex-col items-center gap-1 ${className}`}>
+      {showMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl px-3 py-1.5 text-xs font-bold text-adventure-navy dark:text-white shadow-card max-w-40 text-center"
+        >
+          {MESSAGES[expression]}
+        </motion.div>
       )}
+      <motion.div animate={bodyVariants[expression]} style={{ width: size, height: size }}>
+        <svg
+          viewBox="0 0 100 120"
+          width={size}
+          height={size * 1.2}
+          style={{ transform: `scale(${scale})`, transformOrigin: "center" }}
+        >
+          {/* Tail */}
+          <ellipse cx="85" cy="90" rx="16" ry="10" fill="#FF8C42" transform="rotate(-30 85 90)" />
+          <ellipse cx="90" cy="85" rx="8" ry="5" fill="#FFF5E4" transform="rotate(-30 90 85)" />
 
-      {/* Mouth */}
-      <path d={mouthExpressions[expression]} stroke="#C04010" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          {/* Body */}
+          <ellipse cx="50" cy="80" rx="30" ry="25" fill="#FF8C42" />
+          {/* Chest */}
+          <ellipse cx="50" cy="82" rx="18" ry="16" fill="#FFF5E4" />
 
-      {/* Cheeks */}
-      {cheeks && (
-        <>
-          <circle cx="23" cy="47" r="5" fill="#FF786B" opacity="0.4" />
-          <circle cx="57" cy="47" r="5" fill="#FF786B" opacity="0.4" />
-        </>
-      )}
+          {/* Arms */}
+          <ellipse cx="22" cy="78" rx="8" ry="12" fill="#FF8C42" transform="rotate(-15 22 78)" />
+          <ellipse cx="78" cy="78" rx="8" ry="12" fill="#FF8C42" transform="rotate(15 78 78)" />
+          {/* Paws */}
+          <ellipse cx="17" cy="88" rx="6" ry="4" fill="#FF8C42" />
+          <ellipse cx="83" cy="88" rx="6" ry="4" fill="#FF8C42" />
 
-      {/* Whiskers */}
-      <line x1="12" y1="47" x2="26" y2="49" stroke="#E06028" strokeWidth="1.2" opacity="0.6" />
-      <line x1="12" y1="51" x2="26" y2="51" stroke="#E06028" strokeWidth="1.2" opacity="0.6" />
-      <line x1="54" y1="49" x2="68" y2="47" stroke="#E06028" strokeWidth="1.2" opacity="0.6" />
-      <line x1="54" y1="51" x2="68" y2="51" stroke="#E06028" strokeWidth="1.2" opacity="0.6" />
-    </svg>
+          {/* Legs */}
+          <ellipse cx="38" cy="102" rx="8" ry="6" fill="#FF8C42" />
+          <ellipse cx="62" cy="102" rx="8" ry="6" fill="#FF8C42" />
+
+          {/* Shoes — teal */}
+          <ellipse cx="37" cy="108" rx="10" ry="5" fill="#58B9A9" />
+          <ellipse cx="63" cy="108" rx="10" ry="5" fill="#58B9A9" />
+          <ellipse cx="37" cy="107" rx="8" ry="3" fill="#6ECFC0" />
+          <ellipse cx="63" cy="107" rx="8" ry="3" fill="#6ECFC0" />
+
+          {/* Head */}
+          <circle cx="50" cy="45" r="30" fill="#FF8C42" />
+
+          {/* Ears */}
+          <polygon points="22,20 10,0 35,15" fill="#FF8C42" />
+          <polygon points="78,20 90,0 65,15" fill="#FF8C42" />
+          {/* Inner ears */}
+          <polygon points="23,18 14,5 33,14" fill="#FFB3B3" />
+          <polygon points="77,18 86,5 67,14" fill="#FFB3B3" />
+
+          {/* Snout */}
+          <ellipse cx="50" cy="55" rx="13" ry="10" fill="#FFF5E4" />
+
+          {/* Eyes */}
+          {eyeExpression()}
+
+          {/* Nose */}
+          <ellipse cx="50" cy="52" rx="3.5" ry="2.5" fill="#3D2E1A" />
+
+          {/* Mouth */}
+          {expression === "sleeping" ? (
+            <path d="M44 59 Q50 62 56 59" fill="none" stroke="#3D2E1A" strokeWidth="1.5" strokeLinecap="round" />
+          ) : (
+            <path d="M44 59 Q50 64 56 59" fill="none" stroke="#3D2E1A" strokeWidth="1.5" strokeLinecap="round" />
+          )}
+
+          {/* Cheek blush */}
+          <ellipse cx="28" cy="54" rx="6" ry="4" fill="#FF9E95" opacity="0.4" />
+          <ellipse cx="72" cy="54" rx="6" ry="4" fill="#FF9E95" opacity="0.4" />
+
+          {/* Celebrating: sparkles */}
+          {expression === "celebrating" && (
+            <>
+              <text x="5" y="30" fontSize="12">✨</text>
+              <text x="80" y="25" fontSize="10">⭐</text>
+              <text x="85" y="50" fontSize="8">🎉</text>
+            </>
+          )}
+
+          {/* Sleeping Zzz */}
+          {expression === "sleeping" && (
+            <>
+              <text x="72" y="25" fontSize="10" fill="#9B5DE5" fontWeight="bold">z</text>
+              <text x="80" y="17" fontSize="13" fill="#9B5DE5" fontWeight="bold">z</text>
+              <text x="90" y="8" fontSize="16" fill="#9B5DE5" fontWeight="bold">Z</text>
+            </>
+          )}
+        </svg>
+      </motion.div>
+    </div>
   );
 }

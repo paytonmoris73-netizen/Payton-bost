@@ -1,60 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  html {
-    font-family: 'Nunito', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  body {
-    @apply bg-cream text-navy;
-  }
-
-  .dark body {
-    @apply bg-gray-950 text-white;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
-  }
+  html { font-family: 'Nunito', sans-serif; }
+  h1, h2, h3, .font-display { font-family: 'Fredoka One', cursive; }
+  body { @apply bg-cream dark:bg-gray-950 text-adventure-navy dark:text-white; }
+  * { -webkit-tap-highlight-color: transparent; }
 }
 
 @layer utilities {
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #FF6B6B, #9B5DE5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .bg-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
   }
 
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .game-card {
+    @apply rounded-3xl shadow-card overflow-hidden transition-all duration-200 active:scale-95;
   }
+
+  .rarity-common { border: 2px solid #9CA3AF; }
+  .rarity-uncommon { border: 2px solid #6BCB77; }
+  .rarity-rare { border: 2px solid #4FC3F7; box-shadow: 0 0 12px rgba(79,195,247,0.4); }
+  .rarity-legendary { border: 2px solid #FFD93D; box-shadow: 0 0 16px rgba(255,217,61,0.5); }
+
+  .region-meadow { background: linear-gradient(135deg, #6BCB77, #A5D6A7); }
+  .region-forest { background: linear-gradient(135deg, #2D6A4F, #52B788); }
+  .region-ocean { background: linear-gradient(135deg, #0288D1, #4FC3F7); }
+  .region-mountains { background: linear-gradient(135deg, #546E7A, #90A4AE); }
+  .region-clouds { background: linear-gradient(135deg, #9B5DE5, #CE93D8); }
+  .region-space { background: linear-gradient(135deg, #1A2744, #4A148C); }
+
+  .node-locked { @apply opacity-40 grayscale; }
+  .node-available { animation: pulseGlow 2s ease-in-out infinite; }
 }

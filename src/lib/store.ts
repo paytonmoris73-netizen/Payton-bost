@@ -1,6 +1,6 @@
 import type {
   AppState, ParentAccount, ChildProfile, CompletedSession,
-  OwnedReward, UnlockedAchievement,
+  OwnedReward, UnlockedAchievement, OwnedCreature, CompletedDailyMission,
 } from "./types";
 
 const KEY = "playpulse_state";
@@ -14,6 +14,8 @@ function defaultState(): AppState {
     ownedRewards: [],
     unlockedAchievements: [],
     unlockedLocations: ["sunny-meadow"],
+    ownedCreatures: [],
+    completedDailyMissions: [],
   };
 }
 
@@ -32,11 +34,10 @@ export function saveState(state: AppState): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
   } catch {
-    // quota exceeded — ignore
+    // quota exceeded
   }
 }
 
-// Mutation helpers (return new state, caller must call saveState)
 export function setParent(state: AppState, parent: ParentAccount | null): AppState {
   return { ...state, parent };
 }
@@ -58,6 +59,8 @@ export function deleteProfile(state: AppState, profileId: string): AppState {
     sessions: state.sessions.filter(s => s.profileId !== profileId),
     ownedRewards: state.ownedRewards.filter(r => r.profileId !== profileId),
     unlockedAchievements: state.unlockedAchievements.filter(a => a.profileId !== profileId),
+    ownedCreatures: state.ownedCreatures.filter(c => c.profileId !== profileId),
+    completedDailyMissions: state.completedDailyMissions.filter(m => m.profileId !== profileId),
   };
 }
 
@@ -74,12 +77,7 @@ export function addSession(state: AppState, session: CompletedSession): AppState
 }
 
 export function purchaseReward(state: AppState, owned: OwnedReward): AppState {
-  const reward = owned;
-  const profiles = state.profiles.map(p => {
-    if (p.id !== owned.profileId) return p;
-    return p; // points already deducted by caller
-  });
-  return { ...state, ownedRewards: [...state.ownedRewards, reward], profiles };
+  return { ...state, ownedRewards: [...state.ownedRewards, owned] };
 }
 
 export function deductPoints(state: AppState, profileId: string, amount: number): AppState {
@@ -103,6 +101,30 @@ export function unlockLocation(state: AppState, locationId: string): AppState {
   return { ...state, unlockedLocations: [...state.unlockedLocations, locationId] };
 }
 
+export function discoverCreature(state: AppState, owned: OwnedCreature): AppState {
+  const already = state.ownedCreatures.some(
+    c => c.profileId === owned.profileId && c.creatureId === owned.creatureId
+  );
+  if (already) return state;
+  return { ...state, ownedCreatures: [...state.ownedCreatures, owned] };
+}
+
+export function completeDailyMission(state: AppState, cm: CompletedDailyMission): AppState {
+  const already = state.completedDailyMissions.some(
+    m => m.profileId === cm.profileId && m.missionId === cm.missionId && m.completedDate === cm.completedDate
+  );
+  if (already) return state;
+  return { ...state, completedDailyMissions: [...state.completedDailyMissions, cm] };
+}
+
+export function selectCompanion(state: AppState, profileId: string, creatureId: string): AppState {
+  const profiles = state.profiles.map(p => {
+    if (p.id !== profileId) return p;
+    return { ...p, selectedCompanionId: creatureId };
+  });
+  return { ...state, profiles };
+}
+
 export function getProfileSessions(state: AppState, profileId: string): CompletedSession[] {
   return state.sessions.filter(s => s.profileId === profileId);
 }
@@ -115,6 +137,32 @@ export function getProfileAchievements(state: AppState, profileId: string): Unlo
   return state.unlockedAchievements.filter(a => a.profileId === profileId);
 }
 
+export function getProfileCreatures(state: AppState, profileId: string): OwnedCreature[] {
+  return state.ownedCreatures.filter(c => c.profileId === profileId);
+}
+
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+export function getLevelFromPoints(points: number): { level: number; title: string; nextLevelPoints: number } {
+  const levels = [
+    { min: 0, title: "New Explorer" },
+    { min: 50, title: "Meadow Friend" },
+    { min: 150, title: "Forest Discoverer" },
+    { min: 300, title: "Ocean Adventurer" },
+    { min: 500, title: "Mountain Explorer" },
+    { min: 750, title: "Cloud Traveler" },
+    { min: 1000, title: "Wonderworld Champion" },
+  ];
+  let level = 1;
+  for (let i = levels.length - 1; i >= 0; i--) {
+    if (points >= levels[i].min) { level = i + 1; break; }
+  }
+  const nextLevelPoints = level < levels.length ? levels[level].min : levels[levels.length - 1].min;
+  return { level, title: levels[level - 1].title, nextLevelPoints };
+}
+
+export function getWorldRebloom(totalActivities: number): number {
+  return Math.min(100, Math.round((totalActivities / 25) * 100));
 }

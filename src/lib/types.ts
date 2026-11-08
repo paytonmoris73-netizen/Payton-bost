@@ -1,4 +1,4 @@
-// Core domain types for PLAYPULSE
+// Core domain types for PLAYPULSE 2.0
 
 export interface ParentAccount {
   id: string;
@@ -20,6 +20,7 @@ export interface ChildProfile {
   accessibilityPrefs: AccessibilityPrefs;
   points: number;
   createdAt: string;
+  selectedCompanionId?: string;
 }
 
 export interface AvatarConfig {
@@ -53,7 +54,7 @@ export type ActivityCategory =
 export interface ActivityStep {
   id: string;
   instruction: string;
-  duration?: number; // seconds
+  duration?: number;
   illustration?: string;
 }
 
@@ -130,6 +131,40 @@ export interface AdventureLocation {
   rewardId?: string;
 }
 
+export interface Creature {
+  id: string;
+  name: string;
+  description: string;
+  personality: string;
+  region: string;
+  rarity: "common" | "uncommon" | "rare" | "legendary";
+  emoji: string;
+  color: string;
+  unlockCondition: string;
+  idleMessage: string;
+  activitiesRequired: number;
+}
+
+export interface OwnedCreature {
+  profileId: string;
+  creatureId: string;
+  discoveredAt: string;
+}
+
+export interface DailyMission {
+  id: string;
+  description: string;
+  icon: string;
+  type: "activity" | "explore" | "creature" | "homebase" | "game";
+  sparkReward: number;
+}
+
+export interface CompletedDailyMission {
+  profileId: string;
+  missionId: string;
+  completedDate: string;
+}
+
 // Legacy type for BunnyX BuildLog component
 export interface Revision {
   id: number;
@@ -152,4 +187,6 @@ export interface AppState {
   ownedRewards: OwnedReward[];
   unlockedAchievements: UnlockedAchievement[];
   unlockedLocations: string[];
+  ownedCreatures: OwnedCreature[];
+  completedDailyMissions: CompletedDailyMission[];
 }

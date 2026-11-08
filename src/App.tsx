@@ -24,6 +24,16 @@ import { RewardCollectionPage } from "./pages/app/RewardCollection";
 import { AvatarCustomizePage } from "./pages/app/AvatarCustomize";
 import { AchievementsPage } from "./pages/app/Achievements";
 import { ProfilePage } from "./pages/app/Profile";
+import { WorldMapPage } from "./pages/app/WorldMap";
+import { AdventurePathPage } from "./pages/app/AdventurePath";
+import { HomeBasePage } from "./pages/app/HomeBase";
+import { CreatureCollectionPage } from "./pages/app/CreatureCollection";
+import { CreatureDetailPage } from "./pages/app/CreatureDetail";
+import { MiniGameHubPage } from "./pages/app/MiniGameHub";
+import { RhythmRushPage } from "./pages/app/games/RhythmRush";
+import { CreatureMatchPage } from "./pages/app/games/CreatureMatch";
+import { BubblePopPage } from "./pages/app/games/BubblePop";
+import { MoveMemoryPage } from "./pages/app/games/MoveMemory";
 
 // Parent pages
 import { ParentDashboardPage } from "./pages/parent/ParentDashboard";
@@ -77,6 +87,17 @@ function AppRoutes() {
               <Route path="avatar" element={<AvatarCustomizePage />} />
               <Route path="achievements" element={<AchievementsPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              {/* New Wonderworld routes */}
+              <Route path="world" element={<WorldMapPage />} />
+              <Route path="adventure-path" element={<AdventurePathPage />} />
+              <Route path="home-base" element={<HomeBasePage />} />
+              <Route path="creatures" element={<CreatureCollectionPage />} />
+              <Route path="creatures/:id" element={<CreatureDetailPage />} />
+              <Route path="mini-games" element={<MiniGameHubPage />} />
+              <Route path="mini-games/rhythm-rush" element={<RhythmRushPage />} />
+              <Route path="mini-games/creature-match" element={<CreatureMatchPage />} />
+              <Route path="mini-games/bubble-pop" element={<BubblePopPage />} />
+              <Route path="mini-games/move-memory" element={<MoveMemoryPage />} />
               <Route path="*" element={<Navigate to="home" replace />} />
             </Routes>
           </AppLayout>
