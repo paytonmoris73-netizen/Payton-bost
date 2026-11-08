@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_sunfox"
+title = "Sunfox's Lanterns"
+category = "creature"
+region = "meadow"
+description = "Old lanterns line the village paths, long gone dark. With Sunfox as your companion, you could light them again."
+objectives = Array[Dictionary]([{
+"event": "ability:dark_lantern",
+"count": 3,
+"label": "Light old lanterns with Sunfox"
+}])
+rewards = {
+"xp": 90,
+"gold": 70
+}
+prerequisites = PackedStringArray("q_main_03")
+min_level = 2
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 30
+map_marker = ""

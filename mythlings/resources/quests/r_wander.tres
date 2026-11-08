@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "r_wander"
+title = "Meadow Wanderer"
+category = "exploration"
+region = "meadow"
+description = "See the sights of Whispering Meadow."
+objectives = Array[Dictionary]([{
+"event": "reach:butterfly_clearing",
+"count": 1,
+"label": "Visit Butterfly Clearing"
+}, {
+"event": "reach:sunstone_river",
+"count": 1,
+"label": "Visit Sunstone River"
+}, {
+"event": "reach:whispering_woods",
+"count": 1,
+"label": "Visit Whispering Woods"
+}])
+rewards = {
+"xp": 80,
+"gold": 50
+}
+prerequisites = PackedStringArray("q_main_01")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 21
+map_marker = ""

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cloth_mossbun_pack"
+display_name = "Mossbun Backpack"
+category = "clothing"
+description = "A plush backpack shaped like a Mossbun."
+currency = "star_gems"
+price = 150
+grants = {
+"cosmetic": "backpack:mossbun_pack"
+}
+rarity = "epic"
+preview_kind = "outfit"
+preview_id = "backpack:mossbun_pack"
+tags = PackedStringArray("backpack")

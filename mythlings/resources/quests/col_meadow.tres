@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "col_meadow"
+title = "Meadow Naturalist"
+category = "collection"
+region = "meadow"
+description = "Discover the Mythlings that call Whispering Meadow home."
+objectives = Array[Dictionary]([{
+"event": "discover:*",
+"count": 6,
+"label": "Discover Mythlings"
+}])
+rewards = {
+"xp": 150,
+"crystals": 15
+}
+prerequisites = PackedStringArray("q_main_02")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 40
+map_marker = ""

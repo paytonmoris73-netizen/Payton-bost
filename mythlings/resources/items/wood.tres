@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "wood"
+display_name = "Wood"
+category = "material"
+description = "Sturdy fallen branches, gathered without harming living trees."
+icon = "log"
+color = Color(0.627, 0.439, 0.247, 1)
+max_stack = 99
+sell_value = 2

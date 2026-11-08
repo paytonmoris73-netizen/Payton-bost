@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "treat_cookie"
+display_name = "Clover Cookies ×3"
+category = "creature"
+description = "Mossbun's favourite treat."
+currency = "gold"
+price = 30
+grants = {
+"items": {
+"clover_cookie": 3
+}
+}
+stackable = true
+preview_kind = "icon"
+preview_id = "clover_cookie"
+tags = PackedStringArray("treat")

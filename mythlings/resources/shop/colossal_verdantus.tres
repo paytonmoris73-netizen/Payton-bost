@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "colossal_verdantus"
+display_name = "Verdantus"
+category = "colossal"
+description = "An ancient forest guardian as tall as the old oaks. Moss armour covers its back, flowers grow where it has rested, and its branching antlers glow with emerald light."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "legendary"
+preview_kind = "colossal"
+preview_id = "verdantus"
+featured = true
+available = true
+unavailable_reason = ""
+earn_path = "Free — earned through play: Restore the Forgotten Shrine deep in Whispering Woods."
+tags = PackedStringArray("colossal")
+includes = PackedStringArray("Ability: Guardian's Gaze", "Habitat: Ancient Forest Sanctuary", "Rideable after earning its trust")

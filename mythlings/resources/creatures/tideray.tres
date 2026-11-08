@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "tideray"
+display_name = "Tideray"
+region = "tideglass"
+habitat = "Sunken Temple"
+elements = PackedStringArray("water")
+rarity = "epic"
+size_class = "small"
+personality = "calm"
+description = "A graceful ray patterned like sunlight on waves."
+personality_text = "Serene and wise."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.173, 0.431, 0.561, 1, 0.62, 0.89, 0.91, 1)
+model_id = "tideray"
+locomotion = "swim"
+move_speed = 2.8
+height = 0.6
+sound_pitch = 1.0
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Sunken Temple.", "Serene and wise.", "Ability: unknown.")
+discovery_hint = "Circles the Sunken Temple."
+rideable = false
+model_ready = false

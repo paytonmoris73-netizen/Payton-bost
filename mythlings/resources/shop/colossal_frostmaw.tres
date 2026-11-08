@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "colossal_frostmaw"
+display_name = "Frostmaw"
+category = "colossal"
+description = "A massive arctic guardian with thick white fur, ice-crowned horns and glowing blue eyes."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "legendary"
+preview_kind = "colossal"
+preview_id = "frostmaw"
+featured = true
+available = false
+unavailable_reason = "Arrives with the Frostroot Vale region update. Not purchasable."
+earn_path = "Free — earned through play: Complete the ancient glacier expedition."
+tags = PackedStringArray("colossal")
+includes = PackedStringArray("Ability: Frostwalk", "Habitat: Frozen Titan Valley", "Rideable after earning its trust")

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "stardust"
+display_name = "Stardust"
+region = "starfall"
+habitat = "Starfall Village"
+elements = PackedStringArray("celestial")
+rarity = "uncommon"
+size_class = "small"
+personality = "playful"
+description = "A small celestial creature with a shimmering star-shaped tail."
+personality_text = "Twinkles when happy."
+ability_id = "celestial_mark"
+ability_name = "Starsight"
+ability_text = "Reveals celestial markings."
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.169, 0.184, 0.42, 1, 1.0, 0.878, 0.541, 1)
+model_id = "stardust"
+locomotion = "float"
+move_speed = 2.4
+height = 0.6
+sound_pitch = 1.6
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Starfall Village.", "Twinkles when happy.", "Ability: Starsight.")
+discovery_hint = "Twinkles around Starfall Village."
+rideable = false
+model_ready = false

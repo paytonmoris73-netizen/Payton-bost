@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cloth_star_circlet"
+display_name = "Star Circlet"
+category = "clothing"
+description = "A delicate circlet with a single glowing star."
+currency = "crystals"
+price = 60
+grants = {
+"cosmetic": "hat:star_circlet"
+}
+rarity = "epic"
+preview_kind = "outfit"
+preview_id = "hat:star_circlet"
+tags = PackedStringArray("hat")

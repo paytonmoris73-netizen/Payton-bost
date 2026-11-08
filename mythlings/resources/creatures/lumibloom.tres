@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "lumibloom"
+display_name = "Lumibloom"
+region = "sunpetal"
+habitat = "Mushroom Hollow"
+elements = PackedStringArray("nature", "celestial")
+rarity = "epic"
+size_class = "small"
+personality = "calm"
+description = "A rare flower creature that glows at night."
+personality_text = "Gentle and luminous."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.494, 0.949, 0.816, 1, 0.961, 0.941, 1.0, 1)
+model_id = "lumibloom"
+locomotion = "float"
+move_speed = 1.6
+height = 0.7
+sound_pitch = 1.5
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Mushroom Hollow.", "Gentle and luminous.", "Ability: unknown.")
+discovery_hint = "Glows in Mushroom Hollow at night."
+rideable = false
+model_ready = false

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "verdantus"
+display_name = "Verdantus"
+region = "meadow"
+habitat = "Ancient Forest Sanctuary"
+elements = PackedStringArray("nature")
+rarity = "legendary"
+size_class = "colossal"
+personality = "calm"
+description = "An ancient forest guardian as tall as the old oaks. Moss armour covers its back, flowers grow where it has rested, and its branching antlers glow with emerald light."
+personality_text = "Calm, intelligent and protective. Verdantus lowers its great head to those it trusts, and leaves a trail of blossoms wherever it walks."
+ability_id = "hidden_treasure"
+ability_name = "Guardian's Gaze"
+ability_text = "Reveals hidden natural treasures across a wide area."
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 72,
+"spirit": 44,
+"agility": 16
+}
+palette = PackedColorArray(0.294, 0.271, 0.196, 1, 0.333, 0.498, 0.227, 1, 0.224, 0.898, 0.549, 1)
+model_id = "verdantus"
+locomotion = "quad"
+move_speed = 3.0
+height = 7.2
+sound_pitch = 0.6
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Ancient Forest Sanctuary.", "Calm, intelligent and protective. Verdantus lowers its great head to those it trusts, and leaves a trail of blossoms wherever it walks.", "Ability: Guardian's Gaze.")
+discovery_hint = "Restore the Forgotten Shrine deep in Whispering Woods."
+rideable = true
+model_ready = true

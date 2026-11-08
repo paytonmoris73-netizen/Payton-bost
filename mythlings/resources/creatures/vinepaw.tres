@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "vinepaw"
+display_name = "Vinepaw"
+region = "sunpetal"
+habitat = "Emerald Temple"
+elements = PackedStringArray("nature")
+rarity = "uncommon"
+size_class = "small"
+personality = "excited"
+description = "A climber with vine-like stripes."
+personality_text = "Climbs everything."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.239, 0.478, 0.227, 1, 0.604, 0.827, 0.416, 1)
+model_id = "vinepaw"
+locomotion = "quad"
+move_speed = 3.0
+height = 0.6
+sound_pitch = 1.2
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Emerald Temple.", "Climbs everything.", "Ability: unknown.")
+discovery_hint = "Climbs the Emerald Temple walls."
+rideable = false
+model_ready = false

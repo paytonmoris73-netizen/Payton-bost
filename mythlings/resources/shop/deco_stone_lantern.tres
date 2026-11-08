@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "deco_stone_lantern"
+display_name = "Stone Lantern"
+category = "sanctuary"
+description = "A moss-flecked lantern that glows at dusk. Appears in the Ancient Oak Sanctuary once restored."
+currency = "gold"
+price = 120
+grants = {
+"decoration": "deco_stone_lantern"
+}
+rarity = "common"
+preview_kind = "decoration"
+preview_id = "deco_stone_lantern"
+tags = PackedStringArray("decoration")

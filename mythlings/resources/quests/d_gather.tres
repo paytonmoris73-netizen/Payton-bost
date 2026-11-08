@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "d_gather"
+title = "Gatherer's Stroll"
+category = "daily"
+region = "meadow"
+description = "Collect a few resources on today's walk. Optional."
+objectives = Array[Dictionary]([{
+"event": "collect:*",
+"count": 10,
+"label": "Collect resources"
+}])
+rewards = {
+"xp": 30,
+"gold": 40
+}
+prerequisites = PackedStringArray()
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 51
+map_marker = ""

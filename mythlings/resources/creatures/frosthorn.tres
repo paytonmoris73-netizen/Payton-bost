@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "frosthorn"
+display_name = "Frosthorn"
+region = "frostroot"
+habitat = "Winterheart Forest"
+elements = PackedStringArray("ice", "earth")
+rarity = "uncommon"
+size_class = "small"
+personality = "proud"
+description = "A sturdy creature with beautiful frosted horns."
+personality_text = "Protective of its herd."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.553, 0.592, 0.651, 1, 0.875, 0.957, 1.0, 1)
+model_id = "frosthorn"
+locomotion = "quad"
+move_speed = 2.2
+height = 0.8
+sound_pitch = 0.9
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Winterheart Forest.", "Protective of its herd.", "Ability: unknown.")
+discovery_hint = "Roams Winterheart Forest."
+rideable = false
+model_ready = false

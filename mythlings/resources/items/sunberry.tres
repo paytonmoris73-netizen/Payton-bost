@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "sunberry"
+display_name = "Sunberry"
+category = "treat"
+description = "A sweet golden berry. Every Mythling enjoys one."
+icon = "berry"
+color = Color(0.949, 0.702, 0.239, 1)
+max_stack = 30
+sell_value = 0

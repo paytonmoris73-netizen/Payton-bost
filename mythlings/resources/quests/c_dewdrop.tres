@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_dewdrop"
+title = "Ripples on the Pond"
+category = "creature"
+region = "meadow"
+description = "Stepping stones once crossed the waterfall pool. Dewdrop could call them back up."
+objectives = Array[Dictionary]([{
+"event": "ability:ripple_stone",
+"count": 1,
+"label": "Raise the stepping stones with Dewdrop"
+}])
+rewards = {
+"xp": 90,
+"gold": 60
+}
+prerequisites = PackedStringArray("q_main_03")
+min_level = 2
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 33
+map_marker = ""

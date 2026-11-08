@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "gems_550"
+display_name = "550 Star Gems"
+category = "currency"
+description = "Optional premium currency for cosmetics. Never required to play."
+currency = "real_money"
+price = 0
+grants = {
+"star_gems": 550
+}
+stackable = true
+real_price_label = "$4.99"
+preview_kind = "icon"
+preview_id = "gem"
+tags = PackedStringArray("currency")

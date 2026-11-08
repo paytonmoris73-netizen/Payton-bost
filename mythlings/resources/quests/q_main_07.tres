@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_07"
+title = "Heart of the Sanctuary"
+category = "main"
+region = "meadow"
+description = "Bring flowers, wood and a crystal to restore the sanctuary's spring and gardens."
+objectives = Array[Dictionary]([{
+"event": "restore:oak_2",
+"count": 1,
+"label": "Restore the sanctuary gardens"
+}])
+rewards = {
+"xp": 160,
+"gold": 120,
+"crystals": 10
+}
+prerequisites = PackedStringArray("q_main_06")
+min_level = 3
+auto_start = true
+giver = "Ancient Oak"
+start_dialogue = PackedStringArray("My roots are thirsty, Keeper. Bring petals, wood and a crystal, and my spring will flow again.")
+end_dialogue = PackedStringArray("Listen — something is coming to drink from the spring.", "*A Bloomtail peeks out from beneath the roots.*")
+sort_order = 7
+map_marker = "oak_site"

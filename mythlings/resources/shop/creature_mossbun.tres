@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_mossbun"
+display_name = "Mossbun"
+category = "creature"
+description = "A round little forest dweller whose fur is a living carpet of moss. Its leafy ears turn toward rustling plants long before anyone else hears them."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "common"
+preview_kind = "creature"
+preview_id = "mossbun"
+earn_path = "Free — discover in game. Seen nibbling clover beneath the trees of Whispering Woods."
+tags = PackedStringArray("creature")
+includes = PackedStringArray("Habitat: Whispering Woods", "Ability: Mossy Sense")

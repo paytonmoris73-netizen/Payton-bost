@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_08"
+title = "The Forgotten Shrine"
+category = "main"
+region = "meadow"
+description = "Deep in the Whispering Woods stands a shrine to the forest's guardian. Find it, gather Glimmerroot, and wake it."
+objectives = Array[Dictionary]([{
+"event": "reach:forest_shrine",
+"count": 1,
+"label": "Find the Forgotten Shrine in the woods"
+}, {
+"event": "collect:glimmerroot",
+"count": 3,
+"label": "Gather Glimmerroot (Mossy Sense)"
+}, {
+"event": "restore:shrine_1",
+"count": 1,
+"label": "Restore the shrine"
+}, {
+"event": "discover:verdantus",
+"count": 1,
+"label": "Meet the guardian"
+}])
+rewards = {
+"xp": 300,
+"gold": 200,
+"crystals": 25
+}
+prerequisites = PackedStringArray("q_main_07")
+min_level = 4
+auto_start = true
+giver = "Ancient Oak"
+start_dialogue = PackedStringArray("There is one older than me, Keeper. A guardian who sleeps beneath the woods.", "Its shrine has gone dark. Glimmerroot — the glowing root your Mossbun can sense — will rekindle it.")
+end_dialogue = PackedStringArray()
+sort_order = 8
+map_marker = "forest_shrine"

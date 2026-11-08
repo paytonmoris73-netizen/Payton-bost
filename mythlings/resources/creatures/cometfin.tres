@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cometfin"
+display_name = "Cometfin"
+region = "starfall"
+habitat = "Crystal Skybridge"
+elements = PackedStringArray("celestial", "water")
+rarity = "rare"
+size_class = "small"
+personality = "excited"
+description = "A floating fish trailing a comet tail."
+personality_text = "Zips through the sky."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.29, 0.498, 0.878, 1, 0.749, 0.941, 1.0, 1)
+model_id = "cometfin"
+locomotion = "float"
+move_speed = 3.4
+height = 0.6
+sound_pitch = 1.5
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Crystal Skybridge.", "Zips through the sky.", "Ability: unknown.")
+discovery_hint = "Darts beneath the Crystal Skybridge."
+rideable = false
+model_ready = false

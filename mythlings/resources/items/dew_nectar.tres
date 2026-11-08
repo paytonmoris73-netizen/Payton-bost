@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "dew_nectar"
+display_name = "Dew Nectar"
+category = "treat"
+description = "Morning dew sweetened with flower nectar."
+icon = "drop"
+color = Color(0.561, 0.863, 0.961, 1)
+max_stack = 30
+sell_value = 0

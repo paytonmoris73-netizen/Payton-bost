@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/region_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "meadow"
+display_name = "Whispering Meadow"
+description = "Rolling green hills, flower fields, an old windmill and the great Ancient Oak. The heart of every Keeper's journey."
+difficulty = "Beginner"
+unlock_level = 1
+unlock_quest = ""
+playable = true
+theme_color = Color(0.561, 0.812, 0.416, 1)
+accent_color = Color(0.957, 0.886, 0.478, 1)
+map_position = Vector2(0.24, 0.62)
+locations = PackedStringArray("meadow_village", "whispering_woods", "sunstone_river", "ancient_oak", "butterfly_clearing")
+location_names = PackedStringArray("Meadow Village", "Whispering Woods", "Sunstone River", "Ancient Oak Sanctuary", "Butterfly Clearing")
+location_texts = PackedStringArray("A cosy village of timber houses, gardens and a slow-turning windmill.", "Tall trees whose leaves seem to murmur when the wind is still.", "A clear river crossed by an ancient stone bridge, fed by a misty waterfall.", "An abandoned sanctuary around the oldest tree in the land.", "A sunlit glade where butterflies gather by the hundred.")
+creatures = PackedStringArray("mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail")
+colossal = "verdantus"
+resource_item = "wood"

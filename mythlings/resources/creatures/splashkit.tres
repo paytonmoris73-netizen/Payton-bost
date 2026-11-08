@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "splashkit"
+display_name = "Splashkit"
+region = "tideglass"
+habitat = "Moonlit Beach"
+elements = PackedStringArray("water")
+rarity = "uncommon"
+size_class = "small"
+personality = "excited"
+description = "An otter-like rascal that makes tiny splashes wherever it goes."
+personality_text = "Excitable and mischievous."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.357, 0.498, 0.651, 1, 0.859, 0.914, 0.961, 1)
+model_id = "splashkit"
+locomotion = "quad"
+move_speed = 3.2
+height = 0.6
+sound_pitch = 1.35
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Moonlit Beach.", "Excitable and mischievous.", "Ability: unknown.")
+discovery_hint = "Splashes along Moonlit Beach."
+rideable = false
+model_ready = false

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "petals"
+display_name = "Flower Petals"
+category = "material"
+description = "Fragrant petals from meadow flowers."
+icon = "flower"
+color = Color(0.941, 0.541, 0.659, 1)
+max_stack = 99
+sell_value = 3

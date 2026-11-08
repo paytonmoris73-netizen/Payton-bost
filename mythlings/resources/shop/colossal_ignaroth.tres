@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "colossal_ignaroth"
+display_name = "Ignaroth"
+category = "colossal"
+description = "A gigantic volcanic quadruped with obsidian armour, magma veins and vast fire-coloured wings."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "legendary"
+preview_kind = "colossal"
+preview_id = "ignaroth"
+featured = true
+available = false
+unavailable_reason = "Arrives with the Emberfall Highlands region update. Not purchasable."
+earn_path = "Free — earned through play: Explore the Forgotten Forge and complete Emberfall's volcanic quest."
+tags = PackedStringArray("colossal")
+includes = PackedStringArray("Ability: Forgefire", "Habitat: Volcanic Guardian Grounds", "Rideable after earning its trust")

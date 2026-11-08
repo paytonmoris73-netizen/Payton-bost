@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "solara"
+display_name = "Solara"
+region = "starfall"
+habitat = "The Forgotten Star Sanctuary"
+elements = PackedStringArray("celestial", "fire")
+rarity = "mythic"
+size_class = "small"
+personality = "calm"
+description = "A radiant being connected to the energy of the stars."
+personality_text = "Ancient, kind and luminous."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 28,
+"spirit": 28,
+"agility": 20
+}
+palette = PackedColorArray(1.0, 0.949, 0.761, 1, 1.0, 0.702, 0.278, 1)
+model_id = "solara"
+locomotion = "float"
+move_speed = 2.2
+height = 0.9
+sound_pitch = 1.0
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near The Forgotten Star Sanctuary.", "Ancient, kind and luminous.", "Ability: unknown.")
+discovery_hint = "Rumoured to wake in the Forgotten Star Sanctuary."
+rideable = false
+model_ready = false

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "deco_flower_arch"
+display_name = "Flower Arch"
+category = "sanctuary"
+description = "An arch of climbing roses. Appears in the Ancient Oak Sanctuary once restored."
+currency = "gold"
+price = 250
+grants = {
+"decoration": "deco_flower_arch"
+}
+rarity = "uncommon"
+preview_kind = "decoration"
+preview_id = "deco_flower_arch"
+tags = PackedStringArray("decoration")

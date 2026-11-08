@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/region_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "starfall"
+display_name = "Starfall Isles"
+description = "Floating islands under violet skies, where waterfalls fall upward into the stars."
+difficulty = "Expert"
+unlock_level = 20
+unlock_quest = "q_main_06"
+playable = false
+theme_color = Color(0.545, 0.455, 0.902, 1)
+accent_color = Color(1.0, 0.878, 0.541, 1)
+map_position = Vector2(0.47, 0.1)
+locations = PackedStringArray("starfall_village", "celestial_gardens", "dreamlight_observatory", "crystal_skybridge", "star_sanctuary")
+location_names = PackedStringArray("Starfall Village", "Celestial Gardens", "Dreamlight Observatory", "Crystal Skybridge", "The Forgotten Star Sanctuary")
+location_texts = PackedStringArray("", "", "", "", "")
+creatures = PackedStringArray("stardust", "nebulynx", "cometfin", "dreamwing", "astralfox", "solara")
+colossal = "astravyth"
+resource_item = "star_fragment"

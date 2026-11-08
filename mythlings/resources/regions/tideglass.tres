@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/region_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "tideglass"
+display_name = "Tideglass Coast"
+description = "Turquoise seas, coral reefs, sea caves and a temple beneath the waves."
+difficulty = "Intermediate"
+unlock_level = 8
+unlock_quest = "q_main_06"
+playable = false
+theme_color = Color(0.239, 0.608, 0.839, 1)
+accent_color = Color(0.62, 0.89, 0.91, 1)
+map_position = Vector2(0.18, 0.27)
+locations = PackedStringArray("tideglass_harbor", "coral_gardens", "pearl_caverns", "sunken_temple", "moonlit_beach")
+location_names = PackedStringArray("Tideglass Harbor", "Coral Gardens", "Pearl Caverns", "Sunken Temple", "Moonlit Beach")
+location_texts = PackedStringArray("", "", "", "", "")
+creatures = PackedStringArray("bubbloon", "shellfin", "coralyn", "splashkit", "moonjelly", "tideray")
+colossal = "thalassor"
+resource_item = "shell"

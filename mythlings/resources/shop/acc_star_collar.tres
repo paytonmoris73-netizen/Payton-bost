@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "acc_star_collar"
+display_name = "Star Collar"
+category = "creature_cosmetic"
+description = "A midnight collar with a glowing star charm. Purely cosmetic."
+currency = "star_gems"
+price = 80
+grants = {
+"cosmetic": "acc:star_collar"
+}
+rarity = "epic"
+preview_kind = "creature"
+preview_id = "mossbun::star_collar"
+tags = PackedStringArray("accessory")

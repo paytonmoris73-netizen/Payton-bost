@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cloverling"
+display_name = "Cloverling"
+region = "meadow"
+habitat = "Butterfly Clearing"
+elements = PackedStringArray("nature")
+rarity = "common"
+size_class = "small"
+personality = "playful"
+description = "A tiny flower sprite crowned with four clover leaves — one of them always a little golden. Butterflies treat it as one of their own."
+personality_text = "Playful and bouncy. Cloverling chases butterflies, spins in circles and rarely sits still for more than a moment."
+ability_id = "lucky_clover"
+ability_name = "Lucky Find"
+ability_text = "Uncovers lucky clover patches that hold bonus treasures."
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 10,
+"spirit": 8,
+"agility": 9
+}
+palette = PackedColorArray(0.31, 0.639, 0.353, 1, 0.933, 0.953, 0.788, 1, 0.89, 0.761, 0.29, 1)
+model_id = "cloverling"
+locomotion = "hop"
+move_speed = 2.6
+height = 0.6
+sound_pitch = 1.45
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Butterfly Clearing.", "Playful and bouncy. Cloverling chases butterflies, spins in circles and rarely sits still for more than a moment.", "Ability: Lucky Find.")
+discovery_hint = "Look where the butterflies gather in the clearing."
+rideable = false
+model_ready = true

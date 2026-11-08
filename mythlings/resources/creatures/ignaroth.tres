@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "ignaroth"
+display_name = "Ignaroth"
+region = "emberfall"
+habitat = "Volcanic Guardian Grounds"
+elements = PackedStringArray("fire")
+rarity = "legendary"
+size_class = "colossal"
+personality = "proud"
+description = "A gigantic volcanic quadruped with obsidian armour, magma veins and vast fire-coloured wings."
+personality_text = "Proud, courageous and surprisingly loyal."
+ability_id = "volcanic_structure"
+ability_name = "Forgefire"
+ability_text = "Activates ancient volcanic structures."
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 72,
+"spirit": 44,
+"agility": 16
+}
+palette = PackedColorArray(0.114, 0.102, 0.102, 1, 1.0, 0.416, 0.122, 1)
+model_id = "ignaroth"
+locomotion = "quad"
+move_speed = 3.4
+height = 8.0
+sound_pitch = 0.5
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Volcanic Guardian Grounds.", "Proud, courageous and surprisingly loyal.", "Ability: Forgefire.")
+discovery_hint = "Explore the Forgotten Forge and complete Emberfall's volcanic quest."
+rideable = true
+model_ready = false

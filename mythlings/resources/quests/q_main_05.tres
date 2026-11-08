@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_05"
+title = "Restoring the Sanctuary"
+category = "main"
+region = "meadow"
+description = "The Ancient Oak Sanctuary lies in ruins. Gather wood and stone, then restore its standing stones."
+objectives = Array[Dictionary]([{
+"event": "collect:wood",
+"count": 5,
+"label": "Gather wood"
+}, {
+"event": "collect:stone",
+"count": 4,
+"label": "Gather stone"
+}, {
+"event": "restore:oak_1",
+"count": 1,
+"label": "Restore the sanctuary's standing stones"
+}])
+rewards = {
+"xp": 120,
+"gold": 80,
+"crystals": 5
+}
+prerequisites = PackedStringArray("q_main_04")
+min_level = 1
+auto_start = true
+giver = "Ancient Oak"
+start_dialogue = PackedStringArray("...Keeper...", "The stones that once sheltered my Mythlings have fallen. Raise them again, and they will return.")
+end_dialogue = PackedStringArray("The stones remember their song. Thank you, Keeper.", "Other sanctuaries sleep in distant lands. Look to the map — the world is wider than this meadow.")
+sort_order = 5
+map_marker = "oak_site"

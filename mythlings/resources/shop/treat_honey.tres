@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "treat_honey"
+display_name = "Honey Drops ×3"
+category = "creature"
+description = "Loved by Pebblit and Bloomtail."
+currency = "gold"
+price = 45
+grants = {
+"items": {
+"honey_drop": 3
+}
+}
+stackable = true
+preview_kind = "icon"
+preview_id = "honey_drop"
+tags = PackedStringArray("treat")

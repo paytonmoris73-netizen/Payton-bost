@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "fernling"
+display_name = "Fernling"
+region = "sunpetal"
+habitat = "Sunpetal Village"
+elements = PackedStringArray("nature")
+rarity = "common"
+size_class = "small"
+personality = "curious"
+description = "A small plant creature with fern-frond ears."
+personality_text = "Curious and helpful."
+ability_id = "jungle_plant"
+ability_name = "Frond Touch"
+ability_text = "Interacts with special jungle plants."
+favorite_treat = "clover_cookie"
+base_stats = {
+"vitality": 10,
+"spirit": 8,
+"agility": 9
+}
+palette = PackedColorArray(0.31, 0.604, 0.29, 1, 0.714, 0.878, 0.478, 1)
+model_id = "fernling"
+locomotion = "hop"
+move_speed = 2.4
+height = 0.6
+sound_pitch = 1.3
+friendship_notes = PackedStringArray("Prefers clover cookie as a treat.", "Often found near Sunpetal Village.", "Curious and helpful.", "Ability: Frond Touch.")
+discovery_hint = "Peeks out around Sunpetal Village."
+rideable = false
+model_ready = false

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "rot_starlit_night"
+display_name = "Starlit Night Set"
+category = "rotating"
+description = "A star lamp and star collar. Returns in future rotations."
+currency = "star_gems"
+price = 120
+grants = {
+"decoration": "deco_star_lamp",
+"cosmetic": "acc:star_collar",
+"bundle": ["deco_star_lamp", "acc_star_collar"]
+}
+rarity = "epic"
+preview_kind = "decoration"
+preview_id = "deco_star_lamp"
+includes = PackedStringArray("Star Lamp", "Star Collar")
+tags = PackedStringArray("bundle")

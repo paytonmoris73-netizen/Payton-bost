@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_cloverling"
+title = "Lucky Clovers"
+category = "creature"
+region = "meadow"
+description = "Cloverling can sniff out lucky clover patches. Find three."
+objectives = Array[Dictionary]([{
+"event": "ability:lucky_clover",
+"count": 3,
+"label": "Find lucky clover patches with Cloverling"
+}])
+rewards = {
+"xp": 80,
+"gold": 90
+}
+prerequisites = PackedStringArray("q_main_03")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 34
+map_marker = ""

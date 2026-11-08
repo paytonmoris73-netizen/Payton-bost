@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_dewdrop"
+display_name = "Dewdrop"
+category = "creature"
+description = "A living droplet of morning dew with a glowing heart. Three tiny droplets orbit it like moons."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "uncommon"
+preview_kind = "creature"
+preview_id = "dewdrop"
+earn_path = "Free — discover in game. Hovers in the mist of the waterfall pool upriver."
+tags = PackedStringArray("creature")
+includes = PackedStringArray("Habitat: Sunstone Falls", "Ability: Ripple Call")

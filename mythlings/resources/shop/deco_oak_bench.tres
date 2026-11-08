@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "deco_oak_bench"
+display_name = "Oak Bench"
+category = "sanctuary"
+description = "A bench for watching Mythlings play. Appears in the Ancient Oak Sanctuary once restored."
+currency = "gold"
+price = 90
+grants = {
+"decoration": "deco_oak_bench"
+}
+rarity = "common"
+preview_kind = "decoration"
+preview_id = "deco_oak_bench"
+tags = PackedStringArray("decoration")

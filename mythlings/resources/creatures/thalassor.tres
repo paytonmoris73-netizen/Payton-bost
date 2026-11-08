@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thalassor"
+display_name = "Thalassor"
+region = "tideglass"
+habitat = "Ocean Guardian Lagoon"
+elements = PackedStringArray("water")
+rarity = "legendary"
+size_class = "colossal"
+personality = "curious"
+description = "An enormous sea guardian with flowing fins, coral crowns and glowing turquoise markings."
+personality_text = "Gentle, intelligent and curious."
+ability_id = "underwater_secret"
+ability_name = "Deep Current"
+ability_text = "Locates underwater secrets."
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 72,
+"spirit": 44,
+"agility": 16
+}
+palette = PackedColorArray(0.184, 0.435, 0.604, 1, 0.373, 0.89, 0.839, 1)
+model_id = "thalassor"
+locomotion = "swim"
+move_speed = 4.0
+height = 6.0
+sound_pitch = 0.55
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Ocean Guardian Lagoon.", "Gentle, intelligent and curious.", "Ability: Deep Current.")
+discovery_hint = "Discover the underwater sanctuary and restore the ocean currents."
+rideable = true
+model_ready = false

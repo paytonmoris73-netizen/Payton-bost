@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thornback"
+display_name = "Thornback"
+region = "sunpetal"
+habitat = "The Ancient Grove"
+elements = PackedStringArray("nature", "earth")
+rarity = "uncommon"
+size_class = "small"
+personality = "proud"
+description = "A sturdy creature armoured in protective plant plates."
+personality_text = "Steadfast protector."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "clover_cookie"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.353, 0.42, 0.227, 1, 0.639, 0.722, 0.416, 1)
+model_id = "thornback"
+locomotion = "quad"
+move_speed = 1.8
+height = 0.7
+sound_pitch = 0.85
+friendship_notes = PackedStringArray("Prefers clover cookie as a treat.", "Often found near The Ancient Grove.", "Steadfast protector.", "Ability: unknown.")
+discovery_hint = "Guards the Ancient Grove."
+rideable = false
+model_ready = false

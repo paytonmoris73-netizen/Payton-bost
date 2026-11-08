@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_04"
+title = "Whispers of the Oak"
+category = "main"
+region = "meadow"
+description = "Mossbun's ears keep turning east, toward the Ancient Oak. Follow them — and use Mossy Sense along the way."
+objectives = Array[Dictionary]([{
+"event": "ability:hidden_plant",
+"count": 1,
+"label": "Use Mossy Sense to reveal a hidden plant"
+}, {
+"event": "reach:ancient_oak",
+"count": 1,
+"label": "Reach the Ancient Oak Sanctuary"
+}])
+rewards = {
+"xp": 70,
+"gold": 40
+}
+prerequisites = PackedStringArray("q_main_03")
+min_level = 1
+auto_start = true
+giver = "Mossbun"
+start_dialogue = PackedStringArray("*Mossbun's leafy ears swivel east and quiver.*", "*Something over there is calling to it.*")
+end_dialogue = PackedStringArray()
+sort_order = 4
+map_marker = "ancient_oak"

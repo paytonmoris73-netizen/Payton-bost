@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "frostmaw"
+display_name = "Frostmaw"
+region = "frostroot"
+habitat = "Frozen Titan Valley"
+elements = PackedStringArray("ice")
+rarity = "legendary"
+size_class = "colossal"
+personality = "calm"
+description = "A massive arctic guardian with thick white fur, ice-crowned horns and glowing blue eyes."
+personality_text = "Quiet, loyal and protective."
+ability_id = "frozen_path"
+ability_name = "Frostwalk"
+ability_text = "Reveals hidden paths in frozen areas."
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 72,
+"spirit": 44,
+"agility": 16
+}
+palette = PackedColorArray(0.933, 0.953, 0.969, 1, 0.498, 0.816, 1.0, 1)
+model_id = "frostmaw"
+locomotion = "quad"
+move_speed = 3.0
+height = 7.0
+sound_pitch = 0.5
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Frozen Titan Valley.", "Quiet, loyal and protective.", "Ability: Frostwalk.")
+discovery_hint = "Complete the ancient glacier expedition."
+rideable = true
+model_ready = false

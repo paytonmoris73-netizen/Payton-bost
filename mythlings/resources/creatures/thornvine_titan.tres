@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thornvine_titan"
+display_name = "Thornvine Titan"
+region = "sunpetal"
+habitat = "Jungle Titan Grove"
+elements = PackedStringArray("nature", "earth")
+rarity = "legendary"
+size_class = "colossal"
+personality = "calm"
+description = "An enormous jungle guardian of bark armour, giant vines and flowering limbs."
+personality_text = "Patient, wise and protective."
+ability_id = "ancient_plant"
+ability_name = "Rootcall"
+ability_text = "Interacts with ancient jungle plants."
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 72,
+"spirit": 44,
+"agility": 16
+}
+palette = PackedColorArray(0.29, 0.227, 0.145, 1, 0.435, 0.69, 0.29, 1)
+model_id = "thornvine_titan"
+locomotion = "quad"
+move_speed = 2.6
+height = 7.5
+sound_pitch = 0.45
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Jungle Titan Grove.", "Patient, wise and protective.", "Ability: Rootcall.")
+discovery_hint = "Restore the Ancient Grove of Sunpetal Jungle."
+rideable = true
+model_ready = false

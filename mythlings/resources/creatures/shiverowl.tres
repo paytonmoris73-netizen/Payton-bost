@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "shiverowl"
+display_name = "Shiverowl"
+region = "frostroot"
+habitat = "The Frozen Observatory"
+elements = PackedStringArray("ice")
+rarity = "rare"
+size_class = "small"
+personality = "curious"
+description = "A snowy owl with luminous eyes that see through blizzards."
+personality_text = "Watchful and clever."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.961, 0.961, 0.941, 1, 0.624, 0.847, 1.0, 1)
+model_id = "shiverowl"
+locomotion = "fly"
+move_speed = 3.0
+height = 0.7
+sound_pitch = 0.95
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near The Frozen Observatory.", "Watchful and clever.", "Ability: unknown.")
+discovery_hint = "Watches from the Frozen Observatory."
+rideable = false
+model_ready = false

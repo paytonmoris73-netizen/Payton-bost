@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "pyrelisk"
+display_name = "Pyrelisk"
+region = "emberfall"
+habitat = "Dragonstone Ridge"
+elements = PackedStringArray("fire")
+rarity = "epic"
+size_class = "small"
+personality = "proud"
+description = "A rare lizard with molten patterns that pulse like a heartbeat."
+personality_text = "Regal and watchful."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.251, 0.133, 0.102, 1, 1.0, 0.482, 0.18, 1)
+model_id = "pyrelisk"
+locomotion = "quad"
+move_speed = 2.6
+height = 0.8
+sound_pitch = 0.95
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Dragonstone Ridge.", "Regal and watchful.", "Ability: unknown.")
+discovery_hint = "Basks on the hottest cliffs of the ridge."
+rideable = false
+model_ready = false

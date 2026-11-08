@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "mossbun"
+display_name = "Mossbun"
+region = "meadow"
+habitat = "Whispering Woods"
+elements = PackedStringArray("nature")
+rarity = "common"
+size_class = "small"
+personality = "curious"
+description = "A round little forest dweller whose fur is a living carpet of moss. Its leafy ears turn toward rustling plants long before anyone else hears them."
+personality_text = "Curious and gentle. Mossbun investigates every mushroom, stump and stranger — then hides behind its ears if it is noticed."
+ability_id = "hidden_plant"
+ability_name = "Mossy Sense"
+ability_text = "Reveals hidden Glimmerroot plants nearby."
+favorite_treat = "clover_cookie"
+base_stats = {
+"vitality": 10,
+"spirit": 8,
+"agility": 9
+}
+palette = PackedColorArray(0.435, 0.612, 0.294, 1, 0.525, 0.769, 0.369, 1, 0.902, 0.922, 0.769, 1)
+model_id = "mossbun"
+locomotion = "hop"
+move_speed = 2.2
+height = 0.6
+sound_pitch = 1.25
+friendship_notes = PackedStringArray("Prefers clover cookie as a treat.", "Often found near Whispering Woods.", "Curious and gentle. Mossbun investigates every mushroom, stump and stranger — then hides behind its ears if it is noticed.", "Ability: Mossy Sense.")
+discovery_hint = "Seen nibbling clover beneath the trees of Whispering Woods."
+rideable = false
+model_ready = true

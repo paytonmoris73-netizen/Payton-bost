@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_03"
+title = "First Friend"
+category = "main"
+region = "meadow"
+description = "Mossbun seems curious about you. Spend some time together, then invite it to join you."
+objectives = Array[Dictionary]([{
+"event": "interact:mossbun",
+"count": 3,
+"label": "Greet, pet or treat Mossbun"
+}, {
+"event": "companion:mossbun",
+"count": 1,
+"label": "Invite Mossbun to be your companion"
+}])
+rewards = {
+"xp": 60,
+"gold": 40,
+"items": {
+"sunberry": 2
+}
+}
+prerequisites = PackedStringArray("q_main_02")
+min_level = 1
+auto_start = true
+giver = "Mossbun"
+start_dialogue = PackedStringArray("*Mossbun sniffs your boots, then looks up with enormous eyes.*", "*It hops a little closer. It seems to want you to stay.*")
+end_dialogue = PackedStringArray("*Mossbun bounces in a happy circle and settles at your heel.*", "Companions follow you everywhere and lend you their abilities. Tap the companion button to use Mossbun's Mossy Sense.")
+sort_order = 3
+map_marker = "mossbun"

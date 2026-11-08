@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "ashwing"
+display_name = "Ashwing"
+region = "emberfall"
+habitat = "Dragonstone Ridge"
+elements = PackedStringArray("fire")
+rarity = "uncommon"
+size_class = "small"
+personality = "shy"
+description = "A small flyer with smoky, ash-grey feathers that shimmer orange in sunlight."
+personality_text = "Shy glider that rides the hot updrafts."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.42, 0.392, 0.38, 1, 0.949, 0.631, 0.29, 1)
+model_id = "ashwing"
+locomotion = "fly"
+move_speed = 3.2
+height = 0.6
+sound_pitch = 1.5
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Dragonstone Ridge.", "Shy glider that rides the hot updrafts.", "Ability: unknown.")
+discovery_hint = "Glides on the updrafts of Dragonstone Ridge."
+rideable = false
+model_ready = false

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "coralyn"
+display_name = "Coralyn"
+region = "tideglass"
+habitat = "Coral Gardens"
+elements = PackedStringArray("water", "earth")
+rarity = "uncommon"
+size_class = "small"
+personality = "calm"
+description = "A branching coral creature in sunset colours."
+personality_text = "Calm and patient."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.949, 0.514, 0.42, 1, 1.0, 0.82, 0.761, 1)
+model_id = "coralyn"
+locomotion = "waddle"
+move_speed = 1.4
+height = 0.6
+sound_pitch = 1.1
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Coral Gardens.", "Calm and patient.", "Ability: unknown.")
+discovery_hint = "Rests among the reef."
+rideable = false
+model_ready = false

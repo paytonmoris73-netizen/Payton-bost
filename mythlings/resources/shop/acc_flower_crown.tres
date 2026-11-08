@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "acc_flower_crown"
+display_name = "Mythling Flower Crown"
+category = "creature_cosmetic"
+description = "A tiny crown of blossoms for any Mythling. Purely cosmetic."
+currency = "gold"
+price = 200
+grants = {
+"cosmetic": "acc:flower_crown"
+}
+rarity = "uncommon"
+preview_kind = "creature"
+preview_id = "mossbun::flower_crown"
+tags = PackedStringArray("accessory")

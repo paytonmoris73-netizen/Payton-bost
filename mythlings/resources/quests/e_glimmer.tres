@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_glimmer"
+title = "Glimmerroot Hunter"
+category = "exploration"
+region = "meadow"
+description = "Glimmerroot hides all over the meadow. A companion with Mossy Sense can find it."
+objectives = Array[Dictionary]([{
+"event": "ability:hidden_plant",
+"count": 5,
+"label": "Reveal hidden Glimmerroot"
+}])
+rewards = {
+"xp": 100,
+"crystals": 8
+}
+prerequisites = PackedStringArray("q_main_04")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 22
+map_marker = ""

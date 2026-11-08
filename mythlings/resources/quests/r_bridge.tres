@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "r_bridge"
+title = "The Old Meadow Bridge"
+category = "region"
+region = "meadow"
+description = "The stone bridge over Sunstone River has crumbled. Rebuild it to make crossing easy again."
+objectives = Array[Dictionary]([{
+"event": "restore:bridge_1",
+"count": 1,
+"label": "Repair the Meadow Bridge"
+}])
+rewards = {
+"xp": 90,
+"gold": 60
+}
+prerequisites = PackedStringArray("q_main_01")
+min_level = 1
+auto_start = true
+giver = "Elder Rowan"
+start_dialogue = PackedStringArray("Oh, and if you have stone and wood to spare — the old bridge could use mending. The ford upstream is cold!")
+end_dialogue = PackedStringArray()
+sort_order = 20
+map_marker = "bridge_site"

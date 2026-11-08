@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_01"
+title = "A New Keeper"
+category = "main"
+region = "meadow"
+description = "You have arrived in Whispering Meadow. Elder Rowan is waiting for you in the village square."
+objectives = Array[Dictionary]([{
+"event": "talk:rowan",
+"count": 1,
+"label": "Talk to Elder Rowan in Meadow Village"
+}])
+rewards = {
+"xp": 30,
+"gold": 20
+}
+prerequisites = PackedStringArray()
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray("Welcome, welcome! You must be the new Keeper — the wind said you'd come.", "Long ago, Mythlings lived everywhere in this land, and the sanctuaries hummed with their energy.", "Now the old places sleep, and the creatures hide. But they haven't gone. They're waiting for someone kind enough to look.")
+sort_order = 1
+map_marker = "rowan"

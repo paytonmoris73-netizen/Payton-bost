@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "shell"
+display_name = "Shell"
+category = "material"
+description = "A spiral shell from the Tideglass Coast."
+icon = "shell"
+color = Color(0.949, 0.824, 0.714, 1)
+max_stack = 99
+sell_value = 4

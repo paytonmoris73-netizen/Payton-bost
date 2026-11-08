@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "rot_spring_bloom"
+display_name = "Spring Bloom Set"
+category = "rotating"
+description = "A flower arch and Mythling flower crown, together. This set returns in future rotations."
+currency = "gold"
+price = 400
+grants = {
+"decoration": "deco_flower_arch",
+"cosmetic": "acc:flower_crown",
+"bundle": ["deco_flower_arch", "acc_flower_crown"]
+}
+rarity = "uncommon"
+preview_kind = "decoration"
+preview_id = "deco_flower_arch"
+includes = PackedStringArray("Flower Arch", "Mythling Flower Crown")
+tags = PackedStringArray("bundle")

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "variant_mossbun_autumn"
+display_name = "Autumn Mossbun Coat"
+category = "creature"
+description = "Mossbun's moss turns russet and gold. A purely cosmetic coat."
+currency = "crystals"
+price = 30
+grants = {
+"cosmetic": "variant:mossbun:autumn"
+}
+rarity = "rare"
+preview_kind = "creature"
+preview_id = "mossbun:autumn"
+requires_owned = "mossbun"
+tags = PackedStringArray("variant")
+earn_path = "Crystals are earned from story milestones and achievements."

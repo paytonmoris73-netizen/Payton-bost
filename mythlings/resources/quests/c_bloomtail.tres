@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_bloomtail"
+title = "Bloom Again"
+category = "creature"
+region = "meadow"
+description = "Flowers around the meadow have wilted. Bloomtail can revive them."
+objectives = Array[Dictionary]([{
+"event": "ability:wilted_flower",
+"count": 4,
+"label": "Revive wilted flowers with Bloomtail"
+}])
+rewards = {
+"xp": 100,
+"gold": 80
+}
+prerequisites = PackedStringArray("q_main_07")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 32
+map_marker = ""

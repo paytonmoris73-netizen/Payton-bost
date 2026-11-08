@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_02"
+title = "The Mossy Visitor"
+category = "main"
+region = "meadow"
+description = "A little Mossbun has been seen in the Whispering Woods across the river. Find it — gently."
+objectives = Array[Dictionary]([{
+"event": "discover:mossbun",
+"count": 1,
+"label": "Find the Mossbun in Whispering Woods"
+}])
+rewards = {
+"xp": 50,
+"gold": 30
+}
+prerequisites = PackedStringArray("q_main_01")
+min_level = 1
+auto_start = true
+giver = "Elder Rowan"
+start_dialogue = PackedStringArray("A Mossbun has been nibbling clover in the Whispering Woods, past the river.", "Walk up slowly and say hello. Mythlings can tell when someone means well.")
+end_dialogue = PackedStringArray()
+sort_order = 2
+map_marker = "mossbun"

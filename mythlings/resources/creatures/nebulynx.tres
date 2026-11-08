@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "nebulynx"
+display_name = "Nebulynx"
+region = "starfall"
+habitat = "Celestial Gardens"
+elements = PackedStringArray("celestial")
+rarity = "rare"
+size_class = "small"
+personality = "shy"
+description = "A feline with fur like a drifting nebula."
+personality_text = "Mysterious and elusive."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.231, 0.165, 0.42, 1, 0.816, 0.478, 0.91, 1)
+model_id = "nebulynx"
+locomotion = "quad"
+move_speed = 3.0
+height = 0.7
+sound_pitch = 1.1
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Celestial Gardens.", "Mysterious and elusive.", "Ability: unknown.")
+discovery_hint = "Prowls the Celestial Gardens."
+rideable = false
+model_ready = false

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_cloverling"
+display_name = "Cloverling"
+category = "creature"
+description = "A tiny flower sprite crowned with four clover leaves — one of them always a little golden. Butterflies treat it as one of their own."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "common"
+preview_kind = "creature"
+preview_id = "cloverling"
+earn_path = "Free — discover in game. Look where the butterflies gather in the clearing."
+tags = PackedStringArray("creature")
+includes = PackedStringArray("Habitat: Butterfly Clearing", "Ability: Lucky Find")

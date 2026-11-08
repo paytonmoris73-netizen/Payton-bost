@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_06"
+title = "Beyond the Meadow"
+category = "main"
+region = "meadow"
+description = "Open the world map to see the lands beyond Whispering Meadow."
+objectives = Array[Dictionary]([{
+"event": "open:map",
+"count": 1,
+"label": "Open the World Map"
+}])
+rewards = {
+"xp": 40,
+"crystals": 10
+}
+prerequisites = PackedStringArray("q_main_05")
+min_level = 1
+auto_start = true
+giver = "Elder Rowan"
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray("Six regions, six sanctuaries. Each will open to you as you grow as a Keeper.", "For now, the meadow still has secrets. The Oak's heart has not fully woken.")
+sort_order = 6
+map_marker = ""

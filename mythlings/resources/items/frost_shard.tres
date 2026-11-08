@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "frost_shard"
+display_name = "Frost Shard"
+category = "material"
+description = "A shard of never-melting ice from Frostroot Vale."
+icon = "crystal"
+color = Color(0.749, 0.91, 1.0, 1)
+max_stack = 99
+sell_value = 6

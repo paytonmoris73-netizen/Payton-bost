@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "glimmerroot"
+display_name = "Glimmerroot"
+category = "special"
+description = "A rare glowing root that only grows where old magic sleeps."
+icon = "sprout"
+color = Color(0.478, 0.949, 0.722, 1)
+max_stack = 20
+sell_value = 0

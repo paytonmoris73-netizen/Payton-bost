@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cloth_star_robe"
+display_name = "Starweaver Robe"
+category = "clothing"
+description = "A midnight robe embroidered with constellations."
+currency = "star_gems"
+price = 250
+grants = {
+"cosmetic": "top:star_robe"
+}
+rarity = "epic"
+preview_kind = "outfit"
+preview_id = "top:star_robe"
+tags = PackedStringArray("top")

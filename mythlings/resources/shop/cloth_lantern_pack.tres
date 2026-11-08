@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cloth_lantern_pack"
+display_name = "Lantern Pack"
+category = "clothing"
+description = "A backpack with a little glowing lantern."
+currency = "crystals"
+price = 40
+grants = {
+"cosmetic": "backpack:lantern_pack"
+}
+rarity = "rare"
+preview_kind = "outfit"
+preview_id = "backpack:lantern_pack"
+tags = PackedStringArray("backpack")

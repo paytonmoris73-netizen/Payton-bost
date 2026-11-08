@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "iciclemew"
+display_name = "Iciclemew"
+region = "frostroot"
+habitat = "Aurora Lake"
+elements = PackedStringArray("ice")
+rarity = "common"
+size_class = "small"
+personality = "shy"
+description = "A tiny, delicate kitten patterned with snowflakes."
+personality_text = "Timid but sweet."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 10,
+"spirit": 8,
+"agility": 9
+}
+palette = PackedColorArray(0.933, 0.957, 0.984, 1, 0.663, 0.784, 0.91, 1)
+model_id = "iciclemew"
+locomotion = "quad"
+move_speed = 2.6
+height = 0.5
+sound_pitch = 1.6
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Aurora Lake.", "Timid but sweet.", "Ability: unknown.")
+discovery_hint = "Hides near Aurora Lake."
+rideable = false
+model_ready = false

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "clover_cookie"
+display_name = "Clover Cookie"
+category = "treat"
+description = "A crunchy cookie baked with clover honey. A Mossbun favourite."
+icon = "cookie"
+color = Color(0.788, 0.545, 0.29, 1)
+max_stack = 30
+sell_value = 0

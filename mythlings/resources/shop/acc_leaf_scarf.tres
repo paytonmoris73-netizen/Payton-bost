@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "acc_leaf_scarf"
+display_name = "Autumn Leaf Scarf"
+category = "creature_cosmetic"
+description = "A cosy scarf with a leaf pin. Purely cosmetic."
+currency = "gold"
+price = 150
+grants = {
+"cosmetic": "acc:leaf_scarf"
+}
+rarity = "common"
+preview_kind = "creature"
+preview_id = "mossbun::leaf_scarf"
+tags = PackedStringArray("accessory")

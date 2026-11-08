@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "aurorabbit"
+display_name = "Aurorabbit"
+region = "frostroot"
+habitat = "Aurora Lake"
+elements = PackedStringArray("ice", "celestial")
+rarity = "epic"
+size_class = "small"
+personality = "playful"
+description = "A rabbit whose fur shimmers with northern lights."
+personality_text = "Playful under the night sky."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "clover_cookie"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.91, 0.945, 1.0, 1, 0.549, 0.878, 0.769, 1)
+model_id = "aurorabbit"
+locomotion = "hop"
+move_speed = 3.0
+height = 0.6
+sound_pitch = 1.45
+friendship_notes = PackedStringArray("Prefers clover cookie as a treat.", "Often found near Aurora Lake.", "Playful under the night sky.", "Ability: unknown.")
+discovery_hint = "Appears on Aurora Lake under the northern lights."
+rideable = false
+model_ready = false

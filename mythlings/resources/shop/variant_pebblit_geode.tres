@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "variant_pebblit_geode"
+display_name = "Geode Pebblit Coat"
+category = "creature"
+description = "Amethyst plates with rose-glowing runes. Cosmetic only."
+currency = "crystals"
+price = 40
+grants = {
+"cosmetic": "variant:pebblit:geode"
+}
+rarity = "epic"
+preview_kind = "creature"
+preview_id = "pebblit:geode"
+requires_owned = "pebblit"
+tags = PackedStringArray("variant")

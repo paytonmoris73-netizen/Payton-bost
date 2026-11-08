@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "glacielle"
+display_name = "Glacielle"
+region = "frostroot"
+habitat = "Crystal Glacier"
+elements = PackedStringArray("ice")
+rarity = "rare"
+size_class = "small"
+personality = "calm"
+description = "An elegant creature with crystal-like ears that ring softly."
+personality_text = "Graceful and composed."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.812, 0.914, 0.961, 1, 0.478, 0.722, 0.878, 1)
+model_id = "glacielle"
+locomotion = "quad"
+move_speed = 2.4
+height = 0.7
+sound_pitch = 1.4
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Crystal Glacier.", "Graceful and composed.", "Ability: unknown.")
+discovery_hint = "Walks the Crystal Glacier."
+rideable = false
+model_ready = false

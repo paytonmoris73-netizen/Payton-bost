@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "astralfox"
+display_name = "Astralfox"
+region = "starfall"
+habitat = "Celestial Gardens"
+elements = PackedStringArray("celestial")
+rarity = "epic"
+size_class = "small"
+personality = "proud"
+description = "An elegant fox with constellations in its fur."
+personality_text = "Noble and curious."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.137, 0.165, 0.361, 1, 0.949, 0.89, 0.627, 1)
+model_id = "astralfox"
+locomotion = "quad"
+move_speed = 3.4
+height = 0.7
+sound_pitch = 1.15
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Celestial Gardens.", "Noble and curious.", "Ability: unknown.")
+discovery_hint = "Walks the Celestial Gardens at dusk."
+rideable = false
+model_ready = false

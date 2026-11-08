@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "astravyth"
+display_name = "Astravyth"
+region = "starfall"
+habitat = "Celestial Sky Sanctuary"
+elements = PackedStringArray("celestial")
+rarity = "mythic"
+size_class = "colossal"
+personality = "calm"
+description = "A majestic celestial flyer with midnight-blue wings, galaxy markings and a long flowing tail."
+personality_text = "Mysterious, intelligent, elegant and peaceful."
+ability_id = "celestial_location"
+ability_name = "Starwake"
+ability_text = "Reveals hidden celestial locations."
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 84,
+"spirit": 56,
+"agility": 20
+}
+palette = PackedColorArray(0.063, 0.102, 0.29, 1, 0.624, 0.702, 1.0, 1)
+model_id = "astravyth"
+locomotion = "fly"
+move_speed = 4.5
+height = 7.0
+sound_pitch = 0.6
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Celestial Sky Sanctuary.", "Mysterious, intelligent, elegant and peaceful.", "Ability: Starwake.")
+discovery_hint = "Uncover the secrets of the Dreamlight Observatory."
+rideable = true
+model_ready = false

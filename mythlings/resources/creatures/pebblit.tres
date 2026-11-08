@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "pebblit"
+display_name = "Pebblit"
+region = "meadow"
+habitat = "Sunstone River"
+elements = PackedStringArray("earth")
+rarity = "uncommon"
+size_class = "small"
+personality = "sleepy"
+description = "A pebble-plated creature with runes that glow softly when it dreams. River water has polished its back smooth over many years."
+personality_text = "Sleepy and steady. Pebblit naps in sunny spots and wakes only for honey or an interesting rock."
+ability_id = "cracked_rock"
+ability_name = "Stone Sense"
+ability_text = "Cracks open weakened boulders to reveal what lies beyond."
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.561, 0.592, 0.612, 1, 0.4, 0.431, 0.455, 1, 0.388, 0.949, 0.847, 1)
+model_id = "pebblit"
+locomotion = "waddle"
+move_speed = 1.4
+height = 0.6
+sound_pitch = 0.8
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Sunstone River.", "Sleepy and steady. Pebblit naps in sunny spots and wakes only for honey or an interesting rock.", "Ability: Stone Sense.")
+discovery_hint = "Rests among the stones along Sunstone River."
+rideable = false
+model_ready = true

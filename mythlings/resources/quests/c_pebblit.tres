@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_pebblit"
+title = "Pebblit's Secret"
+category = "creature"
+region = "meadow"
+description = "A cracked boulder by the river hides something. Pebblit's Stone Sense could open it."
+objectives = Array[Dictionary]([{
+"event": "ability:cracked_rock",
+"count": 1,
+"label": "Open the cracked boulder with Pebblit"
+}])
+rewards = {
+"xp": 90,
+"gold": 60,
+"items": {
+"crystal": 1
+}
+}
+prerequisites = PackedStringArray("q_main_03")
+min_level = 2
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 31
+map_marker = ""

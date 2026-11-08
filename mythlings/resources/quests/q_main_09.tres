@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "q_main_09"
+title = "Guardian's Trust"
+category = "main"
+region = "meadow"
+description = "Verdantus is watching you closely. Earn its trust, and it may let you ride."
+objectives = Array[Dictionary]([{
+"event": "befriend:verdantus",
+"count": 3,
+"label": "Reach friendship level 3 with Verdantus"
+}, {
+"event": "ride:verdantus",
+"count": 1,
+"label": "Ride Verdantus"
+}])
+rewards = {
+"xp": 250,
+"crystals": 30
+}
+prerequisites = PackedStringArray("q_main_08")
+min_level = 1
+auto_start = true
+giver = "Verdantus"
+start_dialogue = PackedStringArray("*The ground trembles softly as Verdantus lowers its vast head toward you.*", "*Its emerald eyes are patient. It is deciding whether to trust you.*")
+end_dialogue = PackedStringArray("*Verdantus kneels, moss rustling. From now on, it will carry you when you call.*")
+sort_order = 9
+map_marker = "verdantus"

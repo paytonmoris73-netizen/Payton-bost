@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "deco_mythling_house"
+display_name = "Mythling Cottage"
+category = "sanctuary"
+description = "A tiny cottage Mythlings love to nap in. Appears in the Ancient Oak Sanctuary once restored."
+currency = "gold"
+price = 300
+grants = {
+"decoration": "deco_mythling_house"
+}
+rarity = "uncommon"
+preview_kind = "decoration"
+preview_id = "deco_mythling_house"
+tags = PackedStringArray("decoration")

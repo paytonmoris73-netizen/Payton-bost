@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "deco_star_lamp"
+display_name = "Star Lamp"
+category = "sanctuary"
+description = "A lamp holding a captured starlight. Appears in the Ancient Oak Sanctuary once restored."
+currency = "star_gems"
+price = 60
+grants = {
+"decoration": "deco_star_lamp"
+}
+rarity = "epic"
+preview_kind = "decoration"
+preview_id = "deco_star_lamp"
+tags = PackedStringArray("decoration")

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "coalclaw"
+display_name = "Coalclaw"
+region = "emberfall"
+habitat = "The Forgotten Forge"
+elements = PackedStringArray("earth", "fire")
+rarity = "rare"
+size_class = "small"
+personality = "proud"
+description = "A compact armoured creature with obsidian claws."
+personality_text = "Proud guardian of old forges."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.122, 0.114, 0.114, 1, 0.761, 0.314, 0.165, 1)
+model_id = "coalclaw"
+locomotion = "quad"
+move_speed = 2.0
+height = 0.7
+sound_pitch = 0.9
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near The Forgotten Forge.", "Proud guardian of old forges.", "Ability: unknown.")
+discovery_hint = "Guards the anvils of the Forgotten Forge."
+rideable = false
+model_ready = false

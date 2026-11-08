@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "collection_frostroot"
+display_name = "Frostroot Collection"
+category = "collection"
+description = "A themed set of decorations and outfits inspired by Frostroot."
+currency = "gold"
+price = 0
+grants = {
+
+}
+available = false
+unavailable_reason = "Releases with its region. Not purchasable yet."
+preview_kind = "icon"
+preview_id = "collection"
+tags = PackedStringArray("collection")
+includes = PackedStringArray("Themed decorations", "Themed outfit", "Themed creature accessory")

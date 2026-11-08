@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/region_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "sunpetal"
+display_name = "Sunpetal Jungle"
+description = "Towering trees, hanging vines, giant mushrooms and temples lost to the green."
+difficulty = "Advanced"
+unlock_level = 15
+unlock_quest = "q_main_06"
+playable = false
+theme_color = Color(0.31, 0.682, 0.357, 1)
+accent_color = Color(0.949, 0.498, 0.698, 1)
+map_position = Vector2(0.66, 0.7)
+locations = PackedStringArray("sunpetal_village", "emerald_temple", "mushroom_hollow", "hidden_waterfall", "ancient_grove")
+location_names = PackedStringArray("Sunpetal Village", "Emerald Temple", "Mushroom Hollow", "Hidden Waterfall", "The Ancient Grove")
+location_texts = PackedStringArray("", "", "", "", "")
+creatures = PackedStringArray("fernling", "mushmunk", "vinepaw", "petalwing", "thornback", "lumibloom")
+colossal = "thornvine_titan"
+resource_item = "petals"

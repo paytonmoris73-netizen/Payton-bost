@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "flarefox"
+display_name = "Flarefox"
+region = "emberfall"
+habitat = "Cinder Lake"
+elements = PackedStringArray("fire")
+rarity = "rare"
+size_class = "small"
+personality = "excited"
+description = "A lithe fox wreathed in a gentle, harmless flame."
+personality_text = "Bold and fast; loves racing."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.851, 0.278, 0.169, 1, 1.0, 0.824, 0.478, 1)
+model_id = "flarefox"
+locomotion = "quad"
+move_speed = 4.0
+height = 0.7
+sound_pitch = 1.2
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Cinder Lake.", "Bold and fast; loves racing.", "Ability: unknown.")
+discovery_hint = "Races along the shores of Cinder Lake."
+rideable = false
+model_ready = false

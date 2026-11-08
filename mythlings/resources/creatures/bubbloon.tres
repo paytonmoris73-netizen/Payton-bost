@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "bubbloon"
+display_name = "Bubbloon"
+region = "tideglass"
+habitat = "Coral Gardens"
+elements = PackedStringArray("water")
+rarity = "common"
+size_class = "small"
+personality = "playful"
+description = "A floating bubble creature with a soft blue glow."
+personality_text = "Bouncy and cheerful."
+ability_id = "underwater_path"
+ability_name = "Bubble Path"
+ability_text = "Reveals underwater paths."
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 10,
+"spirit": 8,
+"agility": 9
+}
+palette = PackedColorArray(0.624, 0.847, 0.961, 1, 0.91, 0.973, 1.0, 1)
+model_id = "bubbloon"
+locomotion = "float"
+move_speed = 2.0
+height = 0.6
+sound_pitch = 1.6
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Coral Gardens.", "Bouncy and cheerful.", "Ability: Bubble Path.")
+discovery_hint = "Bobs above the Coral Gardens."
+rideable = false
+model_ready = false

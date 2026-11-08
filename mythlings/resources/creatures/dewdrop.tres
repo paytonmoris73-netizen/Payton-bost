@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "dewdrop"
+display_name = "Dewdrop"
+region = "meadow"
+habitat = "Sunstone Falls"
+elements = PackedStringArray("water")
+rarity = "uncommon"
+size_class = "small"
+personality = "shy"
+description = "A living droplet of morning dew with a glowing heart. Three tiny droplets orbit it like moons."
+personality_text = "Shy and dreamy. Dewdrop drifts away if approached quickly — move slowly, or offer something sweet."
+ability_id = "ripple_stone"
+ability_name = "Ripple Call"
+ability_text = "Raises submerged stepping stones in still water."
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.498, 0.827, 0.961, 1, 0.839, 0.984, 1.0, 1, 0.29, 0.722, 0.91, 1)
+model_id = "dewdrop"
+locomotion = "float"
+move_speed = 1.8
+height = 0.7
+sound_pitch = 1.6
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Sunstone Falls.", "Shy and dreamy. Dewdrop drifts away if approached quickly — move slowly, or offer something sweet.", "Ability: Ripple Call.")
+discovery_hint = "Hovers in the mist of the waterfall pool upriver."
+rideable = false
+model_ready = true
