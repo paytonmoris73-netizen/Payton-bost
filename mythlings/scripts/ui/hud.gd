@@ -310,7 +310,7 @@ func _round_button(icon: String, sz: float) -> Button:
 	b.size = Vector2(sz, sz)
 	for st in ["normal", "hover", "pressed", "disabled"]:
 		var c := Color(0.07, 0.12, 0.1, 0.5) if st != "pressed" else Color(Palette.MOSS, 0.85)
-		b.add_theme_stylebox_override(st, UITheme.box(c, int(sz * 0.5), Color(1, 1, 1, 0.35), 3, 0, 0))
+		b.add_theme_stylebox_override(st, UITheme.box(c, int(sz * 0.5) - 2, Color(1, 1, 1, 0.35), 3, 0, 0))
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	var g := IconGlyph.make(icon, sz * 0.46, Color.WHITE)
 	g.name = "Icon"

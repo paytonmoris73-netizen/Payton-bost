@@ -75,24 +75,31 @@ func _draw() -> void:
 			for i in 21:
 				var t := float(i) / 20.0
 				pts.append(P.call(0.2 + t * 0.62, 0.8 - t * 0.62 - sin(t * PI) * 0.18))
-			for i in 21:
+			for i in range(1, 20):
 				var t := 1.0 - float(i) / 20.0
 				pts.append(P.call(0.2 + t * 0.62, 0.8 - t * 0.62 + sin(t * PI) * 0.18))
 			draw_colored_polygon(pts, c)
 			draw_line(P.call(0.14, 0.86), P.call(0.66, 0.34), a, w * 0.6, true)
 		"fire", "flame":
-			var pts := PackedVector2Array()
-			for i in 30:
-				var t := TAU * i / 30.0
-				var r := 0.3 * (1.0 + 0.55 * maxf(0.0, -sin(t)) * (1.0 + 0.3 * sin(t * 3.0)))
-				pts.append(P.call(0.5 + cos(t) * r * 0.85, 0.62 + sin(t) * r * (1.3 if sin(t) < 0 else 0.8)))
-			draw_colored_polygon(pts, c)
-			draw_circle(P.call(0.5, 0.7), s * 0.12, Color(1, 0.9, 0.6, 0.9))
+			var outer := PackedVector2Array()
+			var inner := PackedVector2Array()
+			for i in 21:
+				var t := PI * float(i) / 20.0
+				outer.append(P.call(0.5 + cos(t) * 0.3, 0.6 + sin(t) * 0.3))
+				inner.append(P.call(0.5 + cos(t) * 0.15, 0.7 + sin(t) * 0.15))
+			outer.append(P.call(0.24, 0.42))
+			outer.append(P.call(0.42, 0.06))
+			outer.append(P.call(0.56, 0.3))
+			outer.append(P.call(0.74, 0.18))
+			outer.append(P.call(0.8, 0.6))
+			inner.append(P.call(0.5, 0.36))
+			draw_colored_polygon(outer, c)
+			draw_colored_polygon(inner, Color(1, 0.9, 0.6, 0.9))
 		"water", "drop", "dew_nectar":
 			var pts := PackedVector2Array()
 			for i in 24:
-				var t := PI * 0.15 + (PI * 1.7) * i / 23.0
-				pts.append(P.call(0.5 + cos(t + PI * 0.5) * 0.28, 0.62 + sin(t + PI * 0.5) * 0.28))
+				var t := -PI * 0.25 + (PI * 1.5) * i / 23.0
+				pts.append(P.call(0.5 + cos(t) * 0.28, 0.62 + sin(t) * 0.28))
 			pts.append(P.call(0.5, 0.08))
 			draw_colored_polygon(pts, c)
 			draw_circle(P.call(0.4, 0.62), s * 0.06, Color(1, 1, 1, 0.6))

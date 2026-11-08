@@ -191,7 +191,7 @@ func _process(delta: float) -> void:
 	cam_yaw.global_position = cam_yaw.global_position.lerp(focus, clampf(delta * 10.0, 0.0, 1.0))
 	cam_yaw.rotation.y = _yaw
 	cam_pitch.rotation.x = _pitch
-	var target_d := _dist if mount == null else 15.0
+	var target_d := _dist if mount == null else 12.0
 	spring.spring_length = lerpf(spring.spring_length, target_d, delta * 3.0)
 
 func set_camera_distance(d: float) -> void:

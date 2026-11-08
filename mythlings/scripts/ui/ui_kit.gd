@@ -12,6 +12,7 @@ static func label(text: String, variation := "", size := 0, color := Color(0, 0,
 		l.add_theme_color_override("font_color", color)
 	if wrap:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return l
 
 static func button(text: String, icon := "", variation := "", min_h := 64.0, icon_size := 28.0) -> Button:

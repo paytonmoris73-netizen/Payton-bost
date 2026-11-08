@@ -293,8 +293,8 @@ func _render_colossal() -> void:
 	stage.add_child(sh)
 	var c: CreatureData = DB.creature(sel_id)
 	var discovered := GameState.is_discovered(sel_id)
-	_viewer.custom_minimum_size = Vector2(560, 420)
-	_viewer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_viewer.custom_minimum_size = Vector2(560, 440)
+	_viewer.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	sh.add_child(_viewer)
 	_viewer.show_item("colossal", sel_id + (":bloomguard" if sel_id == "verdantus" and GameState.owns("verdantus_bloomguard") else ""))
 	_cinematic()
@@ -354,13 +354,15 @@ func _render_colossal() -> void:
 	sc.custom_minimum_size.y = 70
 	sc.add_child(strip)
 	_content.add_child(sc)
+	_content.move_child(sc, 0)
 
 func _cinematic() -> void:
 	# Slow dolly-in on reveal.
 	var cam := _viewer.cam
 	var end := cam.position
-	cam.position = end + Vector3(0, 0.4, 1.8)
-	_viewer.create_tween().tween_property(cam, "position", end, 2.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	cam.position = end + Vector3(0, 0.3, 1.6)
+	var tw := create_tween()
+	tw.tween_property(cam, "position", end, 2.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	if _viewer.rig:
 		_viewer.rig.emote("roar", 2.0)
 

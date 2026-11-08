@@ -1,5 +1,7 @@
 # BunnyX
 
+> **Also in this repo:** [`mythlings/`](./mythlings) — the MYTHLINGS Godot 4 mobile game (see its README).
+
 BunnyX is an app builder: describe an app in plain language, and it streams back a
 working, self-contained app you can preview, iterate on, and download.
 

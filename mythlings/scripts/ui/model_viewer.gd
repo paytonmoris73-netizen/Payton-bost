@@ -153,8 +153,9 @@ func show_item(kind: String, id: String) -> void:
 		scl = 0.95
 	pivot.scale = Vector3.ONE * scl
 	var h := height * scl
-	cam.position = Vector3(0, h * 0.62 + 0.15, 2.9 if not big else 3.1)
-	cam.look_at(Vector3(0, h * 0.45, 0))
+	var cp := Vector3(0, h * 0.62 + 0.15, 2.9 if not big else 3.1)
+	# Basis.looking_at works before the viewer is inside the tree.
+	cam.transform = Transform3D(Basis.looking_at(Vector3(0, h * 0.45, 0) - cp, Vector3.UP), cp)
 
 func play(anim: String) -> void:
 	if rig == null:
@@ -182,6 +183,8 @@ func _gui_input(event: InputEvent) -> void:
 		_idle = 0.0
 
 func _process(delta: float) -> void:
+	# Keep the subject framed on both tall and wide layouts.
+	cam.keep_aspect = Camera3D.KEEP_WIDTH if size.y > size.x else Camera3D.KEEP_HEIGHT
 	_idle += delta
 	if auto_rotate and _idle > 2.0 and not _drag:
 		_yaw += delta * 0.5

@@ -31,9 +31,16 @@ func _ready() -> void:
 		["night", Vector3(10, 0, 22), 0.4, -0.25, 0.92],
 	]
 	if "--progress" in OS.get_cmdline_user_args():
-		shots = [["verdantus", Vector3(-70, 0, -40), 1.9, -0.18, 0.45], ["sanctuary", Vector3(48, 0, -18), 0.85, -0.22, 0.45], ["companion", Vector3(-60, 0, 0), 0.8, -0.3, 0.4]]
+		shots = [["verdantus", Vector3(-68, 0, -36), 0.75, -0.08, 0.45], ["sanctuary", Vector3(46, 0, -14), -0.86, -0.2, 0.45], ["sanctuary_night", Vector3(46, 0, -14), -0.86, -0.2, 0.9], ["companion", Vector3(-60, 0, 0), 0.8, -0.3, 0.4]]
 	var lvl: MeadowLevel = MeadowLevel.current
 	var p: Player = lvl.player
+	if "--progress" in OS.get_cmdline_user_args():
+		var v: Creature = lvl.creatures.get("verdantus")
+		if v:
+			v.mode = Creature.Mode.DISPLAY
+			var vp := v.global_position
+			var from := vp + Vector3(9, 0, 10)
+			shots[0] = ["verdantus", from, atan2(-(vp.x - from.x), -(vp.z - from.z)), 0.05, 0.45]
 	for s in shots:
 		var pos: Vector3 = s[1]
 		pos.y = lvl.terrain.height(pos.x, pos.z) + 0.2
@@ -50,6 +57,18 @@ func _ready() -> void:
 		await get_tree().create_timer(2.5).timeout
 		get_viewport().get_texture().get_image().save_png(out.path_join(s[0] + ".png"))
 		print("[tour] ", s[0])
+	if "--progress" in OS.get_cmdline_user_args() and lvl.creatures.has("verdantus"):
+		var v: Creature = lvl.creatures.verdantus
+		v.mode = Creature.Mode.WILD
+		v.global_position = lvl.ground(22, 34)
+		p.global_position = v.global_position + Vector3(0, 0.5, 0)
+		p.mount_creature(v)
+		p.touch_move = Vector2(0, -1)
+		p._yaw = v.rotation.y + 2.4
+		p._pitch = -0.25
+		await get_tree().create_timer(3.0).timeout
+		get_viewport().get_texture().get_image().save_png(out.path_join("riding.png"))
+		print("[tour] riding")
 	get_tree().quit()
 
 func _progress() -> void:

@@ -166,8 +166,10 @@ func _animate_head(delta: float, move: float, e: float) -> void:
 		"sniff":
 			rot = Vector3(30 * sin(e * PI), sin(e * 20.0) * 8.0, 0)
 	rot.x += lower_head * 38.0
-	var target := r.basis * Basis.from_euler(rot * (PI / 180.0))
-	head.basis = head.basis.slerp(target.orthonormalized(), clamp(delta * 8.0, 0, 1))
+	var rs := r.basis.get_scale()
+	var target := (r.basis.orthonormalized() * Basis.from_euler(rot * (PI / 180.0))).get_rotation_quaternion()
+	var cur := head.basis.orthonormalized().get_rotation_quaternion()
+	head.basis = Basis(cur.slerp(target, clampf(delta * 8.0, 0.0, 1.0))) * Basis.from_scale(rs)
 	var ears = [parts.get("ear_l"), parts.get("ear_r")]
 	_ear_twitch = maxf(0.0, _ear_twitch - delta * 4.0)
 	if randf() < delta * 0.4:
