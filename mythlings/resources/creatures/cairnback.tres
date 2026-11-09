@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cairnback"
+display_name = "Cairnback"
+region = "meadow"
+habitat = "Glimmer Grotto"
+elements = PackedStringArray("earth")
+rarity = "rare"
+size_class = "large"
+personality = "calm"
+description = "A low, heavy tortoise-shaped stone beast with pillar legs. A cairn of rune-carved stones stands on its back, glowing in sequence, and a crest of crystals runs down its spine."
+personality_text = "Calm and immovable. Cairnback naps anywhere, but will carry a Keeper across the whole meadow without complaint."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.561, 0.592, 0.612, 1, 0.4, 0.431, 0.455, 1, 0.388, 0.949, 0.847, 1)
+model_id = "cairnback"
+locomotion = "waddle"
+move_speed = 2.0
+height = 2.2
+sound_pitch = 0.6
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Glimmer Grotto.", "Calm and immovable. Cairnback naps anywhere, but will carry a Keeper across the whole meadow without complaint.", "Ability: unknown.")
+discovery_hint = "Evolve Pebblit."
+rideable = true
+model_ready = true
+abilities = PackedStringArray("cairn_skin", "deep_stone_sense", "cairn_harvest", "cairn_quake")
+family = "pebblit"
+stage = 2
+evolves_from = "pebblit"
+acquisition = PackedStringArray("evolve")
+lore = "Old travellers built cairns to mark safe paths. Some of those cairns were Cairnbacks, sleeping."
+originality_notes = "Tortoise-like stone body with a rune cairn; check against well-known rock-turtle creatures."

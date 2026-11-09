@@ -1159,14 +1159,18 @@ func refresh_creatures() -> void:
 		if GameState.evolved_to(id) != "":
 			continue
 		var mode := Creature.Mode.WILD
-		var home := at(id) if LOC.has(id) else sanctuary + Vector3(-8, 0, 9)
+		var home := sanctuary + Vector3(-8, 0, 9)
+		if LOC.has(id):
+			home = at(id)
+		elif LOC.has(d.evolves_from):
+			home = at(d.evolves_from) + Vector3(3, 0, 3)
 		if id == "bloomtail":
 			if GameState.sanctuary_stage("oak") < 2 and not GameState.is_discovered(id):
 				continue
 			home = sanctuary + Vector3(-5, 0, 7)
 		if id == "verdantus" and GameState.sanctuary_stage("shrine") < 1 and not GameState.is_discovered(id):
 			continue
-		var summon_only := d.acquisition.size() == 1 and d.acquisition[0] == "purchase"
+		var summon_only: bool = d.is_colossal() and id != "verdantus"
 		if id == comp:
 			mode = Creature.Mode.COMPANION
 		elif id in habitat:

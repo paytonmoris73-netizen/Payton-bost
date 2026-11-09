@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_blossomere"
+display_name = "Blossomere"
+category = "large"
+description = "A tall, long-necked grazer with a garden on its back: a canopy of petals, flowering shrubs and a small cherry-like tree. Its leaf tail has become a fan of five great leaves."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "epic"
+preview_kind = "creature"
+preview_id = "blossomere"
+earn_path = "Free — earned by evolution."
+tags = PackedStringArray("evolved")

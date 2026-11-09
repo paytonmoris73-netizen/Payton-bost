@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "shamrelle"
+display_name = "Shamrelle"
+region = "meadow"
+habitat = "Butterfly Clearing"
+elements = PackedStringArray("nature")
+rarity = "rare"
+size_class = "small"
+personality = "playful"
+description = "A tall, slender clover dancer. Its four leaves have grown into a twirling parasol-crown, the lucky golden leaf now glows on top, and long leaf-ribbon arms trail behind it."
+personality_text = "Playful and graceful. Shamrelle spins when happy and leaves a trail of drifting leaves."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.31, 0.639, 0.353, 1, 0.89, 0.761, 0.29, 1, 0.933, 0.953, 0.788, 1)
+model_id = "shamrelle"
+locomotion = "hop"
+move_speed = 3.0
+height = 1.15
+sound_pitch = 1.3
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Butterfly Clearing.", "Playful and graceful. Shamrelle spins when happy and leaves a trail of drifting leaves.", "Ability: unknown.")
+discovery_hint = "Evolve Cloverling."
+rideable = false
+model_ready = true
+abilities = PackedStringArray("lucky_leaf_plus", "lucky_find_wide", "leaf_parasol", "fortune_dance")
+family = "cloverling"
+stage = 2
+evolves_from = "cloverling"
+acquisition = PackedStringArray("evolve")
+lore = "Villagers say the luckiest summers are the ones when a Shamrelle dances in Butterfly Clearing."
+originality_notes = "Tall stem body, parasol of four leaves, ribbon arms. No close match found in internal check."

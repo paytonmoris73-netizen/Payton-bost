@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "long_dash"
+display_name = "Sun Sprint"
+slot = "secondary"
+category = "movement"
+description = "A long, blazing dash forward."
+effect = "dash"
+params = {
+"speed": 22.0,
+"time": 0.4
+}
+cooldown = 5
+unlock_friendship = 2
+requires_evolved = false
+vfx = "wind_column"
+color = Color(1.0, 0.914, 0.659, 1)

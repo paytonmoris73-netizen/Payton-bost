@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_cloudwell"
+display_name = "Cloudwell"
+category = "large"
+description = "A floating raincloud with a gentle water-drop face hanging beneath it. Soft rain falls from its underside and a small rainbow arcs over its top."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "rare"
+preview_kind = "creature"
+preview_id = "cloudwell"
+earn_path = "Free — earned by evolution."
+tags = PackedStringArray("evolved")

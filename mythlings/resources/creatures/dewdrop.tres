@@ -37,3 +37,16 @@ abilities = PackedStringArray("gentle_presence", "ripple_call", "tide_current", 
 family = "dewdrop"
 stage = 1
 acquisition = PackedStringArray("explore")
+evolutions = Array[Dictionary]([{
+"to": "cloudwell",
+"path": "natural",
+"requirements": {
+"friendship": 4,
+"level": 3,
+"items": {
+"dew_nectar": 3
+},
+"visited": ["sunstone_falls"]
+},
+"text": "Rising with the waterfall mist, Dewdrop gathers into a cloud of its own."
+}])

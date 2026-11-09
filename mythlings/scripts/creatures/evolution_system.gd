@@ -34,7 +34,7 @@ func requirements(cid: String, evo: Dictionary) -> Array:
 	if req.has("ability_uses"):
 		for kind in req.ability_uses:
 			var have := int(GameState.data.stats.get("ability_" + kind, 0))
-			var label := {"hidden_plant": "Reveal hidden plants with abilities", "lucky_clover": "Find lucky clovers"}.get(kind, "Use abilities on " + kind.replace("_", " "))
+			var label := {"hidden_plant": "Reveal hidden plants with abilities", "lucky_clover": "Find lucky clovers", "dark_lantern": "Light old lanterns", "cracked_rock": "Crack weakened boulders", "ripple_stone": "Raise stepping stones", "wilted_flower": "Revive wilted flowers"}.get(kind, "Use abilities on " + kind.replace("_", " "))
 			out.append({"label": "%s (%d times)" % [label, int(req.ability_uses[kind])], "met": have >= int(req.ability_uses[kind]), "progress": "%d / %d" % [mini(have, int(req.ability_uses[kind])), int(req.ability_uses[kind])]})
 	if req.has("visited"):
 		var n := 0

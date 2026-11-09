@@ -7,14 +7,14 @@ script = ExtResource("1_s")
 id = "sky_passage"
 display_name = "Sky Passage"
 slot = "primary"
-category = "environmental"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+category = "movement"
+description = "Mount Astravyth and soar. Hold Jump to climb; release to glide."
+effect = "flight"
 params = {
 
 }
-cooldown = 10
+cooldown = 2
 unlock_friendship = 0
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "star_field"
+color = Color(0.624, 0.702, 1.0, 1)

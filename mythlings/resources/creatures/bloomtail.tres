@@ -37,3 +37,18 @@ abilities = PackedStringArray("green_thumb", "bloom", "leaf_glide", "springtide"
 family = "bloomtail"
 stage = 1
 acquisition = PackedStringArray("explore", "quest")
+evolutions = Array[Dictionary]([{
+"to": "blossomere",
+"path": "natural",
+"requirements": {
+"friendship": 4,
+"level": 4,
+"items": {
+"petals": 8
+},
+"sanctuary": {
+"oak": 2
+}
+},
+"text": "In a sanctuary full of flowers, Bloomtail's flower spreads until its whole back is a garden."
+}])

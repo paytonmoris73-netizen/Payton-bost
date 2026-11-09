@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_shamrelle"
+display_name = "Shamrelle"
+category = "creature"
+description = "A tall, slender clover dancer. Its four leaves have grown into a twirling parasol-crown, the lucky golden leaf now glows on top, and long leaf-ribbon arms trail behind it."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "rare"
+preview_kind = "creature"
+preview_id = "shamrelle"
+earn_path = "Free — earned by evolution."
+tags = PackedStringArray("evolved")

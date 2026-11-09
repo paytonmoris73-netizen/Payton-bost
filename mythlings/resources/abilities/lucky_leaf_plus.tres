@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "lucky_leaf_plus"
+display_name = "Golden Fortune"
+slot = "passive"
+category = "support"
+description = "Treasure chests give 40% more gold while Shamrelle is with you."
+effect = "passive_luck"
+params = {
+"gold_mult": 1.4
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "burst"
+color = Color(0.89, 0.761, 0.29, 1)

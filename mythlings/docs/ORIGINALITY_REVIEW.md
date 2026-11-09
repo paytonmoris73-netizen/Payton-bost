@@ -27,4 +27,10 @@ leaf-crest along the back, no tufted lion tail.
 | Glimmerhare | Long-legged runner with root antennae | Needs review |
 | Verdantus | Moss-armoured antlered guardian with back garden | **Forest stag spirits are a well-trodden archetype; review the antler and body treatment.** |
 | Ignaroth | Asymmetric wings, cheek horns curling forward, crown of horns, tail club, magma seams | **Dragons are a broad genre. Compare the specific silhouette against major franchise dragons.** |
+| Shamrelle | Tall stem dancer with a four-leaf parasol crown and ribbon arms | Needs review |
+| Cairnback | Stone tortoise-beast carrying a glowing rune cairn | **Rock/tortoise creatures are common; check silhouette.** |
+| Dawnstrider | Long-legged golden runner, floating sun halo, single tail ending in a sun disc | **Fox-derived; deliberately single-tailed. Review against fire-fox evolutions in major franchises.** |
+| Cloudwell | Raincloud with a water-drop face beneath and a rainbow on top | **Cloud mascots are common; review.** |
+| Blossomere | Long-necked grazer carrying a garden and a blossom tree | **Garden-on-back creatures exist in major franchises; review carefully.** |
+| Astravyth | Layered translucent star-veined wings, crescent crest, three tail-ribbons | **Celestial dragons are a broad genre; review silhouette.** |
 | Names | All invented for this project | **Trademark search needed for every creature name and for "Mythlings" itself.** |

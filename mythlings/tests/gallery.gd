@@ -47,7 +47,7 @@ func _ready() -> void:
 		cam.position = Vector3(0, h * 0.75, h * 2.2 + 1.2)
 		cam.look_at(Vector3(0, h * 0.45, 0))
 		cam.fov = 50
-		if only == "ignaroth":
+		if only in ["ignaroth", "astravyth"]:
 			cam.position = Vector3(-14, 8, 10)
 			cam.look_at(Vector3(0, 5, 0))
 			cam.fov = 55

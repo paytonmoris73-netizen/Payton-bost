@@ -37,3 +37,17 @@ abilities = PackedStringArray("stoneskin", "stone_sense", "crystal_resonance", "
 family = "pebblit"
 stage = 1
 acquisition = PackedStringArray("explore")
+evolutions = Array[Dictionary]([{
+"to": "cairnback",
+"path": "natural",
+"requirements": {
+"friendship": 4,
+"level": 4,
+"items": {
+"stone": 10,
+"crystal": 2
+},
+"visited": ["hidden_cave"]
+},
+"text": "Fed on river stone and cave crystal, Pebblit's plates stack into a living cairn."
+}])

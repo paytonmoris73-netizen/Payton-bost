@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "bloom_wide"
+display_name = "Wide Bloom"
+slot = "primary"
+category = "environmental"
+description = "Revives wilted flowers within 26 m."
+effect = "reveal"
+params = {
+"kinds": ["wilted_flower"],
+"radius": 26.0
+}
+cooldown = 3
+unlock_friendship = 0
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.851, 0.282, 0.478, 1)

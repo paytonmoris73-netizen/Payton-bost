@@ -5,20 +5,18 @@
 [resource]
 script = ExtResource("1_s")
 id = "colossal_astravyth"
-display_name = "Astravyth"
+display_name = "Astravyth, the Celestial Sovereign"
 category = "colossal"
-description = "A majestic celestial flyer with midnight-blue wings, galaxy markings and a long flowing tail."
-currency = "none"
-price = 0
+description = "A guaranteed, specific colossal companion: exactly this Astravyth, trusting enough to ride and fly. Optional, never required for the story, and also planned as a free encounter in the Starfall Isles update."
+currency = "star_gems"
+price = 1500
 grants = {
-
+"creature": "astravyth",
+"friendship": 45
 }
 rarity = "mythic"
 preview_kind = "colossal"
 preview_id = "astravyth"
 featured = true
-available = false
-unavailable_reason = "Arrives with the Starfall Isles region update. Not purchasable."
-earn_path = "Free — earned through play: Uncover the secrets of the Dreamlight Observatory."
-tags = PackedStringArray("colossal")
-includes = PackedStringArray("Ability: Starwake", "Habitat: Celestial Sky Sanctuary", "Rideable after earning its trust")
+tags = PackedStringArray("colossal", "rideable", "flying")
+includes = PackedStringArray("Astravyth (rideable, flying)", "Abilities: Starlit Presence, Sky Passage, Starveil, Cosmic Bloom", "Journal entry and lore")

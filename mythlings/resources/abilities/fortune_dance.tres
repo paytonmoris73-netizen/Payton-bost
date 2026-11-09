@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "fortune_dance"
+display_name = "Fortune Dance"
+slot = "signature"
+category = "signature"
+description = "A whirling dance of golden leaves: reveals lucky clovers within 45 m, highlights resources within 45 m and regrows spots within 15 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["lucky_clover"],
+"radius": 45.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"radius": 45.0,
+"duration": 30.0
+}
+}, {
+"effect": "regrow",
+"params": {
+"radius": 15.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "star_field"
+color = Color(0.89, 0.761, 0.29, 1)

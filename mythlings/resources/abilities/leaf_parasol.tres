@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "leaf_parasol"
+display_name = "Leaf Parasol"
+slot = "secondary"
+category = "movement"
+description = "Shamrelle spins its clover crown above you: glide for 14 seconds."
+effect = "glide"
+params = {
+"duration": 14.0
+}
+cooldown = 25
+unlock_friendship = 2
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.525, 0.769, 0.369, 1)

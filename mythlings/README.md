@@ -24,7 +24,7 @@ to look, Esc to pause. On touch devices, use the on-screen joystick and buttons.
 ```bash
 godot --path mythlings --headless res://tests/test_runner.tscn
 ```
-795 automated checks: data integrity, inventory, saves (including corruption
+945 automated checks: data integrity, inventory, saves (including corruption
 recovery and migration), store and mock billing, friendship cooldowns, the
 whole onboarding quest chain, creature AI, companion following, riding, and
 every UI panel opening and closing, every ability effect, all three evolution paths, buying Ignaroth, summoning and flying. Exit code 0 means everything passed.

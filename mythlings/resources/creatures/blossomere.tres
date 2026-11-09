@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "blossomere"
+display_name = "Blossomere"
+region = "meadow"
+habitat = "Ancient Oak Sanctuary"
+elements = PackedStringArray("nature")
+rarity = "epic"
+size_class = "large"
+personality = "gentle"
+description = "A tall, long-necked grazer with a garden on its back: a canopy of petals, flowering shrubs and a small cherry-like tree. Its leaf tail has become a fan of five great leaves."
+personality_text = "Gentle and patient. Blossomere walks slowly, letting butterflies ride along."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.906, 0.725, 0.788, 1, 0.373, 0.659, 0.341, 1, 0.851, 0.282, 0.478, 1)
+model_id = "blossomere"
+locomotion = "quad"
+move_speed = 2.6
+height = 3.2
+sound_pitch = 0.7
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Ancient Oak Sanctuary.", "Gentle and patient. Blossomere walks slowly, letting butterflies ride along.", "Ability: unknown.")
+discovery_hint = "Evolve Bloomtail."
+rideable = true
+model_ready = true
+abilities = PackedStringArray("garden_heart", "bloom_wide", "canopy_glide", "grand_springtide")
+family = "bloomtail"
+stage = 2
+evolves_from = "bloomtail"
+acquisition = PackedStringArray("evolve")
+lore = "Every Blossomere's back garden is different; Keepers say it grows what its friends love."
+originality_notes = "Long-necked grazer carrying a garden; review against garden-backed creatures in major franchises."

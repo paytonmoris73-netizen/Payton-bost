@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_dawnstrider"
+display_name = "Dawnstrider"
+category = "large"
+description = "A tall, long-legged golden runner with a lean deer-like frame. A sun-disc halo floats behind its head and its single long tail ends in a glowing sun-disc. Riding it feels like racing the sunrise."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "epic"
+preview_kind = "creature"
+preview_id = "dawnstrider"
+earn_path = "Free — earned by evolution."
+tags = PackedStringArray("evolved")

@@ -366,7 +366,7 @@ func test_gameplay() -> void:
 	var snapshot := JSON.stringify(GameState.data)
 	fresh()
 	SaveManager.load_game()
-	check(GameState.sanctuary_stage("oak") == 1 and GameState.is_discovered("verdantus"), "progress survives reload")
+	check(GameState.sanctuary_stage("oak") >= 1 and GameState.is_discovered("verdantus") and GameState.evolved_to("pebblit") == "cairnback", "progress (incl. evolutions) survives reload")
 	check(Quests.is_completed("q_main_06"), "quest log survives reload")
 
 func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
@@ -451,6 +451,22 @@ func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
 	ui.hud._dlg_queue.clear()
 	ui.hud._dialogue.visible = false
 	p.input_locked = false
+	section("evolutions for every meadow Mythling")
+	for base in ["cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail"]:
+		var evo: Dictionary = Evolution.options(base)[0]
+		var target: String = evo.to
+		check(DB.creature(target).model_ready and CreatureModels.has_model(target), "%s has a playable model" % target)
+		check(DB.creature(target).abilities.size() == 4, "%s has a full ability kit" % target)
+		_satisfy(base, evo.requirements)
+		check(Evolution.can_evolve(base, evo), "%s requirements satisfiable" % base)
+		check(Evolution.evolve(base, 0), "%s evolves into %s" % [base, target])
+		await _frames(1)
+		check(lvl.creatures.has(target) and not lvl.creatures.has(base), "%s replaces %s in the world" % [target, base])
+		var rig := CreatureModels.build(target)
+		var base_rig := CreatureModels.build(base)
+		check(_mesh_count(rig) != _mesh_count(base_rig), "%s is a different model, not a rescale" % target)
+		rig.free()
+		base_rig.free()
 	section("premium colossal: Ignaroth")
 	var ign: ShopItemData = DB.product("colossal_ignaroth")
 	GameState.data.currencies.star_gems = 0
@@ -487,6 +503,46 @@ func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
 	p.global_position = lvl.at("ancient_oak")
 	check(lvl.find_open_spot(lvl.ground(-80, -10), DB.creature("ignaroth")) == Vector3.INF or true, "open-spot search runs in dense woods")
 	check(Abilities.activate(ig, "volcanic_resonance").contains("Emberfall"), "region-specific ability explains honestly")
+	section("premium colossal: Astravyth")
+	GameState.add_currency("star_gems", 1500)
+	Store.purchase("colossal_astravyth")
+	check(GameState.is_discovered("astravyth") and GameState.friendship_level("astravyth") >= 3, "Astravyth purchased exactly")
+	lvl.refresh_creatures()
+	check(not lvl.creatures.has("astravyth"), "Astravyth waits to be summoned")
+	p.global_position = lvl.ground(40, 30) + Vector3(0, 0.5, 0)
+	check(lvl.summon("astravyth") == "", "Astravyth summoned")
+	var av: Creature = lvl.creatures.astravyth
+	p.global_position = av.global_position
+	check(Abilities.activate(av, "sky_passage") == "" and p.mount == av, "Sky Passage mounts Astravyth")
+	p.jump_held = true
+	var ay := p.global_position.y
+	for i in 90:
+		p._physics_process(1.0 / 60.0)
+	check(p.global_position.y > ay + 3.0, "Astravyth flies")
+	p.jump_held = false
+
+func _satisfy(cid: String, req: Dictionary) -> void:
+	if req.has("friendship"):
+		GameState.add_friendship(cid, 100)
+	if req.has("level"):
+		while GameState.level() < int(req.level):
+			GameState.add_xp(500)
+	if req.has("items"):
+		for it in req.items:
+			GameState.add_item(it, int(req.items[it]), false)
+	if req.has("ability_uses"):
+		for k in req.ability_uses:
+			GameState.data.stats["ability_" + k] = int(req.ability_uses[k])
+	if req.has("visited"):
+		for l in req.visited:
+			if not (l in GameState.data.visited):
+				GameState.data.visited.append(l)
+	if req.has("sanctuary"):
+		for st in req.sanctuary:
+			GameState.data.sanctuary[st] = maxi(GameState.sanctuary_stage(st), int(req.sanctuary[st]))
+
+func _mesh_count(n: Node) -> int:
+	return n.find_children("*", "MeshInstance3D", true, false).size()
 
 func _frames(n: int) -> void:
 	for i in n:

@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "rain_bloom"
+display_name = "Rain Bloom"
+slot = "signature"
+category = "signature"
+description = "A warm rain falls: regrows spots within 30 m, gathers dew nectar within 30 m and raises stepping stones."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "regrow",
+"params": {
+"radius": 30.0
+}
+}, {
+"effect": "harvest",
+"params": {
+"items": ["dew_nectar"],
+"radius": 30.0,
+"max": 2
+}
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["ripple_stone"],
+"radius": 40.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "water_ring"
+color = Color(0.498, 0.827, 0.961, 1)

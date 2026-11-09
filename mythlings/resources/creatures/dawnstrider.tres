@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "dawnstrider"
+display_name = "Dawnstrider"
+region = "meadow"
+habitat = "Windmill Hills"
+elements = PackedStringArray("nature", "fire")
+rarity = "epic"
+size_class = "large"
+personality = "energetic"
+description = "A tall, long-legged golden runner with a lean deer-like frame. A sun-disc halo floats behind its head and its single long tail ends in a glowing sun-disc. Riding it feels like racing the sunrise."
+personality_text = "Energetic and loyal. Dawnstrider can't stand still at sunrise and greets every morning with a sprint."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.914, 0.635, 0.231, 1, 1.0, 0.945, 0.761, 1, 0.42, 0.208, 0.094, 1)
+model_id = "dawnstrider"
+locomotion = "quad"
+move_speed = 5.0
+height = 2.3
+sound_pitch = 0.9
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Windmill Hills.", "Energetic and loyal. Dawnstrider can't stand still at sunrise and greets every morning with a sprint.", "Ability: unknown.")
+discovery_hint = "Evolve Sunfox."
+rideable = true
+model_ready = true
+abilities = PackedStringArray("sunstride", "sunglow_wide", "long_dash", "solar_wake")
+family = "sunfox"
+stage = 2
+evolves_from = "sunfox"
+acquisition = PackedStringArray("evolve")
+lore = "Dawnstriders are said to chase the sun to the edge of the world and back each day."
+originality_notes = "Single tail with a sun-disc and floating halo; deliberately not multi-tailed. Fox-derived, so review carefully."

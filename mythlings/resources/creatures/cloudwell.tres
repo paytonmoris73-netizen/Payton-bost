@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cloudwell"
+display_name = "Cloudwell"
+region = "meadow"
+habitat = "Sunstone Falls"
+elements = PackedStringArray("water", "storm")
+rarity = "rare"
+size_class = "large"
+personality = "gentle"
+description = "A floating raincloud with a gentle water-drop face hanging beneath it. Soft rain falls from its underside and a small rainbow arcs over its top."
+personality_text = "Gentle and dreamy. Cloudwell drifts above its friends and waters any flower it passes."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.933, 0.957, 0.984, 1, 0.498, 0.827, 0.961, 1, 0.29, 0.722, 0.91, 1)
+model_id = "cloudwell"
+locomotion = "float"
+move_speed = 2.0
+height = 1.9
+sound_pitch = 1.2
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Sunstone Falls.", "Gentle and dreamy. Cloudwell drifts above its friends and waters any flower it passes.", "Ability: unknown.")
+discovery_hint = "Evolve Dewdrop."
+rideable = false
+model_ready = true
+abilities = PackedStringArray("soft_rain", "ripple_call_wide", "cloud_current", "rain_bloom")
+family = "dewdrop"
+stage = 2
+evolves_from = "dewdrop"
+acquisition = PackedStringArray("evolve")
+lore = "When a Cloudwell rains over a field, the flowers there bloom twice in one season."
+originality_notes = "Cloud body with a drop face beneath; check against cloud mascots."

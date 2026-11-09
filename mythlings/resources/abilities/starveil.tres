@@ -6,15 +6,16 @@
 script = ExtResource("1_s")
 id = "starveil"
 display_name = "Starveil"
-slot = "passive"
+slot = "secondary"
 category = "exploration"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+description = "Reveals hidden treasure within 30 m and celestial markings (found on the Starfall Isles, coming in a future update)."
+effect = "reveal"
 params = {
-
+"kinds": ["hidden_treasure", "celestial_mark"],
+"radius": 30.0
 }
-cooldown = 10
+cooldown = 12
 unlock_friendship = 0
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "star_field"
+color = Color(0.624, 0.702, 1.0, 1)

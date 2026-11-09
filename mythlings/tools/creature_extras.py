@@ -147,3 +147,85 @@ for (cid, name, region, habitat, els, rar, pers, desc, loco) in PREMIUM:
         "Premium concept. Planned for a future update; not available yet.", False, True))
     EXTRA.setdefault(cid, {}).update({"acquisition": PSA(["purchase"]), "lore": "Concept stage. Model, animations and abilities are not built yet.",
         "originality_notes": "Concept only; review against existing franchises before modelling.", "flight": loco == "fly"})
+
+# ================= Evolutions for the other meadow Mythlings (second pass)
+A("lucky_leaf_plus", "Golden Fortune", "passive", "support", "Treasure chests give 40% more gold while Shamrelle is with you.", "passive_luck", {"gold_mult": 1.4}, 0, 0, "burst", "e3c24a")
+A("lucky_find_wide", "Lucky Find", "primary", "exploration", "Uncovers lucky clover patches within 28 m.", "reveal", {"kinds": ["lucky_clover"], "radius": 28.0}, 3, 0, "star_field", "e3c24a")
+A("leaf_parasol", "Leaf Parasol", "secondary", "movement", "Shamrelle spins its clover crown above you: glide for 14 seconds.", "glide", {"duration": 14.0}, 25, 2, "leaf_spiral", "86c45e")
+A("fortune_dance", "Fortune Dance", "signature", "signature", "A whirling dance of golden leaves: reveals lucky clovers within 45 m, highlights resources within 45 m and regrows spots within 15 m.", "combo", combo(("reveal", {"kinds": ["lucky_clover"], "radius": 45.0}), ("highlight", {"radius": 45.0, "duration": 30.0}), ("regrow", {"radius": 15.0})), 90, 4, "star_field", "e3c24a")
+
+A("cairn_skin", "Cairn Skin", "passive", "support", "+1 stone and +1 crystal from every pile while Cairnback is with you.", "passive_yield", {"items": ["stone", "crystal"], "bonus": 1}, 0, 0, "rune_pulse", "63f2d8")
+A("deep_stone_sense", "Deep Stone Sense", "primary", "environmental", "Cracks weakened boulders within 28 m.", "reveal", {"kinds": ["cracked_rock"], "radius": 28.0}, 3, 0, "rune_pulse", "63f2d8")
+A("cairn_harvest", "Cairn Gather", "secondary", "support", "Cairnback scoops up to four nearby stone or crystal piles.", "harvest", {"items": ["stone", "crystal"], "radius": 14.0, "max": 4}, 45, 2, "rune_pulse", "63f2d8")
+A("cairn_quake", "Cairn Quake", "signature", "signature", "The runes on its back blaze as it stamps: cracks boulders within 40 m and highlights crystals within 80 m.", "combo", combo(("reveal", {"kinds": ["cracked_rock"], "radius": 40.0}), ("highlight", {"items": ["crystal"], "radius": 80.0, "duration": 30.0})), 90, 4, "rune_pulse", "63f2d8")
+
+A("sunstride", "Sunstride", "passive", "movement", "You move 14% faster with Dawnstrider at your side.", "passive_speed", {"mult": 1.14}, 0, 0, "ember_crown", "ffcf6a")
+A("sunglow_wide", "Dawnlight", "primary", "environmental", "Kindles old lanterns within 25 m.", "reveal", {"kinds": ["dark_lantern"], "radius": 25.0}, 3, 0, "ember_crown", "ffcf6a")
+A("long_dash", "Sun Sprint", "secondary", "movement", "A long, blazing dash forward.", "dash", {"speed": 22.0, "time": 0.4}, 5, 2, "wind_column", "ffe9a8")
+A("solar_wake", "Solar Wake", "signature", "signature", "Dawnstrider's halo flares: lights lanterns within 45 m, lifts you 8 m and lets you glide.", "combo", combo(("reveal", {"kinds": ["dark_lantern"], "radius": 45.0}), ("wind_lift", {"height": 8.0}), ("glide", {"duration": 8.0})), 75, 4, "ember_crown", "ffcf6a")
+
+A("soft_rain", "Soft Rain", "passive", "support", "Shy Mythlings don't flee, and dew nectar patches give +1, while Cloudwell is with you.", "passive_calm", {}, 0, 0, "water_ring", "7fd3f5")
+A("ripple_call_wide", "Rain Call", "primary", "environmental", "Raises submerged stepping stones within 28 m.", "reveal", {"kinds": ["ripple_stone"], "radius": 28.0}, 3, 0, "water_ring", "7fd3f5")
+A("cloud_current", "Cloud Current", "secondary", "movement", "Swim three times as fast and wade freely for 25 seconds.", "swim_boost", {"duration": 25.0, "mult": 3.0}, 30, 2, "water_ring", "7fd3f5")
+A("rain_bloom", "Rain Bloom", "signature", "signature", "A warm rain falls: regrows spots within 30 m, gathers dew nectar within 30 m and raises stepping stones.", "combo", combo(("regrow", {"radius": 30.0}), ("harvest", {"items": ["dew_nectar"], "radius": 30.0, "max": 2}), ("reveal", {"kinds": ["ripple_stone"], "radius": 40.0})), 90, 4, "water_ring", "7fd3f5")
+
+A("garden_heart", "Garden Heart", "passive", "support", "+2 petals from flower patches while Blossomere is with you.", "passive_yield", {"items": ["petals"], "bonus": 2}, 0, 0, "leaf_spiral", "d9487a")
+A("bloom_wide", "Wide Bloom", "primary", "environmental", "Revives wilted flowers within 26 m.", "reveal", {"kinds": ["wilted_flower"], "radius": 26.0}, 3, 0, "leaf_spiral", "d9487a")
+A("canopy_glide", "Canopy Glide", "secondary", "movement", "Its petal canopy carries you: glide for 16 seconds.", "glide", {"duration": 16.0}, 25, 2, "leaf_spiral", "5fa857")
+A("grand_springtide", "Grand Springtide", "signature", "signature", "Blossomere's back garden bursts open: revives wilted flowers within 50 m and regrows spots within 30 m.", "combo", combo(("reveal", {"kinds": ["wilted_flower"], "radius": 50.0}), ("regrow", {"radius": 30.0})), 90, 4, "root_wave", "d9487a")
+
+# Astravyth becomes playable (premium colossal, flying).
+A("starlit_presence", "Starlit Presence", "passive", "support", "Faint starlight follows you at night while Astravyth is with you.", "passive_glow", {"color": "9fb3ff"}, 0, 0, "star_field", "9fb3ff")
+A("sky_passage", "Sky Passage", "primary", "movement", "Mount Astravyth and soar. Hold Jump to climb; release to glide.", "flight", {}, 2, 0, "star_field", "9fb3ff")
+A("starveil", "Starveil", "secondary", "exploration", "Reveals hidden treasure within 30 m and celestial markings (found on the Starfall Isles, coming in a future update).", "reveal", {"kinds": ["hidden_treasure", "celestial_mark"], "radius": 30.0}, 12, 0, "star_field", "9fb3ff")
+A("cosmic_bloom", "Cosmic Bloom", "signature", "signature", "Astravyth spreads its wings into a field of stars: highlights all resources within 60 m.", "combo", combo(("highlight", {"radius": 60.0, "duration": 30.0}),), 90, 3, "star_field", "9fb3ff")
+
+for cid, kit in {
+    "shamrelle": ["lucky_leaf_plus", "lucky_find_wide", "leaf_parasol", "fortune_dance"],
+    "cairnback": ["cairn_skin", "deep_stone_sense", "cairn_harvest", "cairn_quake"],
+    "dawnstrider": ["sunstride", "sunglow_wide", "long_dash", "solar_wake"],
+    "cloudwell": ["soft_rain", "ripple_call_wide", "cloud_current", "rain_bloom"],
+    "blossomere": ["garden_heart", "bloom_wide", "canopy_glide", "grand_springtide"],
+    "astravyth": ["starlit_presence", "sky_passage", "starveil", "cosmic_bloom"],
+}.items():
+    EXTRA.setdefault(cid, {})["abilities"] = PSA(kit)
+
+EVO2 = [
+ # base, new id, name, size, elements, rarity, personality, desc, personality text, treat, palette, loco, speed, height, pitch, rideable, req, text, lore, notes
+ ("cloverling", "shamrelle", "Shamrelle", "small", ["nature"], "rare", "playful",
+  "A tall, slender clover dancer. Its four leaves have grown into a twirling parasol-crown, the lucky golden leaf now glows on top, and long leaf-ribbon arms trail behind it.",
+  "Playful and graceful. Shamrelle spins when happy and leaves a trail of drifting leaves.", "dew_nectar", ["4fa35a", "e3c24a", "eef3c9"], "hop", 3.0, 1.15, 1.3, False,
+  {"friendship": 4, "level": 3, "ability_uses": {"lucky_clover": 3}, "items": {"petals": 6}}, "A Cloverling that has found its share of luck grows tall and starts to dance.",
+  "Villagers say the luckiest summers are the ones when a Shamrelle dances in Butterfly Clearing.", "Tall stem body, parasol of four leaves, ribbon arms. No close match found in internal check."),
+ ("pebblit", "cairnback", "Cairnback", "large", ["earth"], "rare", "calm",
+  "A low, heavy tortoise-shaped stone beast with pillar legs. A cairn of rune-carved stones stands on its back, glowing in sequence, and a crest of crystals runs down its spine.",
+  "Calm and immovable. Cairnback naps anywhere, but will carry a Keeper across the whole meadow without complaint.", "honey_drop", ["8f979c", "666e74", "63f2d8"], "waddle", 2.0, 2.2, 0.6, True,
+  {"friendship": 4, "level": 4, "items": {"stone": 10, "crystal": 2}, "visited": ["hidden_cave"]}, "Fed on river stone and cave crystal, Pebblit's plates stack into a living cairn.",
+  "Old travellers built cairns to mark safe paths. Some of those cairns were Cairnbacks, sleeping.", "Tortoise-like stone body with a rune cairn; check against well-known rock-turtle creatures."),
+ ("sunfox", "dawnstrider", "Dawnstrider", "large", ["nature", "fire"], "epic", "energetic",
+  "A tall, long-legged golden runner with a lean deer-like frame. A sun-disc halo floats behind its head and its single long tail ends in a glowing sun-disc. Riding it feels like racing the sunrise.",
+  "Energetic and loyal. Dawnstrider can't stand still at sunrise and greets every morning with a sprint.", "sunberry", ["e9a23b", "fff1c2", "6b3518"], "quad", 5.0, 2.3, 0.9, True,
+  {"friendship": 4, "level": 4, "ability_uses": {"dark_lantern": 3}, "visited": ["windmill_hills"]}, "A Sunfox that has kindled the village lanterns grows tall and swift, carrying a halo of morning light.",
+  "Dawnstriders are said to chase the sun to the edge of the world and back each day.", "Single tail with a sun-disc and floating halo; deliberately not multi-tailed. Fox-derived, so review carefully."),
+ ("dewdrop", "cloudwell", "Cloudwell", "large", ["water", "storm"], "rare", "gentle",
+  "A floating raincloud with a gentle water-drop face hanging beneath it. Soft rain falls from its underside and a small rainbow arcs over its top.",
+  "Gentle and dreamy. Cloudwell drifts above its friends and waters any flower it passes.", "dew_nectar", ["eef4fb", "7fd3f5", "4ab8e8"], "float", 2.0, 1.9, 1.2, False,
+  {"friendship": 4, "level": 3, "items": {"dew_nectar": 3}, "visited": ["sunstone_falls"]}, "Rising with the waterfall mist, Dewdrop gathers into a cloud of its own.",
+  "When a Cloudwell rains over a field, the flowers there bloom twice in one season.", "Cloud body with a drop face beneath; check against cloud mascots."),
+ ("bloomtail", "blossomere", "Blossomere", "large", ["nature"], "epic", "gentle",
+  "A tall, long-necked grazer with a garden on its back: a canopy of petals, flowering shrubs and a small cherry-like tree. Its leaf tail has become a fan of five great leaves.",
+  "Gentle and patient. Blossomere walks slowly, letting butterflies ride along.", "honey_drop", ["e7b9c9", "5fa857", "d9487a"], "quad", 2.6, 3.2, 0.7, True,
+  {"friendship": 4, "level": 4, "items": {"petals": 8}, "sanctuary": {"oak": 2}}, "In a sanctuary full of flowers, Bloomtail's flower spreads until its whole back is a garden.",
+  "Every Blossomere's back garden is different; Keepers say it grows what its friends love.", "Long-necked grazer carrying a garden; review against garden-backed creatures in major franchises."),
+]
+for (base, nid, name, size, els, rar, pers, desc, ptext, treat, pal, loco, spd, h, pitch, ride, req, text, lore, notes) in EVO2:
+    hab = {"cloverling": "Butterfly Clearing", "pebblit": "Glimmer Grotto", "sunfox": "Windmill Hills", "dewdrop": "Sunstone Falls", "bloomtail": "Ancient Oak Sanctuary"}[base]
+    NEW_CREATURES.append((nid, name, "meadow", hab, els, rar, pers, desc, ptext, "", "", "", treat, pal, loco, spd, h, pitch, "Evolve %s." % base.capitalize(), True))
+    EXTRA.setdefault(nid, {}).update({"size_class": size, "rideable": ride, "family": base, "stage": 2, "evolves_from": base, "acquisition": PSA(["evolve"]), "lore": lore, "originality_notes": notes})
+    EXTRA.setdefault(base, {})["evolutions"] = TypedDictArray([evo(nid, "natural", req, text)])
+
+EXTRA["astravyth"].update({"model_ready": True, "rideable": True, "flight": True, "acquisition": PSA(["purchase", "explore"]),
+    "description": "The Celestial Sovereign: a vast flyer of midnight-blue scales and layered star-veined wings, with a crescent crest and three flowing tail-ribbons.",
+    "discovery_hint": "Available in the Grand Market. Also planned as a free encounter in the Starfall Isles update.",
+    "lore": "Astravyth sleeps between the stars and wakes only for skies with no clouds. Its tail-ribbons are said to be maps of constellations that no longer exist.",
+    "originality_notes": "Layered wings, crescent crest and three tail-ribbons; check silhouette against celestial dragons in major franchises."})

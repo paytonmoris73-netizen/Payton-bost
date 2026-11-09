@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cairn_skin"
+display_name = "Cairn Skin"
+slot = "passive"
+category = "support"
+description = "+1 stone and +1 crystal from every pile while Cairnback is with you."
+effect = "passive_yield"
+params = {
+"items": ["stone", "crystal"],
+"bonus": 1
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.388, 0.949, 0.847, 1)

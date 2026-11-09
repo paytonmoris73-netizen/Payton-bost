@@ -42,8 +42,10 @@ Done means implemented **and** exercised by tests or screenshots. See QA_CHECKLI
 - [x] Summoning with an open-space check; riding feels different by size; flight
 - [x] Personality reactions to night, nearby Mythlings and friendship level
 - [ ] Weather (and weather reactions)
-- [ ] Evolutions for the other five meadow Mythlings
-- [ ] Models for 14 more colossals (4 earnable, 10 premium concepts) and their abilities
+- [x] Evolutions for the other five meadow Mythlings (Shamrelle, Cairnback, Dawnstrider, Cloudwell, Blossomere)
+- [x] Astravyth model, flight and purchase
+- [ ] Second/alternate evolution paths for those five
+- [ ] Models for 13 more colossals (3 earnable, 10 premium concepts) and their abilities
 - [ ] Swimming mounts; riding cosmetics; evolved-form cosmetics
 - [ ] Ability puzzles that require combining two companions
 - [ ] Hazards for protective abilities (e.g. Ancient Shield) to defend against

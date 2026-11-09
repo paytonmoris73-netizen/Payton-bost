@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cairn_quake"
+display_name = "Cairn Quake"
+slot = "signature"
+category = "signature"
+description = "The runes on its back blaze as it stamps: cracks boulders within 40 m and highlights crystals within 80 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock"],
+"radius": 40.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"items": ["crystal"],
+"radius": 80.0,
+"duration": 30.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.388, 0.949, 0.847, 1)

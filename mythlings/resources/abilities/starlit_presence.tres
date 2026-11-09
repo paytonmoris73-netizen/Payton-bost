@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "starlit_presence"
+display_name = "Starlit Presence"
+slot = "passive"
+category = "support"
+description = "Faint starlight follows you at night while Astravyth is with you."
+effect = "passive_glow"
+params = {
+"color": "9fb3ff"
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "star_field"
+color = Color(0.624, 0.702, 1.0, 1)

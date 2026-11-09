@@ -8,13 +8,19 @@ id = "cosmic_bloom"
 display_name = "Cosmic Bloom"
 slot = "signature"
 category = "signature"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+description = "Astravyth spreads its wings into a field of stars: highlights all resources within 60 m."
+effect = "combo"
 params = {
-
+"steps": [{
+"effect": "highlight",
+"params": {
+"radius": 60.0,
+"duration": 30.0
 }
-cooldown = 10
-unlock_friendship = 0
+}]
+}
+cooldown = 90
+unlock_friendship = 3
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "star_field"
+color = Color(0.624, 0.702, 1.0, 1)

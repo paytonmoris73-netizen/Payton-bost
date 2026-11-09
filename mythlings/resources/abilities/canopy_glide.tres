@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "canopy_glide"
+display_name = "Canopy Glide"
+slot = "secondary"
+category = "movement"
+description = "Its petal canopy carries you: glide for 16 seconds."
+effect = "glide"
+params = {
+"duration": 16.0
+}
+cooldown = 25
+unlock_friendship = 2
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.373, 0.659, 0.341, 1)

@@ -37,3 +37,18 @@ abilities = PackedStringArray("lucky_leaf", "lucky_find", "resource_finder", "fo
 family = "cloverling"
 stage = 1
 acquisition = PackedStringArray("explore")
+evolutions = Array[Dictionary]([{
+"to": "shamrelle",
+"path": "natural",
+"requirements": {
+"friendship": 4,
+"level": 3,
+"ability_uses": {
+"lucky_clover": 3
+},
+"items": {
+"petals": 6
+}
+},
+"text": "A Cloverling that has found its share of luck grows tall and starts to dance."
+}])

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "deep_stone_sense"
+display_name = "Deep Stone Sense"
+slot = "primary"
+category = "environmental"
+description = "Cracks weakened boulders within 28 m."
+effect = "reveal"
+params = {
+"kinds": ["cracked_rock"],
+"radius": 28.0
+}
+cooldown = 3
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.388, 0.949, 0.847, 1)

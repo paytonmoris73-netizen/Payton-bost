@@ -37,3 +37,16 @@ abilities = PackedStringArray("quickstep", "sunglow", "burst_dash", "daybreak")
 family = "sunfox"
 stage = 1
 acquisition = PackedStringArray("explore")
+evolutions = Array[Dictionary]([{
+"to": "dawnstrider",
+"path": "natural",
+"requirements": {
+"friendship": 4,
+"level": 4,
+"ability_uses": {
+"dark_lantern": 3
+},
+"visited": ["windmill_hills"]
+},
+"text": "A Sunfox that has kindled the village lanterns grows tall and swift, carrying a halo of morning light."
+}])
