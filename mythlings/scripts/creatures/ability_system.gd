@@ -67,6 +67,10 @@ func luck_mult() -> float:
 func calm_active() -> bool:
 	return _active_passive("passive_calm") != null
 
+func swim_mult() -> float:
+	var a := _active_passive("passive_swim")
+	return float(a.params.get("mult", 1.0)) if a else 1.0
+
 func featherfall_active() -> bool:
 	return _active_passive("passive_glide") != null
 
@@ -221,6 +225,16 @@ func _run(effect: String, params: Dictionary, c: Creature, p: Player) -> Diction
 			if p == null or MeadowLevel.current == null:
 				return {"ok": false, "msg": ""}
 			MeadowLevel.current.spawn_root_bridge(p, float(params.get("length", 14.0)), float(params.get("duration", 25.0)), float(params.get("width", 3.0)))
+			return {"ok": true, "msg": ""}
+		"weather":
+			var lvl2 := MeadowLevel.current
+			var want: String = params.get("state", "rain")
+			if lvl2 == null or lvl2.weather == null or not lvl2.weather.allows(want):
+				return {"ok": false, "msg": "The skies here won't bring %s." % want}
+			if lvl2.weather.state == want:
+				return {"ok": false, "msg": "It's already raining."}
+			lvl2.weather.set_state(want)
+			lvl2.weather._timer = 120.0
 			return {"ok": true, "msg": ""}
 		"crust":
 			if p == null or MeadowLevel.current == null:

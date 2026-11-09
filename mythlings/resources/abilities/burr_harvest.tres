@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "burr_harvest"
+display_name = "Burr Harvest"
+slot = "secondary"
+category = "support"
+description = "Burrs snag up to three nearby flower or berry patches."
+effect = "harvest"
+params = {
+"items": ["petals", "sunberry"],
+"radius": 12.0,
+"max": 3
+}
+cooldown = 45
+unlock_friendship = 2
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.604, 0.384, 0.839, 1)

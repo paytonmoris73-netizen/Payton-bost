@@ -9,7 +9,7 @@ static func has_model(id: String) -> bool:
 	var c: CreatureData = DB.creature(id) if Engine.get_main_loop() else null
 	if c and c.model_scene:
 		return true
-	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing"]
+	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane"]
 
 ## variant: cosmetic palette variant id ("" = default)
 static func build(id: String, variant := "", accessory := "") -> CreatureRig:
@@ -39,6 +39,11 @@ static func build(id: String, variant := "", accessory := "") -> CreatureRig:
 		"cindercub": rig = _cindercub(variant)
 		"magmole": rig = _magmole(variant)
 		"ashwing": rig = _ashwing(variant)
+		"thistlepin": rig = _thistlepin(variant)
+		"geodrift": rig = _geodrift(variant)
+		"lanternwhisk": rig = _lanternwhisk(variant)
+		"drizzlefin": rig = _drizzlefin(variant)
+		"thornmane": rig = _thornmane(variant)
 		_:
 			rig = _unknown()
 	rig.name = "Rig_" + id
@@ -1180,6 +1185,198 @@ static func _ashwing(_variant: String) -> CreatureRig:
 		feet.append(fp)
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("wings", wings); r.reg("tail", tail); r.reg("legs", feet); r.reg("sway", [crest])
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.13, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.4, -0.1)))
+	return r
+
+# ===================================================================== THISTLEPIN (Cloverling alternate)
+static func _thistlepin(_variant: String) -> CreatureRig:
+	var r := _rig("hop")
+	var v := r.visual
+	var purple := Color("6a3a8a"); var fluff := Color("e8d8f0"); var leaf := Color("4fa35a")
+	K.add(v, K.sphere(0.28, 16, 8), K.mat(purple.lightened(0.15), 0.9), Vector3(0, 0.34, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 61
+	for i in 40:
+		var dir := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.2, 1), rng.randf_range(-1, 1)).normalized()
+		if dir.z < -0.55 and dir.y < 0.5:
+			continue  # keep the face clear
+		var sp := K.add(v, K.cyl(0.0, 0.025, 0.16, 4), K.mat(purple.darkened(0.2), 0.6), Vector3(0, 0.34, 0) + dir * 0.3)
+		sp.basis = Basis.looking_at(dir, Vector3.UP if absf(dir.y) < 0.95 else Vector3.RIGHT) * Basis.from_euler(Vector3(-PI / 2, 0, 0))
+	K.add(v, K.sphere(0.14, 10, 5), K.mat(fluff), Vector3(0, 0.62, 0.02), Vector3.ZERO, Vector3(1.2, 0.8, 1.2))
+	var head := K.pivot(v, Vector3(0, 0.36, -0.2), "Head")
+	K.add(head, K.sphere(0.13, 12, 6), K.mat(fluff), Vector3(0, 0, -0.02), Vector3.ZERO, Vector3(1.2, 0.95, 0.6))
+	var eyes := [K.eye(head, Vector3(-0.05, 0.02, -0.08), 0.032), K.eye(head, Vector3(0.05, 0.02, -0.08), 0.032)]
+	for e in eyes:
+		e.scale = Vector3(1, 0.75, 1)
+	K.add(head, K.box(Vector3(0.12, 0.02, 0.02)), K.mat(purple.darkened(0.3)), Vector3(0, 0.08, -0.09), Vector3(0, 0, 0))
+	var cape := K.pivot(v, Vector3(0, 0.5, 0.15), "Cape", Vector3(110, 0, 0))
+	K.add(cape, K.petal(0.5, 0.4, 0.25, 0.03), K.mat(leaf, 0.8))
+	var legs := []
+	for sx in [-1, 1]:
+		var lp := K.pivot(v, Vector3(0.1 * sx, 0.08, 0))
+		K.add(lp, K.capsule(0.04, 0.12), K.mat(leaf.darkened(0.3)), Vector3(0, -0.03, 0))
+		legs.append(lp)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("legs", legs); r.reg("tail", cape)
+	r.reg("acc_head", K.pivot(v, Vector3(0, 0.7, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.25, -0.2)))
+	return r
+
+# ===================================================================== GEODRIFT (Pebblit alternate)
+static func _geodrift(_variant: String) -> CreatureRig:
+	var r := _rig("float")
+	r.hover_height = 0.35
+	var v := r.visual
+	var shell := Color("5a4d6b"); var amethyst := Color("c49af0"); var rune := Color("f28fe0")
+	var core := K.pivot(v, Vector3(0, 0.5, 0), "Core")
+	for sx in [-1, 1]:
+		var half := K.pivot(core, Vector3(0.06 * sx, 0, 0), "Half", Vector3(0, -35 * sx, -10 * sx))
+		K.add(half, K.sphere(0.3, 9, 5), K.flat(shell), Vector3(0.1 * sx, 0, 0), Vector3.ZERO, Vector3(0.55, 1.0, 1.0))
+		for k in 8:
+			var a := k * TAU / 8.0
+			K.add(half, K.cyl(0.0, 0.05, 0.16, 5), K.mat(amethyst, 0.2, amethyst, 0.6), Vector3(-0.02 * sx, sin(a) * 0.18, cos(a) * 0.18), Vector3(0, 0, 90 * sx))
+	K.add(core, K.sphere(0.12, 12, 6), K.glow(amethyst.lightened(0.3), 1.8))
+	var head := K.pivot(core, Vector3(0, 0.02, -0.1), "Head")
+	var eyes := [K.eye(head, Vector3(-0.045, 0.02, -0.06), 0.028, Color("2a1a3a"), Vector3(0, 0, -1), rune), K.eye(head, Vector3(0.045, 0.02, -0.06), 0.028, Color("2a1a3a"), Vector3(0, 0, -1), rune)]
+	var ring := K.pivot(v, Vector3(0, 0.5, 0), "Orbit")
+	for k in 7:
+		var a := k * TAU / 7.0
+		var pb := K.add(ring, K.sphere(0.05, 6, 3), K.flat(Color("8f979c")), Vector3(cos(a) * 0.48, sin(a * 2.0) * 0.04, sin(a) * 0.48))
+		K.add(pb, K.box(Vector3(0.05, 0.01, 0.01)), K.glow(rune, 1.8), Vector3(0, 0.05, 0))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("orbit", ring); r.reg("sway", [core])
+	r.reg("acc_head", K.pivot(v, Vector3(0, 0.85, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.3, -0.1)))
+	return r
+
+# ===================================================================== LANTERNWHISK (Sunfox alternate)
+static func _lanternwhisk(_variant: String) -> CreatureRig:
+	var r := _rig("hop")
+	r.bob_height = 0.04
+	var v := r.visual
+	var fur := Color("e9a23b"); var cream := Color("fff1c2"); var glow_c := Color("ffd27a")
+	K.add(v, K.capsule(0.15, 0.42), K.mat(fur), Vector3(0, 0.32, 0))
+	K.add(v, K.capsule(0.11, 0.3), K.mat(cream), Vector3(0, 0.3, -0.06), Vector3.ZERO, Vector3(1, 1, 0.7))
+	var head := K.pivot(v, Vector3(0, 0.6, -0.02), "Head")
+	K.add(head, K.sphere(0.14, 16, 8), K.mat(fur))
+	K.add(head, K.sphere(0.07, 10, 5), K.mat(cream), Vector3(0, -0.04, -0.11), Vector3.ZERO, Vector3(1.2, 0.8, 0.9))
+	K.add(head, K.sphere(0.02, 6, 3), K.mat(Color("2a1a14")), Vector3(0, -0.02, -0.18))
+	var eyes := [K.eye(head, Vector3(-0.055, 0.03, -0.11), 0.03, Color("3a1d0e")), K.eye(head, Vector3(0.055, 0.03, -0.11), 0.03, Color("3a1d0e"))]
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.09 * sx, 0.1, 0.0), "Ear", Vector3(0, 0, -20 * sx))
+		K.add(ep, K.petal(0.11, 0.08, 0.05), K.mat(fur))
+		ears.append(ep)
+	var arms := []
+	for sx in [-1, 1]:
+		var ap := K.pivot(v, Vector3(0.12 * sx, 0.42, -0.04), "Arm", Vector3(-30, 0, 20 * sx))
+		K.add(ap, K.capsule(0.04, 0.16), K.mat(fur), Vector3(0, -0.06, 0))
+		K.add(ap, K.sphere(0.04, 6, 3), K.mat(Color.WHITE), Vector3(0, -0.13, 0))
+		arms.append(ap)
+	var tail := K.pivot(v, Vector3(0, 0.25, 0.14), "Tail")
+	var tm := MeshInstance3D.new()
+	tm.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0, 0.55, 0.3), Vector3(0, 0.82, -0.05), 12), K.taper(12, 0.06, 0.03, 0.03), 8)
+	tm.material_override = K.mat(fur)
+	tail.add_child(tm)
+	var lantern := K.pivot(tail, Vector3(0, 0.74, -0.12))
+	K.add(lantern, K.cyl(0.06, 0.06, 0.02, 10), K.mat(Color("6b4a32")), Vector3(0, 0.05, 0))
+	K.add(lantern, K.cyl(0.055, 0.055, 0.1, 10), K.glass(Color("fff8e0"), 0.4), Vector3(0, -0.02, 0))
+	K.add(lantern, K.sphere(0.03, 8, 4), K.glow(glow_c, 2.2), Vector3(0, -0.02, 0))
+	K.add(lantern, K.cyl(0.07, 0.05, 0.03, 10), K.mat(Color("6b4a32")), Vector3(0, -0.085, 0))
+	var l := OmniLight3D.new()
+	l.light_color = glow_c
+	l.omni_range = 3.0
+	l.light_energy = 0.8
+	lantern.add_child(l)
+	var legs := []
+	for sx in [-1, 1]:
+		var lp := K.pivot(v, Vector3(0.07 * sx, 0.12, 0))
+		K.add(lp, K.capsule(0.045, 0.14), K.mat(fur.darkened(0.1)), Vector3(0, -0.05, 0))
+		legs.append(lp)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("sway", [lantern] + arms)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.14, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.5, -0.06)))
+	return r
+
+# ===================================================================== DRIZZLEFIN (Dewdrop alternate)
+static func _drizzlefin(_variant: String) -> CreatureRig:
+	var r := _rig("fly")
+	r.hover_height = 0.8
+	var v := r.visual
+	var scale_c := Color("5fb7e0"); var fin := Color("dff4ff"); var dark := Color("2f6f9a")
+	K.add(v, K.sphere(0.2, 16, 8), K.mat(scale_c, 0.25, Color.BLACK, 1.0, 0.3), Vector3(0, 0.3, 0), Vector3.ZERO, Vector3(0.75, 0.85, 1.4))
+	K.add(v, K.sphere(0.16, 12, 6), K.mat(fin), Vector3(0, 0.25, -0.03), Vector3.ZERO, Vector3(0.6, 0.6, 1.2))
+	for k in 6:
+		K.add(v, K.sphere(0.03, 6, 3), K.mat(dark), Vector3(0.12, 0.34, -0.15 + k * 0.06), Vector3.ZERO, Vector3(0.4, 1, 1))
+		K.add(v, K.sphere(0.03, 6, 3), K.mat(dark), Vector3(-0.12, 0.34, -0.15 + k * 0.06), Vector3.ZERO, Vector3(0.4, 1, 1))
+	var head := K.pivot(v, Vector3(0, 0.32, -0.22), "Head")
+	var eyes := [K.eye(head, Vector3(-0.09, 0.03, -0.05), 0.04, Color("0f2030"), Vector3(-0.8, 0, -0.6)), K.eye(head, Vector3(0.09, 0.03, -0.05), 0.04, Color("0f2030"), Vector3(0.8, 0, -0.6))]
+	K.add(head, K.torus(0.015, 0.025, 10), K.mat(dark), Vector3(0, -0.04, -0.07), Vector3(80, 0, 0), Vector3(1, 1, 0.5))
+	var wings := []
+	for sx in [-1, 1]:
+		var wp := K.pivot(v, Vector3(0.14 * sx, 0.32, -0.05), "Fin", Vector3(0, 0, -70 * sx))
+		K.add(wp, K.petal(0.34, 0.24, 0.1, 0.012), K.glass(fin, 0.45, scale_c))
+		wings.append(wp)
+	K.add(v, K.petal(0.14, 0.1, 0.05, 0.01), K.glass(fin, 0.5), Vector3(0, 0.48, 0.05), Vector3(-20, 0, 0))
+	var tail := K.pivot(v, Vector3(0, 0.3, 0.26), "Tail")
+	for sx in [-1, 1]:
+		K.add(tail, K.petal(0.28, 0.18, 0.12, 0.012), K.glass(fin, 0.5, scale_c), Vector3.ZERO, Vector3(90, 0, 35 * sx))
+	var mist := FX.motes(fin, 10, Vector3(0.1, 0.1, 0.3), 0.03)
+	mist.position = Vector3(0, 0.3, 0.45)
+	v.add_child(mist)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("wings", wings); r.reg("tail", tail)
+	r.reg("acc_head", K.pivot(v, Vector3(0, 0.5, -0.1))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.3, -0.25)))
+	return r
+
+# ===================================================================== THORNMANE (Bloomtail alternate, Large)
+static func _thornmane(_variant: String) -> CreatureRig:
+	var r := _rig("quad")
+	r.gait_speed = 0.7
+	r.bob_height = 0.05
+	var v := r.visual
+	var fur := Color("8a5a4a"); var bark := Color("4a3426"); var rose := Color("b8456a"); var leaf := Color("5fa857")
+	K.add(v, K.sphere(1.0, 18, 9), K.mat(fur), Vector3(0, 1.3, 0.1), Vector3.ZERO, Vector3(0.7, 0.65, 1.2))
+	for sx in [-1, 1]:
+		K.add(v, K.sphere(0.45, 7, 4), K.flat(bark), Vector3(0.55 * sx, 1.55, -0.55), Vector3(0, 0, -30 * sx), Vector3(1.0, 0.6, 1.1))
+		K.add(v, K.sphere(0.35, 7, 4), K.flat(bark), Vector3(0.5 * sx, 1.5, 0.55), Vector3(0, 0, -25 * sx), Vector3(1.0, 0.6, 1.0))
+	var head := K.pivot(v, Vector3(0, 1.75, -1.2), "Head")
+	K.add(head, K.sphere(0.32, 16, 8), K.mat(fur), Vector3.ZERO, Vector3.ZERO, Vector3(0.9, 0.9, 1.15))
+	K.add(head, K.sphere(0.16, 12, 6), K.mat(fur.lightened(0.2)), Vector3(0, -0.1, -0.3), Vector3.ZERO, Vector3(1.1, 0.8, 1.0))
+	K.add(head, K.sphere(0.05, 8, 4), K.mat(Color("2a1a14")), Vector3(0, -0.06, -0.45))
+	var eyes := [K.eye(head, Vector3(-0.15, 0.07, -0.24), 0.05, Color("1a2a10"), Vector3(-0.5, 0, -1), Color("9adf6a")), K.eye(head, Vector3(0.15, 0.07, -0.24), 0.05, Color("1a2a10"), Vector3(0.5, 0, -1), Color("9adf6a"))]
+	var mane := K.pivot(head, Vector3(0, 0.1, 0.2), "Mane")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	for i in 22:
+		var a := rng.randf_range(-1.6, 1.6)
+		var e := rng.randf_range(-0.2, 1.1)
+		var p := Vector3(sin(a) * 0.38, e * 0.35, cos(a) * 0.2 + 0.1)
+		if i % 3 == 0:
+			K.add(mane, K.sphere(0.07, 8, 4), K.mat(rose, 0.6), p, Vector3.ZERO, Vector3(1, 0.7, 1))
+		elif i % 3 == 1:
+			K.add(mane, K.cyl(0.0, 0.03, 0.16, 4), K.mat(bark.lightened(0.2)), p, Vector3(rng.randf_range(-60, 60), 0, rng.randf_range(-60, 60)))
+		else:
+			K.add(mane, K.petal(0.16, 0.08, 0.05), K.mat(leaf), p, Vector3(rng.randf_range(-80, 0), rng.randf() * 360, 0))
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.25 * sx, 0.22, 0.02), "Ear", Vector3(0, 0, -30 * sx))
+		K.add(ep, K.petal(0.22, 0.12, 0.08, 0.02), K.mat(fur))
+		ears.append(ep)
+	var neck := MeshInstance3D.new()
+	neck.mesh = K.tube(K.bezier(Vector3(0, 1.4, -0.65), Vector3(0, 1.65, -0.95), Vector3(0, 1.75, -1.15), 6), K.taper(6, 0.32, 0.26), 10)
+	neck.material_override = K.mat(fur)
+	v.add_child(neck)
+	var legs := []
+	for p in [Vector3(-0.38, 1.05, -0.65), Vector3(0.38, 1.05, -0.65), Vector3(-0.38, 1.05, 0.75), Vector3(0.38, 1.05, 0.75)]:
+		var lp := K.pivot(v, p)
+		K.add(lp, K.cyl(0.14, 0.17, 1.0, 8), K.mat(fur.darkened(0.1)), Vector3(0, -0.5, 0))
+		K.add(lp, K.cyl(0.18, 0.2, 0.14, 8), K.flat(bark), Vector3(0, -1.0, 0))
+		legs.append(lp)
+	var tail := K.pivot(v, Vector3(0, 1.4, 1.2), "Tail", Vector3(60, 0, 0))
+	for a in [-35, 0, 35]:
+		var tp := K.pivot(tail, Vector3.ZERO, "", Vector3(0, 0, a))
+		var th := MeshInstance3D.new()
+		th.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0, 0.5, 0.1), Vector3(0, 0.8, 0.4), 6), K.taper(6, 0.07, 0.01), 5)
+		th.material_override = K.mat(bark.lightened(0.15))
+		tp.add_child(th)
+		K.add(tp, K.sphere(0.06, 6, 3), K.mat(rose), Vector3(0, 0.45, 0.12))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", [mane])
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.32, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 1.5, -0.8)))
+	r.reg("saddle", K.pivot(v, Vector3(0, 1.95, 0.0)))
 	return r
 
 # ===================================================================== fallback

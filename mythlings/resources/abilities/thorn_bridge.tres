@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thorn_bridge"
+display_name = "Thorn Bridge"
+slot = "secondary"
+category = "environmental"
+description = "Weaves a bridge of thorny vines 12 m ahead for 20 seconds."
+effect = "root_bridge"
+params = {
+"length": 12.0,
+"duration": 20.0
+}
+cooldown = 30
+unlock_friendship = 2
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.722, 0.271, 0.416, 1)

@@ -49,4 +49,14 @@ evolutions = Array[Dictionary]([{
 "visited": ["windmill_hills"]
 },
 "text": "A Sunfox that has kindled the village lanterns grows tall and swift, carrying a halo of morning light."
+}, {
+"to": "lanternwhisk",
+"path": "alternate",
+"requirements": {
+"friendship": 3,
+"ability_uses": {
+"dark_lantern": 6
+}
+},
+"text": "A Sunfox that has lit the lanterns of two villages becomes a lantern-bearer."
 }])

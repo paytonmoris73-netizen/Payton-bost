@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "lantern_glow"
+display_name = "Lantern Glow"
+slot = "passive"
+category = "support"
+description = "Lanternwhisk's tail-lantern lights the ground around you at night."
+effect = "passive_glow"
+params = {
+
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.824, 0.478, 1)

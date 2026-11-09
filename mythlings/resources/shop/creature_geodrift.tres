@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_geodrift"
+display_name = "Geodrift"
+category = "creature"
+description = "A floating geode, split open to show a glittering amethyst heart. A ring of rune pebbles orbits its middle, and it hums softly."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "rare"
+preview_kind = "creature"
+preview_id = "geodrift"
+earn_path = "Free — earned by evolution."
+tags = PackedStringArray("evolved")

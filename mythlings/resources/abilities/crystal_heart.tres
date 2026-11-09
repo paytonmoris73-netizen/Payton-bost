@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "crystal_heart"
+display_name = "Crystal Heart"
+slot = "passive"
+category = "support"
+description = "+1 crystal and +1 emberstone from every deposit while Geodrift is with you."
+effect = "passive_yield"
+params = {
+"items": ["crystal", "emberstone"],
+"bonus": 1
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.769, 0.604, 0.941, 1)

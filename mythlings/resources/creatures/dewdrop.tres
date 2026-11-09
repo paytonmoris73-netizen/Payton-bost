@@ -49,4 +49,15 @@ evolutions = Array[Dictionary]([{
 "visited": ["sunstone_falls"]
 },
 "text": "Rising with the waterfall mist, Dewdrop gathers into a cloud of its own."
+}, {
+"to": "drizzlefin",
+"path": "alternate",
+"requirements": {
+"friendship": 3,
+"stats": {
+"rain_with_dewdrop": 1
+},
+"visited": ["cinder_lake"]
+},
+"text": "A Dewdrop that dances in the rain and swims in Cinder Lake grows fins and learns to fly."
 }])

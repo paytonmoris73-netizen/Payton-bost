@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "geodrift"
+display_name = "Geodrift"
+region = "meadow"
+habitat = "Glimmer Grotto"
+elements = PackedStringArray("earth", "celestial")
+rarity = "rare"
+size_class = "small"
+personality = "mysterious"
+description = "A floating geode, split open to show a glittering amethyst heart. A ring of rune pebbles orbits its middle, and it hums softly."
+personality_text = "Mysterious. Geodrift drifts through caves listening to the stone, and rarely makes a sound unless it's found something."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.353, 0.302, 0.42, 1, 0.769, 0.604, 0.941, 1, 0.561, 0.592, 0.612, 1)
+model_id = "geodrift"
+locomotion = "float"
+move_speed = 1.6
+height = 0.9
+sound_pitch = 1.4
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Glimmer Grotto.", "Mysterious. Geodrift drifts through caves listening to the stone, and rarely makes a sound unless it's found something.", "Ability: unknown.")
+discovery_hint = "Alternate evolution of Pebblit."
+rideable = false
+model_ready = true
+family = "pebblit"
+stage = 2
+evolves_from = "pebblit"
+acquisition = PackedStringArray("evolve")
+lore = "Miners say a humming geode means there's crystal within a hundred paces."
+originality_notes = "Floating split geode with orbiting pebbles; check against floating rock creatures."
+abilities = PackedStringArray("crystal_heart", "geode_pulse", "facet_sight", "prism_bloom")

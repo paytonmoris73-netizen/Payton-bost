@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "rainmaker"
+display_name = "Rainmaker"
+slot = "signature"
+category = "signature"
+description = "Drizzlefin calls the clouds: it starts to rain (where rain is possible) and spots within 20 m regrow."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "weather",
+"params": {
+"state": "rain"
+}
+}, {
+"effect": "regrow",
+"params": {
+"radius": 20.0
+}
+}]
+}
+cooldown = 180
+unlock_friendship = 4
+requires_evolved = false
+vfx = "water_ring"
+color = Color(0.498, 0.827, 0.961, 1)

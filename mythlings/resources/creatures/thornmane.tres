@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thornmane"
+display_name = "Thornmane"
+region = "meadow"
+habitat = "Ancient Oak Sanctuary"
+elements = PackedStringArray("nature", "earth")
+rarity = "epic"
+size_class = "large"
+personality = "protective"
+description = "A sturdy guardian with a mane of climbing roses and thorns, plated with bark armour on its shoulders. Its leaf tail has hardened into a curved thorn-fan."
+personality_text = "Protective and steady. Thornmane walks at the edge of the group, watching the trees."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.541, 0.353, 0.29, 1, 0.722, 0.271, 0.416, 1, 0.373, 0.659, 0.341, 1)
+model_id = "thornmane"
+locomotion = "quad"
+move_speed = 2.8
+height = 2.4
+sound_pitch = 0.75
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Ancient Oak Sanctuary.", "Protective and steady. Thornmane walks at the edge of the group, watching the trees.", "Ability: unknown.")
+discovery_hint = "Alternate evolution of Bloomtail."
+rideable = true
+model_ready = true
+family = "bloomtail"
+stage = 2
+evolves_from = "bloomtail"
+acquisition = PackedStringArray("evolve")
+lore = "Thornmanes guard the places other Mythlings sleep. Nothing gets past the roses."
+originality_notes = "Rose-and-thorn mane with bark plates; avoid lion-mane resemblance; review."
+abilities = PackedStringArray("bramble_hide", "rose_call", "thorn_bridge", "briar_bloom")

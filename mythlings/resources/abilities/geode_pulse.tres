@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "geode_pulse"
+display_name = "Geode Pulse"
+slot = "primary"
+category = "environmental"
+description = "A resonant pulse cracks weakened boulders and heated seals within 18 m."
+effect = "reveal"
+params = {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 18.0
+}
+cooldown = 4
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.769, 0.604, 0.941, 1)

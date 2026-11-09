@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "facet_sight"
+display_name = "Facet Sight"
+slot = "secondary"
+category = "exploration"
+description = "Highlights crystal and emberstone deposits within 80 m."
+effect = "highlight"
+params = {
+"items": ["crystal", "emberstone"],
+"radius": 80.0,
+"duration": 30.0
+}
+cooldown = 30
+unlock_friendship = 2
+requires_evolved = false
+vfx = "star_field"
+color = Color(0.769, 0.604, 0.941, 1)

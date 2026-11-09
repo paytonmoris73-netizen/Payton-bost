@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "drizzlefin"
+display_name = "Drizzlefin"
+region = "meadow"
+habitat = "Sunstone Falls"
+elements = PackedStringArray("water", "storm")
+rarity = "rare"
+size_class = "small"
+personality = "energetic"
+description = "A small fish that swims through the air on clear fins, trailing a misty wake. Raindrops bead on its scales even on sunny days."
+personality_text = "Energetic. Drizzlefin loops around its friends and dives into every puddle."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "dew_nectar"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.373, 0.718, 0.878, 1, 0.875, 0.957, 1.0, 1, 0.184, 0.435, 0.604, 1)
+model_id = "drizzlefin"
+locomotion = "fly"
+move_speed = 3.4
+height = 0.8
+sound_pitch = 1.5
+friendship_notes = PackedStringArray("Prefers dew nectar as a treat.", "Often found near Sunstone Falls.", "Energetic. Drizzlefin loops around its friends and dives into every puddle.", "Ability: unknown.")
+discovery_hint = "Alternate evolution of Dewdrop."
+rideable = false
+model_ready = true
+family = "dewdrop"
+stage = 2
+evolves_from = "dewdrop"
+acquisition = PackedStringArray("evolve")
+lore = "Sailors on the Tideglass Coast swear Drizzlefins appear just before a storm breaks."
+originality_notes = "Air-swimming fish; check against flying fish creatures."
+abilities = PackedStringArray("slick_scales", "ripple_call_fin", "slipstream", "rainmaker")

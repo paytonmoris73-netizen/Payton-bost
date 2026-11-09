@@ -51,4 +51,17 @@ evolutions = Array[Dictionary]([{
 }
 },
 "text": "In a sanctuary full of flowers, Bloomtail's flower spreads until its whole back is a garden."
+}, {
+"to": "thornmane",
+"path": "alternate",
+"requirements": {
+"friendship": 4,
+"level": 5,
+"items": {
+"petals": 6,
+"emberstone": 3
+},
+"visited": ["dragonstone_ridge"]
+},
+"text": "Tempered by the warmth of Emberfall, a Bloomtail grows bark armour and a mane of thorned roses."
 }])

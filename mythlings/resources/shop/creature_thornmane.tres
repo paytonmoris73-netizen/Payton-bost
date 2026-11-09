@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_thornmane"
+display_name = "Thornmane"
+category = "large"
+description = "A sturdy guardian with a mane of climbing roses and thorns, plated with bark armour on its shoulders. Its leaf tail has hardened into a curved thorn-fan."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "epic"
+preview_kind = "creature"
+preview_id = "thornmane"
+earn_path = "Free — earned by evolution."
+tags = PackedStringArray("evolved")

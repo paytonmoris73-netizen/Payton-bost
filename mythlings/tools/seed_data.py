@@ -317,7 +317,7 @@ for cid in ["mosswarden", "glimmerhare"]:
     row = [r for r in NEW_CREATURES if r[0] == cid][0]
     P("creature_" + cid, row[1], "large" if cid == "mosswarden" else "creature", row[7], "none", 0, rarity=row[5], preview_kind="creature", preview_id=cid,
       earn_path="Free — earned by evolving Mossbun.", tags=["evolved"])
-for cid in ["shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere"]:
+for cid in ["shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane"]:
     row = [r for r in NEW_CREATURES if r[0] == cid][0]
     P("creature_" + cid, row[1], "large" if EXTRA[cid]["size_class"] == "large" else "creature", row[7], "none", 0, rarity=row[5], preview_kind="creature", preview_id=cid,
       earn_path="Free — earned by evolution.", tags=["evolved"])

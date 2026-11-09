@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "lanternwhisk"
+display_name = "Lanternwhisk"
+region = "meadow"
+habitat = "Meadow Village"
+elements = PackedStringArray("fire", "nature")
+rarity = "rare"
+size_class = "small"
+personality = "gentle"
+description = "A small upright creature that carries its own tail curled over its head, ending in a glass lantern with a warm flame inside. Its paws are dusted white like flour."
+personality_text = "Gentle and helpful. Lanternwhisk lights the way for lost travellers and likes to sit beside village fires."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.914, 0.635, 0.231, 1, 1.0, 0.945, 0.761, 1, 1.0, 0.824, 0.478, 1)
+model_id = "lanternwhisk"
+locomotion = "hop"
+move_speed = 2.4
+height = 0.85
+sound_pitch = 1.2
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Meadow Village.", "Gentle and helpful. Lanternwhisk lights the way for lost travellers and likes to sit beside village fires.", "Ability: unknown.")
+discovery_hint = "Alternate evolution of Sunfox."
+rideable = false
+model_ready = true
+family = "sunfox"
+stage = 2
+evolves_from = "sunfox"
+acquisition = PackedStringArray("evolve")
+lore = "In Ember Village, children carry paper lanterns at midwinter in honour of the Lanternwhisks."
+originality_notes = "Upright, tail-as-lantern; deliberately not a multi-tailed fox. Review against lantern-tail creatures."
+abilities = PackedStringArray("lantern_glow", "wick", "lantern_lure", "festival_of_lights")

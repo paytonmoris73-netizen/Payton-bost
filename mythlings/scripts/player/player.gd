@@ -125,7 +125,7 @@ func _physics_process(delta: float) -> void:
 		if flying:
 			speed = (20.0 if is_running else 13.0) * inp.length()
 	elif swimming:
-		speed = SWIM * inp.length() * (swim_boost_mult if boosted else 1.0)
+		speed = SWIM * inp.length() * (swim_boost_mult if boosted else 1.0) * Abilities.swim_mult()
 	elif wading and not boosted:
 		speed *= 0.62
 	swim_boost_time = maxf(0.0, swim_boost_time - delta)

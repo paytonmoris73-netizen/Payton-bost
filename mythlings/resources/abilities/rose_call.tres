@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "rose_call"
+display_name = "Rose Call"
+slot = "primary"
+category = "environmental"
+description = "Revives wilted flowers within 20 m."
+effect = "reveal"
+params = {
+"kinds": ["wilted_flower"],
+"radius": 20.0
+}
+cooldown = 3
+unlock_friendship = 0
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.722, 0.271, 0.416, 1)

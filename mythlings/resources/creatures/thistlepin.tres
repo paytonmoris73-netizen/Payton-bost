@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thistlepin"
+display_name = "Thistlepin"
+region = "meadow"
+habitat = "Butterfly Clearing"
+elements = PackedStringArray("nature")
+rarity = "uncommon"
+size_class = "small"
+personality = "protective"
+description = "A round, prickly burr of purple thistle-spines with a single broad leaf worn like a cape. Soft and fluffy on top, sharp everywhere else."
+personality_text = "Protective. Thistlepin plants itself between its friends and anything it doesn't trust."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 12,
+"spirit": 11,
+"agility": 11
+}
+palette = PackedColorArray(0.416, 0.227, 0.541, 1, 0.31, 0.639, 0.353, 1, 0.91, 0.847, 0.941, 1)
+model_id = "thistlepin"
+locomotion = "hop"
+move_speed = 2.4
+height = 0.75
+sound_pitch = 1.2
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Butterfly Clearing.", "Protective. Thistlepin plants itself between its friends and anything it doesn't trust.", "Ability: unknown.")
+discovery_hint = "Alternate evolution of Cloverling."
+rideable = false
+model_ready = true
+family = "cloverling"
+stage = 2
+evolves_from = "cloverling"
+acquisition = PackedStringArray("evolve")
+lore = "Farmers grumble about Thistlepins in their fields, then leave a bowl of honey out for them anyway."
+originality_notes = "Spiky burr ball with a leaf cape; check against spiky-ball creatures."
+abilities = PackedStringArray("prickle_guard", "seed_burst", "burr_harvest", "thistle_storm")

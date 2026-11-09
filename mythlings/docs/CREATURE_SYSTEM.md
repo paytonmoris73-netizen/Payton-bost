@@ -34,6 +34,9 @@ The HUD shows primary/secondary/signature buttons, pulses gold when an ability w
 - **Natural (one per remaining meadow Mythling):** Cloverling → **Shamrelle**, Pebblit → **Cairnback**, Sunfox → **Dawnstrider**,
   Dewdrop → **Cloudwell**, Bloomtail → **Blossomere**. Each has its own requirements (friendship, level, materials,
   ability milestones, places visited or sanctuary stage) and a new four-ability kit.
+- **Alternate (one per remaining meadow Mythling):** Cloverling → **Thistlepin** (be together when it rains), Pebblit → **Geodrift**
+  (crystals + caves in both regions), Sunfox → **Lanternwhisk** (light 6 lanterns), Dewdrop → **Drizzlefin** (rain + Cinder Lake),
+  Bloomtail → **Thornmane** (Emberfall materials + Dragonstone Ridge). Each Mythling can take only one of its paths.
 - **Ascended:** Mosswarden → **Verdantus** (friendship 5, level 6, materials, shrine restored; unavailable if you already bonded with Verdantus)
 
 Requirements are listed in full with progress. Nothing is random or purchasable. The evolution sequence

@@ -36,4 +36,9 @@ leaf-crest along the back, no tufted lion tail.
 | Cindercub | Charcoal bear cub with a glowing ember heart in cracked chest | **Redesigned away from a fire kitten. Fire-bear creatures exist; review.** |
 | Magmole | Mole in volcanic-glass armour with glowing claws and obsidian eye rims | Needs review |
 | Ashwing | Round ash bird, ember wing tips, smoke-ribbon tail | Needs review |
+| Thistlepin | Spiky purple burr ball with a leaf cape | **Spiky-ball creatures are common; review.** |
+| Geodrift | Floating split geode with an amethyst heart and orbiting rune pebbles | Needs review |
+| Lanternwhisk | Upright creature carrying its own tail as a lantern | **Lantern-tail designs exist; review.** |
+| Drizzlefin | Small fish that swims through the air on clear fins | Needs review |
+| Thornmane | Rose-and-thorn mane, bark shoulder armour, thorn-fan tail | Needs review |
 | Names | All invented for this project | **Trademark search needed for every creature name and for "Mythlings" itself.** |

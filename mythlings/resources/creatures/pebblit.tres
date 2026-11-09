@@ -50,4 +50,15 @@ evolutions = Array[Dictionary]([{
 "visited": ["hidden_cave"]
 },
 "text": "Fed on river stone and cave crystal, Pebblit's plates stack into a living cairn."
+}, {
+"to": "geodrift",
+"path": "alternate",
+"requirements": {
+"friendship": 3,
+"items": {
+"crystal": 4
+},
+"visited": ["hidden_cave", "ashen_caverns"]
+},
+"text": "A Pebblit that sleeps among cave crystals in two lands cracks open into a glittering geode."
 }])

@@ -257,3 +257,71 @@ EXTRA.setdefault("ashwing", {}).update({"abilities": PSA(["featherfall", "updraf
     "description": "A small round flyer whose ash-grey feathers fade to ember orange at the tips. Two long smoke-ribbon tail feathers trail behind it.",
     "habitat": "Dragonstone Ridge", "palette": PCA(["6b6461", "f2a14a", "2b2624"]), "locomotion": "fly",
     "lore": "Ashwings nest in the warm cracks of Dragonstone Ridge and can ride a rising ember for an hour without a flap."})
+
+# ================= Alternate evolutions (second path for each meadow Mythling)
+A("prickle_guard", "Prickle Guard", "passive", "support", "Shy Mythlings feel safe and don't flee while Thistlepin is with you.", "passive_calm", {}, 0, 0, "leaf_spiral", "9a62d6")
+A("seed_burst", "Seed Burst", "primary", "exploration", "Scatters seeds that reveal lucky clovers and hidden plants within 18 m.", "reveal", {"kinds": ["lucky_clover", "hidden_plant"], "radius": 18.0}, 4, 0, "leaf_spiral", "9a62d6")
+A("burr_harvest", "Burr Harvest", "secondary", "support", "Burrs snag up to three nearby flower or berry patches.", "harvest", {"items": ["petals", "sunberry"], "radius": 12.0, "max": 3}, 45, 2, "leaf_spiral", "9a62d6")
+A("thistle_storm", "Thistle Storm", "signature", "signature", "A whirl of thistledown: highlights resources within 40 m and regrows spots within 15 m.", "combo", combo(("highlight", {"radius": 40.0, "duration": 30.0}), ("regrow", {"radius": 15.0})), 90, 4, "leaf_spiral", "9a62d6")
+
+A("crystal_heart", "Crystal Heart", "passive", "support", "+1 crystal and +1 emberstone from every deposit while Geodrift is with you.", "passive_yield", {"items": ["crystal", "emberstone"], "bonus": 1}, 0, 0, "rune_pulse", "c49af0")
+A("geode_pulse", "Geode Pulse", "primary", "environmental", "A resonant pulse cracks weakened boulders and heated seals within 18 m.", "reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 18.0}, 4, 0, "rune_pulse", "c49af0")
+A("facet_sight", "Facet Sight", "secondary", "exploration", "Highlights crystal and emberstone deposits within 80 m.", "highlight", {"items": ["crystal", "emberstone"], "radius": 80.0, "duration": 30.0}, 30, 2, "star_field", "c49af0")
+A("prism_bloom", "Prism Bloom", "signature", "signature", "Geodrift opens wide and splits the light: cracks boulders within 40 m and highlights all resources within 60 m.", "combo", combo(("reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 40.0}), ("highlight", {"radius": 60.0, "duration": 30.0})), 90, 4, "star_field", "c49af0")
+
+A("lantern_glow", "Lantern Glow", "passive", "support", "Lanternwhisk's tail-lantern lights the ground around you at night.", "passive_glow", {}, 0, 0, "ember_crown", "ffd27a")
+A("wick", "Wick", "primary", "environmental", "Lights lanterns, braziers and volcanic mechanisms within 20 m.", "reveal", {"kinds": ["dark_lantern", "volcanic_structure"], "radius": 20.0}, 3, 0, "ember_crown", "ffd27a")
+A("lantern_lure", "Lantern Lure", "secondary", "support", "Its lantern draws your eye to every resource within 35 m.", "highlight", {"radius": 35.0, "duration": 25.0}, 25, 2, "ember_crown", "ffd27a")
+A("festival_of_lights", "Festival of Lights", "signature", "signature", "Every lantern, brazier and mechanism within 50 m lights at once, and resources nearby glow.", "combo", combo(("reveal", {"kinds": ["dark_lantern", "volcanic_structure"], "radius": 50.0}), ("highlight", {"radius": 50.0, "duration": 30.0})), 90, 4, "ember_crown", "ffd27a")
+
+A("slick_scales", "Slick Scales", "passive", "movement", "You swim 60% faster while Drizzlefin is with you.", "passive_swim", {"mult": 1.6}, 0, 0, "water_ring", "7fd3f5")
+A("ripple_call_fin", "Ripple Call", "primary", "environmental", "Raises submerged stepping stones within 20 m.", "reveal", {"kinds": ["ripple_stone"], "radius": 20.0}, 3, 0, "water_ring", "7fd3f5")
+A("slipstream", "Slipstream", "secondary", "movement", "Swim three times as fast and wade freely for 25 seconds.", "swim_boost", {"duration": 25.0, "mult": 3.0}, 30, 2, "water_ring", "7fd3f5")
+A("rainmaker", "Rainmaker", "signature", "signature", "Drizzlefin calls the clouds: it starts to rain (where rain is possible) and spots within 20 m regrow.", "combo", combo(("weather", {"state": "rain"}), ("regrow", {"radius": 20.0})), 180, 4, "water_ring", "7fd3f5")
+
+A("bramble_hide", "Bramble Hide", "passive", "support", "+1 wood from log piles while Thornmane is with you.", "passive_yield", {"items": ["wood"], "bonus": 1}, 0, 0, "root_wave", "b8456a")
+A("rose_call", "Rose Call", "primary", "environmental", "Revives wilted flowers within 20 m.", "reveal", {"kinds": ["wilted_flower"], "radius": 20.0}, 3, 0, "leaf_spiral", "b8456a")
+A("thorn_bridge", "Thorn Bridge", "secondary", "environmental", "Weaves a bridge of thorny vines 12 m ahead for 20 seconds.", "root_bridge", {"length": 12.0, "duration": 20.0}, 30, 2, "root_wave", "b8456a")
+A("briar_bloom", "Briar Bloom", "signature", "signature", "Thornmane's mane bursts into roses: revives flowers within 40 m and regrows spots within 25 m.", "combo", combo(("reveal", {"kinds": ["wilted_flower"], "radius": 40.0}), ("regrow", {"radius": 25.0})), 90, 4, "root_wave", "b8456a")
+
+ALT = [
+ ("cloverling", "thistlepin", "Thistlepin", "small", ["nature"], "uncommon", "protective",
+  "A round, prickly burr of purple thistle-spines with a single broad leaf worn like a cape. Soft and fluffy on top, sharp everywhere else.",
+  "Protective. Thistlepin plants itself between its friends and anything it doesn't trust.", "honey_drop", ["6a3a8a", "4fa35a", "e8d8f0"], "hop", 2.4, 0.75, 1.2, False,
+  {"friendship": 3, "stats": {"rain_with_cloverling": 1}, "items": {"petals": 4}}, "A Cloverling that stays out in the rain grows tough, prickly and protective.",
+  "Farmers grumble about Thistlepins in their fields, then leave a bowl of honey out for them anyway.", "Spiky burr ball with a leaf cape; check against spiky-ball creatures."),
+ ("pebblit", "geodrift", "Geodrift", "small", ["earth", "celestial"], "rare", "mysterious",
+  "A floating geode, split open to show a glittering amethyst heart. A ring of rune pebbles orbits its middle, and it hums softly.",
+  "Mysterious. Geodrift drifts through caves listening to the stone, and rarely makes a sound unless it's found something.", "honey_drop", ["5a4d6b", "c49af0", "8f979c"], "float", 1.6, 0.9, 1.4, False,
+  {"friendship": 3, "items": {"crystal": 4}, "visited": ["hidden_cave", "ashen_caverns"]}, "A Pebblit that sleeps among cave crystals in two lands cracks open into a glittering geode.",
+  "Miners say a humming geode means there's crystal within a hundred paces.", "Floating split geode with orbiting pebbles; check against floating rock creatures."),
+ ("sunfox", "lanternwhisk", "Lanternwhisk", "small", ["fire", "nature"], "rare", "gentle",
+  "A small upright creature that carries its own tail curled over its head, ending in a glass lantern with a warm flame inside. Its paws are dusted white like flour.",
+  "Gentle and helpful. Lanternwhisk lights the way for lost travellers and likes to sit beside village fires.", "sunberry", ["e9a23b", "fff1c2", "ffd27a"], "hop", 2.4, 0.85, 1.2, False,
+  {"friendship": 3, "ability_uses": {"dark_lantern": 6}}, "A Sunfox that has lit the lanterns of two villages becomes a lantern-bearer.",
+  "In Ember Village, children carry paper lanterns at midwinter in honour of the Lanternwhisks.", "Upright, tail-as-lantern; deliberately not a multi-tailed fox. Review against lantern-tail creatures."),
+ ("dewdrop", "drizzlefin", "Drizzlefin", "small", ["water", "storm"], "rare", "energetic",
+  "A small fish that swims through the air on clear fins, trailing a misty wake. Raindrops bead on its scales even on sunny days.",
+  "Energetic. Drizzlefin loops around its friends and dives into every puddle.", "dew_nectar", ["5fb7e0", "dff4ff", "2f6f9a"], "fly", 3.4, 0.8, 1.5, False,
+  {"friendship": 3, "stats": {"rain_with_dewdrop": 1}, "visited": ["cinder_lake"]}, "A Dewdrop that dances in the rain and swims in Cinder Lake grows fins and learns to fly.",
+  "Sailors on the Tideglass Coast swear Drizzlefins appear just before a storm breaks.", "Air-swimming fish; check against flying fish creatures."),
+ ("bloomtail", "thornmane", "Thornmane", "large", ["nature", "earth"], "epic", "protective",
+  "A sturdy guardian with a mane of climbing roses and thorns, plated with bark armour on its shoulders. Its leaf tail has hardened into a curved thorn-fan.",
+  "Protective and steady. Thornmane walks at the edge of the group, watching the trees.", "honey_drop", ["8a5a4a", "b8456a", "5fa857"], "quad", 2.8, 2.4, 0.75, True,
+  {"friendship": 4, "level": 5, "items": {"petals": 6, "emberstone": 3}, "visited": ["dragonstone_ridge"]}, "Tempered by the warmth of Emberfall, a Bloomtail grows bark armour and a mane of thorned roses.",
+  "Thornmanes guard the places other Mythlings sleep. Nothing gets past the roses.", "Rose-and-thorn mane with bark plates; avoid lion-mane resemblance; review."),
+]
+for (base, nid, name, size, els, rar, pers, desc, ptext, treat, pal, loco, spd, h, pitch, ride, req, text, lore, notes) in ALT:
+    hab = {"cloverling": "Butterfly Clearing", "pebblit": "Glimmer Grotto", "sunfox": "Meadow Village", "dewdrop": "Sunstone Falls", "bloomtail": "Ancient Oak Sanctuary"}[base]
+    NEW_CREATURES.append((nid, name, "meadow", hab, els, rar, pers, desc, ptext, "", "", "", treat, pal, loco, spd, h, pitch, "Alternate evolution of %s." % base.capitalize(), True))
+    EXTRA.setdefault(nid, {}).update({"size_class": size, "rideable": ride, "family": base, "stage": 2, "evolves_from": base, "acquisition": PSA(["evolve"]), "lore": lore, "originality_notes": notes})
+    prev = list(EXTRA[base]["evolutions"].items)
+    EXTRA[base]["evolutions"] = TypedDictArray(prev + [evo(nid, "alternate", req, text)])
+for cid, kit in {
+    "thistlepin": ["prickle_guard", "seed_burst", "burr_harvest", "thistle_storm"],
+    "geodrift": ["crystal_heart", "geode_pulse", "facet_sight", "prism_bloom"],
+    "lanternwhisk": ["lantern_glow", "wick", "lantern_lure", "festival_of_lights"],
+    "drizzlefin": ["slick_scales", "ripple_call_fin", "slipstream", "rainmaker"],
+    "thornmane": ["bramble_hide", "rose_call", "thorn_bridge", "briar_bloom"],
+}.items():
+    EXTRA[cid]["abilities"] = PSA(kit)

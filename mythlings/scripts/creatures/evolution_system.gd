@@ -36,6 +36,15 @@ func requirements(cid: String, evo: Dictionary) -> Array:
 			var have := int(GameState.data.stats.get("ability_" + kind, 0))
 			var label := {"hidden_plant": "Reveal hidden plants with abilities", "lucky_clover": "Find lucky clovers", "dark_lantern": "Light old lanterns", "cracked_rock": "Crack weakened boulders", "ripple_stone": "Raise stepping stones", "wilted_flower": "Revive wilted flowers"}.get(kind, "Use abilities on " + kind.replace("_", " "))
 			out.append({"label": "%s (%d times)" % [label, int(req.ability_uses[kind])], "met": have >= int(req.ability_uses[kind]), "progress": "%d / %d" % [mini(have, int(req.ability_uses[kind])), int(req.ability_uses[kind])]})
+	if req.has("stats"):
+		for k in req.stats:
+			var have := int(GameState.data.stats.get(k, 0))
+			var need := int(req.stats[k])
+			var label: String = k
+			if k.begins_with("rain_with_"):
+				var cd: CreatureData = DB.creature(k.trim_prefix("rain_with_"))
+				label = "Be with %s when it starts to rain" % (cd.display_name if cd else k)
+			out.append({"label": label + (" (%d times)" % need if need > 1 else ""), "met": have >= need, "progress": "%d / %d" % [mini(have, need), need]})
 	if req.has("visited"):
 		var n := 0
 		var names: Array = []

@@ -51,4 +51,17 @@ evolutions = Array[Dictionary]([{
 }
 },
 "text": "A Cloverling that has found its share of luck grows tall and starts to dance."
+}, {
+"to": "thistlepin",
+"path": "alternate",
+"requirements": {
+"friendship": 3,
+"stats": {
+"rain_with_cloverling": 1
+},
+"items": {
+"petals": 4
+}
+},
+"text": "A Cloverling that stays out in the rain grows tough, prickly and protective."
 }])

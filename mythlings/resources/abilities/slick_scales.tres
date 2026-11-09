@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "slick_scales"
+display_name = "Slick Scales"
+slot = "passive"
+category = "movement"
+description = "You swim 60% faster while Drizzlefin is with you."
+effect = "passive_swim"
+params = {
+"mult": 1.6
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "water_ring"
+color = Color(0.498, 0.827, 0.961, 1)

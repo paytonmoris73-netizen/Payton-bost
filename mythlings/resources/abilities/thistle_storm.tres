@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thistle_storm"
+display_name = "Thistle Storm"
+slot = "signature"
+category = "signature"
+description = "A whirl of thistledown: highlights resources within 40 m and regrows spots within 15 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "highlight",
+"params": {
+"radius": 40.0,
+"duration": 30.0
+}
+}, {
+"effect": "regrow",
+"params": {
+"radius": 15.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.604, 0.384, 0.839, 1)

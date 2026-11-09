@@ -87,6 +87,8 @@ func set_state(s: String) -> void:
 		mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 		mat.albedo_color = Color("9a8a80")
 		m.material = mat
+	if s == "rain" and GameState.companion() != "":
+		GameState.add_stat("rain_with_" + GameState.companion())
 	if s == "rain":
 		_audio.play()
 	else:
@@ -94,6 +96,13 @@ func set_state(s: String) -> void:
 	changed.emit(s)
 	if s != "clear":
 		Events.toast.emit(NAMES[s], {"cloudy": "Clouds roll in.", "rain": "Rain! Plants regrow faster, and water Mythlings love it.", "ashfall": "Ash drifts down from the volcano. Fire Mythlings feel at home."}[s], "drop" if s == "rain" else "star")
+
+## Can this region have rain at all?
+func allows(s: String) -> bool:
+	for o in STATES.get(region, []):
+		if o[0] == s:
+			return true
+	return false
 
 func display_name() -> String:
 	return NAMES.get(state, state)

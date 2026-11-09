@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "prism_bloom"
+display_name = "Prism Bloom"
+slot = "signature"
+category = "signature"
+description = "Geodrift opens wide and splits the light: cracks boulders within 40 m and highlights all resources within 60 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 40.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"radius": 60.0,
+"duration": 30.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "star_field"
+color = Color(0.769, 0.604, 0.941, 1)

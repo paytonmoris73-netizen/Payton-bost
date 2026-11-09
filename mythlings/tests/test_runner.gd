@@ -94,7 +94,7 @@ func test_data() -> void:
 			check(DB.creature(e.to) != null, "%s evolves into a real form" % c.id)
 			check(not e.requirements.is_empty(), "%s evolution has visible requirements" % c.id)
 	for a in DB.abilities.values():
-		check(a.effect in ["reveal", "highlight", "harvest", "dash", "glide", "wind_lift", "root_bridge", "swim_boost", "regrow", "flight", "combo", "region_locked", "passive_sense", "passive_yield", "passive_speed", "passive_luck", "passive_calm", "passive_glow", "crust", "passive_glide"], "ability %s has a handled effect (%s)" % [a.id, a.effect])
+		check(a.effect in ["reveal", "highlight", "harvest", "dash", "glide", "wind_lift", "root_bridge", "swim_boost", "regrow", "flight", "combo", "region_locked", "passive_sense", "passive_yield", "passive_speed", "passive_luck", "passive_calm", "passive_glow", "crust", "passive_glide", "weather", "passive_swim"], "ability %s has a handled effect (%s)" % [a.id, a.effect])
 	# No creature is purchase-only.
 	for c in DB.creatures.values():
 		check(c.discovery_hint != "", "%s has a gameplay discovery path" % c.id)
@@ -381,6 +381,14 @@ func test_gameplay() -> void:
 		lvlw.weather._process(1.0)
 		check(rn._respawn < 9.5, "rain speeds up regrowth")
 	lvlw.weather.set_state("clear")
+	GameState.data.companion = "sunfox"
+	var before := int(GameState.data.stats.get("rain_with_sunfox", 0))
+	var any_c: Creature = lvlw.creatures.values()[0]
+	var wr: Dictionary = Abilities._run("weather", {"state": "rain"}, any_c, lvlw.player)
+	check(wr.ok and lvlw.weather.state == "rain", "Rainmaker effect starts rain")
+	check(int(GameState.data.stats.get("rain_with_sunfox", 0)) == before + 1, "rain with a companion is counted for evolution requirements")
+	check(not Abilities._run("weather", {"state": "rain"}, any_c, lvlw.player).ok, "can't start rain twice")
+	lvlw.weather.set_state("clear")
 	for i in 200:
 		lvlw.weather._process(0.1)
 	check(lvlw.weather.dim < 0.1 and not lvlw.weather._precip.emitting, "clear skies return")
@@ -490,6 +498,17 @@ func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
 		check(_mesh_count(rig) != _mesh_count(base_rig), "%s is a different model, not a rescale" % target)
 		rig.free()
 		base_rig.free()
+	section("alternate evolutions")
+	for base in ["cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail"]:
+		var alts: Array = Evolution.options(base).filter(func(e): return e.path == "alternate")
+		check(alts.size() == 1, "%s has an alternate path" % base)
+		var t: String = alts[0].to
+		check(DB.creature(t).model_ready and CreatureModels.has_model(t) and DB.creature(t).abilities.size() == 4, "%s is playable" % t)
+		var rr := CreatureModels.build(t)
+		var nat := CreatureModels.build(Evolution.options(base)[0].to)
+		check(_mesh_count(rr) != _mesh_count(nat), "%s differs from the natural form" % t)
+		rr.free()
+		nat.free()
 	section("premium colossal: Ignaroth")
 	var ign: ShopItemData = DB.product("colossal_ignaroth")
 	GameState.data.currencies.star_gems = 0
@@ -655,6 +674,9 @@ func _satisfy(cid: String, req: Dictionary) -> void:
 		for l in req.visited:
 			if not (l in GameState.data.visited):
 				GameState.data.visited.append(l)
+	if req.has("stats"):
+		for k in req.stats:
+			GameState.data.stats[k] = int(req.stats[k])
 	if req.has("sanctuary"):
 		for st in req.sanctuary:
 			GameState.data.sanctuary[st] = maxi(GameState.sanctuary_stage(st), int(req.sanctuary[st]))
