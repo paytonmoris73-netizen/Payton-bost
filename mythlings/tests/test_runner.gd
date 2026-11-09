@@ -385,9 +385,13 @@ func test_gameplay() -> void:
 	var before := int(GameState.data.stats.get("rain_with_sunfox", 0))
 	var any_c: Creature = lvlw.creatures.values()[0]
 	var wr: Dictionary = Abilities._run("weather", {"state": "rain"}, any_c, lvlw.player)
-	check(wr.ok and lvlw.weather.state == "rain", "Rainmaker effect starts rain")
+	if lvlw.weather.allows("rain"):
+		check(wr.ok and lvlw.weather.state == "rain", "Rainmaker effect starts rain")
+		check(not Abilities._run("weather", {"state": "rain"}, any_c, lvlw.player).ok, "can't start rain twice")
+	else:
+		check(not wr.ok and String(wr.msg).contains("rain"), "Rainmaker explains that this region has no rain (%s)" % lvlw.region_id)
+		lvlw.weather.set_state("rain")
 	check(int(GameState.data.stats.get("rain_with_sunfox", 0)) == before + 1, "rain with a companion is counted for evolution requirements")
-	check(not Abilities._run("weather", {"state": "rain"}, any_c, lvlw.player).ok, "can't start rain twice")
 	lvlw.weather.set_state("clear")
 	for i in 200:
 		lvlw.weather._process(0.1)
