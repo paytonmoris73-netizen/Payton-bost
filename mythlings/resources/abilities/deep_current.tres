@@ -6,15 +6,15 @@
 script = ExtResource("1_s")
 id = "deep_current"
 display_name = "Deep Current"
-slot = "passive"
-category = "exploration"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+slot = "primary"
+category = "movement"
+description = "Climb onto Thalassor's back and ride the water. Works in rivers and lakes; it stops at the shore."
+effect = "flight"
 params = {
 
 }
-cooldown = 10
+cooldown = 2
 unlock_friendship = 0
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "water_ring"
+color = Color(0.373, 0.89, 0.839, 1)

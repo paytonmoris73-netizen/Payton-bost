@@ -6,15 +6,16 @@
 script = ExtResource("1_s")
 id = "tidal_echo"
 display_name = "Tidal Echo"
-slot = "primary"
-category = "environmental"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+slot = "secondary"
+category = "exploration"
+description = "A deep song reveals stepping stones and hidden underwater places within 40 m."
+effect = "reveal"
 params = {
-
+"kinds": ["ripple_stone", "underwater_secret"],
+"radius": 40.0
 }
-cooldown = 10
+cooldown = 12
 unlock_friendship = 0
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "water_ring"
+color = Color(0.373, 0.89, 0.839, 1)

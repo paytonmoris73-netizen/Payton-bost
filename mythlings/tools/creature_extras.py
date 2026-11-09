@@ -325,3 +325,15 @@ for cid, kit in {
     "thornmane": ["bramble_hide", "rose_call", "thorn_bridge", "briar_bloom"],
 }.items():
     EXTRA[cid]["abilities"] = PSA(kit)
+
+# ================= Thalassor: water-riding premium colossal
+A("tidal_grace", "Tidal Grace", "passive", "movement", "You swim twice as fast while Thalassor is with you.", "passive_swim", {"mult": 2.0}, 0, 0, "water_ring", "5fe3d6")
+A("deep_current", "Deep Current", "primary", "movement", "Climb onto Thalassor's back and ride the water. Works in rivers and lakes; it stops at the shore.", "flight", {}, 2, 0, "water_ring", "5fe3d6")
+A("tidal_echo", "Tidal Echo", "secondary", "exploration", "A deep song reveals stepping stones and hidden underwater places within 40 m.", "reveal", {"kinds": ["ripple_stone", "underwater_secret"], "radius": 40.0}, 12, 0, "water_ring", "5fe3d6")
+A("abyssal_surge", "Abyssal Surge", "signature", "signature", "Thalassor breaches in a great wave: grants a powerful swim current and raises stepping stones within 50 m.", "combo", combo(("swim_boost", {"duration": 30.0, "mult": 3.0}), ("reveal", {"kinds": ["ripple_stone"], "radius": 50.0})), 90, 3, "water_ring", "5fe3d6")
+EXTRA["thalassor"].update({"abilities": PSA(["tidal_grace", "deep_current", "tidal_echo", "abyssal_surge"]), "model_ready": True, "rideable": True, "flight": False,
+    "acquisition": PSA(["purchase", "explore"]), "locomotion": "swim",
+    "description": "The Abyssal Titan: an enormous whale-shaped sea guardian with long flowing pectoral fins, a crown of branching coral and glowing turquoise lines that ripple when it sings.",
+    "discovery_hint": "Available in the Grand Market. Also planned as a free encounter in the Tideglass Coast update.",
+    "lore": "Fishers say the tide is only Thalassor breathing. Its song can be heard through the hull of any boat on a still night.",
+    "originality_notes": "Whale-like sea guardian with coral crown and long fins; whale guardians are a common archetype, review silhouette and markings."})

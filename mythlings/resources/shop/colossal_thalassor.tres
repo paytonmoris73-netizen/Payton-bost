@@ -5,20 +5,18 @@
 [resource]
 script = ExtResource("1_s")
 id = "colossal_thalassor"
-display_name = "Thalassor"
+display_name = "Thalassor, the Abyssal Titan"
 category = "colossal"
-description = "An enormous sea guardian with flowing fins, coral crowns and glowing turquoise markings."
-currency = "none"
-price = 0
+description = "A guaranteed, specific colossal companion: exactly this Thalassor, trusting enough to carry you through rivers and lakes. Rides only in water. Optional, never required for the story, and also planned as a free encounter in the Tideglass Coast update."
+currency = "star_gems"
+price = 1500
 grants = {
-
+"creature": "thalassor",
+"friendship": 45
 }
 rarity = "legendary"
 preview_kind = "colossal"
 preview_id = "thalassor"
 featured = true
-available = false
-unavailable_reason = "Arrives with the Tideglass Coast region update. Not purchasable."
-earn_path = "Free — earned through play: Discover the underwater sanctuary and restore the ocean currents."
-tags = PackedStringArray("colossal")
-includes = PackedStringArray("Ability: Deep Current", "Habitat: Ocean Guardian Lagoon", "Rideable after earning its trust")
+tags = PackedStringArray("colossal", "rideable", "swimming")
+includes = PackedStringArray("Thalassor (rideable in water)", "Abilities: Tidal Grace, Deep Current, Tidal Echo, Abyssal Surge", "Journal entry and lore")

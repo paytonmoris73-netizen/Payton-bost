@@ -47,8 +47,9 @@ Done means implemented **and** exercised by tests or screenshots. See QA_CHECKLI
 - [x] Evolutions for the other five meadow Mythlings (Shamrelle, Cairnback, Dawnstrider, Cloudwell, Blossomere)
 - [x] Astravyth model, flight and purchase
 - [x] Alternate evolution paths for those five (Thistlepin, Geodrift, Lanternwhisk, Drizzlefin, Thornmane)
-- [ ] Models for 13 more colossals (3 earnable, 10 premium concepts) and their abilities
-- [ ] Swimming mounts; riding cosmetics; evolved-form cosmetics
+- [ ] Models for 12 more colossals (Frostmaw, Thornvine Titan, 10 premium concepts) and their abilities
+- [x] Swimming mount: Thalassor (rides only in deep water, stops at the shore)
+- [ ] Riding cosmetics; evolved-form cosmetics
 - [x] Ability puzzles that require combining two companions (Forgotten Forge: fire then earth)
 - [x] Quick companion switching from the HUD
 - [ ] Hazards for protective abilities (e.g. Ancient Shield) to defend against

@@ -104,6 +104,10 @@ func _animate_body(delta: float, move: float, e: float) -> void:
 		"fly":
 			y += sin(_t * 2.0) * 0.1
 			rot.x = -move * 8.0
+		"swim":
+			y += sin(_t * 0.8) * (0.25 if is_colossal else 0.05)
+			rot.x = sin(_t * 0.8 + 1.0) * 2.5 + -move * 3.0
+			rot.z = sin(_t * 0.6) * 2.0
 		_:
 			y += absf(sin(_phase)) * bob_height * minf(move, 1.5)
 			rot.x = sin(_phase * 2.0) * 1.5 * move
@@ -211,6 +215,11 @@ func _animate_limbs(move: float) -> void:
 
 func _animate_extras(delta: float, move: float) -> void:
 	var tail: Node3D = parts.get("tail")
+	if tail and locomotion == "swim":
+		var rs := _rest_of(tail)
+		var beat := sin(_t * (1.2 + move * 1.5)) * (8.0 + 10.0 * minf(move, 1.0))
+		tail.basis = rs.basis * Basis.from_euler(Vector3(deg_to_rad(beat), 0, 0))
+		tail = null
 	if tail:
 		var r := _rest_of(tail)
 		var amp := 10.0 + 14.0 * minf(move, 1.0) + (25.0 if _emote == "happy" else 0.0)

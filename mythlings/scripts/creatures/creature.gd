@@ -248,7 +248,9 @@ func _snap_ground(delta: float) -> void:
 	if l.terrain.has_method("is_lava") and l.terrain.is_lava(global_position.x, global_position.z):
 		g = maxf(g, EmberTerrain.LAVA_Y + 0.3)
 		y = g
-	if data.locomotion in ["float", "fly"] or data.is_colossal():
+	if data.locomotion == "swim" and w > -INF:
+		y = w - (1.2 if data.is_colossal() else 0.2)
+	elif data.locomotion in ["float", "fly"] or data.is_colossal():
 		y = maxf(g, w)
 	elif w > g:
 		y = maxf(g, w - (0.15 if not data.is_large() else 0.8))  # paddle at the surface
@@ -386,6 +388,8 @@ func _clamp_home() -> void:
 	if off.length() > home_radius:
 		_target = home + off.normalized() * home_radius
 	var l := level()
+	if l and data.locomotion == "swim" and not l.water_deep(_target.x, _target.z):
+		_target = global_position
 	if l and l.terrain.has_method("is_lava") and l.terrain.is_lava(_target.x, _target.z) and not data.is_colossal():
 		_target = global_position
 	if l and l.terrain.is_water(_target.x, _target.z) and not (data.locomotion in ["float", "fly", "swim"]) and not data.is_colossal():
@@ -403,7 +407,7 @@ func _companion(delta: float) -> void:
 	var follow_d := 7.5 if data.is_colossal() else 2.0
 	var target: Vector3 = p.global_position + back * follow_d + side * (4.0 if data.is_colossal() else 1.1)
 	var d := global_position.distance_to(p.global_position)
-	if d > (60.0 if data.is_colossal() else 25.0):
+	if d > (60.0 if data.is_colossal() else 25.0) and data.locomotion != "swim":
 		global_position = target
 		_snap_ground(1.0)
 		FX.burst(get_parent(), global_position + Vector3(0, 0.5, 0), Color("b6f5c8"), 16, 0.06, 2.0)
@@ -413,6 +417,10 @@ func _companion(delta: float) -> void:
 		spd = maxf(spd, 7.5)
 	if data.personality == "protective":
 		target = p.global_position + back * (follow_d * 0.6) + side * 0.7
+	if data.locomotion == "swim" and not level().water_deep(target.x, target.z):
+		# Swimmers can't follow onto land: wait at the water's edge.
+		_move_toward(global_position, 0, delta)
+		return
 	if global_position.distance_to(target) > 0.8:
 		_move_toward(target, spd, delta)
 		_idle_bond = 0.0

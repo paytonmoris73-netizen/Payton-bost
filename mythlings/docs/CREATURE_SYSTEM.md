@@ -46,6 +46,8 @@ from the Mythlings screen or the Journal.
 ## Premium creatures
 - **Ignaroth** is sold for an exact 1500 Star Gems, granting exactly that creature at friendship 3 (rideable, flying).
   No quest, puzzle or area needs it. In this build Star Gems come from mock purchases and an achievement.
+- **Thalassor** is sold the same way and rides only in deep water (rivers, the plunge pool, Cinder Lake); it refuses to beach and
+  can only be summoned near water. Also planned as a free Tideglass Coast encounter.
 - **Astravyth** is sold the same way (exactly 1500 Star Gems) and is also planned as a free encounter in the Starfall Isles update.
 - Vyrmora, Obsidra, Lumoriel, Carapex, Skyhollow, Quartzephyr, Gearwyrm, Burrowmaw, Driftmoth and Coralith are **concepts only**:
   data entries listed in the Market as "In development — not purchasable". Thalassor, Frostmaw, Thornvine Titan and Astravyth are

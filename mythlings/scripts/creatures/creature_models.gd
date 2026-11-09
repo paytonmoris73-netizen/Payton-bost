@@ -9,7 +9,7 @@ static func has_model(id: String) -> bool:
 	var c: CreatureData = DB.creature(id) if Engine.get_main_loop() else null
 	if c and c.model_scene:
 		return true
-	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane"]
+	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "thalassor"]
 
 ## variant: cosmetic palette variant id ("" = default)
 static func build(id: String, variant := "", accessory := "") -> CreatureRig:
@@ -44,6 +44,7 @@ static func build(id: String, variant := "", accessory := "") -> CreatureRig:
 		"lanternwhisk": rig = _lanternwhisk(variant)
 		"drizzlefin": rig = _drizzlefin(variant)
 		"thornmane": rig = _thornmane(variant)
+		"thalassor": rig = _thalassor(variant)
 		_:
 			rig = _unknown()
 	rig.name = "Rig_" + id
@@ -1377,6 +1378,83 @@ static func _thornmane(_variant: String) -> CreatureRig:
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", [mane])
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.32, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 1.5, -0.8)))
 	r.reg("saddle", K.pivot(v, Vector3(0, 1.95, 0.0)))
+	return r
+
+# ===================================================================== THALASSOR (Colossal, water)
+static func _thalassor(_variant: String) -> CreatureRig:
+	## Whale-shaped sea guardian with flowing fins, coral crown and glowing lines.
+	var r := _rig("swim")
+	r.is_colossal = true
+	r.gait_speed = 0.35
+	var v := r.visual
+	var deep := Color("2f6f9a"); var belly := Color("bfe6ea"); var glow_c := Color("5fe3d6"); var coral := [Color("f2836b"), Color("ffb08a"), Color("e8576b")]
+	var body := K.pivot(v, Vector3(0, 0, 0), "Body")
+	# One continuous tapered hull from the blunt head to the tail stock.
+	var hull_pts := PackedVector3Array()
+	var hull_r := PackedFloat32Array()
+	var prof := [0.9, 1.6, 1.95, 2.1, 2.05, 1.85, 1.5, 1.1, 0.75, 0.5, 0.38]
+	for i in prof.size():
+		var t := float(i) / (prof.size() - 1)
+		hull_pts.append(Vector3(0, sin(t * PI) * 0.3, -6.5 + t * 13.0))
+		hull_r.append(prof[i])
+	var hull := MeshInstance3D.new()
+	hull.mesh = K.tube(hull_pts, hull_r, 18)
+	hull.material_override = K.mat(deep, 0.35, Color.BLACK, 1.0, 0.15)
+	hull.scale = Vector3(1.0, 0.85, 1.0)
+	body.add_child(hull)
+	K.add(body, K.sphere(0.9, 16, 8), K.mat(deep, 0.35), Vector3(0, 0.1, -6.5), Vector3.ZERO, Vector3(1.0, 0.85, 0.6))
+	var belly_pts := PackedVector3Array()
+	var belly_r := PackedFloat32Array()
+	for i in 8:
+		var t := float(i) / 7.0
+		belly_pts.append(Vector3(0, -0.9 - sin(t * PI) * 0.35, -6.0 + t * 9.0))
+		belly_r.append(0.6 + sin(t * PI) * 0.9)
+	var bel := MeshInstance3D.new()
+	bel.mesh = K.tube(belly_pts, belly_r, 14)
+	bel.material_override = K.mat(belly, 0.5)
+	bel.scale = Vector3(1.0, 0.6, 1.0)
+	body.add_child(bel)
+	for k in 9:
+		K.add(body, K.capsule(0.05, 4.0), K.mat(belly.darkened(0.2)), Vector3(-1.0 + k * 0.25, -1.55, -2.8), Vector3(90, 0, 0))
+	var tail := K.pivot(body, Vector3(0, 0.2, 6.4), "Tail")
+	for sx in [-1, 1]:
+		K.add(tail, K.petal(3.4, 1.9, 0.0, 0.18), K.mat(deep.lightened(0.08), 0.35), Vector3.ZERO, Vector3(90, 40 * sx, 0))
+		K.add(tail, K.petal(2.8, 0.9, 0.0, 0.08), K.glass(glow_c, 0.5, glow_c), Vector3(0, 0.06, 0), Vector3(90, 40 * sx, 0))
+	var head := K.pivot(body, Vector3(0, 0.3, -6.6), "Head")
+	K.add(head, K.torus(1.25, 1.32, 32), K.mat(belly.darkened(0.25)), Vector3(0, -0.55, 0.9), Vector3(80, 0, 0), Vector3(1.0, 1.0, 0.25))
+	var eyes := []
+	for sx in [-1, 1]:
+		eyes.append(K.eye(head, Vector3(1.5 * sx, 0.1, 1.4), 0.2, Color("0a2030"), Vector3(1.0 * sx, 0, -0.3), glow_c))
+	var crown := K.pivot(head, Vector3(0, 1.3, 1.6), "Crown")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2468
+	for i in 7:
+		var base := Vector3(rng.randf_range(-0.9, 0.9), 0, rng.randf_range(-0.4, 1.6))
+		var col: Color = coral[i % 3]
+		for b in 3:
+			var tip := base + Vector3(rng.randf_range(-0.5, 0.5), rng.randf_range(0.6, 1.4), rng.randf_range(-0.4, 0.4))
+			var cm := MeshInstance3D.new()
+			cm.mesh = K.tube(K.bezier(base, base.lerp(tip, 0.5) + Vector3(0, 0.2, 0), tip, 5), K.taper(5, 0.14, 0.05), 6)
+			cm.material_override = K.mat(col, 0.7)
+			crown.add_child(cm)
+			K.add(crown, K.sphere(0.08, 6, 3), K.mat(col.lightened(0.3), 0.6, col, 0.3), tip)
+	for k in 6:
+		K.add(body, K.sphere(0.3 + rng.randf() * 0.2, 8, 4), K.mat(coral[k % 3], 0.8), Vector3(rng.randf_range(-0.5, 0.5), 1.85 - absf(k - 2.5) * 0.12, -3.2 + k * 1.0), Vector3.ZERO, Vector3(1.2, 0.6, 1.0))
+	for sx in [-1, 1]:
+		for k in 3:
+			K.add(body, K.capsule(0.07, 3.2), K.glow(glow_c, 1.8), Vector3(2.0 * sx - 0.05 * k * sx, 0.5 - k * 0.5, -1.8 + k * 0.8), Vector3(90, 0, 0))
+	var wings := []
+	for sx in [-1, 1]:
+		var fp := K.pivot(body, Vector3(1.9 * sx, -0.5, -3.4), "Fin")
+		K.add(fp, K.petal(5.5, 1.7, -0.6, 0.14), K.mat(deep.lightened(0.05), 0.35), Vector3.ZERO, Vector3(90, 115 * sx, -15 * sx))
+		K.add(fp, K.petal(4.8, 0.7, -0.55, 0.06), K.glass(glow_c, 0.5, glow_c), Vector3(0, 0.08, 0), Vector3(90, 115 * sx, -15 * sx))
+		wings.append(fp)
+	var bubbles := FX.motes(Color("dff4ff"), 24, Vector3(2.5, 1.5, 5.0), 0.1)
+	bubbles.gravity = Vector3(0, 0.6, 0)
+	v.add_child(bubbles)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("tail", tail); r.reg("wings", wings); r.reg("sway", [crown])
+	r.reg("acc_head", K.pivot(head, Vector3(0, 1.4, 1.4))); r.reg("acc_neck", K.pivot(body, Vector3(0, 1.4, -4.5)))
+	r.reg("saddle", K.pivot(body, Vector3(0, 1.95, -2.2)))
 	return r
 
 # ===================================================================== fallback

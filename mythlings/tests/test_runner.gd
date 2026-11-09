@@ -549,6 +549,37 @@ func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
 	p.global_position = lvl.at("ancient_oak")
 	check(lvl.find_open_spot(lvl.ground(-80, -10), DB.creature("ignaroth")) == Vector3.INF or true, "open-spot search runs in dense woods")
 	check(Abilities.activate(ig, "volcanic_resonance").contains("Emberfall"), "region-specific ability explains honestly")
+	section("premium colossal: Thalassor (water riding)")
+	GameState.add_currency("star_gems", 1500)
+	check(Store.block_reason(DB.product("colossal_thalassor")) == "", "Thalassor purchasable")
+	Store.purchase("colossal_thalassor")
+	check(GameState.is_discovered("thalassor") and GameState.friendship_level("thalassor") >= 3, "Thalassor purchased exactly")
+	p.global_position = lvl.ground(10, 10) + Vector3(0, 0.5, 0)
+	var far_land := lvl.summon("thalassor")
+	var rz := 40.0
+	var rx := MeadowTerrain.river_x(rz)
+	p.global_position = lvl.ground(rx + 12.0, rz) + Vector3(0, 0.5, 0)
+	check(lvl.summon("thalassor") == "", "Thalassor summoned into the river")
+	var th: Creature = lvl.creatures.thalassor
+	check(lvl.water_deep(th.global_position.x, th.global_position.z), "Thalassor waits in deep water")
+	p.global_position = th.global_position + Vector3(0, 1.0, 0)
+	check(Abilities.activate(th, "deep_current") == "" and p.mount == th, "Deep Current mounts Thalassor")
+	p.input_locked = false
+	p.rotation.y = 0.0
+	p._yaw = 0.0
+	p.touch_move = Vector2(0, -1)
+	var z0 := p.global_position.z
+	for i in 120:
+		p._physics_process(1.0 / 60.0)
+	check(absf(p.global_position.z - z0) > 3.0, "Thalassor swims along the river (%.1fm)" % absf(p.global_position.z - z0))
+	check(lvl.water_deep(p.global_position.x, p.global_position.z), "the ride stays in the water")
+	p._yaw = -PI * 0.5  # steer toward the bank
+	for i in 240:
+		p._physics_process(1.0 / 60.0)
+	check(lvl.water_deep(p.global_position.x, p.global_position.z), "Thalassor stops at the shore instead of beaching")
+	p.touch_move = Vector2.ZERO
+	p.dismount()
+	check(p.mount == null, "dismount from Thalassor")
 	section("premium colossal: Astravyth")
 	GameState.add_currency("star_gems", 1500)
 	Store.purchase("colossal_astravyth")

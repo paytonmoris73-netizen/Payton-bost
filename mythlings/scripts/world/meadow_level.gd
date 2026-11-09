@@ -1242,9 +1242,22 @@ func refresh_creatures() -> void:
 		if id == "verdantus" and mode == Creature.Mode.WILD:
 			c.home_radius = 10.0
 
+## Water at least 0.6 m deep (rivers, pools, lakes) for swimming mounts.
+func water_deep(x: float, z: float) -> bool:
+	var w: float = terrain.water_level_at(x, z)
+	return w > -INF and w - terrain.height(x, z) > 0.6
+
 ## Finds level, open ground near `near` with room for a creature of this size,
 ## away from trees, buildings and water. Returns Vector3.INF if none.
 func find_open_spot(near: Vector3, d: CreatureData) -> Vector3:
+	if d.locomotion == "swim":
+		for ring in [6.0, 12.0, 20.0, 30.0, 45.0]:
+			for k in 16:
+				var a := TAU * k / 16.0
+				var p := near + Vector3(cos(a) * ring, 0, sin(a) * ring)
+				if water_deep(p.x, p.z):
+					return Vector3(p.x, terrain.water_level_at(p.x, p.z), p.z)
+		return Vector3.INF
 	var need := 7.0 if d.is_colossal() else (2.5 if d.is_large() else 0.8)
 	for ring in [need + 2.0, need + 6.0, need + 12.0, need + 20.0]:
 		for k in 12:
@@ -1272,6 +1285,8 @@ func summon(id: String) -> String:
 		return "%s isn't available in this build." % d.display_name
 	var spot := find_open_spot(player.global_position, d)
 	if spot == Vector3.INF:
+		if d.locomotion == "swim":
+			return "%s needs deep water. Try the river or a lake." % d.display_name
 		return "There isn't enough open space for %s here. Try an open meadow away from trees and houses." % d.display_name
 	GameState.set_companion(id)
 	if GameState.companion() != id:

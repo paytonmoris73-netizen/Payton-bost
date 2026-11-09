@@ -321,6 +321,9 @@ for cid in ["shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", 
     row = [r for r in NEW_CREATURES if r[0] == cid][0]
     P("creature_" + cid, row[1], "large" if EXTRA[cid]["size_class"] == "large" else "creature", row[7], "none", 0, rarity=row[5], preview_kind="creature", preview_id=cid,
       earn_path="Free — earned by evolution.", tags=["evolved"])
+P("colossal_thalassor", "Thalassor, the Abyssal Titan", "colossal", "A guaranteed, specific colossal companion: exactly this Thalassor, trusting enough to carry you through rivers and lakes. Rides only in water. Optional, never required for the story, and also planned as a free encounter in the Tideglass Coast update.", "star_gems", 1500,
+  {"creature": "thalassor", "friendship": 45}, rarity="legendary", preview_kind="colossal", preview_id="thalassor", featured=True, tags=["colossal", "rideable", "swimming"],
+  includes=["Thalassor (rideable in water)", "Abilities: Tidal Grace, Deep Current, Tidal Echo, Abyssal Surge", "Journal entry and lore"])
 P("colossal_astravyth", "Astravyth, the Celestial Sovereign", "colossal", "A guaranteed, specific colossal companion: exactly this Astravyth, trusting enough to ride and fly. Optional, never required for the story, and also planned as a free encounter in the Starfall Isles update.", "star_gems", 1500,
   {"creature": "astravyth", "friendship": 45}, rarity="mythic", preview_kind="colossal", preview_id="astravyth", featured=True, tags=["colossal", "rideable", "flying"],
   includes=["Astravyth (rideable, flying)", "Abilities: Starlit Presence, Sky Passage, Starveil, Cosmic Bloom", "Journal entry and lore"])

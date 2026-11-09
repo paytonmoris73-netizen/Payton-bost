@@ -248,8 +248,10 @@ func _run(effect: String, params: Dictionary, c: Creature, p: Player) -> Diction
 				return {"ok": false, "msg": "Hold Jump to climb; let go to glide down."}
 			if not p.can_mount(c):
 				return {"ok": false, "msg": "%s needs friendship level 3 to carry you." % c.data.display_name}
-			if c.global_position.distance_to(p.global_position) > 14.0:
+			if c.global_position.distance_to(p.global_position) > (24.0 if c.data.locomotion == "swim" else 14.0):
 				return {"ok": false, "msg": "Get closer to %s first." % c.data.display_name}
+			if c.data.locomotion == "swim" and not MeadowLevel.current.water_deep(c.global_position.x, c.global_position.z):
+				return {"ok": false, "msg": "%s can only carry you in deep water." % c.data.display_name}
 			p.mount_creature(c)
 			return {"ok": true, "msg": ""}
 		"combo":

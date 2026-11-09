@@ -8,13 +8,25 @@ id = "abyssal_surge"
 display_name = "Abyssal Surge"
 slot = "signature"
 category = "signature"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+description = "Thalassor breaches in a great wave: grants a powerful swim current and raises stepping stones within 50 m."
+effect = "combo"
 params = {
-
+"steps": [{
+"effect": "swim_boost",
+"params": {
+"duration": 30.0,
+"mult": 3.0
 }
-cooldown = 10
-unlock_friendship = 0
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["ripple_stone"],
+"radius": 50.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 3
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "water_ring"
+color = Color(0.373, 0.89, 0.839, 1)

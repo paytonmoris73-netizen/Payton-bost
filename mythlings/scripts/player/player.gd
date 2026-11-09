@@ -107,7 +107,7 @@ func _move_input() -> Vector2:
 
 # ------------------------------------------------------------------ physics
 func _physics_process(delta: float) -> void:
-	var lvl := MeadowLevel.current
+	var lvl: MeadowLevel = MeadowLevel.current
 	var inp := Vector2.ZERO if input_locked else _move_input()
 	is_running = not input_locked and (touch_run or Input.is_action_pressed("run") or inp.length() > 0.92)
 	var cam_basis := Basis(Vector3.UP, _yaw)
@@ -131,6 +131,21 @@ func _physics_process(delta: float) -> void:
 	swim_boost_time = maxf(0.0, swim_boost_time - delta)
 	var climbing := _climb != null and inp.length() > 0.2 and dir.normalized().dot(-_climb.face_normal) > 0.3
 	var can_fly: bool = mount != null and mount.data.flight
+	if mount != null and mount.data.locomotion == "swim" and lvl:
+		# Water mount: glide along the surface, never onto land.
+		var sp := (16.0 if is_running else 9.0) * inp.length()
+		var want := Vector3(dir.x * sp, 0, dir.z * sp)
+		var ahead := global_position + want.normalized() * 3.5 if want.length() > 0.1 else global_position
+		if not lvl.water_deep(ahead.x, ahead.z):
+			want = Vector3.ZERO
+		velocity.x = lerpf(velocity.x, want.x, clampf(delta * 2.0, 0.0, 1.0))
+		velocity.z = lerpf(velocity.z, want.z, clampf(delta * 2.0, 0.0, 1.0))
+		var surface: float = lvl.terrain.water_level_at(global_position.x, global_position.z)
+		if surface > -INF:
+			velocity.y = (surface + 0.1 - global_position.y) * 6.0
+		move_and_slide()
+		_after_move(delta, Vector3(velocity.x, 0, velocity.z))
+		return
 	var want_up: bool = not input_locked and (jump_held or Input.is_action_pressed("jump"))
 	if _dash_time > 0.0:
 		_dash_time -= delta
@@ -198,6 +213,9 @@ func _after_move(delta: float, flat: Vector3) -> void:
 	model.riding = mount != null
 	if mount:
 		mount.global_position = global_position
+		if mount.data.locomotion == "swim":
+			var wl2: float = MeadowLevel.current.terrain.water_level_at(global_position.x, global_position.z) if MeadowLevel.current else global_position.y
+			mount.global_position.y = (wl2 if wl2 > -INF else global_position.y) - 1.2
 		mount.rotation.y = rotation.y
 		mount.set_mount_motion(hs / (6.0 if mount.data.is_colossal() else 4.0))
 	_update_glow()
@@ -338,7 +356,8 @@ func mount_creature(c: Creature) -> void:
 	var saddle: Node3D = c.rig.part("saddle")
 	var h := saddle.global_position.y - c.global_position.y if saddle else 5.5
 	var tw := create_tween()
-	tw.tween_property(model, "position", Vector3(0, h - 0.6, -0.9), 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var lift := h - 0.6 if c.data.locomotion != "swim" else h - 1.5
+	tw.tween_property(model, "position", Vector3(0, lift, -0.9), 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	c.emote("happy", 1.2)
 	Events.emit_game_event("ride", c.data.id)
 	mounted_changed.emit(c)
