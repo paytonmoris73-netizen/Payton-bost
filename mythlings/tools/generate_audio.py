@@ -171,4 +171,12 @@ for i, n in enumerate([74, 76, 78, 81, 83, 86, 90, 93]): place(s, bell(midi(n), 
 write("restore", reverb(s, 0.5))
 d = 1.0; xx = t(d); write("ability", reverb(sweep(400, 1600, d)*env(len(xx), 0.05, 0.6)*0.4 + bell(midi(93), 1.0, 4)*0.4))
 d = 0.4; xx = t(d); write("pet", (np.sin(2*np.pi*np.cumsum(500+100*np.sin(2*np.pi*xx*6))/SR))*np.sin(np.pi*xx/d)**2*0.5)
+# Rain ambience: filtered noise with soft droplet ticks.
+x = t(16)
+rain = lowpass(rng.normal(0, 1, len(x)), 0.35) * 0.5 + lowpass(rng.normal(0, 1, len(x)), 0.06) * 0.6
+for _ in range(220):
+    st = rng.uniform(0, 15.8); xx = t(0.03)
+    place(rain, np.sin(2 * np.pi * rng.uniform(1800, 3200) * xx) * np.exp(-xx * 160) * 0.25, st)
+xf = int(SR * 0.5); rain[:xf] = rain[:xf] * np.linspace(0, 1, xf) + rain[-xf:] * np.linspace(1, 0, xf); rain = rain[:-xf]
+write("amb_rain", rain, 0.45)
 print("audio written to", os.path.abspath(OUT))

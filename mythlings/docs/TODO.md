@@ -43,7 +43,7 @@ Done means implemented **and** exercised by tests or screenshots. See QA_CHECKLI
 - [x] Mosswarden, Glimmerhare and Ignaroth models; Ignaroth purchasable and flying
 - [x] Summoning with an open-space check; riding feels different by size; flight
 - [x] Personality reactions to night, nearby Mythlings and friendship level
-- [ ] Weather (and weather reactions)
+- [x] Weather: clear / cloudy / rain (meadow) and ashfall (Emberfall); sky dims, rain sound, faster regrowth in rain, creature reactions
 - [x] Evolutions for the other five meadow Mythlings (Shamrelle, Cairnback, Dawnstrider, Cloudwell, Blossomere)
 - [x] Astravyth model, flight and purchase
 - [ ] Second/alternate evolution paths for those five

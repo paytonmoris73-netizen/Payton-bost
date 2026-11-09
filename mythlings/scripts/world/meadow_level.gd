@@ -56,6 +56,7 @@ var native: Array = ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "b
 var sanctuary_key := "ancient_oak"
 var spawn_key := "spawn"
 var music := "music_meadow"
+var weather: Weather
 var sky: SkyCycle
 var player: Player
 var obstacles: Array = []  # Vector3(x, z, radius)
@@ -137,6 +138,12 @@ func build() -> void:
 	Events.ownership_changed.connect(func(_i): refresh_decorations())
 	Events.creature_discovered.connect(func(_c): refresh_creatures())
 	_on_night(sky.is_night())
+	_add_weather()
+
+func _add_weather() -> void:
+	weather = Weather.new()
+	add_child(weather)
+	weather.setup(self)
 
 func _on_sanctuary_changed(_s: String, _st: int) -> void:
 	refresh_creatures()

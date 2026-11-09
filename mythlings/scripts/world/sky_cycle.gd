@@ -14,6 +14,7 @@ var world_env: WorldEnvironment
 var _night := false
 var paused := false
 var tint := ""  # "" or "ember"
+var weather_dim := 0.0  # set by Weather
 
 const KEYS := [
 	# t, sun col, sun energy, sky top, horizon, ambient energy, fog col
@@ -92,6 +93,14 @@ func _sample(t: float) -> Array:
 
 func _update() -> void:
 	var s := _sample(time)
+	if weather_dim > 0.001:
+		var grey := Color("8a9298") if tint != "ember" else Color("7a6a62")
+		s[1] = s[1] * (1.0 - 0.9 * weather_dim)
+		s[2] = s[2].lerp(grey.darkened(0.2), weather_dim)
+		s[3] = s[3].lerp(grey, weather_dim)
+		s[4] = s[4] * (1.0 - 0.3 * weather_dim)
+		s[5] = s[5].lerp(grey, weather_dim)
+
 	# Sun arcs east→west; at night the "sun" becomes soft moonlight from above.
 	var day_angle := (time - 0.25) * TAU
 	var elev := sin(day_angle) * 65.0
@@ -105,13 +114,13 @@ func _update() -> void:
 		s[2] = s[2].lerp(Color("5a3a3a"), 0.5)
 		s[3] = s[3].lerp(Color("d8885a"), 0.55)
 		s[5] = s[5].lerp(Color("a06a50"), 0.6)
-		env.fog_density = 0.0034
 	sky_mat.sky_top_color = s[2]
 	sky_mat.sky_horizon_color = s[3]
 	sky_mat.ground_horizon_color = s[3].darkened(0.1)
 	env.ambient_light_color = s[2].lerp(s[3], 0.55).lerp(Color(0.85, 0.9, 0.85), 0.25)
 	env.ambient_light_energy = s[4] * 1.65
 	env.fog_light_color = s[5]
+	env.fog_density = (0.0034 if tint == "ember" else 0.0028) * (1.0 + 1.6 * weather_dim)
 	var n := is_night()
 	if n != _night:
 		_night = n

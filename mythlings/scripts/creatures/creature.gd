@@ -315,6 +315,32 @@ func _pick_wild_action(pd: float) -> void:
 		_state = "sleep"
 		_state_t = randf_range(12.0, 25.0)
 		return
+	# Weather: water Mythlings celebrate rain; fire ones curl up; others shelter under trees.
+	var w: Weather = level().weather
+	if w and w.is_wet() and r < 0.5:
+		var fire := "fire" in data.elements
+		var water := "water" in data.elements or "storm" in data.elements
+		if w.state == "rain" and water:
+			rig.emote("happy", 1.4)
+			_state = "idle"
+			_state_t = 2.0
+			return
+		if w.state == "rain" and fire:
+			_state = "sleep"
+			_state_t = randf_range(10.0, 18.0)
+			return
+		if w.state == "rain" and not data.is_colossal() and data.locomotion != "float":
+			var best := Vector3.INF
+			for o in level().obstacles:
+				var op := Vector3(o.x, 0, o.y)
+				if op.distance_to(home) < home_radius + 6.0 and (best == Vector3.INF or op.distance_to(global_position) < best.distance_to(global_position)):
+					best = op
+			if best != Vector3.INF:
+				_target = best + (global_position - best).normalized() * 1.6
+				_target.y = 0
+				_state = "wander"
+				_state_t = 6.0
+				return
 	# Greet a nearby Mythling now and then.
 	if r > 0.85:
 		for other in level().creatures.values():

@@ -20,7 +20,7 @@ Honest status of every asset in this build. Nothing here is final production art
 | Terrain, river, waterfall, pool | `meadow_terrain.gd`, shaders | Procedural |
 | Trees, houses, windmill, bridge, ancient oak, shrine, standing stones, props, decorations | `props.gd` | Merged vertex-coloured meshes |
 | Icons | `icon_glyph.gd` | Vector icons drawn in code |
-| Music (menu, meadow), ambience, ~25 SFX, creature voices | `tools/generate_audio.py` | Synthesised WAV placeholders |
+| Music (menu, meadow), meadow and rain ambience, ~25 SFX, creature voices | `tools/generate_audio.py` | Synthesised WAV placeholders |
 
 ## Temporary placeholders
 - Creatures without models (30 regular + 4 earnable colossal + 10 premium concepts): data and journal entries exist. Any preview shows a clearly marked "?" orb, and the UI says the model arrives with its region.

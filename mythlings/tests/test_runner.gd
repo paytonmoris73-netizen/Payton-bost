@@ -362,6 +362,28 @@ func test_gameplay() -> void:
 	check(not p.input_locked, "closing interaction menu unlocks movement")
 	await test_creature_systems(lvl, p, ui)
 	await test_emberfall()
+	section("weather")
+	var lvlw: MeadowLevel = MeadowLevel.current
+	check(lvlw.weather != null, "level has weather")
+	lvlw.weather.set_state("rain")
+	for i in 120:
+		lvlw.weather._process(0.1)
+	check(lvlw.weather.dim > 0.4 and lvlw.sky.weather_dim > 0.4, "rain dims the sky (%.2f)" % lvlw.weather.dim)
+	check(lvlw.weather._precip.emitting, "rain particles fall")
+	var rn: ResourceNode = null
+	for n in lvlw.get_children():
+		if n is ResourceNode and n.item_id in ["petals", "sunberry", "dew_nectar"]:
+			rn = n
+			break
+	if rn:
+		rn._set_available(false)
+		rn._respawn = 10.0
+		lvlw.weather._process(1.0)
+		check(rn._respawn < 9.5, "rain speeds up regrowth")
+	lvlw.weather.set_state("clear")
+	for i in 200:
+		lvlw.weather._process(0.1)
+	check(lvlw.weather.dim < 0.1 and not lvlw.weather._precip.emitting, "clear skies return")
 	section("save after play")
 	check(SaveManager.save_game(), "save after full session")
 	var snapshot := JSON.stringify(GameState.data)

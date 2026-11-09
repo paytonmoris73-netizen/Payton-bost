@@ -42,6 +42,11 @@ func _ready() -> void:
 		shots = [["verdantus", Vector3(-68, 0, -36), 0.75, -0.08, 0.45], ["sanctuary", Vector3(46, 0, -14), -0.86, -0.2, 0.45], ["sanctuary_night", Vector3(46, 0, -14), -0.86, -0.2, 0.9], ["companion", Vector3(-60, 0, 0), 0.8, -0.3, 0.4]]
 	var lvl: MeadowLevel = MeadowLevel.current
 	var p: Player = lvl.player
+	if "--rain" in OS.get_cmdline_user_args():
+		lvl.weather.set_state("ashfall" if lvl.region_id == "emberfall" else "rain")
+		lvl.weather.dim = 0.6 if lvl.region_id != "emberfall" else 0.45
+		shots = [shots[0]]
+		shots[0][0] += "_weather"
 	if "--progress" in OS.get_cmdline_user_args():
 		var v: Creature = lvl.creatures.get("verdantus")
 		if v:

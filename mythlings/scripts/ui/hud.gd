@@ -25,6 +25,7 @@ var _ab_labels: Dictionary = {}
 var _ab_cd: Dictionary = {}
 var _hint: Label
 var _swap_btn: Button
+var _weather_label: Label
 var _swap_box: PanelContainer
 var _hint_t := 0.0
 var _useful := ""
@@ -188,6 +189,8 @@ func _build_top_left(root: Control) -> void:
 	qh.add_child(av)
 	_quest_card.add_child(qh)
 	col.add_child(_quest_card)
+	_weather_label = UIKit.label("", "HudLabel", 16, Color("cfe0ff"))
+	col.add_child(_weather_label)
 	_hint = UIKit.label("", "HudLabel", 17, Palette.MOSS_LIGHT, true)
 	_hint.custom_minimum_size.x = 340
 	col.add_child(_hint)
@@ -656,6 +659,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_toggle_ride()
 
 func _process(_delta: float) -> void:
+	if level and level.weather:
+		_weather_label.text = "Weather: " + level.weather.display_name()
 	if _fps.visible:
 		_fps.text = "%d FPS" % Engine.get_frames_per_second()
 	if _quest_card.visible and level:

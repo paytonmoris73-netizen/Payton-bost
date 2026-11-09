@@ -87,6 +87,7 @@ func build() -> void:
 	ash.position = Vector3(0, 12, 0)
 	add_child(ash)
 	_on_night(sky.is_night())
+	_add_weather()
 
 var ELOC_BRIDGE_X := 0.0
 
