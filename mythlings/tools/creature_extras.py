@@ -229,3 +229,31 @@ EXTRA["astravyth"].update({"model_ready": True, "rideable": True, "flight": True
     "discovery_hint": "Available in the Grand Market. Also planned as a free encounter in the Starfall Isles update.",
     "lore": "Astravyth sleeps between the stars and wakes only for skies with no clouds. Its tail-ribbons are said to be maps of constellations that no longer exist.",
     "originality_notes": "Layered wings, crescent crest and three tail-ribbons; check silhouette against celestial dragons in major franchises."})
+
+# ================= Emberfall Highlands (second region)
+A("ember_coat", "Ember Coat", "passive", "support", "Cindercub's glowing heart lights the ground around you at night.", "passive_glow", {}, 0, 0, "ember_crown", "ff8a3a")
+A("hearth_paw", "Hearth Paw", "primary", "environmental", "Warms cold stones within 14 m so they rise up.", "reveal", {"kinds": ["warm_stone"], "radius": 14.0}, 3, 0, "ember_crown", "ff8a3a")
+A("kindle", "Kindle", "secondary", "environmental", "Lights braziers, ancient volcanic mechanisms and old lanterns within 16 m.", "reveal", {"kinds": ["volcanic_structure", "dark_lantern"], "radius": 16.0}, 6, 1, "ember_crown", "ffb347")
+A("blaze_purr", "Blaze Purr", "signature", "signature", "Cindercub's ember heart roars: warms stones and lights every brazier and lantern within 35 m.", "combo", combo(("reveal", {"kinds": ["warm_stone"], "radius": 35.0}), ("reveal", {"kinds": ["volcanic_structure", "dark_lantern"], "radius": 35.0})), 90, 4, "ember_crown", "ff8a3a")
+A("heat_sense", "Heat Sense", "passive", "exploration", "Magmole feels hot seams in the rock: the HUD points to weakened boulders and seals within 25 m.", "passive_sense", {"kinds": ["cracked_rock", "forge_seal"], "radius": 25.0}, 0, 0, "rune_pulse", "ff6a1f")
+A("cooling_crust", "Cooling Crust", "primary", "environmental", "Cools the lava ahead into basalt stepping stones for 20 seconds.", "crust", {"duration": 20.0}, 25, 0, "rune_pulse", "ff6a1f")
+A("burrow_break", "Burrow Break", "secondary", "environmental", "Digs through weakened boulders and heated seals within 14 m.", "reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 14.0}, 4, 1, "rune_pulse", "c8783a")
+A("magma_tunnel", "Magma Tunnel", "signature", "signature", "Magmole tunnels in a circle: breaks boulders and seals within 30 m and highlights emberstone within 60 m.", "combo", combo(("reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 30.0}), ("highlight", {"items": ["emberstone"], "radius": 60.0, "duration": 30.0})), 90, 4, "rune_pulse", "ff6a1f")
+A("featherfall", "Featherfall", "passive", "movement", "With Ashwing beside you, you fall gently from any height.", "passive_glide", {}, 0, 0, "wind_column", "d8d0c8")
+A("updraft", "Updraft", "primary", "movement", "Ashwing calls a hot updraft that lifts you 10 m.", "wind_lift", {"height": 10.0}, 8, 0, "wind_column", "d8d0c8")
+A("ash_glide", "Ash Glide", "secondary", "movement", "Glide on Ashwing's smoky currents for 12 seconds.", "glide", {"duration": 12.0}, 20, 2, "wind_column", "d8d0c8")
+A("thermal_spiral", "Thermal Spiral", "signature", "signature", "A spiral of hot air carries you 18 m up and lets you glide for 10 seconds.", "combo", combo(("wind_lift", {"height": 18.0}), ("glide", {"duration": 10.0})), 60, 4, "wind_column", "ffb347")
+
+EXTRA.setdefault("cindercub", {}).update({"abilities": PSA(["ember_coat", "hearth_paw", "kindle", "blaze_purr"]), "model_ready": True, "family": "cindercub", "acquisition": PSA(["explore"]),
+    "description": "A chunky charcoal bear cub. Cracks in its chest show a glowing ember heart, and a little smoke curls from its round ears when it's pleased.",
+    "habitat": "Ember Village", "palette": PCA(["2b2624", "ff8a3a", "5a4a40"]), "locomotion": "quad", "personality": "playful",
+    "lore": "Ember Village families keep a warm stone by the door, just in case a Cindercub wants a nap.",
+    "originality_notes": "Redesigned from a fire kitten to a bear cub with an ember heart to avoid resemblance to well-known fire cats."})
+EXTRA.setdefault("magmole", {}).update({"abilities": PSA(["heat_sense", "cooling_crust", "burrow_break", "magma_tunnel"]), "model_ready": True, "family": "magmole", "acquisition": PSA(["explore"]),
+    "description": "A sturdy burrower armoured in plates of cooled volcanic glass. Its great digging claws glow at the tips, and obsidian rims protect its tiny eyes.",
+    "habitat": "Ashen Caverns", "palette": PCA(["3a2c28", "ff6a1f", "6b5a50"]), "locomotion": "waddle",
+    "lore": "Magmoles carve the tunnels that keep Emberfall's lava flowing gently instead of all at once."})
+EXTRA.setdefault("ashwing", {}).update({"abilities": PSA(["featherfall", "updraft", "ash_glide", "thermal_spiral"]), "model_ready": True, "family": "ashwing", "acquisition": PSA(["explore"]),
+    "description": "A small round flyer whose ash-grey feathers fade to ember orange at the tips. Two long smoke-ribbon tail feathers trail behind it.",
+    "habitat": "Dragonstone Ridge", "palette": PCA(["6b6461", "f2a14a", "2b2624"]), "locomotion": "fly",
+    "lore": "Ashwings nest in the warm cracks of Dragonstone Ridge and can ride a rising ember for an hour without a flap."})

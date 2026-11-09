@@ -112,6 +112,13 @@ func _color(x: float, z: float, h: float, n: Vector3) -> Color:
 		c = c.lerp(Color("7f8a72"), smoothstep(wl - 0.1, wl - 0.6, h))
 	return c
 
+## Colour for the 2D region map (water, paths and ground as the player sees them).
+func map_color(x: float, z: float) -> Color:
+	if is_water(x, z):
+		return Color("6ab8d8")
+	var h := height(x, z)
+	return _color(x, z, h, normal(x, z)).lightened(0.08)
+
 func build_mesh() -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)

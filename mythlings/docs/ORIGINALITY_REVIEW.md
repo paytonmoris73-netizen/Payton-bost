@@ -33,4 +33,7 @@ leaf-crest along the back, no tufted lion tail.
 | Cloudwell | Raincloud with a water-drop face beneath and a rainbow on top | **Cloud mascots are common; review.** |
 | Blossomere | Long-necked grazer carrying a garden and a blossom tree | **Garden-on-back creatures exist in major franchises; review carefully.** |
 | Astravyth | Layered translucent star-veined wings, crescent crest, three tail-ribbons | **Celestial dragons are a broad genre; review silhouette.** |
+| Cindercub | Charcoal bear cub with a glowing ember heart in cracked chest | **Redesigned away from a fire kitten. Fire-bear creatures exist; review.** |
+| Magmole | Mole in volcanic-glass armour with glowing claws and obsidian eye rims | Needs review |
+| Ashwing | Round ash bird, ember wing tips, smoke-ribbon tail | Needs review |
 | Names | All invented for this project | **Trademark search needed for every creature name and for "Mythlings" itself.** |

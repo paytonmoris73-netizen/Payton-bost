@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "burrow_break"
+display_name = "Burrow Break"
+slot = "secondary"
+category = "environmental"
+description = "Digs through weakened boulders and heated seals within 14 m."
+effect = "reveal"
+params = {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 14.0
+}
+cooldown = 4
+unlock_friendship = 1
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.784, 0.471, 0.227, 1)

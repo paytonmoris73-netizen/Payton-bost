@@ -73,8 +73,8 @@ func open(c: Creature) -> void:
 	# Let the in-world reveal play before the card appears.
 	await get_tree().create_timer(1.5).timeout
 	var where := ""
-	for l in MeadowLevel.LOCATIONS:
-		if MeadowLevel.LOC.has(l[0]) and MeadowLevel.current.at(l[0]).distance_to(c.global_position) < l[2] + 8.0:
+	for l in MeadowLevel.current.locations:
+		if MeadowLevel.current.loc.has(l[0]) and MeadowLevel.current.at(l[0]).distance_to(c.global_position) < l[2] + 8.0:
 			where = l[0]
 			break
 	GameState.discover(c.data.id, where)

@@ -24,6 +24,8 @@ var _ab_buttons: Dictionary = {}  # slot -> Button
 var _ab_labels: Dictionary = {}
 var _ab_cd: Dictionary = {}
 var _hint: Label
+var _swap_btn: Button
+var _swap_box: PanelContainer
 var _hint_t := 0.0
 var _useful := ""
 var _ride_btn: Button
@@ -81,7 +83,7 @@ func build(p: Player, l: MeadowLevel) -> void:
 	_build_nav(root)
 	_build_actions(root)
 	_build_overlays(root)
-	cam_zone.blockers = [_interact_btn, _ride_btn, _jump_btn, _cam_btn, _nav, _quest_card] + _ab_buttons.values()
+	cam_zone.blockers = [_interact_btn, _ride_btn, _jump_btn, _cam_btn, _nav, _quest_card, _swap_btn, _swap_box] + _ab_buttons.values()
 	# Signals
 	Events.xp_changed.connect(func(_a, _b, _c): _refresh_profile())
 	Events.currency_changed.connect(func(_c, _a): _refresh_currencies())
@@ -322,6 +324,15 @@ func _build_actions(root: Control) -> void:
 		_cam_far = not _cam_far
 		player.set_camera_distance(7.5 if _cam_far else 5.2))
 	cluster.add_child(_cam_btn)
+	_swap_btn = _round_button("paw", 72)
+	_swap_btn.position = Vector2(-330, -500)
+	_swap_btn.pressed.connect(_toggle_swap)
+	cluster.add_child(_swap_btn)
+	_swap_box = PanelContainer.new()
+	_swap_box.theme_type_variation = "DarkCard"
+	_swap_box.visible = false
+	_swap_box.position = Vector2(-760, -620)
+	cluster.add_child(_swap_box)
 	_ride_btn = _round_button("ride", 96)
 	_ride_btn.position = Vector2(-256, -392)
 	_ride_btn.pressed.connect(_toggle_ride)
@@ -490,6 +501,56 @@ func _toggle_ride() -> void:
 		if c and player.can_mount(c):
 			player.mount_creature(c)
 	_refresh_ride()
+
+## Quick companion switch without opening any menu.
+func _toggle_swap() -> void:
+	_swap_box.visible = not _swap_box.visible
+	if not _swap_box.visible:
+		return
+	UIKit.clear(_swap_box)
+	var v := UIKit.vbox(6)
+	v.add_child(UIKit.label("Switch companion", "HudLabel", 18))
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override("h_separation", 6)
+	row.add_theme_constant_override("v_separation", 6)
+	row.custom_minimum_size.x = 420
+	for c in Evolution.owned_forms():
+		if c.is_colossal() or GameState.friendship_level(c.id) < 1:
+			continue
+		var b := Button.new()
+		b.theme_type_variation = "HudButton"
+		b.focus_mode = Control.FOCUS_NONE
+		b.custom_minimum_size = Vector2(96, 96)
+		var cv := UIKit.vbox(0)
+		cv.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		cv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var pt := CreaturePortrait.new()
+		pt.setup(c, true)
+		pt.custom_minimum_size = Vector2(60, 60)
+		pt.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		cv.add_child(pt)
+		var nl := UIKit.label(c.display_name, "HudLabel", 13)
+		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cv.add_child(nl)
+		b.add_child(cv)
+		if GameState.companion() == c.id:
+			b.modulate = Palette.GOLD
+		var cid: String = c.id
+		b.pressed.connect(func():
+			_swap_box.visible = false
+			if c.size_class == "large":
+				var msg := level.summon(cid)
+				if msg != "":
+					show_toast("Not enough room", msg, "map")
+			else:
+				GameState.set_companion(cid)
+			_refresh_ability())
+		UIKit.attach_press_feedback(b)
+		row.add_child(b)
+	if row.get_child_count() == 0:
+		row.add_child(UIKit.label("Befriend Mythlings (friendship 1) to bring them along.", "HudLabel", 15, Color.WHITE, true))
+	v.add_child(row)
+	_swap_box.add_child(v)
 
 func _use_ability(slot := "primary") -> void:
 	var c: Creature = level.companion_creature()

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_ashwing"
+title = "On Smoky Wings"
+category = "creature"
+region = "emberfall"
+description = "Ashwings ride the updrafts on Dragonstone Ridge."
+objectives = Array[Dictionary]([{
+"event": "discover:ashwing",
+"count": 1,
+"label": "Find the Ashwing on Dragonstone Ridge"
+}, {
+"event": "use_ability:updraft",
+"count": 1,
+"label": "Ride an Updraft"
+}])
+rewards = {
+"xp": 100,
+"gold": 80
+}
+prerequisites = PackedStringArray("e_main_01")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 65
+map_marker = "ashwing"

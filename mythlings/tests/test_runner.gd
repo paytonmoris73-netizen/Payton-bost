@@ -94,7 +94,7 @@ func test_data() -> void:
 			check(DB.creature(e.to) != null, "%s evolves into a real form" % c.id)
 			check(not e.requirements.is_empty(), "%s evolution has visible requirements" % c.id)
 	for a in DB.abilities.values():
-		check(a.effect in ["reveal", "highlight", "harvest", "dash", "glide", "wind_lift", "root_bridge", "swim_boost", "regrow", "flight", "combo", "region_locked", "passive_sense", "passive_yield", "passive_speed", "passive_luck", "passive_calm", "passive_glow"], "ability %s has a handled effect (%s)" % [a.id, a.effect])
+		check(a.effect in ["reveal", "highlight", "harvest", "dash", "glide", "wind_lift", "root_bridge", "swim_boost", "regrow", "flight", "combo", "region_locked", "passive_sense", "passive_yield", "passive_speed", "passive_luck", "passive_calm", "passive_glow", "crust", "passive_glide"], "ability %s has a handled effect (%s)" % [a.id, a.effect])
 	# No creature is purchase-only.
 	for c in DB.creatures.values():
 		check(c.discovery_hint != "", "%s has a gameplay discovery path" % c.id)
@@ -361,6 +361,7 @@ func test_gameplay() -> void:
 	ui.interact_panel.close()
 	check(not p.input_locked, "closing interaction menu unlocks movement")
 	await test_creature_systems(lvl, p, ui)
+	await test_emberfall()
 	section("save after play")
 	check(SaveManager.save_game(), "save after full session")
 	var snapshot := JSON.stringify(GameState.data)
@@ -520,6 +521,101 @@ func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
 		p._physics_process(1.0 / 60.0)
 	check(p.global_position.y > ay + 3.0, "Astravyth flies")
 	p.jump_held = false
+
+func test_emberfall() -> void:
+	section("emberfall region")
+	var r: RegionData = DB.region("emberfall")
+	check(r.playable and r.unlock_level == 5, "Emberfall is playable from level 5")
+	check(Quests.is_completed("q_main_06"), "meadow story unlocks the region")
+	GameState.data.player.region = "emberfall"
+	game.queue_free()
+	await _frames(3)
+	game = load("res://scenes/main/game.tscn").instantiate()
+	add_child(game)
+	await _frames(3)
+	var lvl: MeadowLevel = MeadowLevel.current
+	var p: Player = lvl.player
+	var ui: GameUI = game.ui
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	p.input_locked = false
+	check(lvl is EmberfallLevel and lvl.region_id == "emberfall", "Emberfall level loads")
+	check(lvl.creatures.has("cindercub") and lvl.creatures.has("magmole") and lvl.creatures.has("ashwing"), "Emberfall Mythlings spawn")
+	check(not lvl.creatures.has("sunfox") or lvl.creatures.sunfox.mode == Creature.Mode.COMPANION, "meadow wild Mythlings stay in the meadow")
+	check(Quests.is_active("e_main_01"), "Emberfall story quest started")
+	var brenna: NPC = null
+	for n in lvl.get_children():
+		if n is NPC and n.npc_id == "brenna":
+			brenna = n
+	brenna.interact(p)
+	await _frames(2)
+	check(Quests.is_completed("e_main_01") and Quests.is_active("e_main_02"), "talking to Brenna advances the story")
+	for id in ["cindercub", "magmole", "ashwing"]:
+		GameState.discover(id)
+		GameState.add_friendship(id, 75)
+	await _frames(2)
+	check(Quests.is_completed("e_main_02"), "befriending Cindercub completes quest")
+	# Lava hazard.
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	p.input_locked = false
+	var lz := 30.0
+	var lx := EmberTerrain.lava_x(lz)
+	p._safe_pos = lvl.ground(lx - 14.0, lz) + Vector3(0, 0.5, 0)
+	p.global_position = Vector3(lx, EmberTerrain.LAVA_Y - 0.3, lz)
+	p._physics_process(1.0 / 60.0)
+	check(p.global_position.distance_to(p._safe_pos) < 2.0, "lava sends the Keeper back to safe ground")
+	# Cooling Crust.
+	GameState.set_companion("magmole")
+	lvl.refresh_creatures()
+	var mag: Creature = lvl.creatures.magmole
+	p.global_position = lvl.ground(lx - 8.0, lz) + Vector3(0, 0.5, 0)
+	p.rotation.y = -PI * 0.5  # face +X, toward the lava
+	check(Abilities.activate(mag, "cooling_crust") == "", "Cooling Crust works beside lava")
+	await _frames(2)
+	check(get_tree().get_nodes_in_group("lava_crust").size() >= 2, "crust stepping stones appear")
+	check(Quests.is_completed("e_crust"), "Crust Walker quest completes")
+	# Forge puzzle: seal is blocked until all braziers are lit.
+	var forge := lvl.at("forgotten_forge")
+	p.global_position = forge + Vector3(0, 1.0, 0)
+	GameState.visit("forgotten_forge")
+	var seal_msg := Abilities.activate(mag, "burrow_break")
+	check(seal_msg.contains("braziers"), "seal refuses until braziers are lit: '%s'" % seal_msg)
+	GameState.set_companion("cindercub")
+	lvl.refresh_creatures()
+	var cub: Creature = lvl.creatures.cindercub
+	check(Abilities.activate(cub, "kindle") == "", "Kindle lights the braziers")
+	check(GameState.flag("ab_forge_brazier_0") and GameState.flag("ab_forge_brazier_1") and GameState.flag("ab_forge_brazier_2"), "all three braziers lit")
+	GameState.set_companion("magmole")
+	lvl.refresh_creatures()
+	mag = lvl.creatures.magmole
+	Abilities._ready_at.clear()
+	check(Abilities.activate(mag, "burrow_break") == "", "earth ability cracks the heated seal")
+	await _frames(2)
+	check(Quests.is_completed("e_main_03"), "The Forgotten Forge completes (two-companion puzzle)")
+	# Warm stones on the ridge.
+	GameState.set_companion("cindercub")
+	lvl.refresh_creatures()
+	cub = lvl.creatures.cindercub
+	Abilities._ready_at.clear()
+	p.global_position = lvl.ground(-52, -9) + Vector3(0, 1, 0)
+	var bp := Abilities.activate(cub, "blaze_purr")
+	check(bp == "", "Blaze Purr warms stones: '%s' (friendship %d)" % [bp, GameState.friendship_level("cindercub")])
+	var raised := 0
+	for i in 5:
+		if GameState.flag("ab_ridge_step_%d" % i):
+			raised += 1
+	check(raised >= 3, "ridge steps rise (%d)" % raised)
+	# Ashwing passive softens falls.
+	GameState.set_companion("ashwing")
+	lvl.refresh_creatures()
+	check(Abilities.featherfall_active(), "Featherfall passive active")
+	ui.open_panel("map", {})
+	await _frames(2)
+	check(ui.panels.map.visible, "map opens in Emberfall")
+	ui.panels.map.close()
+	await get_tree().create_timer(0.3).timeout
+	GameState.data.player.region = "meadow"
 
 func _satisfy(cid: String, req: Dictionary) -> void:
 	if req.has("friendship"):

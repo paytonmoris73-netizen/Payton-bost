@@ -47,7 +47,15 @@ const LOCATIONS := [
 	["hidden_cave", "Glimmer Grotto", 6.0],
 ]
 
-var terrain := MeadowTerrain.new()
+var terrain: MeadowTerrain = MeadowTerrain.new()
+## Per-level layout (subclasses replace these). UI reads them through `current`.
+var region_id := "meadow"
+var loc: Dictionary = LOC
+var locations: Array = LOCATIONS
+var native: Array = ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail"]
+var sanctuary_key := "ancient_oak"
+var spawn_key := "spawn"
+var music := "music_meadow"
 var sky: SkyCycle
 var player: Player
 var obstacles: Array = []  # Vector3(x, z, radius)
@@ -69,8 +77,25 @@ func _exit_tree() -> void:
 	if current == self:
 		current = null
 
+## Location tables for UI when no level is loaded (e.g. main menu).
+static func location_list() -> Array:
+	return current.locations if current else LOCATIONS
+
+static func location_name(id: String) -> String:
+	for l in location_list():
+		if l[0] == id:
+			return l[1]
+	for l in LOCATIONS:
+		if l[0] == id:
+			return l[1]
+	return id.capitalize()
+
+## True if the Keeper is near a river/lava gap a bridge ability could cross.
+func near_gap(p: Vector3) -> bool:
+	return absf(p.x - MeadowTerrain.river_x(p.z)) < 14.0 and p.z > MeadowTerrain.CLIFF_Z
+
 func at(key: String, lift := 0.0) -> Vector3:
-	var v: Vector2 = LOC[key]
+	var v: Vector2 = loc[key]
 	return Vector3(v.x, terrain.height(v.x, v.y) + lift, v.y)
 
 func ground(x: float, z: float) -> Vector3:
@@ -1034,10 +1059,10 @@ func nearest_butterfly(p: Vector3, max_d: float) -> Node3D:
 	return best
 
 func _build_locations() -> void:
-	for l in LOCATIONS:
+	for l in locations:
 		var trig := LocationTrigger.new()
 		trig.setup(l[0], l[1], l[2])
-		trig.position = at(l[0]) if LOC.has(l[0]) else Vector3.ZERO
+		trig.position = at(l[0]) if loc.has(l[0]) else Vector3.ZERO
 		add_child(trig)
 
 func _build_npcs() -> void:
@@ -1108,8 +1133,10 @@ func quest_target_position() -> Vector3:
 				if best == Vector3.INF or n.global_position.distance_to(p) < best.distance_to(p):
 					best = n.global_position
 		return best
-	if key == "" or not LOC.has(key):
-		if creatures.has(key):
+	if qd.region != region_id:
+		return Vector3.INF
+	if key == "" or not loc.has(key):
+		if creatures.has(key) and is_instance_valid(creatures[key]):
 			return creatures[key].global_position
 		return Vector3.INF
 	if creatures.has(key) and is_instance_valid(creatures[key]):
@@ -1138,18 +1165,18 @@ func _on_night(n: bool) -> void:
 func habitat_slots() -> int:
 	return [0, 2, 4, 6][clampi(GameState.sanctuary_stage("oak"), 0, 3)]
 
-const NATIVE := ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail"]
-
 func refresh_creatures() -> void:
 	var habitat: Array = GameState.data.flags.get("habitat", [])
 	var comp := GameState.companion()
-	var sanctuary := at("ancient_oak")
+	var sanctuary := at(sanctuary_key)
 	var wanted := {}
-	var candidates: Array = NATIVE.duplicate()
+	var candidates: Array = native.duplicate()
 	for c in DB.creatures.values():
 		if c.model_ready and not (c.id in candidates) and GameState.is_discovered(c.id):
-			candidates.append(c.id)
-	if not ("verdantus" in candidates):
+			# Owned Mythlings from other regions only appear as companion or when summoned.
+			if c.region == region_id or c.id == comp:
+				candidates.append(c.id)
+	if region_id == "meadow" and not ("verdantus" in candidates):
 		candidates.append("verdantus")
 	for id in candidates:
 		var d: CreatureData = DB.creature(id)
@@ -1160,9 +1187,9 @@ func refresh_creatures() -> void:
 			continue
 		var mode := Creature.Mode.WILD
 		var home := sanctuary + Vector3(-8, 0, 9)
-		if LOC.has(id):
+		if loc.has(id):
 			home = at(id)
-		elif LOC.has(d.evolves_from):
+		elif loc.has(d.evolves_from):
 			home = at(d.evolves_from) + Vector3(3, 0, 3)
 		if id == "bloomtail":
 			if GameState.sanctuary_stage("oak") < 2 and not GameState.is_discovered(id):
@@ -1170,10 +1197,12 @@ func refresh_creatures() -> void:
 			home = sanctuary + Vector3(-5, 0, 7)
 		if id == "verdantus" and GameState.sanctuary_stage("shrine") < 1 and not GameState.is_discovered(id):
 			continue
+		if id == "verdantus" and region_id != "meadow" and id != comp:
+			continue
 		var summon_only: bool = d.is_colossal() and id != "verdantus"
 		if id == comp:
 			mode = Creature.Mode.COMPANION
-		elif id in habitat:
+		elif id in habitat and region_id == "meadow":
 			mode = Creature.Mode.HABITAT
 			var a := float(habitat.find(id)) * 1.1
 			home = sanctuary + Vector3(cos(a) * 7.0, 0, sin(a) * 7.0)
@@ -1293,6 +1322,11 @@ func spawn_root_bridge(p: Player, length: float, duration: float, width := 3.0) 
 	tw.tween_property(root, "scale", Vector3(1, 1, 0.02), 1.0)
 	tw.tween_callback(root.queue_free)
 	root.add_to_group("root_bridge")
+
+## Cooling Crust: basalt stepping platforms over lava ahead of the Keeper.
+## Base level has no lava, so it makes none.
+func spawn_crust(_p: Player, _duration: float) -> int:
+	return 0
 
 func companion_creature() -> Creature:
 	return creatures.get(GameState.companion())

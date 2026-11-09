@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_ridge"
+title = "Stairs of Warmth"
+category = "exploration"
+region = "emberfall"
+description = "Cold stones lie along the path up Dragonstone Ridge. Warm them and they'll rise into steps."
+objectives = Array[Dictionary]([{
+"event": "ability:warm_stone",
+"count": 5,
+"label": "Raise the warm stones (Cindercub's Hearth Paw)"
+}])
+rewards = {
+"xp": 120,
+"crystals": 10
+}
+prerequisites = PackedStringArray("e_main_02")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 63
+map_marker = ""

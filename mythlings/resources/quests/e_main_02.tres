@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_main_02"
+title = "A Warm Welcome"
+category = "main"
+region = "emberfall"
+description = "A Cindercub has been seen near Ember Village. Find it and befriend it."
+objectives = Array[Dictionary]([{
+"event": "discover:cindercub",
+"count": 1,
+"label": "Find the Cindercub near Ember Village"
+}, {
+"event": "befriend:cindercub",
+"count": 1,
+"label": "Become friends with Cindercub"
+}])
+rewards = {
+"xp": 100,
+"gold": 60,
+"items": {
+"emberstone": 2
+}
+}
+prerequisites = PackedStringArray("e_main_01")
+min_level = 1
+auto_start = true
+giver = "Smith Brenna"
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 61
+map_marker = "cindercub"

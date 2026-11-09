@@ -155,8 +155,8 @@ for (iid, name, cat, desc, icon, col, stack, sell) in I:
 R = [
  ("meadow","Whispering Meadow","Rolling green hills, flower fields, an old windmill and the great Ancient Oak. The heart of every Keeper's journey.","Beginner",1,"",True,"8fcf6a","f4e27a",(0.24,0.62),
   [("meadow_village","Meadow Village","A cosy village of timber houses, gardens and a slow-turning windmill."),("whispering_woods","Whispering Woods","Tall trees whose leaves seem to murmur when the wind is still."),("sunstone_river","Sunstone River","A clear river crossed by an ancient stone bridge, fed by a misty waterfall."),("ancient_oak","Ancient Oak Sanctuary","An abandoned sanctuary around the oldest tree in the land."),("butterfly_clearing","Butterfly Clearing","A sunlit glade where butterflies gather by the hundred.")],"verdantus","wood"),
- ("emberfall","Emberfall Highlands","Volcanic peaks, lava-lit caves, red forests and the ruins of an ancient forge.","Intermediate",6,"q_main_06",False,"e4693a","ffb347",(0.62,0.28),
-  [("ember_village","Ember Village",""),("ashen_caverns","Ashen Caverns",""),("dragonstone_ridge","Dragonstone Ridge",""),("cinder_lake","Cinder Lake",""),("forgotten_forge","The Forgotten Forge","")],"ignaroth","emberstone"),
+ ("emberfall","Emberfall Highlands","Volcanic peaks, lava-lit caves, red forests and the ruins of an ancient forge.","Intermediate",5,"q_main_06",True,"e4693a","ffb347",(0.62,0.28),
+  [("ember_village","Ember Village","A village of basalt houses around an ever-burning brazier."),("ashen_caverns","Ashen Caverns","Caves under the northern cliff, glittering with emberstone."),("dragonstone_ridge","Dragonstone Ridge","A jagged ridge of basalt spires; warm stones lead to its lookout."),("cinder_lake","Cinder Lake","A steaming lake of warm, dark water."),("forgotten_forge","The Forgotten Forge","A ruined forge east of the lava river, sealed for a century.")],"ignaroth","emberstone"),
  ("tideglass","Tideglass Coast","Turquoise seas, coral reefs, sea caves and a temple beneath the waves.","Intermediate",8,"q_main_06",False,"3d9bd6","9ee3e8",(0.18,0.27),
   [("tideglass_harbor","Tideglass Harbor",""),("coral_gardens","Coral Gardens",""),("pearl_caverns","Pearl Caverns",""),("sunken_temple","Sunken Temple",""),("moonlit_beach","Moonlit Beach","")],"thalassor","shell"),
  ("frostroot","Frostroot Vale","Snow-laden forests, frozen waterfalls and northern lights over a mirror-still lake.","Advanced",12,"q_main_06",False,"8fd3ec","c9b6ff",(0.83,0.22),
@@ -174,8 +174,8 @@ for (rid, name, desc, diff, lvl, uq, playable, c1, c2, pos, locs, colossal, res)
         "creatures": PSA(crs), "colossal": colossal, "resource_item": res})
 
 # ------------------------------------------------------------------ quests
-def Q(qid, title, cat, desc, objs, rewards, prereq=(), lvl=1, giver="", start=(), end=(), order=0, marker="", auto=True):
-    write("quests", "QuestData", "quest_data", {"id": qid, "title": title, "category": cat, "region": "meadow", "description": desc,
+def Q(qid, title, cat, desc, objs, rewards, prereq=(), lvl=1, giver="", start=(), end=(), order=0, marker="", auto=True, region="meadow"):
+    write("quests", "QuestData", "quest_data", {"id": qid, "title": title, "category": cat, "region": region, "description": desc,
         "objectives": TypedDictArray([{"event": e, "count": c, "label": l} for (e, c, l) in objs]), "rewards": rewards,
         "prerequisites": PSA(list(prereq)), "min_level": lvl, "auto_start": auto, "giver": giver, "start_dialogue": PSA(list(start)),
         "end_dialogue": PSA(list(end)), "sort_order": order, "map_marker": marker})
@@ -235,6 +235,23 @@ Q("d_pet","Gentle Hands","daily","Spend a little time with your Mythlings today.
   [("interact:*",3,"Interact with Mythlings")],{"xp":30,"gold":30},order=50)
 Q("d_gather","Gatherer's Stroll","daily","Collect a few resources on today's walk. Optional.",
   [("collect:*",10,"Collect resources")],{"xp":30,"gold":40},order=51)
+
+Q("e_main_01","Into the Highlands","main","Emberfall Highlands are open to you. Travel there from the World Map and find Smith Brenna in Ember Village.",
+  [("talk:brenna",1,"Talk to Smith Brenna in Ember Village")],{"xp":80,"gold":60},["q_main_06"],lvl=5,giver="Smith Brenna",order=60,marker="brenna",region="emberfall",
+  end=["A Keeper from the meadow! Mind the lava. It looks pretty but it isn't friendly.","Our Mythlings hide when the mountain grumbles. A Cindercub has been napping by the village fire, though. Go and say hello."])
+Q("e_main_02","A Warm Welcome","main","A Cindercub has been seen near Ember Village. Find it and befriend it.",
+  [("discover:cindercub",1,"Find the Cindercub near Ember Village"),("befriend:cindercub",1,"Become friends with Cindercub")],{"xp":100,"gold":60,"items":{"emberstone":2}},["e_main_01"],giver="Smith Brenna",order=61,marker="cindercub",region="emberfall")
+Q("e_main_03","The Forgotten Forge","main","The old forge east of the lava river is sealed. Light its three braziers with a fire ability, then crack the heated seal with an earth ability. You'll need two different companions.",
+  [("reach:forgotten_forge",1,"Cross the lava river to the Forgotten Forge"),("ability:volcanic_structure",3,"Light the forge braziers (fire: Cindercub's Kindle)"),("ability:forge_seal",1,"Crack the heated seal (earth: Magmole, Pebblit or Cairnback)")],
+  {"xp":300,"gold":250,"crystals":20},["e_main_02"],giver="Smith Brenna",order=62,marker="forgotten_forge",region="emberfall",
+  start=["The forge needs fire AND strength. Light the braziers first, then switch to a digger or a stone-friend to break the seal.","You can swap companions any time with the companion button on your screen."],
+  end=["You hear that? The forge is breathing again. Emberfall owes you, Keeper."])
+Q("e_ridge","Stairs of Warmth","exploration","Cold stones lie along the path up Dragonstone Ridge. Warm them and they'll rise into steps.",
+  [("ability:warm_stone",5,"Raise the warm stones (Cindercub's Hearth Paw)")],{"xp":120,"crystals":10},["e_main_02"],order=63,region="emberfall")
+Q("e_crust","Crust Walker","creature","A Magmole can cool lava into stepping stones. Find one in the Ashen Caverns and try it.",
+  [("discover:magmole",1,"Find the Magmole in the Ashen Caverns"),("use_ability:cooling_crust",1,"Use Cooling Crust on the lava")],{"xp":100,"gold":80},["e_main_01"],order=64,marker="magmole",region="emberfall")
+Q("e_ashwing","On Smoky Wings","creature","Ashwings ride the updrafts on Dragonstone Ridge.",
+  [("discover:ashwing",1,"Find the Ashwing on Dragonstone Ridge"),("use_ability:updraft",1,"Ride an Updraft")],{"xp":100,"gold":80},["e_main_01"],order=65,marker="ashwing",region="emberfall")
 
 # ------------------------------------------------------------------ shop
 def P(pid, name, cat, desc, cur, price, grants=None, **kw):

@@ -59,7 +59,13 @@ static func broadleaf_tree(variant := 0) -> ArrayMesh:
 		var greens := [Color("4f8a3a"), Color("5f9c42"), Color("3f7533"), Color("71a84a")]
 		if variant == 2:
 			greens = [Color("8fae3c"), Color("a8b845"), Color("7a9a36"), Color("c2b24a")]
-		var h := 3.2 + variant * 0.6
+		if variant == 3:
+			greens = [Color("b8452a"), Color("d0602e"), Color("9a3524"), Color("e0843a")]
+			trunk = Color("3a2a22")
+		if variant == 4:
+			greens = [Color("d88a2e"), Color("e8a63a"), Color("b86a26"), Color("c8502a")]
+			trunk = Color("3a2a22")
+		var h := 3.2 + (variant % 3) * 0.6
 		m.add(K.tube(K.bezier(Vector3.ZERO, Vector3(0.2, h * 0.5, 0), Vector3(-0.1, h, 0.1), 5), K.taper(5, 0.38, 0.18), 8), Transform3D.IDENTITY, trunk)
 		for k in 3:
 			var a := k * TAU / 3.0 + 0.5
@@ -193,8 +199,11 @@ static func house(variant := 0) -> ArrayMesh:
 		var m := MeshMerger.new()
 		var wall: Color = [Color("f2e6cf"), Color("efd9b8"), Color("e8e0d0")][variant % 3]
 		var roof: Color = [Color("b4553c"), Color("6f8a4a"), Color("4f6f8f")][variant % 3]
+		if variant >= 10:  # Emberfall: basalt walls, ember-red and slate roofs
+			wall = [Color("6a5a50"), Color("7a6656"), Color("5a4c44")][variant % 3]
+			roof = [Color("8a2a1a"), Color("3a3533"), Color("a5482a")][variant % 3]
 		var timber := Color("6b4a32")
-		var w := 5.0 + variant * 0.6
+		var w := 5.0 + (variant % 10) * 0.6
 		var d := 4.2
 		m.put(K.box(Vector3(w + 0.3, 0.5, d + 0.3)), Vector3(0, 0.25, 0), Color("9a958a"))
 		m.put(K.box(Vector3(w, 3.0, d)), Vector3(0, 2.0, 0), wall)
@@ -605,4 +614,110 @@ static func bird() -> ArrayMesh:
 	return cached("bird", func():
 		var m := MeshMerger.new()
 		m.put(K.capsule(0.06, 0.3), Vector3.ZERO, Color("3a3430"), Vector3(90, 0, 0))
+		return m.commit())
+
+# ------------------------------------------------------------------ Emberfall
+static func dead_tree(variant := 0) -> ArrayMesh:
+	return cached("dead%d" % variant, func():
+		var m := MeshMerger.new()
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 1300 + variant
+		var bark := Color("2a2220")
+		var h := 4.0 + variant
+		m.add(K.tube(K.bezier(Vector3.ZERO, Vector3(0.3, h * 0.5, 0.1), Vector3(-0.2, h, 0), 6), K.taper(6, 0.32, 0.08), 7), Transform3D.IDENTITY, bark)
+		for k in 5:
+			var a := rng.randf() * TAU
+			var y := h * rng.randf_range(0.45, 0.9)
+			var base := Vector3(0, y, 0)
+			var tip := base + Vector3(cos(a) * 1.6, rng.randf_range(0.4, 1.4), sin(a) * 1.6)
+			m.add(K.tube(K.bezier(base, base.lerp(tip, 0.5) + Vector3(0, 0.3, 0), tip, 4), K.taper(4, 0.12, 0.02), 5), Transform3D.IDENTITY, bark)
+			if k % 2 == 0:
+				m.put(K.sphere(0.08, 5, 3), tip, Color("ff7a2a"))
+		return m.commit())
+
+static func spire(variant := 0) -> ArrayMesh:
+	return cached("spire%d" % variant, func():
+		var m := MeshMerger.new()
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 1400 + variant
+		for k in 3:
+			var hh := rng.randf_range(4.0, 9.0) * (1.0 - k * 0.25)
+			m.put(K.cyl(0.1, rng.randf_range(0.8, 1.4), hh, 6), Vector3(rng.randf_range(-1.2, 1.2), hh * 0.5, rng.randf_range(-1.2, 1.2)), [Color("2b2524"), Color("3a302c"), Color("221d1d")][k], Vector3(rng.randf_range(-8, 8), rng.randf() * 60, rng.randf_range(-8, 8)))
+		m.put(K.box(Vector3(0.1, 2.0, 0.05)), Vector3(0.6, 1.5, 0.75), Color("ff6a1f"), Vector3(0, 30, 10))
+		return m.commit())
+
+static func ember_rock() -> ArrayMesh:
+	return cached("emberrock", func():
+		var m := MeshMerger.new()
+		for k in 4:
+			m.put(K.sphere(0.35 - k * 0.05, 6, 3), Vector3(cos(k * 1.7) * 0.4, 0.2 + (0.2 if k == 3 else 0.0), sin(k * 1.7) * 0.4), Color("2b2524"), Vector3(0, k * 40, 0), Vector3(1, 0.7, 1))
+		for k in 5:
+			m.put(K.cyl(0.0, 0.1, 0.5, 5), Vector3(cos(k * 1.3) * 0.25, 0.35, sin(k * 1.3) * 0.25), Color("ff8a3a"), Vector3(cos(k * 1.3) * 20, 0, sin(k * 1.3) * 20))
+		return m.commit())
+
+static func brazier(lit: bool) -> ArrayMesh:
+	return cached("brazier%s" % lit, func():
+		var m := MeshMerger.new()
+		m.put(K.cyl(0.35, 0.5, 1.2, 8), Vector3(0, 0.6, 0), Color("3a302c"))
+		m.put(K.cyl(0.8, 0.5, 0.45, 10), Vector3(0, 1.4, 0), Color("4a3a32"))
+		for k in 4:
+			m.put(K.box(Vector3(0.12, 0.5, 0.12)), Vector3(cos(k * PI / 2) * 0.75, 1.55, sin(k * PI / 2) * 0.75), Color("2b2524"))
+		if lit:
+			m.put(K.sphere(0.55, 10, 5), Vector3(0, 1.7, 0), Color("ffb347"), Vector3.ZERO, Vector3(1, 0.6, 1))
+			m.put(K.cyl(0.0, 0.45, 1.2, 8), Vector3(0, 2.3, 0), Color("ff6a1f"))
+		else:
+			m.put(K.sphere(0.5, 8, 4), Vector3(0, 1.62, 0), Color("2a2220"), Vector3.ZERO, Vector3(1, 0.3, 1))
+		return m.commit())
+
+static func forge_ruins() -> ArrayMesh:
+	return cached("forge", func():
+		var m := MeshMerger.new()
+		var c := Color("4a3f3a")
+		for k in 10:
+			var a := TAU * k / 10.0
+			if k == 7 or k == 8:
+				continue  # gap for the sealed door
+			var hh := 2.5 + (k % 3) * 1.4
+			m.put(K.box(Vector3(3.4, hh, 0.9)), Vector3(cos(a) * 10.0, hh * 0.5, sin(a) * 10.0), c if k % 2 else c.darkened(0.15), Vector3(0, -rad_to_deg(a) + 90, 0))
+		m.put(K.cyl(9.6, 10.0, 0.4, 24), Vector3(0, 0.2, 0), Color("3a3330"))
+		m.put(K.box(Vector3(1.6, 0.9, 0.8)), Vector3(0, 0.85, 0), Color("2b2524"))
+		m.put(K.box(Vector3(2.2, 0.35, 0.9)), Vector3(0, 1.45, 0), Color("3a3533"))
+		m.put(K.cyl(0.0, 0.3, 0.9, 4), Vector3(1.4, 1.45, 0), Color("3a3533"), Vector3(0, 0, -90))
+		for k in 4:
+			m.put(K.box(Vector3(0.3, 0.15, 0.3 + k * 0.15)), Vector3(-2.5, 0.5 + k * 0.15, 2.0), Color("ff8a3a") if k == 3 else Color("2b2524"))
+		return m.commit())
+
+static func forge_seal(cracked: bool) -> ArrayMesh:
+	return cached("seal%s" % cracked, func():
+		var m := MeshMerger.new()
+		if not cracked:
+			m.put(K.box(Vector3(6.6, 5.0, 1.2)), Vector3(0, 2.5, 0), Color("3a302c"))
+			m.put(K.torus(1.0, 1.25, 20), Vector3(0, 2.7, -0.62), Color("ff6a1f"), Vector3(90, 0, 0))
+			for k in 6:
+				m.put(K.box(Vector3(0.08, 1.6, 0.05)), Vector3(-1.5 + k * 0.6, 2.2 + (k % 2) * 0.4, -0.63), Color("1e1a19"), Vector3(0, 0, -25 + k * 10))
+		else:
+			for k in 5:
+				m.put(K.box(Vector3(1.2, 0.8, 1.0)), Vector3(-2.2 + k * 1.1, 0.4, -0.6 - (k % 2) * 0.8), Color("3a302c"), Vector3(k * 15, k * 30, k * 10))
+		return m.commit())
+
+static func warm_stone(raised: bool) -> ArrayMesh:
+	return cached("warm%s" % raised, func():
+		var m := MeshMerger.new()
+		if raised:
+			m.put(K.cyl(1.3, 1.4, 1.6, 8), Vector3(0, 0.8, 0), Color("4a3a32"))
+			m.put(K.cyl(1.0, 1.0, 0.06, 8), Vector3(0, 1.62, 0), Color("ff8a3a"))
+		else:
+			m.put(K.cyl(1.3, 1.4, 0.3, 8), Vector3(0, 0.15, 0), Color("3a3533"))
+			m.put(K.torus(0.6, 0.75, 12), Vector3(0, 0.32, 0), Color("6a5a50"), Vector3.ZERO, Vector3(1, 0.3, 1))
+		return m.commit())
+
+static func volcano() -> ArrayMesh:
+	return cached("volcano", func():
+		var m := MeshMerger.new()
+		m.put(K.cyl(18.0, 95.0, 70.0, 12), Vector3(0, 35, 0), Color("2b2524"))
+		m.put(K.cyl(14.0, 40.0, 20.0, 12), Vector3(0, 60, 0), Color("3a302c"))
+		m.put(K.cyl(13.0, 13.0, 1.0, 12), Vector3(0, 70.2, 0), Color("ff6a1f"))
+		for k in 6:
+			var a := k * TAU / 6.0
+			m.put(K.box(Vector3(2.0, 50.0, 1.0)), Vector3(cos(a) * 50.0, 32.0, sin(a) * 50.0), Color("c4481c"), Vector3(-20 * cos(a), -rad_to_deg(a), 20 * sin(a)))
 		return m.commit())

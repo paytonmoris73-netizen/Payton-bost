@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "heat_sense"
+display_name = "Heat Sense"
+slot = "passive"
+category = "exploration"
+description = "Magmole feels hot seams in the rock: the HUD points to weakened boulders and seals within 25 m."
+effect = "passive_sense"
+params = {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 25.0
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(1.0, 0.416, 0.122, 1)

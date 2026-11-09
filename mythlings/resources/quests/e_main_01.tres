@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_main_01"
+title = "Into the Highlands"
+category = "main"
+region = "emberfall"
+description = "Emberfall Highlands are open to you. Travel there from the World Map and find Smith Brenna in Ember Village."
+objectives = Array[Dictionary]([{
+"event": "talk:brenna",
+"count": 1,
+"label": "Talk to Smith Brenna in Ember Village"
+}])
+rewards = {
+"xp": 80,
+"gold": 60
+}
+prerequisites = PackedStringArray("q_main_06")
+min_level = 5
+auto_start = true
+giver = "Smith Brenna"
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray("A Keeper from the meadow! Mind the lava. It looks pretty but it isn't friendly.", "Our Mythlings hide when the mountain grumbles. A Cindercub has been napping by the village fire, though. Go and say hello.")
+sort_order = 60
+map_marker = "brenna"

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "thermal_spiral"
+display_name = "Thermal Spiral"
+slot = "signature"
+category = "signature"
+description = "A spiral of hot air carries you 18 m up and lets you glide for 10 seconds."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "wind_lift",
+"params": {
+"height": 18.0
+}
+}, {
+"effect": "glide",
+"params": {
+"duration": 10.0
+}
+}]
+}
+cooldown = 60
+unlock_friendship = 4
+requires_evolved = false
+vfx = "wind_column"
+color = Color(1.0, 0.702, 0.278, 1)

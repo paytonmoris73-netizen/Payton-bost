@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_main_03"
+title = "The Forgotten Forge"
+category = "main"
+region = "emberfall"
+description = "The old forge east of the lava river is sealed. Light its three braziers with a fire ability, then crack the heated seal with an earth ability. You'll need two different companions."
+objectives = Array[Dictionary]([{
+"event": "reach:forgotten_forge",
+"count": 1,
+"label": "Cross the lava river to the Forgotten Forge"
+}, {
+"event": "ability:volcanic_structure",
+"count": 3,
+"label": "Light the forge braziers (fire: Cindercub's Kindle)"
+}, {
+"event": "ability:forge_seal",
+"count": 1,
+"label": "Crack the heated seal (earth: Magmole, Pebblit or Cairnback)"
+}])
+rewards = {
+"xp": 300,
+"gold": 250,
+"crystals": 20
+}
+prerequisites = PackedStringArray("e_main_02")
+min_level = 1
+auto_start = true
+giver = "Smith Brenna"
+start_dialogue = PackedStringArray("The forge needs fire AND strength. Light the braziers first, then switch to a digger or a stone-friend to break the seal.", "You can swap companions any time with the companion button on your screen.")
+end_dialogue = PackedStringArray("You hear that? The forge is breathing again. Emberfall owes you, Keeper.")
+sort_order = 62
+map_marker = "forgotten_forge"

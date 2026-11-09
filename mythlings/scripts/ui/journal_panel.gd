@@ -266,7 +266,4 @@ func _show_detail(id: String) -> void:
 			_detail.add_child(UIKit.label("• Locked — reach friendship level %d" % (i + 1), "Caption", 17))
 
 func _loc_name(id: String) -> String:
-	for l in MeadowLevel.LOCATIONS:
-		if l[0] == id:
-			return l[1]
-	return id.capitalize() if id != "" else "Whispering Meadow"
+	return MeadowLevel.location_name(id) if id != "" else "Whispering Meadow"

@@ -12,7 +12,7 @@ elements = PackedStringArray("fire")
 rarity = "uncommon"
 size_class = "small"
 personality = "shy"
-description = "A small flyer with smoky, ash-grey feathers that shimmer orange in sunlight."
+description = "A small round flyer whose ash-grey feathers fade to ember orange at the tips. Two long smoke-ribbon tail feathers trail behind it."
 personality_text = "Shy glider that rides the hot updrafts."
 ability_id = ""
 ability_name = ""
@@ -23,7 +23,7 @@ base_stats = {
 "spirit": 11,
 "agility": 11
 }
-palette = PackedColorArray(0.42, 0.392, 0.38, 1, 0.949, 0.631, 0.29, 1)
+palette = PackedColorArray(0.42, 0.392, 0.38, 1, 0.949, 0.631, 0.29, 1, 0.169, 0.149, 0.141, 1)
 model_id = "ashwing"
 locomotion = "fly"
 move_speed = 3.2
@@ -32,4 +32,8 @@ sound_pitch = 1.5
 friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Dragonstone Ridge.", "Shy glider that rides the hot updrafts.", "Ability: unknown.")
 discovery_hint = "Glides on the updrafts of Dragonstone Ridge."
 rideable = false
-model_ready = false
+model_ready = true
+abilities = PackedStringArray("featherfall", "updraft", "ash_glide", "thermal_spiral")
+family = "ashwing"
+acquisition = PackedStringArray("explore")
+lore = "Ashwings nest in the warm cracks of Dragonstone Ridge and can ride a rising ember for an hour without a flap."

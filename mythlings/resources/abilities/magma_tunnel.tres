@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "magma_tunnel"
+display_name = "Magma Tunnel"
+slot = "signature"
+category = "signature"
+description = "Magmole tunnels in a circle: breaks boulders and seals within 30 m and highlights emberstone within 60 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 30.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"items": ["emberstone"],
+"radius": 60.0,
+"duration": 30.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(1.0, 0.416, 0.122, 1)

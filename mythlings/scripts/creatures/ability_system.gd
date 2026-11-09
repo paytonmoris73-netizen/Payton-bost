@@ -67,6 +67,9 @@ func luck_mult() -> float:
 func calm_active() -> bool:
 	return _active_passive("passive_calm") != null
 
+func featherfall_active() -> bool:
+	return _active_passive("passive_glide") != null
+
 func glow_active() -> bool:
 	return _active_passive("passive_glow") != null
 
@@ -111,7 +114,7 @@ func useful_here(cid: String, origin: Vector3, player: Player) -> String:
 					return a.id
 			"root_bridge":
 				var lvl := MeadowLevel.current
-				if lvl and absf(origin.x - MeadowTerrain.river_x(origin.z)) < 14.0 and origin.z > MeadowTerrain.CLIFF_Z:
+				if lvl and lvl.near_gap(origin):
 					return a.id
 	return ""
 
@@ -165,6 +168,10 @@ func _run(effect: String, params: Dictionary, c: Creature, p: Player) -> Diction
 					hits += 1
 			if hits > 0:
 				return {"ok": true, "msg": ""}
+			for at in _targets_in(kinds, origin, radius):
+				var why: String = at.block_reason()
+				if why != "":
+					return {"ok": false, "msg": why}
 			var nearest: AbilityTarget = null
 			var nd := INF
 			for t in get_tree().get_nodes_in_group("ability_target"):
@@ -215,6 +222,11 @@ func _run(effect: String, params: Dictionary, c: Creature, p: Player) -> Diction
 				return {"ok": false, "msg": ""}
 			MeadowLevel.current.spawn_root_bridge(p, float(params.get("length", 14.0)), float(params.get("duration", 25.0)), float(params.get("width", 3.0)))
 			return {"ok": true, "msg": ""}
+		"crust":
+			if p == null or MeadowLevel.current == null:
+				return {"ok": false, "msg": ""}
+			var made: int = MeadowLevel.current.spawn_crust(p, float(params.get("duration", 20.0)))
+			return {"ok": made > 0, "msg": "There's no lava close enough to cool." if made == 0 else ""}
 		"flight":
 			if p == null:
 				return {"ok": false, "msg": ""}

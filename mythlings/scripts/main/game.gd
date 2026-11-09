@@ -7,15 +7,20 @@ var ui: GameUI
 
 func _ready() -> void:
 	GameState.session_active = true
-	level = MeadowLevel.new()
-	level.name = "WhisperingMeadow"
+	var region := String(GameState.data.player.get("region", "meadow"))
+	var rd: RegionData = DB.region(region)
+	if rd == null or not rd.playable:
+		region = "meadow"
+		GameState.data.player.region = "meadow"
+	level = EmberfallLevel.new() if region == "emberfall" else MeadowLevel.new()
+	level.name = region.capitalize()
 	add_child(level)
 	level.build()
 	player = Player.new()
 	player.name = "Player"
 	level.player = player
 	add_child(player)
-	var saved = GameState.data.player.get("position")
+	var saved = GameState.data.player.get("pos_" + region, GameState.data.player.get("position") if region == "meadow" else null)
 	var spawn := level.at("spawn", 0.3)
 	if saved is Array and saved.size() == 3:
 		var sp := Vector3(float(saved[0]), float(saved[1]), float(saved[2]))
@@ -32,10 +37,13 @@ func _ready() -> void:
 	ui = GameUI.new()
 	add_child(ui)
 	ui.setup(player, level)
-	Audio.play_music("music_meadow")
+	Audio.play_music(level.music)
 	Audio.play_ambience("amb_meadow")
 	Quests.refresh_available()
 	Events.game_event.connect(_on_event)
+	if region != "meadow" and not GameState.flag("intro_" + region):
+		GameState.set_flag("intro_" + region)
+		ui.hud.show_banner(DB.region(region).display_name, "A new region")
 	if not GameState.flag("intro_done"):
 		GameState.set_flag("intro_done")
 		_intro()

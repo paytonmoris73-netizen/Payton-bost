@@ -17,6 +17,10 @@ func _ready() -> void:
 	GameState.set_flag("tutorial_step", 99)
 	if "--progress" in OS.get_cmdline_user_args():
 		_progress()
+	var ember := "--ember" in OS.get_cmdline_user_args()
+	if ember:
+		GameState.data.player.region = "emberfall"
+		GameState.data.player.level = 6
 	game = load("res://scenes/main/game.tscn").instantiate()
 	get_tree().root.add_child.call_deferred(game)
 	await get_tree().create_timer(3.0).timeout
@@ -30,6 +34,8 @@ func _ready() -> void:
 		["dusk", Vector3(10, 0, 22), 0.4, -0.25, 0.79],
 		["night", Vector3(10, 0, 22), 0.4, -0.25, 0.92],
 	]
+	if ember:
+		shots = [["e_village", Vector3(-6, 0, 22), 0.2, -0.22, 0.4], ["e_lava", Vector3(26, 0, 30), -1.9, -0.3, 0.42], ["e_forge", Vector3(60, 0, -22), -0.65, -0.2, 0.45], ["e_ridge", Vector3(-30, 0, 4), 1.1, -0.1, 0.62], ["e_lake", Vector3(-24, 0, 44), 0.9, -0.2, 0.7], ["e_night", Vector3(-6, 0, 22), 0.2, -0.22, 0.88]]
 	if "--detail" in OS.get_cmdline_user_args():
 		shots = [["plaza", Vector3(-6, 0, -14), 2.6, -0.28, 0.4], ["windmill", Vector3(24, 0, 30), -0.9, -0.15, 0.62], ["river", Vector3(-26, 0, 40), 1.3, -0.3, 0.45], ["glade", Vector3(-70, 0, 10), 0.6, -0.2, 0.36]]
 	if "--progress" in OS.get_cmdline_user_args():

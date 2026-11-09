@@ -13,6 +13,7 @@ var sky_mat: ProceduralSkyMaterial
 var world_env: WorldEnvironment
 var _night := false
 var paused := false
+var tint := ""  # "" or "ember"
 
 const KEYS := [
 	# t, sun col, sun energy, sky top, horizon, ambient energy, fog col
@@ -99,6 +100,12 @@ func _update() -> void:
 	sun.rotation_degrees = Vector3(-maxf(elev, 12.0), -35.0 + (time - 0.5) * 120.0, 0)
 	sun.light_color = s[0]
 	sun.light_energy = s[1]
+	if tint == "ember":
+		s[0] = s[0].lerp(Color("ffb070"), 0.4)
+		s[2] = s[2].lerp(Color("5a3a3a"), 0.5)
+		s[3] = s[3].lerp(Color("d8885a"), 0.55)
+		s[5] = s[5].lerp(Color("a06a50"), 0.6)
+		env.fog_density = 0.0034
 	sky_mat.sky_top_color = s[2]
 	sky_mat.sky_horizon_color = s[3]
 	sky_mat.ground_horizon_color = s[3].darkened(0.1)

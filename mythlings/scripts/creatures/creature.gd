@@ -245,6 +245,9 @@ func _snap_ground(delta: float) -> void:
 	var g: float = l.terrain.height(global_position.x, global_position.z)
 	var w: float = l.terrain.water_level_at(global_position.x, global_position.z)
 	var y := g
+	if l.terrain.has_method("is_lava") and l.terrain.is_lava(global_position.x, global_position.z):
+		g = maxf(g, EmberTerrain.LAVA_Y + 0.3)
+		y = g
 	if data.locomotion in ["float", "fly"] or data.is_colossal():
 		y = maxf(g, w)
 	elif w > g:
@@ -357,6 +360,8 @@ func _clamp_home() -> void:
 	if off.length() > home_radius:
 		_target = home + off.normalized() * home_radius
 	var l := level()
+	if l and l.terrain.has_method("is_lava") and l.terrain.is_lava(_target.x, _target.z) and not data.is_colossal():
+		_target = global_position
 	if l and l.terrain.is_water(_target.x, _target.z) and not (data.locomotion in ["float", "fly", "swim"]) and not data.is_colossal():
 		_target = global_position
 

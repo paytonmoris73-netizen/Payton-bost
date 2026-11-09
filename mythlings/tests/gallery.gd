@@ -44,8 +44,9 @@ func _ready() -> void:
 		add_child(r)
 		r.rotation_degrees.y = 145
 		var h: float = DB.creature(only).height
-		cam.position = Vector3(0, h * 0.75, h * 2.2 + 1.2)
-		cam.look_at(Vector3(0, h * 0.45, 0))
+		var lift: float = 1.0 if DB.creature(only).locomotion == "fly" and not DB.creature(only).is_colossal() else 0.0
+		cam.position = Vector3(0, h * 0.75 + lift, h * 2.2 + 1.2)
+		cam.look_at(Vector3(0, h * 0.45 + lift, 0))
 		cam.fov = 50
 		if only in ["ignaroth", "astravyth"]:
 			cam.position = Vector3(-14, 8, 10)

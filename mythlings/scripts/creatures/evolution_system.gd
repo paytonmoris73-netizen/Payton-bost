@@ -54,10 +54,7 @@ func requirements(cid: String, evo: Dictionary) -> Array:
 	return out
 
 func _loc_name(id: String) -> String:
-	for l in MeadowLevel.LOCATIONS:
-		if l[0] == id:
-			return l[1]
-	return id.capitalize()
+	return MeadowLevel.location_name(id)
 
 func can_evolve(cid: String, evo: Dictionary) -> bool:
 	if not GameState.is_discovered(cid) or GameState.evolved_to(cid) != "":

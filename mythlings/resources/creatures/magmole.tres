@@ -12,7 +12,7 @@ elements = PackedStringArray("fire", "earth")
 rarity = "uncommon"
 size_class = "small"
 personality = "curious"
-description = "A sturdy burrower armoured in cooled volcanic glass."
+description = "A sturdy burrower armoured in plates of cooled volcanic glass. Its great digging claws glow at the tips, and obsidian rims protect its tiny eyes."
 personality_text = "Curious digger who collects shiny stones."
 ability_id = ""
 ability_name = ""
@@ -23,7 +23,7 @@ base_stats = {
 "spirit": 11,
 "agility": 11
 }
-palette = PackedColorArray(0.227, 0.173, 0.157, 1, 0.91, 0.353, 0.11, 1)
+palette = PackedColorArray(0.227, 0.173, 0.157, 1, 1.0, 0.416, 0.122, 1, 0.42, 0.353, 0.314, 1)
 model_id = "magmole"
 locomotion = "waddle"
 move_speed = 1.6
@@ -32,4 +32,8 @@ sound_pitch = 0.85
 friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near Ashen Caverns.", "Curious digger who collects shiny stones.", "Ability: unknown.")
 discovery_hint = "Tunnels beneath the Ashen Caverns."
 rideable = false
-model_ready = false
+model_ready = true
+abilities = PackedStringArray("heat_sense", "cooling_crust", "burrow_break", "magma_tunnel")
+family = "magmole"
+acquisition = PackedStringArray("explore")
+lore = "Magmoles carve the tunnels that keep Emberfall's lava flowing gently instead of all at once."

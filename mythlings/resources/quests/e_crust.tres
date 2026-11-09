@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_crust"
+title = "Crust Walker"
+category = "creature"
+region = "emberfall"
+description = "A Magmole can cool lava into stepping stones. Find one in the Ashen Caverns and try it."
+objectives = Array[Dictionary]([{
+"event": "discover:magmole",
+"count": 1,
+"label": "Find the Magmole in the Ashen Caverns"
+}, {
+"event": "use_ability:cooling_crust",
+"count": 1,
+"label": "Use Cooling Crust on the lava"
+}])
+rewards = {
+"xp": 100,
+"gold": 80
+}
+prerequisites = PackedStringArray("e_main_01")
+min_level = 1
+auto_start = true
+giver = ""
+start_dialogue = PackedStringArray()
+end_dialogue = PackedStringArray()
+sort_order = 64
+map_marker = "magmole"

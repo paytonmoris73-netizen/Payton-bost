@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "updraft"
+display_name = "Updraft"
+slot = "primary"
+category = "movement"
+description = "Ashwing calls a hot updraft that lifts you 10 m."
+effect = "wind_lift"
+params = {
+"height": 10.0
+}
+cooldown = 8
+unlock_friendship = 0
+requires_evolved = false
+vfx = "wind_column"
+color = Color(0.847, 0.816, 0.784, 1)

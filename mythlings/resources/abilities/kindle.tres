@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "kindle"
+display_name = "Kindle"
+slot = "secondary"
+category = "environmental"
+description = "Lights braziers, ancient volcanic mechanisms and old lanterns within 16 m."
+effect = "reveal"
+params = {
+"kinds": ["volcanic_structure", "dark_lantern"],
+"radius": 16.0
+}
+cooldown = 6
+unlock_friendship = 1
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.702, 0.278, 1)

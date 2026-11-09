@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cooling_crust"
+display_name = "Cooling Crust"
+slot = "primary"
+category = "environmental"
+description = "Cools the lava ahead into basalt stepping stones for 20 seconds."
+effect = "crust"
+params = {
+"duration": 20.0
+}
+cooldown = 25
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(1.0, 0.416, 0.122, 1)

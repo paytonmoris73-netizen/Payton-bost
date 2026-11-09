@@ -12,7 +12,7 @@ elements = PackedStringArray("fire")
 rarity = "common"
 size_class = "small"
 personality = "playful"
-description = "A charcoal-furred kitten whose stripes glow like embers when it purrs."
+description = "A chunky charcoal bear cub. Cracks in its chest show a glowing ember heart, and a little smoke curls from its round ears when it's pleased."
 personality_text = "Playful and warm-hearted; loves curling up on hot stones."
 ability_id = "warm_stone"
 ability_name = "Hearth Paw"
@@ -23,7 +23,7 @@ base_stats = {
 "spirit": 8,
 "agility": 9
 }
-palette = PackedColorArray(0.169, 0.149, 0.141, 1, 0.941, 0.478, 0.165, 1)
+palette = PackedColorArray(0.169, 0.149, 0.141, 1, 1.0, 0.541, 0.227, 1, 0.353, 0.29, 0.251, 1)
 model_id = "cindercub"
 locomotion = "quad"
 move_speed = 3.0
@@ -32,4 +32,9 @@ sound_pitch = 1.3
 friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Ember Village.", "Playful and warm-hearted; loves curling up on hot stones.", "Ability: Hearth Paw.")
 discovery_hint = "Prowls the warm streets of Ember Village."
 rideable = false
-model_ready = false
+model_ready = true
+abilities = PackedStringArray("ember_coat", "hearth_paw", "kindle", "blaze_purr")
+family = "cindercub"
+acquisition = PackedStringArray("explore")
+lore = "Ember Village families keep a warm stone by the door, just in case a Cindercub wants a nap."
+originality_notes = "Redesigned from a fire kitten to a bear cub with an ember heart to avoid resemblance to well-known fire cats."

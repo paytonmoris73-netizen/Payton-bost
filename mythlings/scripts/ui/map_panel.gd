@@ -14,7 +14,8 @@ var _terrain_tex: ImageTexture
 func build_content() -> void:
 	setup_frame("World Map", "map")
 	_tabs = UIKit.hbox(8)
-	for t in [["world", "World"], ["local", "Whispering Meadow"]]:
+	var here := DB.region(MeadowLevel.current.region_id).display_name if MeadowLevel.current else "Whispering Meadow"
+	for t in [["world", "World"], ["local", here]]:
 		var b := UIKit.button(t[1], "", "TabButton", 50)
 		b.toggle_mode = true
 		b.button_pressed = t[0] == _mode
@@ -54,7 +55,7 @@ func refresh() -> void:
 	_world.visible = _mode == "world"
 	_local.visible = _mode == "local"
 	if _mode == "world":
-		_show_region("meadow")
+		_show_region(MeadowLevel.current.region_id if MeadowLevel.current else "meadow")
 	else:
 		(_local as LocalMap).panel = self
 		_local.queue_redraw()
@@ -86,10 +87,17 @@ func _show_region(id: String) -> void:
 	_info.add_child(UIKit.label("Active quests here: %d" % qn, "Caption", 17))
 	if not open:
 		var req := "Requires Keeper level %d" % r.unlock_level
+		if r.unlock_quest != "" and not Quests.is_completed(r.unlock_quest):
+			req += " and completing \"%s\"" % DB.quest(r.unlock_quest).title
 		if not r.playable:
 			req += " · Arrives in a future content update"
 		_info.add_child(UIKit.label(req, "Title", 18, Palette.DANGER, true))
-	elif id == "meadow":
+	if open and MeadowLevel.current and MeadowLevel.current.region_id != id:
+		var tb := UIKit.button("Travel to " + r.display_name, "map", "GoldButton", 60)
+		tb.disabled = MeadowLevel.current.player.mount != null
+		tb.pressed.connect(func(): _travel_region(id))
+		_info.add_child(tb)
+	elif open and MeadowLevel.current and MeadowLevel.current.region_id == id:
 		var b := UIKit.button("View local map", "map", "PrimaryButton", 58)
 		b.pressed.connect(func():
 			_mode = "local"
@@ -98,11 +106,19 @@ func _show_region(id: String) -> void:
 			refresh())
 		_info.add_child(b)
 
+func _travel_region(id: String) -> void:
+	GameState.data.player.region = id
+	Events.emit_game_event("travel", id)
+	SaveManager.save_game()
+	await close()
+	get_tree().paused = false
+	Router.go("res://scenes/main/game.tscn")
+
 func _show_local() -> void:
 	UIKit.clear(_info)
 	_info.add_child(UIKit.label("Fast travel", "Title", 22))
 	_info.add_child(UIKit.label("Travel instantly to places you have already visited.", "Caption", 17, Color(0, 0, 0, 0), true))
-	for l in MeadowLevel.LOCATIONS:
+	for l in MeadowLevel.location_list():
 		var visited: bool = l[0] in GameState.data.visited
 		var b := UIKit.button(l[1], "map" if visited else "lock", "", 54, 22)
 		b.disabled = not visited or MeadowLevel.current == null or MeadowLevel.current.player.mount != null
@@ -145,25 +161,19 @@ class LocalMap extends Control:
 			for i in n:
 				var x := -120.0 + 240.0 * i / n
 				var z := -130.0 + 240.0 * j / n
-				var h := lvl.terrain.height(x, z)
-				var col: Color
-				if lvl.terrain.is_water(x, z):
-					col = Color("6ab8d8")
-				elif lvl.terrain.path_distance(x, z) < 1.8:
-					col = Color("c9b28a")
-				elif x < -50 and z > -75 and z < 50:
-					col = Color("4f7a40")
-				else:
-					col = Color("8fbf6a").darkened(clampf((h - 1.0) * 0.03, -0.2, 0.35))
+				var col: Color = lvl.terrain.map_color(x, z)
 				if Vector2(x, z).length() > 112.0:
 					col = col.lerp(Color("7f8a72"), 0.6)
 				img.set_pixel(i, j, col)
 		_img = ImageTexture.create_from_image(img)
 	func _w2m(p: Vector3, r: Rect2) -> Vector2:
 		return r.position + Vector2((p.x + 120.0) / 240.0, (p.z + 130.0) / 240.0) * r.size
+	var _baked_for := ""
 	func _draw() -> void:
-		if _img == null:
+		if _img == null or (MeadowLevel.current and _baked_for != MeadowLevel.current.region_id):
 			_bake()
+			if MeadowLevel.current:
+				_baked_for = MeadowLevel.current.region_id
 		var lvl := MeadowLevel.current
 		if _img == null or lvl == null:
 			return
@@ -171,8 +181,8 @@ class LocalMap extends Control:
 		var r := Rect2((size - Vector2(s, s)) * 0.5, Vector2(s, s))
 		draw_style_box(UITheme.box(Color("eadcb8"), 20), r.grow(10))
 		draw_texture_rect(_img, r, false)
-		for l in MeadowLevel.LOCATIONS:
-			if not MeadowLevel.LOC.has(l[0]):
+		for l in lvl.locations:
+			if not lvl.loc.has(l[0]):
 				continue
 			var p := _w2m(lvl.at(l[0]), r)
 			var visited: bool = l[0] in GameState.data.visited

@@ -173,6 +173,8 @@ func _physics_process(delta: float) -> void:
 		velocity.z = lerpf(velocity.z, dir.z * speed, clampf(delta * accel, 0.0, 1.0))
 		if not is_on_floor():
 			velocity.y -= GRAVITY * delta
+			if Abilities.featherfall_active() and velocity.y < -4.0:
+				velocity.y = -4.0
 			if glide_time > 0.0 and velocity.y < -1.6:
 				velocity.y = -1.6
 				velocity.x = lerpf(velocity.x, dir.x * 7.0, delta * 2.0)
@@ -212,13 +214,21 @@ func _after_move(delta: float, flat: Vector3) -> void:
 			Audio.play_sfx("step_grass_%d" % (randi() % 3), randf_range(0.9, 1.1), -8.0 if not wading else -4.0)
 	# Safety net.
 	_safe_t -= delta
-	if is_on_floor() and not wading and _safe_t <= 0.0:
+	var lvl := MeadowLevel.current
+	var over_lava: bool = lvl != null and lvl.terrain.has_method("is_lava") and lvl.terrain.is_lava(global_position.x, global_position.z)
+	if is_on_floor() and not wading and not over_lava and _safe_t <= 0.0:
 		_safe_t = 1.0
 		_safe_pos = global_position
-		GameState.data.player.position = [global_position.x, global_position.y, global_position.z]
+		GameState.data.player["pos_" + (lvl.region_id if lvl else "meadow")] = [global_position.x, global_position.y, global_position.z]
 	if global_position.y < -25.0:
 		global_position = _safe_pos + Vector3(0, 1, 0)
 		velocity = Vector3.ZERO
+	if over_lava and global_position.y < EmberTerrain.LAVA_Y + 0.3 and mount == null:
+		# Lava: no damage system, but it sends you back to safe ground.
+		FX.burst(get_parent(), global_position + Vector3(0, 0.5, 0), Color("ff8a3a"), 30, 0.08, 4.0, 1.0)
+		global_position = _safe_pos + Vector3(0, 0.5, 0)
+		velocity = Vector3.ZERO
+		Events.toast.emit("Too hot!", "Lava sends you back. A Magmole's Cooling Crust or the stone bridge can get you across.", "fire")
 	_update_interactable()
 
 func dash(speed: float, time: float) -> void:

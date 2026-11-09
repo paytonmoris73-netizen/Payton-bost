@@ -9,7 +9,7 @@ static func has_model(id: String) -> bool:
 	var c: CreatureData = DB.creature(id) if Engine.get_main_loop() else null
 	if c and c.model_scene:
 		return true
-	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth"]
+	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing"]
 
 ## variant: cosmetic palette variant id ("" = default)
 static func build(id: String, variant := "", accessory := "") -> CreatureRig:
@@ -36,6 +36,9 @@ static func build(id: String, variant := "", accessory := "") -> CreatureRig:
 		"cloudwell": rig = _cloudwell(variant)
 		"blossomere": rig = _blossomere(variant)
 		"astravyth": rig = _astravyth(variant)
+		"cindercub": rig = _cindercub(variant)
+		"magmole": rig = _magmole(variant)
+		"ashwing": rig = _ashwing(variant)
 		_:
 			rig = _unknown()
 	rig.name = "Rig_" + id
@@ -1056,6 +1059,127 @@ static func _astravyth(_variant: String) -> CreatureRig:
 	r.reg("sway", [crest]); r.reg("feet", legs)
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.6, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 7.0, -3.8)))
 	r.reg("saddle", K.pivot(torso, Vector3(0, 1.25, -0.9)))
+	return r
+
+# ===================================================================== CINDERCUB (Emberfall)
+static func _cindercub(_variant: String) -> CreatureRig:
+	## Chunky charcoal bear cub with a glowing ember heart in its chest.
+	var r := _rig("quad")
+	r.bob_height = 0.04
+	var v := r.visual
+	var fur := Color("2b2624"); var fur_l := Color("4a3f3a"); var ember := Color("ff8a3a"); var plate := Color("5a4a40")
+	K.add(v, K.sphere(0.3, 18, 9), K.mat(fur, 0.95), Vector3(0, 0.36, 0.04), Vector3.ZERO, Vector3(1.0, 0.9, 1.15))
+	K.add(v, K.sphere(0.2, 14, 7), K.mat(fur_l), Vector3(0, 0.32, -0.22), Vector3.ZERO, Vector3(1.0, 1.0, 0.6))
+	K.add(v, K.sphere(0.1, 10, 5), K.glow(ember, 2.0), Vector3(0, 0.36, -0.31), Vector3.ZERO, Vector3(1.0, 1.1, 0.5))
+	for k in 4:
+		K.add(v, K.box(Vector3(0.025, 0.14, 0.02)), K.glow(ember.lightened(0.2), 1.8), Vector3(-0.07 + k * 0.045, 0.37 + (k % 2) * 0.03, -0.33), Vector3(0, 0, -30 + k * 20))
+	for sx in [-1, 1]:
+		K.add(v, K.sphere(0.12, 6, 3), K.flat(plate), Vector3(0.22 * sx, 0.5, -0.1), Vector3(0, 0, 20 * sx), Vector3(1.2, 0.6, 1.1))
+	var head := K.pivot(v, Vector3(0, 0.6, -0.28), "Head")
+	K.add(head, K.sphere(0.19, 18, 9), K.mat(fur), Vector3.ZERO, Vector3.ZERO, Vector3(1.05, 0.95, 0.95))
+	K.add(head, K.sphere(0.09, 12, 6), K.mat(Color("8a6a5a")), Vector3(0, -0.06, -0.15), Vector3.ZERO, Vector3(1.2, 0.8, 0.9))
+	K.add(head, K.sphere(0.035, 8, 4), K.mat(Color("1a1414"), 0.3), Vector3(0, -0.03, -0.24))
+	var eyes := [K.eye(head, Vector3(-0.08, 0.04, -0.15), 0.035, Color("3a1a08"), Vector3(-0.3, 0, -1), ember), K.eye(head, Vector3(0.08, 0.04, -0.15), 0.035, Color("3a1a08"), Vector3(0.3, 0, -1), ember)]
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.13 * sx, 0.14, 0.02), "Ear")
+		K.add(ep, K.sphere(0.07, 10, 5), K.mat(fur), Vector3.ZERO, Vector3.ZERO, Vector3(1, 1, 0.6))
+		K.add(ep, K.sphere(0.04, 8, 4), K.glow(ember, 1.2), Vector3(0, 0, -0.03), Vector3.ZERO, Vector3(1, 1, 0.4))
+		ears.append(ep)
+	var smoke := FX.motes(Color(0.5, 0.48, 0.46), 6, Vector3(0.12, 0.05, 0.05), 0.04)
+	smoke.position = Vector3(0, 0.22, 0)
+	smoke.gravity = Vector3(0, 0.4, 0)
+	head.add_child(smoke)
+	var legs := []
+	for p in [Vector3(-0.15, 0.2, -0.15), Vector3(0.15, 0.2, -0.15), Vector3(-0.15, 0.2, 0.2), Vector3(0.15, 0.2, 0.2)]:
+		var lp := K.pivot(v, p)
+		K.add(lp, K.capsule(0.08, 0.24), K.mat(fur), Vector3(0, -0.1, 0))
+		K.add(lp, K.sphere(0.07, 8, 4), K.mat(fur_l), Vector3(0, -0.2, -0.02), Vector3.ZERO, Vector3(1, 0.6, 1.2))
+		legs.append(lp)
+	var tail := K.pivot(v, Vector3(0, 0.38, 0.36), "Tail")
+	K.add(tail, K.sphere(0.06, 8, 4), K.glow(ember, 1.6))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.2, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.5, -0.24)))
+	return r
+
+# ===================================================================== MAGMOLE (Emberfall)
+static func _magmole(_variant: String) -> CreatureRig:
+	## Burrower in volcanic-glass armour with huge glowing digging claws.
+	var r := _rig("waddle")
+	r.gait_speed = 0.9
+	var v := r.visual
+	var body_c := Color("3a2c28"); var glass := Color("1e1a1e"); var ember := Color("ff6a1f"); var belly := Color("6b5a50")
+	K.add(v, K.sphere(0.32, 16, 8), K.mat(body_c, 0.9), Vector3(0, 0.32, 0.05), Vector3.ZERO, Vector3(1.0, 0.8, 1.3))
+	K.add(v, K.sphere(0.25, 12, 6), K.mat(belly), Vector3(0, 0.25, -0.05), Vector3.ZERO, Vector3(0.9, 0.6, 1.1))
+	for k in 5:
+		var z := -0.15 + k * 0.12
+		var pl := K.add(v, K.sphere(0.2, 6, 3), K.mat(glass, 0.15, Color.BLACK, 1.0, 0.4), Vector3(0, 0.55 - absf(z - 0.1) * 0.3, z), Vector3(-15 + k * 10, 0, 0), Vector3(1.3, 0.3, 0.75))
+		K.add(pl, K.box(Vector3(0.3, 0.03, 0.03)), K.glow(ember, 1.6), Vector3(0, 0.12, 0.14))
+	var head := K.pivot(v, Vector3(0, 0.35, -0.38), "Head")
+	K.add(head, K.sphere(0.17, 14, 7), K.mat(body_c), Vector3.ZERO, Vector3.ZERO, Vector3(0.95, 0.85, 1.1))
+	K.add(head, K.cyl(0.03, 0.09, 0.2, 10), K.mat(Color("d88a7a")), Vector3(0, -0.03, -0.2), Vector3(-90, 0, 0))
+	K.add(head, K.sphere(0.04, 8, 4), K.mat(Color("e86a6a"), 0.4), Vector3(0, -0.03, -0.31))
+	var eyes := []
+	for sx in [-1, 1]:
+		var e := K.eye(head, Vector3(0.08 * sx, 0.06, -0.12), 0.022, Color("1a1414"), Vector3(0.4 * sx, 0, -1))
+		eyes.append(e)
+		K.add(head, K.torus(0.025, 0.04, 12), K.mat(glass, 0.15, Color.BLACK, 1, 0.5), Vector3(0.08 * sx, 0.06, -0.13), Vector3(80, 0, 0))
+	var legs := []
+	for sx in [-1, 1]:
+		var arm := K.pivot(v, Vector3(0.24 * sx, 0.3, -0.25), "Claw", Vector3(-20, 0, 30 * sx))
+		K.add(arm, K.capsule(0.07, 0.22), K.mat(body_c), Vector3(0, -0.08, 0))
+		K.add(arm, K.sphere(0.1, 10, 5), K.mat(belly), Vector3(0, -0.2, -0.05), Vector3.ZERO, Vector3(1.4, 0.6, 1.0))
+		for k in 3:
+			K.add(arm, K.cyl(0.0, 0.03, 0.16, 5), K.mat(glass, 0.2), Vector3(-0.06 + k * 0.06, -0.24, -0.14), Vector3(-80, 0, 0))
+			K.add(arm, K.sphere(0.015, 4, 2), K.glow(ember, 2.0), Vector3(-0.06 + k * 0.06, -0.25, -0.22))
+		legs.append(arm)
+	for sx in [-1, 1]:
+		var lp := K.pivot(v, Vector3(0.16 * sx, 0.16, 0.3))
+		K.add(lp, K.sphere(0.08, 8, 4), K.mat(body_c), Vector3(0, -0.08, 0), Vector3.ZERO, Vector3(1, 0.7, 1.3))
+		legs.append(lp)
+	var tail := K.pivot(v, Vector3(0, 0.25, 0.48), "Tail")
+	K.add(tail, K.cyl(0.01, 0.03, 0.16, 6), K.mat(Color("d88a7a")), Vector3(0, 0, 0.08), Vector3(80, 0, 0))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("legs", legs); r.reg("tail", tail)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.14, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.4, -0.3)))
+	return r
+
+# ===================================================================== ASHWING (Emberfall)
+static func _ashwing(_variant: String) -> CreatureRig:
+	## Round little flyer: ash-grey feathers with ember tips, two smoke-ribbon tail feathers.
+	var r := _rig("fly")
+	r.hover_height = 0.9
+	var v := r.visual
+	var ash := Color("6b6461"); var ash_l := Color("a8a09a"); var ember := Color("f2a14a"); var dark := Color("2b2624")
+	K.add(v, K.sphere(0.2, 16, 8), K.mat(ash, 0.95), Vector3(0, 0.3, 0.02), Vector3.ZERO, Vector3(1.0, 0.95, 1.1))
+	K.add(v, K.sphere(0.15, 12, 6), K.mat(ash_l), Vector3(0, 0.26, -0.1), Vector3.ZERO, Vector3(0.9, 0.9, 0.6))
+	var head := K.pivot(v, Vector3(0, 0.46, -0.08), "Head")
+	K.add(head, K.sphere(0.14, 14, 7), K.mat(ash), Vector3.ZERO)
+	K.add(head, K.sphere(0.1, 12, 6), K.mat(ash_l), Vector3(0, -0.01, -0.07), Vector3.ZERO, Vector3(1.2, 1.0, 0.6))
+	K.add(head, K.cyl(0.0, 0.03, 0.08, 6), K.mat(ember.darkened(0.2)), Vector3(0, -0.03, -0.15), Vector3(-100, 0, 0))
+	var eyes := [K.eye(head, Vector3(-0.055, 0.02, -0.12), 0.032, Color("2a1a08"), Vector3(-0.3, 0, -1), ember), K.eye(head, Vector3(0.055, 0.02, -0.12), 0.032, Color("2a1a08"), Vector3(0.3, 0, -1), ember)]
+	var crest := K.pivot(head, Vector3(0, 0.12, 0.02), "Crest")
+	for k in 3:
+		K.add(crest, K.petal(0.12 - k * 0.02, 0.05, 0.08), K.mat(ember if k == 1 else ash_l), Vector3.ZERO, Vector3(-20, 0, -25 + k * 25))
+	var wings := []
+	for sx in [-1, 1]:
+		var wp := K.pivot(v, Vector3(0.17 * sx, 0.36, 0.02), "Wing", Vector3(0, 0, -40 * sx))
+		for k in 4:
+			K.add(wp, K.petal(0.32 - k * 0.04, 0.1, 0.08, 0.012), K.mat(ash.lerp(ember, k * 0.25)), Vector3(0, 0, 0.04 * k), Vector3(10 + k * 12, 0, 0))
+		wings.append(wp)
+	var tail := K.pivot(v, Vector3(0, 0.27, 0.2), "Tail")
+	for sx in [-1, 1]:
+		var rib := MeshInstance3D.new()
+		rib.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0.05 * sx, -0.05, 0.25), Vector3(0.12 * sx, 0.05, 0.5), 8), K.taper(8, 0.025, 0.006), 5)
+		rib.material_override = K.mat(dark)
+		tail.add_child(rib)
+		K.add(tail, K.sphere(0.03, 6, 3), K.glow(ember, 1.8), Vector3(0.12 * sx, 0.05, 0.5))
+	var feet := []
+	for sx in [-1, 1]:
+		var fp := K.pivot(v, Vector3(0.06 * sx, 0.12, 0))
+		K.add(fp, K.cyl(0.01, 0.015, 0.1, 4), K.mat(dark), Vector3(0, -0.05, 0))
+		feet.append(fp)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("wings", wings); r.reg("tail", tail); r.reg("legs", feet); r.reg("sway", [crest])
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.13, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.4, -0.1)))
 	return r
 
 # ===================================================================== fallback

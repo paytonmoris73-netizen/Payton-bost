@@ -18,7 +18,7 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func unlocked(r: RegionData) -> bool:
-	return r.playable and GameState.level() >= r.unlock_level
+	return r.playable and GameState.level() >= r.unlock_level and (r.unlock_quest == "" or Quests.is_completed(r.unlock_quest))
 
 func _gui_input(event: InputEvent) -> void:
 	var pos := Vector2.INF
@@ -98,7 +98,7 @@ func _draw() -> void:
 			draw_arc(lock_c + Vector2(0, -r * 0.02), r * 0.07, PI, TAU, 12, Color.WHITE, 3.0, true)
 		else:
 			var pulse := 0.5 + 0.5 * sin(_t * 3.0)
-			if MeadowLevel.current and id == "meadow":
+			if MeadowLevel.current and id == MeadowLevel.current.region_id:
 				draw_circle(c + Vector2(-r * 0.15, -r * 0.05), 8 + pulse * 3, Color(Palette.DANGER, 0.9))
 				draw_circle(c + Vector2(-r * 0.15, -r * 0.05), 4, Color.WHITE)
 		_rects[id] = Rect2(c - Vector2(r * 1.25, r * 0.85), Vector2(r * 2.5, r * 1.7 + fs + 20))

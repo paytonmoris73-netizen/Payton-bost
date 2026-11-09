@@ -14,6 +14,7 @@ var on_activate: Callable  # optional custom effect
 var visual_before: Node3D
 var visual_after: Node3D
 var done := false
+var blocked_by: Callable  # optional: returns "" when allowed, else a reason
 
 func setup(target_kind: String, id: String, before: Node3D, after: Node3D, rewards := {}, is_permanent := true) -> void:
 	kind = target_kind
@@ -41,8 +42,11 @@ func _apply(is_done: bool, animate: bool) -> void:
 			visual_after.scale = Vector3.ONE * 0.05
 			create_tween().tween_property(visual_after, "scale", Vector3.ONE, 0.9).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
+func block_reason() -> String:
+	return String(blocked_by.call()) if blocked_by.is_valid() else ""
+
 func activate() -> bool:
-	if done:
+	if done or block_reason() != "":
 		return false
 	done = true
 	if permanent:
