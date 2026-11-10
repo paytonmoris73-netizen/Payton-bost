@@ -6,6 +6,7 @@ import {
   discoverCreature, completeDailyMission, selectCompanion,
   getProfileSessions, getProfileOwnedRewards, getProfileAchievements, getProfileCreatures,
   getLevelFromPoints, getWorldRebloom,
+  startPlan, completePlanDay,
 } from "../lib/store";
 import type {
   AppState, ParentAccount, ChildProfile, CompletedSession,
@@ -39,6 +40,8 @@ interface AppContextValue {
   levelInfo: { level: number; title: string; nextLevelPoints: number };
   worldRebloom: number;
   dailyMissions: ReturnType<typeof getTodaysMissions>;
+  startWorkoutPlan: (planId: string) => void;
+  completeWorkoutDay: (planId: string, weekNum: number, dayNum: number) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -200,6 +203,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     persist(selectCompanion(current, profileId, creatureId));
   }, [persist]);
 
+  const startWorkoutPlan = useCallback((planId: string) => {
+    persist(startPlan(loadState(), planId));
+  }, [persist]);
+
+  const completeWorkoutDay = useCallback((planId: string, weekNum: number, dayNum: number) => {
+    persist(completePlanDay(loadState(), planId, `w${weekNum}d${dayNum}`));
+  }, [persist]);
+
   const completeMission = useCallback((missionId: string) => {
     const current = loadState();
     const profileId = current.activeProfileId;
@@ -237,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       profileSessions, profileRewards, profileAchievements, profileCreatures,
       setCompanion, completeMission, isMissionCompleted,
       levelInfo, worldRebloom, dailyMissions,
+      startWorkoutPlan, completeWorkoutDay,
     }}>
       {children}
     </AppContext.Provider>

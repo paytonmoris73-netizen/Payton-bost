@@ -165,6 +165,80 @@ export interface CompletedDailyMission {
   completedDate: string;
 }
 
+// ── Workout Plans ─────────────────────────────────────────────────────────────
+
+export interface WorkoutExercise {
+  id: string;
+  name: string;
+  durationSeconds: number;
+  reps?: number;
+  instruction: string;
+  demonstrationKey: string;
+  modification?: string;
+}
+
+export interface WorkoutDay {
+  dayNumber: number;
+  title: string;
+  focus: string;
+  exercises: WorkoutExercise[];
+  energyReward: number;
+  sparkPoints: number;
+}
+
+export interface WorkoutWeek {
+  weekNumber: number;
+  title: string;
+  description: string;
+  days: WorkoutDay[];
+  illustration: string;
+}
+
+export interface WorkoutPlan {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  difficulty: "beginner" | "intermediate";
+  weeks: WorkoutWeek[];
+  thumbnailColor: string;
+  emoji: string;
+}
+
+// ── Restoration & Missions ─────────────────────────────────────────────────────
+
+export interface RestorationProject {
+  id: string;
+  locationId: string;
+  name: string;
+  emoji: string;
+  stages: { description: string; requiredActivities: number }[];
+}
+
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  type: "daily" | "adventure" | "special";
+  requirement: { type: "activity" | "explore" | "creature" | "plan"; count: number; category?: string };
+  reward: { sparkPoints: number; adventureEnergy: number; creatureId?: string };
+}
+
+// ── Extended Avatar ────────────────────────────────────────────────────────────
+
+export interface AvatarCustomization {
+  bodyShape: "round" | "tall" | "small";
+  skinTone: string;
+  hairStyle: string;
+  headItem: string;
+  eyeStyle: string;
+  outfit: string;
+  shoes: string;
+  accessory: string;
+  background: string;
+}
+
 // Legacy type for BunnyX BuildLog component
 export interface Revision {
   id: number;
@@ -189,4 +263,11 @@ export interface AppState {
   unlockedLocations: string[];
   ownedCreatures: OwnedCreature[];
   completedDailyMissions: CompletedDailyMission[];
+  // Plan progress: planId -> { completedDays: ["w1d1","w1d2"], startedAt }
+  planProgress: Record<string, { completedDays: string[]; startedAt: string }>;
+  activePlanId: string | null;
+  // Restoration: locationId -> projectId -> stage number
+  restorationProgress: Record<string, Record<string, number>>;
+  // Mission progress: missionId -> { current, completed, claimedAt }
+  missionProgress: Record<string, { current: number; completed: boolean; claimedAt?: string }>;
 }

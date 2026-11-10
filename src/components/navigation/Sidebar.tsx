@@ -2,14 +2,15 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useApp } from "../../contexts/AppContext";
 
 const NAV_ITEMS = [
-  { to: "/app/home",        label: "Home",       icon: HomeIcon },
-  { to: "/app/explore",     label: "Explore",    icon: ExploreIcon },
-  { to: "/app/world",       label: "World",      icon: WorldIcon },
-  { to: "/app/adventures",  label: "Adventures", icon: AdventuresIcon },
-  { to: "/app/rewards",     label: "Rewards",    icon: RewardsIcon },
-  { to: "/app/creatures",   label: "Creatures",  icon: CreaturesIcon },
-  { to: "/app/mini-games",  label: "Mini Games", icon: GamesIcon },
-  { to: "/app/profile",     label: "Profile",    icon: ProfileIcon },
+  { to: "/app/home",          label: "Home",         icon: HomeIcon },
+  { to: "/app/workout-plans", label: "Workout Plans", icon: WorkoutIcon },
+  { to: "/app/explore",       label: "Explore",      icon: ExploreIcon },
+  { to: "/app/world",         label: "World",        icon: WorldIcon },
+  { to: "/app/missions",      label: "Missions",     icon: MissionsIcon },
+  { to: "/app/rewards",       label: "Rewards",      icon: RewardsIcon },
+  { to: "/app/creatures",     label: "Creatures",    icon: CreaturesIcon },
+  { to: "/app/mini-games",    label: "Mini Games",   icon: GamesIcon },
+  { to: "/app/profile",       label: "Profile",      icon: ProfileIcon },
 ];
 
 export function Sidebar() {
@@ -90,6 +91,12 @@ export function Sidebar() {
   );
 }
 
+function WorkoutIcon({ active }: { active: boolean }) {
+  return <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M6 4v16M18 4v16M6 12h12M3 7l3-3M21 7l-3-3M3 17l3 3M21 17l-3 3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function MissionsIcon({ active }: { active: boolean }) {
+  return <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4" strokeLinecap="round" strokeLinejoin="round" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" strokeLinecap="round" /></svg>;
+}
 function HomeIcon({ active }: { active: boolean }) {
   return <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M3 12L12 3l9 9" strokeLinecap="round" strokeLinejoin="round" /><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
@@ -98,9 +105,6 @@ function ExploreIcon({ active }: { active: boolean }) {
 }
 function WorldIcon({ active }: { active: boolean }) {
   return <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeLinecap="round" /></svg>;
-}
-function AdventuresIcon({ active }: { active: boolean }) {
-  return <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M3 17l4-8 4 4 4-6 4 10" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 function RewardsIcon({ active }: { active: boolean }) {
   return <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeLinecap="round" strokeLinejoin="round" /></svg>;

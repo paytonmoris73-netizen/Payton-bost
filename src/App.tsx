@@ -30,6 +30,10 @@ import { HomeBasePage } from "./pages/app/HomeBase";
 import { CreatureCollectionPage } from "./pages/app/CreatureCollection";
 import { CreatureDetailPage } from "./pages/app/CreatureDetail";
 import { MiniGameHubPage } from "./pages/app/MiniGameHub";
+import { WorkoutPlansPage } from "./pages/app/WorkoutPlans";
+import { WorkoutPlanDetailPage } from "./pages/app/WorkoutPlanDetail";
+import { WorkoutPlayerPage } from "./pages/app/WorkoutPlayer";
+import { MissionsPage } from "./pages/app/Missions";
 import { RhythmRushPage } from "./pages/app/games/RhythmRush";
 import { CreatureMatchPage } from "./pages/app/games/CreatureMatch";
 import { BubblePopPage } from "./pages/app/games/BubblePop";
@@ -93,6 +97,10 @@ function AppRoutes() {
               <Route path="home-base" element={<HomeBasePage />} />
               <Route path="creatures" element={<CreatureCollectionPage />} />
               <Route path="creatures/:id" element={<CreatureDetailPage />} />
+              <Route path="workout-plans" element={<WorkoutPlansPage />} />
+              <Route path="workout-plans/:id" element={<WorkoutPlanDetailPage />} />
+              <Route path="workout-player" element={<WorkoutPlayerPage />} />
+              <Route path="missions" element={<MissionsPage />} />
               <Route path="mini-games" element={<MiniGameHubPage />} />
               <Route path="mini-games/rhythm-rush" element={<RhythmRushPage />} />
               <Route path="mini-games/creature-match" element={<CreatureMatchPage />} />

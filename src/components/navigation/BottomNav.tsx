@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
 
 const NAV_ITEMS = [
-  { to: "/app/home",     label: "Home",     icon: HomeIcon },
-  { to: "/app/explore",  label: "Explore",  icon: ExploreIcon },
-  { to: "/app/world",    label: "World",    icon: WorldIcon },
-  { to: "/app/rewards",  label: "Rewards",  icon: RewardsIcon },
-  { to: "/app/profile",  label: "Profile",  icon: ProfileIcon },
+  { to: "/app/home",          label: "Home",    icon: HomeIcon },
+  { to: "/app/workout-plans", label: "Workout", icon: WorkoutIcon },
+  { to: "/app/world",         label: "World",   icon: WorldIcon },
+  { to: "/app/rewards",       label: "Rewards", icon: RewardsIcon },
+  { to: "/app/profile",       label: "Profile", icon: ProfileIcon },
 ];
 
 export function BottomNav() {
@@ -49,11 +49,10 @@ function HomeIcon({ active }: { active: boolean }) {
   );
 }
 
-function ExploreIcon({ active }: { active: boolean }) {
+function WorkoutIcon({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-      <circle cx="11" cy="11" r="8" />
-      <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+      <path d="M6 4v16M18 4v16M6 12h12M3 7l3-3M21 7l-3-3M3 17l3 3M21 17l-3 3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

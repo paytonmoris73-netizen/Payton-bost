@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useApp } from "../../contexts/AppContext";
 import { Pip } from "../../components/mascot/Pip";
 import { ACTIVITIES } from "../../data/activities";
+import { WORKOUT_PLANS } from "../../data/workoutPlans";
 
 const CATEGORY_CARDS = [
   { label: "Quick Moves",    emoji: "👟", gradient: "from-blue-500 to-blue-700",    path: "quick-moves" },
@@ -38,7 +39,7 @@ function ProgressRing({ percent }: { percent: number }) {
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { activeProfile, levelInfo, worldRebloom, dailyMissions, isMissionCompleted, profileSessions, profileAchievements } = useApp();
+  const { activeProfile, levelInfo, worldRebloom, dailyMissions, isMissionCompleted, profileSessions, profileAchievements, state } = useApp();
 
   if (!activeProfile) return null;
 
@@ -53,6 +54,11 @@ export function HomePage() {
   const progressPct = Math.min(100, Math.round((weekActivity / 5) * 100));
 
   const featuredActivity = ACTIVITIES[totalActivities % ACTIVITIES.length];
+  const activePlan = WORKOUT_PLANS.find(p => p.id === state.activePlanId);
+  const activePlanProgress = state.activePlanId ? state.planProgress[state.activePlanId] : null;
+  const activePlanTotalDays = activePlan?.weeks.reduce((a, w) => a + w.days.length, 0) ?? 0;
+  const activePlanCompletedDays = activePlanProgress?.completedDays.length ?? 0;
+  const activePlanPct = activePlanTotalDays > 0 ? Math.round((activePlanCompletedDays / activePlanTotalDays) * 100) : 0;
   const xpToNext = levelInfo.nextLevelPoints - activeProfile.points;
   const xpProgress = Math.max(0, Math.min(100, 100 - (xpToNext / (levelInfo.nextLevelPoints - (levelInfo.level - 1) * 500)) * 100));
 
@@ -153,6 +159,50 @@ export function HomePage() {
                 →
               </button>
             </div>
+          </motion.div>
+        )}
+
+        {/* ── Active Plan Card ── */}
+        {activePlan && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+            className="rounded-2xl border overflow-hidden cursor-pointer"
+            style={{ background: `linear-gradient(135deg, ${activePlan.thumbnailColor}22, transparent)`, borderColor: `${activePlan.thumbnailColor}44` }}
+            onClick={() => navigate(`/app/workout-plans/${activePlan.id}`)}
+          >
+            <div className="p-4 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+                style={{ background: `${activePlan.thumbnailColor}22` }}>
+                {activePlan.emoji}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-pp-orange mb-0.5">ACTIVE PLAN</div>
+                <div className="text-white font-bold text-sm truncate">{activePlan.name}</div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex-1 h-1.5 bg-pp-border/30 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ background: activePlan.thumbnailColor, width: `${activePlanPct}%` }} />
+                  </div>
+                  <span className="text-xs text-pp-border">{activePlanPct}%</span>
+                </div>
+              </div>
+              <span className="text-white text-lg">→</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Workout Plans Button (if no active plan) ── */}
+        {!activePlan && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+            className="bg-pp-card border border-pp-border rounded-2xl p-4 flex items-center gap-3 cursor-pointer"
+            onClick={() => navigate("/app/workout-plans")}
+          >
+            <div className="w-12 h-12 rounded-xl bg-pp-orange/20 flex items-center justify-center text-2xl shrink-0">💪</div>
+            <div className="flex-1">
+              <div className="text-white font-bold text-sm">Start a Workout Plan</div>
+              <div className="text-pp-border text-xs">3 plans available — build a habit!</div>
+            </div>
+            <span className="text-pp-orange font-bold">→</span>
           </motion.div>
         )}
 

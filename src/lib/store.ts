@@ -16,6 +16,10 @@ function defaultState(): AppState {
     unlockedLocations: ["sunny-meadow"],
     ownedCreatures: [],
     completedDailyMissions: [],
+    planProgress: {},
+    activePlanId: null,
+    restorationProgress: {},
+    missionProgress: {},
   };
 }
 
@@ -139,6 +143,51 @@ export function getProfileAchievements(state: AppState, profileId: string): Unlo
 
 export function getProfileCreatures(state: AppState, profileId: string): OwnedCreature[] {
   return state.ownedCreatures.filter(c => c.profileId === profileId);
+}
+
+export function startPlan(state: AppState, planId: string): AppState {
+  return {
+    ...state,
+    activePlanId: planId,
+    planProgress: {
+      ...state.planProgress,
+      [planId]: state.planProgress[planId] ?? { completedDays: [], startedAt: new Date().toISOString() },
+    },
+  };
+}
+
+export function completePlanDay(state: AppState, planId: string, dayKey: string): AppState {
+  const existing = state.planProgress[planId] ?? { completedDays: [], startedAt: new Date().toISOString() };
+  if (existing.completedDays.includes(dayKey)) return state;
+  return {
+    ...state,
+    planProgress: {
+      ...state.planProgress,
+      [planId]: { ...existing, completedDays: [...existing.completedDays, dayKey] },
+    },
+  };
+}
+
+export function updateRestoration(state: AppState, locationId: string, projectId: string, stage: number): AppState {
+  const loc = state.restorationProgress[locationId] ?? {};
+  return {
+    ...state,
+    restorationProgress: { ...state.restorationProgress, [locationId]: { ...loc, [projectId]: stage } },
+  };
+}
+
+export function updateMissionProgress(state: AppState, missionId: string, current: number, completed: boolean): AppState {
+  return {
+    ...state,
+    missionProgress: {
+      ...state.missionProgress,
+      [missionId]: {
+        current,
+        completed,
+        claimedAt: completed ? new Date().toISOString() : state.missionProgress[missionId]?.claimedAt,
+      },
+    },
+  };
 }
 
 export function generateId(): string {
