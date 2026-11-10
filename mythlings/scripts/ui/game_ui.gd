@@ -18,7 +18,7 @@ const PANEL_CLASSES := {
 	"map": "MapPanel", "creatures": "CreaturesPanel", "market": "MarketPanel",
 	"settings": "SettingsPanel", "pause": "PausePanel", "profile": "ProfilePanel",
 	"achievements": "AchievementsPanel", "friends": "FriendsPanel",
-	"customize": "CustomizePanel", "restore": "RestorePanel",
+	"customize": "CustomizePanel", "restore": "RestorePanel", "awakening": "AwakeningPanel", "awakening_gallery": "AwakeningGalleryPanel",
 }
 
 func setup(p: Player, l: MeadowLevel) -> void:
@@ -109,6 +109,8 @@ func _make(name_: String) -> UIPanel:
 		"friends": p = FriendsPanel.new()
 		"customize": p = CustomizePanel.new()
 		"restore": p = RestorePanel.new()
+		"awakening": p = AwakeningPanel.new()
+		"awakening_gallery": p = AwakeningGalleryPanel.new()
 	p.panel_name = name_
 	p.game_ui = self
 	p.process_mode = Node.PROCESS_MODE_ALWAYS

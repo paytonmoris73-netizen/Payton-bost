@@ -55,3 +55,20 @@ Done means implemented **and** exercised by tests or screenshots. See QA_CHECKLI
 - [ ] Hazards for protective abilities (e.g. Ancient Shield) to defend against
 - [ ] Parental purchase controls (platform-level ask-to-buy when real billing is added)
 - [ ] Professional IP review (see ORIGINALITY_REVIEW.md)
+
+## AWAKENINGS
+- [x] Awakenings framework: stage names, data-driven requirements (incl. landmarks, personal quests, lore), never automatic
+- [x] Awakening screen: side-by-side rotatable forms, requirements, abilities (new/kept), size change, true-scale comparison with Keeper and cottage, transformation preview
+- [x] Form Memory (choose which form accompanies you) and re-opening other paths later
+- [x] Awakenings Gallery: family trees, silhouettes, totals
+- [x] Per-family sequences: grove (Mossbun line), ember, celestial; classic fallback
+- [x] **Mossbun family complete:** Mossmantle model + kit (Root Passage, Nature Sense, Living Shelter, Canopy Call), Heartwood Hollow landmark, "The Seed in the Moss", three Old Grove Stones, Verdantus Awakening; tested end-to-end
+- [ ] Cloverling → Petalcrest → Bloomtail (needs Bloomtail restructured from a base form into a large form, plus a new meadow base for the current small Bloomtail)
+- [ ] Cindercub → Cindermaw → Ignaroth (earnable path; the Market purchase stays optional)
+- [ ] Magmole → Basaltusk → Obsidra
+- [ ] Bubbloon → Pelaglow → Thalassor, Coralyn → Reefwarden → Coralith (need Tideglass Coast)
+- [ ] Snowpup → Hailhorn → Frostmaw, Shiverowl → Aurorwing → Auroriel (need Frostroot Vale)
+- [ ] Fernling → Vinesentinel → Thornvine Titan, Mushmunk → Sporeback → Myceldrum (need Sunpetal Jungle)
+- [ ] Stardust → Starforged → Astravyth, Nebulynx → Dreamweaver → Lumoriel (need Starfall Isles)
+- [ ] Give the remaining meadow families (Cloverling, Pebblit, Sunfox, Dewdrop) their own sequence styles
+- [ ] Artist-made models and authored animation for every form (all current models are procedural placeholders)

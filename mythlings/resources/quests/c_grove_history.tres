@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_grove_history"
+title = "The Forest Remembers"
+category = "creature"
+region = "meadow"
+description = "Old Grove Stones tell the history of the ancient forest. Reading all three is part of the guardian's Awakening."
+objectives = Array[Dictionary]([{
+"event": "lore:grove_stone_1",
+"count": 1,
+"label": "Read Old Grove Stone I in the Heartwood Hollow"
+}, {
+"event": "lore:grove_stone_2",
+"count": 1,
+"label": "Read Old Grove Stone II near the Forgotten Shrine"
+}, {
+"event": "lore:grove_stone_3",
+"count": 1,
+"label": "Free and read Old Grove Stone III (needs Root Passage)"
+}])
+rewards = {
+"xp": 200,
+"crystals": 15
+}
+prerequisites = PackedStringArray("q_main_08")
+min_level = 4
+auto_start = true
+giver = "Ancient Oak"
+start_dialogue = PackedStringArray("The guardian's story is carved into three old stones, Keeper. One sits in the Heartwood Hollow, one near the shrine, and one the roots have swallowed.")
+end_dialogue = PackedStringArray()
+sort_order = 36
+map_marker = "grove_stone_2"

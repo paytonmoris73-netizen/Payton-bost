@@ -24,15 +24,16 @@ to look, Esc to pause. On touch devices, use the on-screen joystick and buttons.
 ```bash
 godot --path mythlings --headless res://tests/test_runner.tscn
 ```
-945 automated checks: data integrity, inventory, saves (including corruption
+1248 automated checks: data integrity, inventory, saves (including corruption
 recovery and migration), store and mock billing, friendship cooldowns, the
 whole onboarding quest chain, creature AI, companion following, riding, and
-every UI panel opening and closing, every ability effect, all three evolution paths, buying Ignaroth, summoning and flying. Exit code 0 means everything passed.
+every UI panel opening and closing, every ability effect, the whole Mossbun → Mossmantle → Verdantus Awakening line played through the world (hidden landmark, personal quest, grove stones, Form Memory, re-opening other paths, Awakening screen and gallery), buying Ignaroth, summoning and flying. Exit code 0 means everything passed.
 See `docs/CREATURE_SYSTEM.md` for the creature design and `docs/ORIGINALITY_REVIEW.md` for the originality notes.
 
 Visual checks (need a display; `xvfb-run` works):
 `res://tests/tour.tscn -- --out=DIR [--progress]` and
-`res://tests/ui_shots.tscn -- --out=DIR` save screenshots.
+`res://tests/ui_shots.tscn -- --out=DIR`, `res://tests/awakening_shots.tscn -- --out=DIR` and
+`res://tests/model_shot.tscn -- --id=CREATURE --out=FILE.png` save screenshots.
 
 ## Export
 

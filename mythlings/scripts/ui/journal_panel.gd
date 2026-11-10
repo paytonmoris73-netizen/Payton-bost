@@ -33,6 +33,11 @@ func build_content() -> void:
 			_filters[key] = opts[i]
 			_rebuild_grid())
 		top.add_child(ob)
+	var gal := UIKit.button("Awakenings", "evolve", "", 52, 22)
+	gal.pressed.connect(func():
+		if game_ui:
+			game_ui.open_panel("awakening_gallery", {}))
+	top.add_child(gal)
 	body.add_child(top)
 	_region_bar = UIKit.hbox(8)
 	body.add_child(_region_bar)
@@ -63,7 +68,7 @@ func refresh() -> void:
 	for c in DB.evolved_creatures():
 		if GameState.is_discovered(c.id):
 			forms += 1
-	_progress.text = "Collection  %d / %d  ·  Evolved forms %d / %d  ·  Colossal %d / %d" % [GameState.discovered_count(), total, forms, DB.evolved_creatures().size(), GameState.stat_value("colossal_discovered"), DB.colossal_creatures().size()]
+	_progress.text = "Collection  %d / %d  ·  Awakened forms %d / %d  ·  Colossal %d / %d" % [GameState.discovered_count(), total, forms, DB.evolved_creatures().size(), GameState.stat_value("colossal_discovered"), DB.colossal_creatures().size()]
 	UIKit.clear(_region_bar)
 	for r in DB.REGION_ORDER:
 		var reg: RegionData = DB.region(r)

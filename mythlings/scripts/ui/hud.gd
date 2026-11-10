@@ -491,8 +491,8 @@ func _refresh_ride() -> void:
 		_ride_btn.visible = true
 		g.icon = "back"
 		return
-	var it := player.current_interactable()
-	var c := it as Creature
+	var it = player.current_interactable()
+	var c: Creature = it as Creature if is_instance_valid(it) else null
 	_ride_btn.visible = c != null and player.can_mount(c)
 	g.icon = "ride"
 

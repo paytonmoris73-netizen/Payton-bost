@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "mossmantle"
+display_name = "Mossmantle"
+region = "meadow"
+habitat = "Heartwood Hollow"
+elements = PackedStringArray("nature", "earth")
+rarity = "rare"
+size_class = "large"
+personality = "gentle"
+description = "Mossbun's Awakened Form: long, low and careful. Overlapping bark shingles armour its back under a living mat of moss and ferns, short forked boughs grow from its shoulders, and its long three-fingered root hands grip bark and stone."
+personality_text = "Patient and watchful. Mossmantle climbs onto rocks to look around, sniffs every root, and settles down to let moss grow on whatever it rests against."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "clover_cookie"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.31, 0.478, 0.212, 1, 0.416, 0.294, 0.192, 1, 0.541, 1.0, 0.753, 1)
+model_id = "mossmantle"
+locomotion = "quad"
+move_speed = 3.0
+height = 2.0
+sound_pitch = 0.8
+friendship_notes = PackedStringArray("Prefers clover cookie as a treat.", "Often found near Heartwood Hollow.", "Patient and watchful. Mossmantle climbs onto rocks to look around, sniffs every root, and settles down to let moss grow on whatever it rests against.", "Ability: unknown.")
+discovery_hint = "Awaken Mossbun: see its Awakening requirements."
+rideable = true
+model_ready = true
+abilities = PackedStringArray("nature_sense", "root_passage", "living_shelter", "canopy_call")
+family = "mossbun"
+stage = 2
+evolves_from = "mossbun"
+acquisition = PackedStringArray("evolve")
+form_role = "Large climber: can be ridden, pulls aside tangled root walls and grows root bridges. Best for traversal in the woods."
+awakening_style = "grove"
+lore = "Old Keepers called them 'the patient ones'. A Mossmantle can sit so still for a season that a fern takes root in its back."
+evolutions = Array[Dictionary]([{
+"to": "verdantus",
+"path": "ascended",
+"requirements": {
+"friendship": 5,
+"sanctuary": {
+"shrine": 1
+},
+"quest": "q_main_08",
+"lore": ["grove_stone_1", "grove_stone_2", "grove_stone_3"]
+},
+"text": "When the shrine is lit and the forest's history has been read aloud to it, a Mossmantle of complete trust rises into the forest's guardian.",
+"branch": "Guardian Path"
+}])
+originality_notes = "Long low quadruped with bark shingles, a moss mat with ferns, branches from the shoulders and large forward-facing night eyes. Reference images were used only as mood inspiration. Deliberately not humanoid (no tree-person silhouette), no face in a trunk, no antlers on the head. Needs professional review."

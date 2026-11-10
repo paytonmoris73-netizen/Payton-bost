@@ -249,6 +249,7 @@ func add_friendship(id: String, amount: int, kind: String = "") -> int:
 		if interaction_cooldown(id, kind) > 0.0:
 			amount = 1  # still rewarding, but no grinding
 		_cooldowns[id + ":" + kind] = Time.get_unix_time_from_system()
+		amount = int(round(amount * Abilities.friendship_mult()))
 	var before := friendship_level(id)
 	var e := _creature_entry(id)
 	e.friendship = min(FRIENDSHIP_THRESHOLDS[-1], int(e.friendship) + amount)

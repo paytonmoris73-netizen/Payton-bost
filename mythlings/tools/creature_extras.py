@@ -337,3 +337,44 @@ EXTRA["thalassor"].update({"abilities": PSA(["tidal_grace", "deep_current", "tid
     "discovery_hint": "Available in the Grand Market. Also planned as a free encounter in the Tideglass Coast update.",
     "lore": "Fishers say the tide is only Thalassor breathing. Its song can be heard through the hull of any boat on a still night.",
     "originality_notes": "Whale-like sea guardian with coral crown and long fins; whale guardians are a common archetype, review silhouette and markings."})
+
+# =====================================================================
+# AWAKENINGS — Mossbun family (built and tested first). Requirements are
+# story/friendship/exploration based. Nothing here can be bought.
+# =====================================================================
+A("nature_sense", "Nature Sense", "passive", "exploration", "Mossmantle feels the forest around you: the HUD points toward hidden plants, hidden treasure and tangled root walls within 30 m.", "passive_sense", {"kinds": ["hidden_plant", "hidden_treasure", "tangled_roots"], "radius": 30.0}, 0, 0, "leaf_spiral", "86c45e")
+A("root_passage", "Root Passage", "primary", "environmental", "Mossmantle presses its root-hands into the ground: tangled root walls within 14 m pull aside, and a living root bridge grows 14 m ahead for 25 seconds.", "combo", combo(("reveal", {"kinds": ["tangled_roots"], "radius": 14.0}), ("root_bridge", {"length": 14.0, "duration": 25.0})), 20, 0, "root_wave", "6f9c4b")
+A("living_shelter", "Living Shelter", "secondary", "support", "Mossmantle curls its moss mantle into a shelter for 40 seconds. Inside it (6 m), shy Mythlings stay calm and every interaction earns double friendship.", "shelter", {"radius": 6.0, "duration": 40.0, "friendship_mult": 2.0}, 60, 2, "leaf_spiral", "86c45e")
+A("canopy_call", "Canopy Call", "signature", "signature", "Mossmantle's shoulder boughs burst into leaf: resources within 25 m regrow and hidden plants and root walls within 30 m are revealed.", "combo", combo(("regrow", {"radius": 25.0}), ("reveal", {"kinds": ["hidden_plant", "tangled_roots"], "radius": 30.0})), 90, 4, "root_wave", "b6f5c8")
+# Mossbun's senses now also find the moss curtain hiding the Heartwood Hollow.
+A("hidden_sense", "Hidden Sense", "primary", "exploration", "Reveals hidden Glimmerroot and moss-hidden passages within 14 m.", "reveal", {"kinds": ["hidden_plant", "moss_curtain"], "radius": 14.0}, 3, 0, "leaf_spiral", "86c45e")
+EXTRA["mossmantle"] = {"abilities": PSA(["nature_sense", "root_passage", "living_shelter", "canopy_call"])}
+
+NEW_CREATURES.append(("mossmantle", "Mossmantle", "meadow", "Heartwood Hollow", ["nature", "earth"], "rare", "gentle",
+  "Mossbun's Awakened Form: long, low and careful. Overlapping bark shingles armour its back under a living mat of moss and ferns, short forked boughs grow from its shoulders, and its long three-fingered root hands grip bark and stone.",
+  "Patient and watchful. Mossmantle climbs onto rocks to look around, sniffs every root, and settles down to let moss grow on whatever it rests against.",
+  "", "", "", "clover_cookie", ["4f7a36", "6a4b31", "8affc0"], "quad", 3.0, 2.0, 0.8, "Awaken Mossbun: see its Awakening requirements.", True))
+
+GROVE_HISTORY = ["grove_stone_1", "grove_stone_2", "grove_stone_3"]
+EXTRA["mossbun"]["evolutions"] = TypedDictArray([
+    {**evo("mossmantle", "natural", {"friendship": 3, "sanctuary": {"oak": 1}, "visited": ["heartwood_hollow"], "quest": "c_mossbun_seed"},
+        "Once Mossbun has planted its seed in the Heartwood Hollow, its moss thickens into bark, its body stretches out and boughs grow from its shoulders."), "branch": "Guardian Path"},
+    {**EXTRA["mossbun"]["evolutions"].items[1], "branch": "Explorer Path"},
+    {**EXTRA["mossbun"]["evolutions"].items[0], "path": "alternate", "branch": "Keeper Path"},
+])
+EXTRA["mossbun"]["form_role"] = "Small and quick: fits through moss-hidden gaps, and is the only form whose Hidden Sense finds moss curtains."
+EXTRA["mossbun"]["awakening_style"] = "grove"
+VERDANTUS_REQ = {"friendship": 5, "sanctuary": {"shrine": 1}, "quest": "q_main_08", "lore": GROVE_HISTORY}
+EXTRA["mossmantle"].update({"size_class": "large", "rideable": True, "family": "mossbun", "stage": 2, "evolves_from": "mossbun", "acquisition": PSA(["evolve"]),
+    "form_role": "Large climber: can be ridden, pulls aside tangled root walls and grows root bridges. Best for traversal in the woods.",
+    "awakening_style": "grove",
+    "lore": "Old Keepers called them 'the patient ones'. A Mossmantle can sit so still for a season that a fern takes root in its back.",
+    "evolutions": TypedDictArray([{**evo("verdantus", "ascended", VERDANTUS_REQ,
+        "When the shrine is lit and the forest's history has been read aloud to it, a Mossmantle of complete trust rises into the forest's guardian."), "branch": "Guardian Path"}]),
+    "originality_notes": "Long low quadruped with bark shingles, a moss mat with ferns, branches from the shoulders and large forward-facing night eyes. Reference images were used only as mood inspiration. Deliberately not humanoid (no tree-person silhouette), no face in a trunk, no antlers on the head. Needs professional review."})
+EXTRA["mosswarden"]["evolutions"] = TypedDictArray([{**evo("verdantus", "ascended", VERDANTUS_REQ,
+    "A Mosswarden can also take on the guardian's form once the forest's history is known."), "branch": "Keeper Path"}])
+EXTRA["mosswarden"]["form_role"] = "Large and steady: +1 wood from logs and the strongest Grove Call regrowth. Best for gathering."
+EXTRA["glimmerhare"]["form_role"] = "Small and fast: the quickest walking speed bonus and a sky-high Moonleap. Best for scouting."
+EXTRA["verdantus"].update({"evolves_from": "mossmantle", "awakening_style": "grove",
+    "form_role": "Colossal: rideable, grows the widest root bridges and its Eternal Grove regrows everything in 40 m. Too big for narrow woods paths."})

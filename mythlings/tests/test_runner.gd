@@ -94,7 +94,7 @@ func test_data() -> void:
 			check(DB.creature(e.to) != null, "%s evolves into a real form" % c.id)
 			check(not e.requirements.is_empty(), "%s evolution has visible requirements" % c.id)
 	for a in DB.abilities.values():
-		check(a.effect in ["reveal", "highlight", "harvest", "dash", "glide", "wind_lift", "root_bridge", "swim_boost", "regrow", "flight", "combo", "region_locked", "passive_sense", "passive_yield", "passive_speed", "passive_luck", "passive_calm", "passive_glow", "crust", "passive_glide", "weather", "passive_swim"], "ability %s has a handled effect (%s)" % [a.id, a.effect])
+		check(a.effect in ["reveal", "highlight", "harvest", "dash", "glide", "wind_lift", "root_bridge", "swim_boost", "regrow", "flight", "combo", "region_locked", "passive_sense", "passive_yield", "passive_speed", "passive_luck", "passive_calm", "passive_glow", "crust", "passive_glide", "weather", "passive_swim", "shelter"], "ability %s has a handled effect (%s)" % [a.id, a.effect])
 	# No creature is purchase-only.
 	for c in DB.creatures.values():
 		check(c.discovery_hint != "", "%s has a gameplay discovery path" % c.id)
@@ -449,39 +449,148 @@ func test_creature_systems(lvl: MeadowLevel, p: Player, ui: GameUI) -> void:
 	GameState.set_companion("cloverling")
 	lvl.refresh_creatures()
 	check(is_equal_approx(Abilities.luck_mult(), 1.2), "Lucky Leaf passive")
-	section("evolution")
+	section("awakenings: mossbun family (played through the world)")
 	GameState.set_companion(moss)
 	lvl.refresh_creatures()
 	var opts := Evolution.options(moss)
-	check(opts.size() == 2, "Mossbun has natural and alternate paths")
-	GameState.data.inventory.erase("glimmerroot")
-	check(not Evolution.can_evolve(moss, opts[0]), "missing materials block evolution")
+	check(opts.size() == 3 and opts[0].to == "mossmantle" and opts[0].branch == "Guardian Path", "Mossbun has Guardian, Explorer and Keeper paths")
+	check(Evolution.stage_name(DB.creature(moss)) == "First Form" and Evolution.stage_name(DB.creature("mossmantle")) == "Awakened Form" and Evolution.stage_name(DB.creature("verdantus")) == "Colossal Form", "stage names follow AWAKENINGS")
+	check(DB.creature("mossmantle").size_class == "large" and DB.creature("mossmantle").abilities.size() == 4, "Mossmantle is large with a full kit")
+	var mm_rig := CreatureModels.build("mossmantle")
+	var mb_rig := CreatureModels.build(moss)
+	check(_mesh_count(mm_rig) > _mesh_count(mb_rig) + 30 and mm_rig.parts.has("saddle"), "Mossmantle has its own, much more detailed model")
+	mm_rig.free()
+	mb_rig.free()
+	check(not Evolution.can_evolve(moss, opts[0]), "Awakening is not automatic")
 	var unmet: Array = Evolution.requirements(moss, opts[0]).filter(func(x): return not x.met)
-	check(unmet.size() >= 1 and String(unmet[0].label).contains("Glimmerroot"), "unmet requirement is named")
-	GameState.add_item("glimmerroot", 2, false)
-	while GameState.level() < 4:
-		GameState.add_xp(500)
-	check(Evolution.can_evolve(moss, opts[0]), "all Mosswarden requirements met")
-	check(Evolution.evolve(moss, 0), "Mossbun evolves")
+	check(unmet.any(func(x): return String(x.label).contains("Heartwood Hollow")) and unmet.any(func(x): return String(x.label).contains("The Seed in the Moss")), "unmet requirements are named (landmark, personal quest)")
+	GameState.add_friendship(moss, 100)
+	GameState.data.sanctuary["oak"] = maxi(GameState.sanctuary_stage("oak"), 1)
+	Quests.start("c_mossbun_seed", true)
+	check(Quests.is_active("c_mossbun_seed"), "Mossbun's personal quest starts")
+	var gate_pos := lvl.at("heartwood_hollow") + Vector3(7.0, 0, 0)
+	var curtain: AbilityTarget = null
+	for t in get_tree().get_nodes_in_group("ability_target"):
+		if t.uid == "heartwood_curtain":
+			curtain = t
+	check(curtain != null and not curtain.done, "the Heartwood Hollow is hidden behind a moss curtain")
+	p.global_position = gate_pos + Vector3(5, 1, 0)
 	await _frames(2)
-	check(GameState.evolved_to(moss) == "mosswarden" and GameState.is_discovered("mosswarden"), "evolution recorded")
-	check(GameState.companion() == "mosswarden", "companion transfers to the new form")
-	check(GameState.friendship_level("mosswarden") >= 4, "friendship carried over")
-	check(GameState.item_count("glimmerroot") == 0, "evolution materials consumed")
-	check(lvl.creatures.has("mosswarden") and not lvl.creatures.has("mossbun"), "world shows the new form")
-	check(not Evolution.can_evolve(moss, opts[1]), "can't also take the alternate path")
-	check("first_evolution" in GameState.data.achievements, "evolution achievement")
-	var asc: Dictionary = Evolution.options("mosswarden")[0]
-	check(not Evolution.can_evolve("mosswarden", asc), "ascension blocked while Verdantus is already bonded")
-	check(Abilities.activate(lvl.creatures.mosswarden, "root_bridge") == "", "Root Bridge grows")
+	check(Abilities.activate(lvl.creatures[moss], "hidden_sense") == "" and curtain.done, "Mossbun's Hidden Sense opens the moss curtain")
+	p.global_position = lvl.at("heartwood_hollow", 1.0)
+	await _physics(6)
+	check("heartwood_hollow" in GameState.data.visited, "entering the hollow discovers the landmark")
+	var bed: LoreStone = null
+	var stones := {}
+	for n in lvl.get_children():
+		if n is LoreStone:
+			if n.uid == "heartwood_seed":
+				bed = n
+			else:
+				stones[n.uid] = n
+	check(bed != null and stones.size() == 3, "seed bed and three Old Grove Stones exist")
+	GameState.set_companion("pebblit")
+	bed.interact(p)
+	check(not bed.is_read(), "only Mossbun can plant the seed")
+	GameState.set_companion(moss)
+	bed.interact(p)
+	await _frames(2)
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	check(bed.is_read() and Quests.is_completed("c_mossbun_seed"), "planting the seed completes 'The Seed in the Moss'")
+	check(Evolution.can_evolve(moss, opts[0]), "all Mossmantle requirements met")
+	var fr_before := GameState.friendship(moss)
+	check(Evolution.evolve(moss, 0), "Mossbun awakens into Mossmantle")
+	await _frames(2)
+	check(GameState.evolved_to(moss) == "mossmantle" and GameState.is_discovered("mossmantle"), "awakening recorded")
+	check(GameState.companion() == "mossmantle", "companion becomes Mossmantle")
+	check(GameState.friendship("mossmantle") >= fr_before, "friendship carried over")
+	check(lvl.creatures.has("mossmantle") and not lvl.creatures.has(moss), "world shows the new form")
+	check("first_evolution" in GameState.data.achievements, "awakening achievement")
+	# Form Memory: earlier forms stay useful and can still come along.
+	var forms: Array = Evolution.remembered_forms("mossmantle").map(func(c): return c.id)
+	check(moss in forms and "mossmantle" in forms, "Form Memory remembers Mossbun and Mossmantle")
+	check(Evolution.choose_form(moss), "choose Mossbun to accompany you again")
+	await _frames(2)
+	check(GameState.companion() == moss and lvl.creatures.has(moss) and lvl.creatures[moss].mode == Creature.Mode.COMPANION, "Mossbun walks with you again")
+	check(Evolution.bond_head(moss) == "mossmantle", "the bond still knows its awakened form")
+	check(Evolution.choose_form("mossmantle"), "switch back to Mossmantle")
+	await _frames(2)
+	# Other paths stay open: Explorer Path can still be awakened later.
+	check(not Evolution.can_evolve(moss, opts[0]), "the same path can't be awakened twice")
+	_satisfy(moss, opts[1].requirements)
+	check(Evolution.can_evolve(moss, opts[1]) and Evolution.evolve(moss, 1), "Explorer Path (Glimmerhare) can still be awakened later")
+	check(GameState.evolved_to(moss) == "mossmantle" and GameState.companion() == "mossmantle", "unlocking another path keeps the main form and companion")
+	await _frames(2)
+	# Mossmantle's abilities do real work.
+	var mm: Creature = lvl.creatures.mossmantle
+	var st3: LoreStone = stones["grove_stone_3"]
+	p.global_position = st3.global_position + Vector3(4, 1, 0)
+	await _frames(2)
+	st3.interact(p)
+	check(not st3.is_read(), "Grove Stone III is bound by roots")
+	check(Abilities.sense_hint(p.global_position).has("target"), "Nature Sense points at hidden things")
+	check(Abilities.activate(mm, "root_passage") == "" and GameState.flag("ab_grove_roots_3"), "Root Passage pulls the tangled roots aside")
 	await _frames(2)
 	var bridges := get_tree().get_nodes_in_group("root_bridge")
-	check(bridges.size() == 1 and bridges[0].find_children("*", "StaticBody3D", true, false).size() == 1, "root bridge has walkable collision")
-	ui.play_evolution(moss, "mosswarden")
-	await get_tree().create_timer(9.5).timeout
-	check(ui.evolution.visible and ui.evolution._card.visible, "evolution sequence reaches the reveal card")
+	check(bridges.size() >= 1 and bridges[-1].find_children("*", "StaticBody3D", true, false).size() == 1, "Root Passage also grows a walkable root bridge")
+	GameState.add_friendship("mossmantle", 1)
+	check(Abilities.activate(mm, "living_shelter") == "" and Abilities.shelter_active() and is_equal_approx(Abilities.friendship_mult(), 2.0), "Living Shelter doubles friendship inside it")
+	check(Abilities.calm_active(), "Mythlings are calm inside the shelter")
+	check(get_tree().get_nodes_in_group("living_shelter").size() == 1, "shelter dome appears")
+	# Mossmantle -> Verdantus: shrine, main story, advanced friendship, forest history.
+	var vopt: Dictionary = Evolution.options("mossmantle")[0]
+	check(vopt.to == "verdantus" and not Evolution.can_evolve("mossmantle", vopt), "Verdantus Awakening needs more")
+	var vunmet: Array = Evolution.requirements("mossmantle", vopt).filter(func(x): return not x.met)
+	check(vunmet.any(func(x): return String(x.label).contains("Old Grove Stone")), "forest history requirement listed")
+	for sid in stones:
+		stones[sid].interact(p)
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	check(stones.values().all(func(s): return s.is_read()), "all three grove stones read")
+	check(Quests.is_completed("c_grove_history") or not Quests.is_active("c_grove_history"), "grove history quest tracked")
+	GameState.data.sanctuary["shrine"] = maxi(GameState.sanctuary_stage("shrine"), 1)
+	if not Quests.is_completed("q_main_08"):
+		Quests.completed().append("q_main_08")
+	GameState.add_friendship("mossmantle", 100)
+	var had_elder := GameState.is_discovered("verdantus")
+	check(Evolution.can_evolve("mossmantle", vopt), "all Verdantus requirements met")
+	check(Evolution.joins_elder("mossmantle", vopt) == had_elder, "an already-befriended elder Verdantus joins instead of duplicating")
+	check(Evolution.evolve("mossmantle", 0), "Mossmantle awakens into Verdantus")
+	await _frames(2)
+	check(String(GameState.data.creatures.verdantus.evolved_from) == "mossmantle" and GameState.evolved_to("mossmantle") == "verdantus", "family line recorded Mossbun > Mossmantle > Verdantus")
+	var fam: Array = Evolution.remembered_forms("verdantus").map(func(c): return c.id)
+	check(moss in fam and "mossmantle" in fam and "verdantus" in fam and "glimmerhare" in fam, "all unlocked forms are remembered")
+	var tot: Dictionary = Evolution.gallery_totals()
+	check(tot.forms >= 4 and tot.colossal >= 1 and tot.alternate >= 1, "gallery totals count forms, colossals and alternate forms")
+	check(Evolution.choose_form("mossmantle"), "Mossmantle can still accompany you after the colossal Awakening")
+	await _frames(2)
+	check(lvl.creatures.has("mossmantle"), "Mossmantle is back at your side")
+	ui.play_evolution(moss, "mossmantle")
+	await get_tree().create_timer(10.5).timeout
+	check(ui.evolution.visible and ui.evolution._card.visible and ui.evolution.style == "grove", "Mossbun's own grove Awakening sequence reaches the reveal")
 	ui.evolution.close()
 	check(not ui.evolution.visible and (not p.input_locked or ui.hud.dialogue_open()), "closing the sequence returns control")
+	ui.open_panel("awakening", {"id": moss, "index": 0})
+	await _frames(3)
+	var aw = ui.panels.get("awakening")
+	check(aw != null and aw.visible and aw.viewers.size() >= 2, "Awakening screen shows current and next form side by side")
+	ui.open_panel("awakening", {"id": "mossmantle", "index": 0})
+	await _frames(3)
+	check(aw.size_viewer != null and aw.size_viewer.building_ref, "colossal Awakening shows a size comparison with a building")
+	aw.close()
+	await _frames(12)
+	ui.open_panel("awakening_gallery", {})
+	await _frames(3)
+	var gal = ui.panels.get("awakening_gallery")
+	check(gal != null and gal.visible and gal.totals_label.text.contains("Families completed") and gal.trees.size() >= 6, "Awakenings gallery shows family trees and totals")
+	var mt = null
+	for tr in gal.trees:
+		if tr.nodes.has("mossmantle"):
+			mt = tr
+	check(mt != null and mt.edges.any(func(e): return e[0] == "mossbun" and e[1] == "mossmantle") and mt.edges.any(func(e): return e[0] == "mossmantle" and e[1] == "verdantus"), "Mossbun family tree connects Mossbun > Mossmantle > Verdantus")
+	gal.close()
+	await _frames(12)
 	# Clear any story dialogue queued by earlier steps so movement tests run.
 	ui.hud._dlg_queue.clear()
 	ui.hud._dialogue.visible = false
@@ -715,9 +824,18 @@ func _satisfy(cid: String, req: Dictionary) -> void:
 	if req.has("sanctuary"):
 		for st in req.sanctuary:
 			GameState.data.sanctuary[st] = maxi(GameState.sanctuary_stage(st), int(req.sanctuary[st]))
+	if req.has("quest") and not Quests.is_completed(req.quest):
+		Quests.completed().append(req.quest)
+	if req.has("lore"):
+		for l in req.lore:
+			GameState.set_flag("lore_" + l)
 
 func _mesh_count(n: Node) -> int:
 	return n.find_children("*", "MeshInstance3D", true, false).size()
+
+func _physics(n: int) -> void:
+	for i in n:
+		await get_tree().physics_frame
 
 func _frames(n: int) -> void:
 	for i in n:

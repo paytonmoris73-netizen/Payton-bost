@@ -8,10 +8,10 @@ id = "hidden_sense"
 display_name = "Hidden Sense"
 slot = "primary"
 category = "exploration"
-description = "Reveals hidden Glimmerroot within 14 m."
+description = "Reveals hidden Glimmerroot and moss-hidden passages within 14 m."
 effect = "reveal"
 params = {
-"kinds": ["hidden_plant"],
+"kinds": ["hidden_plant", "moss_curtain"],
 "radius": 14.0
 }
 cooldown = 3

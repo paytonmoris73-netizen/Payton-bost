@@ -140,6 +140,11 @@ func _physics_process(delta: float) -> void:
 			want = Vector3.ZERO
 		velocity.x = lerpf(velocity.x, want.x, clampf(delta * 2.0, 0.0, 1.0))
 		velocity.z = lerpf(velocity.z, want.z, clampf(delta * 2.0, 0.0, 1.0))
+		# Leftover momentum must not carry the mount onto land either.
+		var drift := global_position + Vector3(velocity.x, 0, velocity.z) * 0.5
+		if not lvl.water_deep(drift.x, drift.z):
+			velocity.x = 0.0
+			velocity.z = 0.0
 		var surface: float = lvl.terrain.water_level_at(global_position.x, global_position.z)
 		if surface > -INF:
 			velocity.y = (surface + 0.1 - global_position.y) * 6.0
@@ -324,10 +329,12 @@ func _update_interactable() -> void:
 		interactable_changed.emit(best)
 
 func current_interactable() -> Interactable:
+	if _current != null and not is_instance_valid(_current):
+		_current = null
 	return _current
 
 func try_interact() -> void:
-	if input_locked or _current == null:
+	if input_locked or current_interactable() == null:
 		return
 	model.action("interact", 0.5)
 	_current.interact(self)

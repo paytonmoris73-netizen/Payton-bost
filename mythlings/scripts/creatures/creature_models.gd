@@ -9,7 +9,7 @@ static func has_model(id: String) -> bool:
 	var c: CreatureData = DB.creature(id) if Engine.get_main_loop() else null
 	if c and c.model_scene:
 		return true
-	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "thalassor"]
+	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "thalassor", "mossmantle"]
 
 ## variant: cosmetic palette variant id ("" = default)
 static func build(id: String, variant := "", accessory := "") -> CreatureRig:
@@ -45,6 +45,7 @@ static func build(id: String, variant := "", accessory := "") -> CreatureRig:
 		"drizzlefin": rig = _drizzlefin(variant)
 		"thornmane": rig = _thornmane(variant)
 		"thalassor": rig = _thalassor(variant)
+		"mossmantle": rig = _mossmantle(variant)
 		_:
 			rig = _unknown()
 	rig.name = "Rig_" + id
@@ -539,6 +540,128 @@ static func _mosswarden(_variant: String) -> CreatureRig:
 	r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", [crown, lantern] + arms)
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.45, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 1.35, -0.6)))
 	r.reg("saddle", K.pivot(v, Vector3(0, 2.05, 0.25)))
+	return r
+
+# ===================================================================== MOSSMANTLE (Awakened Form of Mossbun)
+static func _mossmantle(_variant: String) -> CreatureRig:
+	## A long, low, careful climber. Where Mossbun is a round ball, Mossmantle is
+	## stretched out: a slung body under overlapping curved bark shingles, a living
+	## mat of moss and ferns on its back, short forked boughs growing from the
+	## SHOULDERS (never the head), huge night-forager eyes on a forward-thrust head,
+	## and crouched, jointed limbs ending in long three-fingered root hands.
+	## Mossbun's leaf ears survive, swept far back.
+	var r := _rig("quad")
+	r.gait_speed = 0.75
+	r.bob_height = 0.05
+	var v := r.visual
+	var hide := Color("4a6230"); var hide_d := Color("3a4f27"); var bark := Color("5e4129"); var bark_d := Color("3f2b1c"); var bark_l := Color("7d5c3a")
+	var moss := Color("4f7a36"); var moss_l := Color("7aa64c"); var fern := Color("5fa046"); var belly := Color("b9c48e")
+	var leaf := Color("86c45e"); var leaf_in := Color("c3e39a"); var glow_c := Color("8affc0")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2207
+	var torso := K.pivot(v, Vector3(0, 0.82, 0.05), "Torso")
+	# Long slung body: chest, waist and hips as separate lobes (a stretched silhouette).
+	K.add(torso, K.sphere(0.46, 22, 11), K.mat(hide, 0.95), Vector3(0, 0.06, -0.6), Vector3(10, 0, 0), Vector3(1.0, 0.92, 1.05))
+	K.add(torso, K.sphere(0.4, 20, 10), K.mat(hide, 0.95), Vector3(0, 0.02, 0.05), Vector3.ZERO, Vector3(0.9, 1.0, 1.25))
+	K.add(torso, K.sphere(0.42, 20, 10), K.mat(hide, 0.95), Vector3(0, 0.08, 0.62), Vector3(-8, 0, 0), Vector3(0.95, 0.9, 1.0))
+	K.add(torso, K.sphere(0.36, 16, 8), K.mat(belly), Vector3(0, -0.2, -0.15), Vector3.ZERO, Vector3(0.8, 0.5, 2.2))
+	# Curved bark shingles overlap down the spine and both flanks like layered armour.
+	for i in 10:
+		var z := -0.92 + i * 0.19
+		var arch := 0.38 + sin(float(i) / 9.0 * PI) * 0.03
+		K.add(torso, K.petal(0.36, 0.5, 0.2, 0.035), K.mat(bark if i % 2 == 0 else bark_l, 0.9), Vector3(0, arch, z), Vector3(-82, 180, 0))
+		for sx in [-1, 1]:
+			K.add(torso, K.petal(0.28, 0.26, 0.12, 0.03), K.mat(bark_d if i % 2 else bark, 0.9), Vector3(0.27 * sx, arch - 0.12, z + 0.04), Vector3(-80, 180, -48 * sx))
+	# Living moss mat with ferns and a few tiny glow-caps along the ridge.
+	var flora := []
+	for i in 16:
+		var z := rng.randf_range(-0.85, 0.9)
+		K.add(torso, K.sphere(0.09 + rng.randf() * 0.05, 8, 4), K.mat(moss if i % 2 else moss_l, 1.0), Vector3(rng.randf_range(-0.12, 0.12), 0.43 + sin((z + 0.9) / 1.8 * PI) * 0.03, z), Vector3.ZERO, Vector3(1.2, 0.45, 1))
+	for i in 5:
+		var fp := K.pivot(torso, Vector3(rng.randf_range(-0.1, 0.1), 0.46, -0.55 + i * 0.32), "Fern", Vector3(0, rng.randf() * 360.0, 0))
+		for k in 3:
+			K.add(fp, K.petal(0.3, 0.07, 0.12, 0.015), K.mat(fern, 0.8), Vector3.ZERO, Vector3(-35 + k * 8, k * 120, 0))
+		flora.append(fp)
+	for i in 3:
+		var gp := Vector3(0.14 * (1 if i % 2 else -1), 0.45, 0.3 + i * 0.18)
+		K.add(torso, K.cyl(0.012, 0.016, 0.07, 5), K.mat(Color("efe6d4")), gp)
+		K.add(torso, K.sphere(0.04, 8, 4), K.glow(glow_c, 1.2), gp + Vector3(0, 0.045, 0), Vector3.ZERO, Vector3(1, 0.5, 1))
+	# Shoulder boughs: short forked branches rising from the shoulder blades.
+	var boughs := []
+	for sx in [-1, 1]:
+		var bp := K.pivot(torso, Vector3(0.24 * sx, 0.4, -0.72), "Bough", Vector3(-12, 0, -32 * sx))
+		var main := MeshInstance3D.new()
+		main.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0.04 * sx, 0.3, 0.06), Vector3(0.1 * sx, 0.55, 0.2), 7), K.taper(7, 0.055, 0.016), 6)
+		main.material_override = K.mat(bark_d)
+		bp.add_child(main)
+		var fork := MeshInstance3D.new()
+		fork.mesh = K.tube(K.bezier(Vector3(0.03 * sx, 0.26, 0.05), Vector3(0.16 * sx, 0.33, 0.0), Vector3(0.27 * sx, 0.38, -0.05), 5), K.taper(5, 0.03, 0.012), 5)
+		fork.material_override = K.mat(bark_d)
+		bp.add_child(fork)
+		for tip in [Vector3(0.1 * sx, 0.55, 0.2), Vector3(0.27 * sx, 0.38, -0.05)]:
+			for k in 3:
+				K.add(bp, K.petal(0.13, 0.07, 0.06), K.mat(leaf if k % 2 else leaf_in, 0.8), tip, Vector3(-30, k * 120, 20 * sx))
+		boughs.append(bp)
+	# Neck thrusts forward and slightly up; the head sits well clear of the chest.
+	var neck := MeshInstance3D.new()
+	neck.mesh = K.tube(K.bezier(Vector3(0, 0.92, -0.75), Vector3(0, 1.08, -1.05), Vector3(0, 1.12, -1.3), 7), K.taper(7, 0.27, 0.2), 12)
+	neck.material_override = K.mat(hide, 0.95)
+	v.add_child(neck)
+	for k in 3:
+		K.add(v, K.petal(0.2, 0.22, 0.1, 0.03), K.mat(bark if k % 2 else bark_l, 0.9), Vector3(0, 1.12 + k * 0.01, -0.82 - k * 0.17), Vector3(-75, 180, 0))
+	var head := K.pivot(v, Vector3(0, 1.15, -1.45), "Head")
+	K.add(head, K.sphere(0.3, 20, 10), K.mat(hide, 0.95), Vector3(0, 0.02, 0.02), Vector3.ZERO, Vector3(1.15, 0.85, 1.0))
+	K.add(head, K.sphere(0.16, 14, 7), K.mat(belly), Vector3(0, -0.1, -0.22), Vector3.ZERO, Vector3(1.15, 0.7, 0.85))
+	K.add(head, K.sphere(0.032, 8, 4), K.mat(Color("2a1e18"), 0.35), Vector3(0, -0.05, -0.355))
+	var eyes := []
+	for sx in [-1, 1]:
+		K.add(head, K.sphere(0.12, 12, 6), K.mat(hide_d), Vector3(0.14 * sx, 0.08, -0.17), Vector3.ZERO, Vector3(1, 1, 0.55))
+		eyes.append(K.eye(head, Vector3(0.14 * sx, 0.08, -0.215), 0.095, Color("1d2a1a"), Vector3(0.25 * sx, 0, -1), Color("6dffb0")))
+	K.add(head, K.petal(0.26, 0.3, 0.12, 0.03), K.mat(bark_l), Vector3(0, 0.2, -0.02), Vector3(-80, 180, 0))
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.2 * sx, 0.14, 0.08), "Ear", Vector3(72, 0, -42 * sx))
+		K.add(ep, K.petal(0.58, 0.2, 0.16, 0.03), K.mat(leaf, 0.8))
+		K.add(ep, K.petal(0.43, 0.1, 0.14, 0.02), K.mat(leaf_in, 0.8), Vector3(0, 0.04, -0.012))
+		ears.append(ep)
+	# Crouched, jointed limbs: upper leg angled out, forearm/shin angled back, root hands.
+	var legs := []
+	for p in [Vector3(-0.3, 0.8, -0.62), Vector3(0.3, 0.8, -0.62), Vector3(-0.32, 0.82, 0.68), Vector3(0.32, 0.82, 0.68)]:
+		var lp := K.pivot(v, p, "Leg")
+		var front: bool = p.z < 0
+		var sx := signf(p.x)
+		var knee := Vector3(0.12 * sx, -0.38, -0.12 if front else 0.16)
+		var foot := Vector3(0.1 * sx, -0.76, -0.04 if front else 0.0)
+		var up := MeshInstance3D.new()
+		up.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0.08 * sx, -0.2, knee.z * 0.4), knee, 6), K.taper(6, 0.16 if not front else 0.14, 0.1), 10)
+		up.material_override = K.mat(hide)
+		lp.add_child(up)
+		var low := MeshInstance3D.new()
+		low.mesh = K.tube(K.bezier(knee, (knee + foot) * 0.5 + Vector3(0, 0, 0.03), foot, 6), K.taper(6, 0.09, 0.065), 8)
+		low.material_override = K.mat(bark)
+		lp.add_child(low)
+		K.add(lp, K.sphere(0.09, 8, 4), K.mat(moss_l), knee, Vector3.ZERO, Vector3(1.1, 0.8, 1.1))
+		for k in 3:
+			var a := -0.55 + k * 0.55
+			var f := MeshInstance3D.new()
+			var tip := foot + Vector3(sin(a) * 0.2, -0.04, -0.2 - (0.05 if k == 1 else 0.0))
+			f.mesh = K.tube(K.bezier(foot, foot + Vector3(sin(a) * 0.1, 0.02, -0.1), tip, 5), K.taper(5, 0.035, 0.014), 5)
+			f.material_override = K.mat(bark_d)
+			lp.add_child(f)
+			K.add(lp, K.sphere(0.02, 6, 3), K.glow(glow_c, 0.8), tip)
+		legs.append(lp)
+	# Long tail curling up into a moss plume (Mossbun's leaf tail, grown).
+	var tail := K.pivot(v, Vector3(0, 0.95, 1.05), "Tail", Vector3(-15, 0, 0))
+	var tt := MeshInstance3D.new()
+	tt.mesh = K.tube(K.bezier(Vector3.ZERO, Vector3(0, -0.05, 0.6), Vector3(0, 0.35, 0.95), 9), K.taper(9, 0.12, 0.045), 8)
+	tt.material_override = K.mat(hide)
+	tail.add_child(tt)
+	for k in 6:
+		K.add(tail, K.petal(0.3, 0.12, 0.12, 0.02), K.mat(moss_l if k % 2 else leaf, 0.8), Vector3(0, 0.35, 0.95), Vector3(-30, k * 60, 25))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1])
+	r.reg("legs", legs); r.reg("tail", tail); r.reg("sway", flora + boughs)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.27, 0.0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 1.0, -1.0)))
+	r.reg("saddle", K.pivot(v, Vector3(0, 1.4, 0.1)))
 	return r
 
 # ===================================================================== GLIMMERHARE (Small, alternate evolution)

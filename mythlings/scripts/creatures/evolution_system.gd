@@ -1,11 +1,55 @@
 extends Node
-## Evolution engine (autoload "Evolution"). Requirements are data on
+## AWAKENINGS engine (autoload "Evolution"). Requirements are data on
 ## CreatureData.evolutions and are always shown in full. Nothing here is random
-## and nothing can be bought.
+## and nothing can be bought. Awakening is never automatic: the player chooses
+## when. Earlier forms are remembered ("Form Memory") and can still accompany
+## the player, and other paths can still be awakened later from the earlier
+## form, so no choice is permanent.
 
 signal evolved(from_id: String, to_id: String)
 
-const PATH_NAMES := {"natural": "Natural evolution", "alternate": "Alternate evolution", "ascended": "Ascended form"}
+const PATH_NAMES := {"natural": "Natural Awakening", "alternate": "Alternate Awakening", "ascended": "Ascended Awakening"}
+const STAGE_NAMES := ["First Form", "Awakened Form", "Advanced Form", "Ascended Form", "Colossal Form"]
+const LORE_NAMES := {"grove_stone_1": "Old Grove Stone I (Heartwood Hollow)", "grove_stone_2": "Old Grove Stone II (near the Forgotten Shrine)", "grove_stone_3": "Old Grove Stone III (bound in roots, west woods)", "heartwood_seed": "Plant Mossbun's seed in the Heartwood Hollow"}
+
+static func stage_name(c: CreatureData) -> String:
+	if c == null:
+		return ""
+	if c.is_colossal():
+		return "Colossal Form"
+	return STAGE_NAMES[clampi(c.stage - 1, 0, 3)]
+
+## Every form in a family, ordered by stage.
+func family_forms(fam: String) -> Array:
+	var out: Array = []
+	for c in DB.creatures.values():
+		if c.family == fam and fam != "":
+			out.append(c)
+	out.sort_custom(func(a, b): return a.stage < b.stage or (a.stage == b.stage and a.id < b.id))
+	return out
+
+## Forms of this bond that the player has unlocked (for Form Memory).
+func remembered_forms(cid: String) -> Array:
+	var c: CreatureData = DB.creature(cid)
+	if c == null:
+		return []
+	if c.family == "":
+		return [c] if GameState.is_discovered(cid) else []
+	var out: Array = []
+	for f in family_forms(c.family):
+		if GameState.is_discovered(f.id) and (f.id == c.family or String(GameState.data.creatures[f.id].get("evolved_from", "")) != "" or f.evolves_from == ""):
+			out.append(f)
+	return out
+
+## The form a bond currently "is" (the newest form, unless the player chose to
+## bring an earlier one along).
+func bond_head(cid: String) -> String:
+	var id := cid
+	var guard := 0
+	while GameState.evolved_to(id) != "" and guard < 8:
+		id = GameState.evolved_to(id)
+		guard += 1
+	return id
 
 func options(cid: String) -> Array:
 	var c: CreatureData = DB.creature(cid)
@@ -34,7 +78,7 @@ func requirements(cid: String, evo: Dictionary) -> Array:
 	if req.has("ability_uses"):
 		for kind in req.ability_uses:
 			var have := int(GameState.data.stats.get("ability_" + kind, 0))
-			var label := {"hidden_plant": "Reveal hidden plants with abilities", "lucky_clover": "Find lucky clovers", "dark_lantern": "Light old lanterns", "cracked_rock": "Crack weakened boulders", "ripple_stone": "Raise stepping stones", "wilted_flower": "Revive wilted flowers"}.get(kind, "Use abilities on " + kind.replace("_", " "))
+			var label := {"moss_curtain": "Find moss-hidden passages", "tangled_roots": "Pull aside tangled roots", "hidden_plant": "Reveal hidden plants with abilities", "lucky_clover": "Find lucky clovers", "dark_lantern": "Light old lanterns", "cracked_rock": "Crack weakened boulders", "ripple_stone": "Raise stepping stones", "wilted_flower": "Revive wilted flowers"}.get(kind, "Use abilities on " + kind.replace("_", " "))
 			out.append({"label": "%s (%d times)" % [label, int(req.ability_uses[kind])], "met": have >= int(req.ability_uses[kind]), "progress": "%d / %d" % [mini(have, int(req.ability_uses[kind])), int(req.ability_uses[kind])]})
 	if req.has("stats"):
 		for k in req.stats:
@@ -56,6 +100,9 @@ func requirements(cid: String, evo: Dictionary) -> Array:
 	if req.has("quest"):
 		var q: QuestData = DB.quest(req.quest)
 		out.append({"label": "Complete \"%s\"" % (q.title if q else req.quest), "met": Quests.is_completed(req.quest), "progress": ""})
+	if req.has("lore"):
+		for l in req.lore:
+			out.append({"label": "Read " + LORE_NAMES.get(l, l), "met": bool(GameState.flag("lore_" + l)), "progress": ""})
 	if req.has("not_owned"):
 		var t: CreatureData = DB.creature(req.not_owned)
 		var owned := GameState.is_discovered(req.not_owned)
@@ -66,15 +113,31 @@ func _loc_name(id: String) -> String:
 	return MeadowLevel.location_name(id)
 
 func can_evolve(cid: String, evo: Dictionary) -> bool:
-	if not GameState.is_discovered(cid) or GameState.evolved_to(cid) != "":
+	if not GameState.is_discovered(cid):
 		return false
 	var target: CreatureData = DB.creature(evo.get("to", ""))
 	if target == null or not target.model_ready:
+		return false
+	if already_awakened(cid, evo):
 		return false
 	for r in requirements(cid, evo):
 		if not r.met:
 			return false
 	return true
+
+## True when this option's form is already part of this bond.
+func already_awakened(cid: String, evo: Dictionary) -> bool:
+	var to: String = evo.get("to", "")
+	if not GameState.is_discovered(to):
+		return false
+	var from := String(GameState.data.creatures[to].get("evolved_from", ""))
+	return from != "" or GameState.evolved_to(cid) == to
+
+## A colossal guardian you already befriended in the wild, that your awakened
+## form will join with instead of becoming a duplicate.
+func joins_elder(cid: String, evo: Dictionary) -> bool:
+	var to: String = evo.get("to", "")
+	return GameState.is_discovered(to) and not already_awakened(cid, evo)
 
 func evolve(cid: String, index: int) -> bool:
 	var opts := options(cid)
@@ -87,7 +150,9 @@ func evolve(cid: String, index: int) -> bool:
 	if evo.requirements.has("items"):
 		GameState.consume_items(evo.requirements.items)
 	var src: Dictionary = GameState.data.creatures[cid]
-	src.evolved_to = to
+	var first_path := String(src.get("evolved_to", "")) == ""
+	if first_path:
+		src.evolved_to = to
 	GameState.discover(to, String(src.get("discovered_at", "")))
 	var t: Dictionary = GameState.data.creatures[to]
 	t.friendship = maxi(int(t.friendship), int(src.friendship))
@@ -95,7 +160,7 @@ func evolve(cid: String, index: int) -> bool:
 	var elog: Array = GameState.data.flags.get("evolution_log", [])
 	elog.append({"from": cid, "to": to, "path": evo.path, "time": Time.get_datetime_string_from_system()})
 	GameState.data.flags["evolution_log"] = elog
-	if GameState.companion() == cid:
+	if GameState.companion() == cid and (first_path or not DB.creature(to).is_colossal()):
 		GameState.data.companion = to
 	var hab: Array = GameState.data.flags.get("habitat", [])
 	if cid in hab:
@@ -118,3 +183,41 @@ func owned_forms() -> Array:
 		if GameState.is_discovered(c.id) and GameState.evolved_to(c.id) == "":
 			out.append(c)
 	return out
+
+## Form Memory: bring an earlier (or any unlocked) form of this bond along.
+func choose_form(form_id: String) -> bool:
+	var c: CreatureData = DB.creature(form_id)
+	if c == null or not GameState.is_discovered(form_id) or not c.model_ready:
+		return false
+	GameState.data.companion = form_id
+	Events.companion_changed.emit(form_id)
+	Events.emit_game_event("companion", form_id)
+	return true
+
+## Totals for the Awakenings gallery.
+func gallery_totals() -> Dictionary:
+	var fams := {}
+	for c in DB.creatures.values():
+		if c.family != "":
+			fams[c.family] = true
+	var forms := 0
+	var total := 0
+	var complete := 0
+	var colossal := 0
+	var alternate := 0
+	for f in fams:
+		var all := family_forms(f)
+		var have := 0
+		for c in all:
+			total += 1
+			if GameState.is_discovered(c.id):
+				have += 1
+				if c.is_colossal():
+					colossal += 1
+		forms += have
+		if have == all.size() and all.size() > 1:
+			complete += 1
+	for e in GameState.data.flags.get("evolution_log", []):
+		if String(e.get("path", "")) == "alternate":
+			alternate += 1
+	return {"forms": forms, "total": total, "families": complete, "family_total": fams.size(), "colossal": colossal, "alternate": alternate}

@@ -44,16 +44,14 @@ evolutions = Array[Dictionary]([{
 "path": "ascended",
 "requirements": {
 "friendship": 5,
-"level": 6,
-"items": {
-"glimmerroot": 3,
-"crystal": 3
-},
 "sanctuary": {
 "shrine": 1
 },
-"not_owned": "verdantus"
+"quest": "q_main_08",
+"lore": ["grove_stone_1", "grove_stone_2", "grove_stone_3"]
 },
-"text": "At the rekindled shrine, a Mosswarden of perfect trust can take on the guardian's form."
+"text": "A Mosswarden can also take on the guardian's form once the forest's history is known.",
+"branch": "Keeper Path"
 }])
 originality_notes = "Large round rabbit-like silhouette with draped leaf-cloak ears and a lantern-seed. Deliberately no horns, wood grain or lion-tail tuft."
+form_role = "Large and steady: +1 wood from logs and the strongest Grove Call regrowth. Best for gathering."

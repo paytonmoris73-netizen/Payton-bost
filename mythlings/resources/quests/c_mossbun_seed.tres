@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_mossbun_seed"
+title = "The Seed in the Moss"
+category = "creature"
+region = "meadow"
+description = "Mossbun keeps pawing at its moss and looking west into the deep woods. It seems to be carrying something it wants to plant."
+objectives = Array[Dictionary]([{
+"event": "companion:mossbun",
+"count": 1,
+"label": "Bring Mossbun along as your companion"
+}, {
+"event": "ability:moss_curtain",
+"count": 1,
+"label": "Use Hidden Sense to find the hidden way into the Heartwood Hollow (west woods)"
+}, {
+"event": "reach:heartwood_hollow",
+"count": 1,
+"label": "Enter the Heartwood Hollow"
+}, {
+"event": "lore:heartwood_seed",
+"count": 1,
+"label": "Let Mossbun plant its seed by the heartwood"
+}])
+rewards = {
+"xp": 160,
+"gold": 80,
+"crystals": 10
+}
+prerequisites = PackedStringArray("q_main_05")
+min_level = 3
+auto_start = true
+giver = "Mossbun"
+start_dialogue = PackedStringArray("*Mossbun tugs at a tuft of its own moss. Something small and green glows underneath.*", "*Its ears point west, deeper into the Whispering Woods than you have been.*")
+end_dialogue = PackedStringArray("*The seed has taken root. Mossbun looks at you, steady and calm, as if it has grown up a little.*", "Mossbun can now Awaken. Open the Mythlings menu and choose Awakening when you are both ready — there's no rush.")
+sort_order = 35
+map_marker = "heartwood_hollow"

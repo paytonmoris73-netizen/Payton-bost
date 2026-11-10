@@ -92,6 +92,9 @@ func clear() -> void:
 
 ## kind: creature (id or "id:variant" or "id::accessory"), outfit ("top:x"), player, decoration, colossal
 var scale_ref := false
+## With scale_ref: also place a village cottage for colossal-scale comparison.
+var building_ref := false
+var _house: Node3D
 var environment: Environment
 var _ref: PlayerModel
 
@@ -101,6 +104,9 @@ func show_item(kind: String, id: String) -> void:
 	if _ref:
 		_ref.queue_free()
 		_ref = null
+	if _house:
+		_house.queue_free()
+		_house = null
 	_yaw = 0.6
 	var height := 0.7
 	var scl := 1.0
@@ -181,10 +187,18 @@ func _frame_with_reference(height: float) -> void:
 	current.position.x = 0.25
 	var span := maxf(height, 1.75)
 	var width := gap + 0.6 + height * 0.7
+	if building_ref:
+		# A village cottage (about 5.5 m to the roof ridge) on the far side.
+		_house = Props.node(Props.house(0), "solid", Vector3(0.25 + height * 0.55 + 3.6, 0, -1.5), -0.5)
+		pivot.add_child(_house)
+		span = maxf(span, 5.5)
+		width += 7.5
 	var fit := maxf(span, width * 0.62) * (1.45 if height > 4.0 else 1.0)
 	var scl := 1.15 / fit
 	pivot.scale = Vector3.ONE * scl
 	pivot.position.x = (gap * 0.5) * scl * 0.5
+	if building_ref:
+		pivot.position.x = -((-gap - 0.4) + (height * 0.55 + 6.5)) * 0.5 * scl
 	var h := span * scl
 	var cp := Vector3(0, h * 0.6 + 0.15, 3.0)
 	cam.transform = Transform3D(Basis.looking_at(Vector3(0, h * 0.5, 0) - cp, Vector3.UP), cp)

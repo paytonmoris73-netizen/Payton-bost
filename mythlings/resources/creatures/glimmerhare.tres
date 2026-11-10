@@ -39,3 +39,4 @@ stage = 2
 evolves_from = "mossbun"
 acquisition = PackedStringArray("evolve")
 lore = "Glimmerhares are rarely seen standing still. Children leave dew nectar out for them on summer nights."
+form_role = "Small and fast: the quickest walking speed bonus and a sky-high Moonleap. Best for scouting."

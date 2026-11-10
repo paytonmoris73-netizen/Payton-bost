@@ -103,7 +103,7 @@ func refresh() -> void:
 		v.alignment = BoxContainer.ALIGNMENT_CENTER
 		v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var tag := ""
-		if GameState.companion() == c.id:
+		if GameState.companion() == c.id or Evolution.bond_head(GameState.companion()) == c.id:
 			tag = " · Companion"
 		elif c.id in hab:
 			tag = " · Sanctuary"
@@ -268,57 +268,96 @@ func _show(id: String) -> void:
 				rv.add_child(UIKit.label("Your companion %s: %s" % [DB.creature(cur).display_name, other.display_name], "Caption", 15, Palette.TEAL, true))
 		row.add_child(rv)
 		_detail.add_child(row)
-	# Evolution
-	var opts := Evolution.options(id)
-	var fam: Array = DB.family(c.family)
+	# AWAKENINGS
+	var fam: Array = Evolution.family_forms(c.family)
 	if fam.size() > 1:
-		_section("Evolution family")
+		_section("Awakenings")
 		var chain := HFlowContainer.new()
 		chain.add_theme_constant_override("h_separation", 6)
+		chain.add_theme_constant_override("v_separation", 6)
 		for f in fam:
 			var known := GameState.is_discovered(f.id)
-			chain.add_child(UIKit.pill(("%s (%s)" % [f.display_name, f.size_label()]) if known else "??? (stage %d)" % f.stage, Palette.MOSS if f.id == id else (Palette.TEAL if known else Palette.INK_SOFT)))
+			chain.add_child(UIKit.pill("%s · %s" % [f.display_name if known else f.display_name + " (not yet)", Evolution.stage_name(f)], Palette.MOSS if f.id == id else (Palette.TEAL if known else Palette.INK_SOFT)))
 		_detail.add_child(chain)
-	if c.evolves_from != "":
-		var replay := UIKit.button("Replay evolution from %s" % DB.creature(c.evolves_from).display_name, "play", "", 52)
-		var src: String = c.evolves_from
+	# Form Memory: earlier forms stay useful and can still come along.
+	var forms: Array = Evolution.remembered_forms(id)
+	if forms.size() > 1:
+		_detail.add_child(UIKit.label("Form Memory — choose which form walks with you", "Title", 18))
+		var frow := HFlowContainer.new()
+		frow.add_theme_constant_override("h_separation", 6)
+		frow.add_theme_constant_override("v_separation", 6)
+		for f in forms:
+			var fb := UIKit.button(("✓ " if GameState.companion() == f.id else "") + f.display_name, "paw", "PrimaryButton" if GameState.companion() == f.id else "", 50, 20)
+			fb.tooltip_text = f.form_role
+			var fid: String = f.id
+			fb.pressed.connect(func():
+				if DB.creature(fid).is_colossal() and MeadowLevel.current:
+					var why := MeadowLevel.current.summon(fid)
+					if why != "":
+						Events.toast.emit(DB.creature(fid).display_name, why, "paw")
+						return
+				elif Evolution.choose_form(fid):
+					Events.toast.emit("Form Memory", "%s is walking with you." % DB.creature(fid).display_name, "paw")
+				_show(id))
+			frow.add_child(fb)
+		_detail.add_child(frow)
+		for f in forms:
+			if f.form_role != "":
+				_detail.add_child(UIKit.label("%s: %s" % [f.display_name, f.form_role], "Caption", 15, Color(0, 0, 0, 0), true))
+	if c.evolves_from != "" and GameState.is_discovered(c.evolves_from):
+		var replay := UIKit.button("Replay Awakening from %s" % DB.creature(c.evolves_from).display_name, "play", "", 52)
+		var src: String = String(GameState.data.creatures[id].get("evolved_from", c.evolves_from))
+		if src == "":
+			src = c.evolves_from
 		replay.pressed.connect(func(): _play_cinematic(src, id))
 		_detail.add_child(replay)
-	for i in opts.size():
-		var e: Dictionary = opts[i]
-		var target: CreatureData = DB.creature(e.to)
-		var ec := UIKit.card()
-		var ev := UIKit.vbox(6)
-		var eh := UIKit.hbox(8)
-		eh.add_child(IconGlyph.make("evolve", 30, Palette.MOSS))
-		var et := UIKit.label("%s → %s" % [Evolution.PATH_NAMES.get(e.path, e.path), target.display_name if GameState.is_discovered(e.to) else target.display_name + " (new form)"], "Title", 19)
-		et.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		eh.add_child(et)
-		eh.add_child(UIKit.pill(target.size_label(), Palette.TEAL))
-		ev.add_child(eh)
-		ev.add_child(UIKit.label(String(e.get("text", "")), "", 16, Color(0, 0, 0, 0), true))
-		for r in Evolution.requirements(id, e):
-			var rr := UIKit.hbox(6)
-			rr.add_child(IconGlyph.make("check" if r.met else "sparkle", 20, Palette.MOSS if r.met else Palette.INK_SOFT))
-			var rl := UIKit.label(r.label, "", 16, Palette.MOSS_DARK if r.met else Palette.INK, true)
-			rr.add_child(rl)
-			if r.progress != "":
-				rr.add_child(UIKit.label(r.progress, "Caption", 15))
-			ev.add_child(rr)
-		var ok := Evolution.can_evolve(id, e)
-		var btn := UIKit.button("Evolve into %s" % target.display_name, "evolve", "PrimaryButton", 58)
-		btn.disabled = not ok
-		var idx := i
-		btn.pressed.connect(func():
-			if Evolution.evolve(id, idx):
-				_selected = target.id
-				await close()
-				_play_cinematic(id, target.id))
-		ev.add_child(btn)
-		if not target.model_ready:
-			ev.add_child(UIKit.label("This form's model isn't in this build yet.", "Caption", 15, Palette.DANGER))
-		ec.add_child(ev)
-		_detail.add_child(ec)
+	# Awakenings still open: this form's own, plus other paths of remembered forms.
+	var srcs: Array = [id]
+	for f in forms:
+		if f.id != id:
+			srcs.append(f.id)
+	for sid in srcs:
+		var opts := Evolution.options(sid)
+		for i in opts.size():
+			var e: Dictionary = opts[i]
+			if Evolution.already_awakened(sid, e):
+				continue
+			var target: CreatureData = DB.creature(e.to)
+			var ec := UIKit.card()
+			var ev := UIKit.vbox(6)
+			var eh := UIKit.hbox(8)
+			eh.add_child(IconGlyph.make("evolve", 30, Palette.MOSS))
+			var head_txt := "%s → %s" % [DB.creature(sid).display_name, target.display_name]
+			var et := UIKit.label(head_txt, "Title", 19)
+			et.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			eh.add_child(et)
+			eh.add_child(UIKit.pill(String(e.get("branch", Evolution.PATH_NAMES.get(e.path, e.path))), Palette.GOLD_DARK))
+			eh.add_child(UIKit.pill(Evolution.stage_name(target), Palette.TEAL))
+			ev.add_child(eh)
+			ev.add_child(UIKit.label(String(e.get("text", "")), "", 16, Color(0, 0, 0, 0), true))
+			var reqs := Evolution.requirements(sid, e)
+			var met := reqs.filter(func(r): return r.met).size()
+			for r in reqs:
+				var rr := UIKit.hbox(6)
+				rr.add_child(IconGlyph.make("check" if r.met else "sparkle", 20, Palette.MOSS if r.met else Palette.INK_SOFT))
+				var rl := UIKit.label(r.label, "", 16, Palette.MOSS_DARK if r.met else Palette.INK, true)
+				rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				rr.add_child(rl)
+				if r.progress != "":
+					rr.add_child(UIKit.label(r.progress, "Caption", 15))
+				ev.add_child(rr)
+			var ok := Evolution.can_evolve(sid, e)
+			var btn := UIKit.button(("Open Awakening (ready!)" if ok else "View Awakening (%d / %d requirements)" % [met, reqs.size()]), "evolve", "PrimaryButton" if ok else "", 58)
+			var idx := i
+			var from_id: String = sid
+			btn.pressed.connect(func():
+				if game_ui:
+					game_ui.open_panel("awakening", {"id": from_id, "index": idx}))
+			ev.add_child(btn)
+			if not target.model_ready:
+				ev.add_child(UIKit.label("This form's model isn't in this build yet.", "Caption", 15, Palette.DANGER))
+			ec.add_child(ev)
+			_detail.add_child(ec)
 	if c.lore != "":
 		_section("Lore")
 		_detail.add_child(UIKit.label(c.lore, "", 17, Palette.INK_SOFT, true))

@@ -39,19 +39,18 @@ stage = 1
 acquisition = PackedStringArray("explore")
 lore = "Villagers say every Mossbun carries a seed of the first forest in its moss. Most never notice. A few grow into something much larger."
 evolutions = Array[Dictionary]([{
-"to": "mosswarden",
+"to": "mossmantle",
 "path": "natural",
 "requirements": {
-"friendship": 4,
-"level": 4,
-"items": {
-"glimmerroot": 2
-},
+"friendship": 3,
 "sanctuary": {
 "oak": 1
-}
 },
-"text": "Rooted in a restored sanctuary, Mossbun's moss deepens into a cloak and its seed begins to glow."
+"visited": ["heartwood_hollow"],
+"quest": "c_mossbun_seed"
+},
+"text": "Once Mossbun has planted its seed in the Heartwood Hollow, its moss thickens into bark, its body stretches out and boughs grow from its shoulders.",
+"branch": "Guardian Path"
 }, {
 "to": "glimmerhare",
 "path": "alternate",
@@ -62,6 +61,24 @@ evolutions = Array[Dictionary]([{
 },
 "visited": ["whispering_woods", "butterfly_clearing", "sunstone_falls"]
 },
-"text": "A Mossbun that spends its days chasing Glimmerroot grows light, quick and luminous instead."
+"text": "A Mossbun that spends its days chasing Glimmerroot grows light, quick and luminous instead.",
+"branch": "Explorer Path"
+}, {
+"to": "mosswarden",
+"path": "alternate",
+"requirements": {
+"friendship": 4,
+"level": 4,
+"items": {
+"glimmerroot": 2
+},
+"sanctuary": {
+"oak": 1
+}
+},
+"text": "Rooted in a restored sanctuary, Mossbun's moss deepens into a cloak and its seed begins to glow.",
+"branch": "Keeper Path"
 }])
 originality_notes = "Round moss-covered body with leaf ears and a sprout. Checked against well-known franchise creatures: no specific match found, but needs professional review."
+form_role = "Small and quick: fits through moss-hidden gaps, and is the only form whose Hidden Sense finds moss curtains."
+awakening_style = "grove"

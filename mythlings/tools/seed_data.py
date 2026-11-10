@@ -229,6 +229,15 @@ Q("c_dewdrop","Ripples on the Pond","creature","Stepping stones once crossed the
   [("ability:ripple_stone",1,"Raise the stepping stones with Dewdrop")],{"xp":90,"gold":60},["q_main_03"],lvl=2,order=33)
 Q("c_cloverling","Lucky Clovers","creature","Cloverling can sniff out lucky clover patches. Find three.",
   [("ability:lucky_clover",3,"Find lucky clover patches with Cloverling")],{"xp":80,"gold":90},["q_main_03"],order=34)
+Q("c_mossbun_seed","The Seed in the Moss","creature","Mossbun keeps pawing at its moss and looking west into the deep woods. It seems to be carrying something it wants to plant.",
+  [("companion:mossbun",1,"Bring Mossbun along as your companion"),("ability:moss_curtain",1,"Use Hidden Sense to find the hidden way into the Heartwood Hollow (west woods)"),("reach:heartwood_hollow",1,"Enter the Heartwood Hollow"),("lore:heartwood_seed",1,"Let Mossbun plant its seed by the heartwood")],
+  {"xp":160,"gold":80,"crystals":10},["q_main_05"],lvl=3,giver="Mossbun",order=35,marker="heartwood_hollow",
+  start=["*Mossbun tugs at a tuft of its own moss. Something small and green glows underneath.*","*Its ears point west, deeper into the Whispering Woods than you have been.*"],
+  end=["*The seed has taken root. Mossbun looks at you, steady and calm, as if it has grown up a little.*","Mossbun can now Awaken. Open the Mythlings menu and choose Awakening when you are both ready — there's no rush."])
+Q("c_grove_history","The Forest Remembers","creature","Old Grove Stones tell the history of the ancient forest. Reading all three is part of the guardian's Awakening.",
+  [("lore:grove_stone_1",1,"Read Old Grove Stone I in the Heartwood Hollow"),("lore:grove_stone_2",1,"Read Old Grove Stone II near the Forgotten Shrine"),("lore:grove_stone_3",1,"Free and read Old Grove Stone III (needs Root Passage)")],
+  {"xp":200,"crystals":15},["q_main_08"],lvl=4,giver="Ancient Oak",order=36,marker="grove_stone_2",
+  start=["The guardian's story is carved into three old stones, Keeper. One sits in the Heartwood Hollow, one near the shrine, and one the roots have swallowed."])
 Q("col_meadow","Meadow Naturalist","collection","Discover the Mythlings that call Whispering Meadow home.",
   [("discover:*",6,"Discover Mythlings")],{"xp":150,"crystals":15},["q_main_02"],order=40)
 Q("d_pet","Gentle Hands","daily","Spend a little time with your Mythlings today. Optional — no streaks, no penalties.",

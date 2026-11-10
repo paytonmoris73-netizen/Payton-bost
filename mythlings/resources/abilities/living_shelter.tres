@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "living_shelter"
+display_name = "Living Shelter"
+slot = "secondary"
+category = "support"
+description = "Mossmantle curls its moss mantle into a shelter for 40 seconds. Inside it (6 m), shy Mythlings stay calm and every interaction earns double friendship."
+effect = "shelter"
+params = {
+"radius": 6.0,
+"duration": 40.0,
+"friendship_mult": 2.0
+}
+cooldown = 60
+unlock_friendship = 2
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.525, 0.769, 0.369, 1)

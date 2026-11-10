@@ -28,20 +28,51 @@ Each ability's `effect` runs real gameplay:
 Cooldowns per creature and ability; Settings → Reduced effects halves particles and skips dynamic lights.
 The HUD shows primary/secondary/signature buttons, pulses gold when an ability would do something nearby, and shows passive-sense directions.
 
-## Evolution (`scripts/creatures/evolution_system.gd`)
-- **Natural:** Mossbun → **Mosswarden** (friendship 4, level 4, 2 Glimmerroot, Ancient Oak stage 1)
-- **Alternate:** Mossbun → **Glimmerhare** (friendship 3, reveal 5 hidden plants, visit 3 places)
-- **Natural (one per remaining meadow Mythling):** Cloverling → **Shamrelle**, Pebblit → **Cairnback**, Sunfox → **Dawnstrider**,
-  Dewdrop → **Cloudwell**, Bloomtail → **Blossomere**. Each has its own requirements (friendship, level, materials,
-  ability milestones, places visited or sanctuary stage) and a new four-ability kit.
-- **Alternate (one per remaining meadow Mythling):** Cloverling → **Thistlepin** (be together when it rains), Pebblit → **Geodrift**
-  (crystals + caves in both regions), Sunfox → **Lanternwhisk** (light 6 lanterns), Dewdrop → **Drizzlefin** (rain + Cinder Lake),
-  Bloomtail → **Thornmane** (Emberfall materials + Dragonstone Ridge). Each Mythling can take only one of its paths.
-- **Ascended:** Mosswarden → **Verdantus** (friendship 5, level 6, materials, shrine restored; unavailable if you already bonded with Verdantus)
+## AWAKENINGS (`scripts/creatures/evolution_system.gd`)
+Evolution is branded **Awakenings**. Stages: **First Form → Awakened Form → Advanced Form → Ascended Form**, and
+**Colossal Form** for any colossal. Not every species uses every stage.
 
-Requirements are listed in full with progress. Nothing is random or purchasable. The evolution sequence
-(reaction → dimming stage → light pillar and spiral → transformation → reveal → new profile) can be replayed
-from the Mythlings screen or the Journal.
+**Rules (all implemented):**
+- Never automatic and never tied only to XP. Each option lists data-driven requirements: friendship, Keeper level,
+  materials, sanctuary stages, places/landmarks visited, ability milestones, personal quests, lore read (`lore`),
+  weather/stat events. Nothing can be bought.
+- The player presses **Awaken** on the **Awakening screen** (`scripts/ui/awakening_panel.gd`): current and potential
+  form side by side (drag to rotate), path and stage, size change, new characteristics, ability kit with New/Kept
+  tags, full requirement checklist with progress, a true-scale size comparison beside the Keeper (plus a village
+  cottage for colossal forms) and **Preview transformation**, which plays the sequence without changing anything.
+- **Form Memory:** earlier forms stay unlocked. From the Mythlings screen the player chooses which remembered form
+  walks with them (e.g. Mossbun for small gaps and moss curtains, Mossmantle for climbing/roots, Verdantus for
+  colossal interactions). Each form has a `form_role` line explaining what it is best at.
+- **No permanent choices:** other paths stay open. After awakening along one path, the earlier form's other
+  options remain listed and can be awakened later when their requirements are met.
+- If a colossal form was already befriended in the wild (story Verdantus), the awakened line **joins** it instead of
+  creating a duplicate; the screen explains this before you choose.
+- **Per-family sequences** (`scripts/ui/evolution_cinematic.gd`, `CreatureData.awakening_style`):
+  `grove` (Mossbun line: leaves swirl, roots rise, a moss mound closes, the new body unfolds lengthwise, flowers open),
+  `ember` (markings glow, light cracks across the ground, armour plates fly in and lock on),
+  `celestial` (night falls, rings orbit on different axes, anatomy unfolds axis by axis among stars),
+  and a classic fallback for families not yet given their own.
+- **Awakenings Gallery** (Journal → Awakenings): each family as a connected tree, silhouettes for undiscovered
+  forms, and totals (forms discovered, families completed, colossal forms, alternate forms unlocked).
+
+### Mossbun family (complete, played end-to-end in `tests/test_runner.gd`)
+| Path | Form | Requirements | Gameplay |
+|---|---|---|---|
+| Guardian Path (natural) | **Mossmantle** (Awakened, Large, rideable) | Friendship 3 · Ancient Oak stage 1 · discover the hidden **Heartwood Hollow** · complete personal quest **The Seed in the Moss** | Nature Sense (points to hidden plants/treasure/root walls), **Root Passage** (pulls tangled root walls aside + grows a root bridge), **Living Shelter** (moss dome: calm Mythlings, ×2 friendship inside), Canopy Call |
+| Explorer Path (alternate) | **Glimmerhare** (Small) | Friendship 3 · reveal 5 hidden plants · visit 3 places | Fleetfoot, Glimmer Sight, Burst Dash, Moonleap |
+| Keeper Path (alternate) | **Mosswarden** (Large) | Friendship 4 · level 4 · 2 Glimmerroot · Ancient Oak stage 1 | Steady Root, Root Bridge, Nature Whisper, Grove Call |
+| Guardian/Keeper → Colossal | **Verdantus** (Colossal, rideable) | Friendship 5 · Forgotten Shrine restored · main story "The Forgotten Shrine" · read all three **Old Grove Stones** (forest history) | Guardian's Presence, Guardian's Gaze, broad Root Bridge, **Eternal Grove** |
+
+The chain is built so each form's abilities matter for the next step: Mossbun's Hidden Sense opens the moss curtain
+into the Heartwood Hollow (only a Mossbun companion can plant the seed there); Mossmantle's Root Passage frees
+Old Grove Stone III, which Verdantus's Awakening needs.
+
+### Other meadow families (previous pass, classic sequence for now)
+- Cloverling → Shamrelle / Thistlepin, Pebblit → Cairnback / Geodrift, Sunfox → Dawnstrider / Lanternwhisk,
+  Dewdrop → Cloudwell / Drizzlefin, Bloomtail → Blossomere / Thornmane. Each has its own requirements and kit.
+- The remaining families from the AWAKENINGS brief (Cloverling → Petalcrest → Bloomtail, Cindercub → Cindermaw →
+  Ignaroth, Magmole → Basaltusk → Obsidra, and the Tideglass/Frostroot/Sunpetal/Starfall families) are planned in
+  `docs/TODO.md` and will reuse this exact architecture.
 
 ## Premium creatures
 - **Ignaroth** is sold for an exact 1500 Star Gems, granting exactly that creature at friendship 3 (rideable, flying).

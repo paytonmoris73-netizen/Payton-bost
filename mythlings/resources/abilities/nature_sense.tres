@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "nature_sense"
+display_name = "Nature Sense"
+slot = "passive"
+category = "exploration"
+description = "Mossmantle feels the forest around you: the HUD points toward hidden plants, hidden treasure and tangled root walls within 30 m."
+effect = "passive_sense"
+params = {
+"kinds": ["hidden_plant", "hidden_treasure", "tangled_roots"],
+"radius": 30.0
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "leaf_spiral"
+color = Color(0.525, 0.769, 0.369, 1)

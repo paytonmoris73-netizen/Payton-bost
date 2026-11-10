@@ -65,7 +65,22 @@ func luck_mult() -> float:
 	return float(a.params.get("gold_mult", 1.0)) if a else 1.0
 
 func calm_active() -> bool:
-	return _active_passive("passive_calm") != null
+	return _active_passive("passive_calm") != null or shelter_active()
+
+## Living Shelter (Mossmantle): a moss dome; inside it Mythlings stay calm and
+## interactions earn more friendship.
+var _shelter := {}
+
+func shelter_active() -> bool:
+	if _shelter.is_empty() or Time.get_ticks_msec() > int(_shelter.until):
+		return false
+	var lvl := MeadowLevel.current
+	if lvl == null or lvl.player == null:
+		return false
+	return lvl.player.global_position.distance_to(_shelter.pos) <= float(_shelter.radius)
+
+func friendship_mult() -> float:
+	return float(_shelter.get("mult", 1.0)) if shelter_active() else 1.0
 
 func swim_mult() -> float:
 	var a := _active_passive("passive_swim")
@@ -225,6 +240,15 @@ func _run(effect: String, params: Dictionary, c: Creature, p: Player) -> Diction
 			if p == null or MeadowLevel.current == null:
 				return {"ok": false, "msg": ""}
 			MeadowLevel.current.spawn_root_bridge(p, float(params.get("length", 14.0)), float(params.get("duration", 25.0)), float(params.get("width", 3.0)))
+			return {"ok": true, "msg": ""}
+		"shelter":
+			if p == null:
+				return {"ok": false, "msg": ""}
+			var dur := float(params.get("duration", 40.0))
+			_shelter = {"pos": p.global_position, "radius": float(params.get("radius", 6.0)), "until": Time.get_ticks_msec() + int(dur * 1000.0), "mult": float(params.get("friendship_mult", 2.0))}
+			if MeadowLevel.current:
+				MeadowLevel.current.spawn_shelter(p.global_position, float(params.get("radius", 6.0)), dur)
+			Events.toast.emit("Living Shelter", "Mythlings nearby feel safe. Interactions inside the shelter earn double friendship.", "leaf")
 			return {"ok": true, "msg": ""}
 		"weather":
 			var lvl2 := MeadowLevel.current

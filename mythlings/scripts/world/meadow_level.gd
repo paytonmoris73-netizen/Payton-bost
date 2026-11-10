@@ -32,6 +32,9 @@ const LOC := {
 	"hidden_cave": Vector2(12, -73),
 	"highland": Vector2(-10, -95),
 	"market": Vector2(-9, -7),
+	"heartwood_hollow": Vector2(-100, 22),
+	"grove_stone_2": Vector2(-95, -36),
+	"grove_stone_3": Vector2(-108, -12),
 }
 
 const LOCATIONS := [
@@ -45,6 +48,7 @@ const LOCATIONS := [
 	["windmill_hills", "Windmill Hills", 10.0],
 	["highland", "Waterfall Heights", 14.0],
 	["hidden_cave", "Glimmer Grotto", 6.0],
+	["heartwood_hollow", "Heartwood Hollow", 4.5],
 ]
 
 var terrain: MeadowTerrain = MeadowTerrain.new()
@@ -122,6 +126,8 @@ func build() -> void:
 	_build_shrine()
 	_build_waterfall_secrets()
 	_build_cave()
+	if region_id == "meadow":
+		_build_heartwood()
 	_build_resources()
 	_build_ability_targets()
 	_build_vegetation()
@@ -501,9 +507,9 @@ func _tree_ok(x: float, z: float, clear := 3.5) -> bool:
 		return false
 	if Vector2(x, z).length() < 26.0:
 		return false
-	for k in ["ancient_oak", "forest_shrine", "windmill", "butterfly_clearing", "verdantus"]:
+	for k in ["ancient_oak", "forest_shrine", "windmill", "butterfly_clearing", "verdantus", "heartwood_hollow", "grove_stone_3"]:
 		var c: Vector2 = LOC[k]
-		var r: float = {"ancient_oak": 16.0, "forest_shrine": 9.0, "windmill": 8.0, "butterfly_clearing": 13.0, "verdantus": 10.0}[k]
+		var r: float = {"ancient_oak": 16.0, "forest_shrine": 9.0, "windmill": 8.0, "butterfly_clearing": 13.0, "verdantus": 10.0, "heartwood_hollow": 12.0, "grove_stone_3": 5.0}[k]
 		if Vector2(x, z).distance_to(c) < r:
 			return false
 	if z < MeadowTerrain.CLIFF_Z + 6.0 and z > MeadowTerrain.CLIFF_Z - 6.0:
@@ -770,6 +776,145 @@ func _awaken_verdantus() -> void:
 	if player:
 		player.focus_on(final + Vector3(0, 5, 0))
 		get_tree().create_timer(4.0).timeout.connect(player.clear_focus)
+
+# ------------------------------------------------------------------ Heartwood Hollow (Mossbun's Awakening)
+const GROVE_LORE := {
+	"grove_stone_1": ["Old Grove Stone (I)", ["*Moss-filled letters, older than the village:*", "\"Before the meadow there was only forest, and the forest had one heart.\"", "\"Small green creatures carried seeds of that heart in their moss, so that it would never be lost.\""]],
+	"grove_stone_2": ["Old Grove Stone (II)", ["*The carving is worn smooth by rain:*", "\"When the great fire came, the guardian rose from the seed-bearers and held the trees together with its roots.\"", "\"It sleeps now beneath the shrine. It will wake for one who keeps the forest.\""]],
+	"grove_stone_3": ["Old Grove Stone (III)", ["*Roots kept this stone hidden for a long time:*", "\"Any seed-bearer may become the guardian, if it is trusted, and if it knows this story.\"", "\"Tell it to your friend. The forest remembers.\""]],
+}
+
+func _build_heartwood() -> void:
+	var c := at("heartwood_hollow")
+	var root := Node3D.new()
+	root.name = "HeartwoodHollow"
+	add_child(root)
+	var bark := Color("5a4030"); var moss := Color("4f7a36"); var moss_l := Color("7aa64c")
+	# A ring of arching roots around a clearing, open only on the east side.
+	var m := MeshMerger.new()
+	for i in 13:
+		var a := -2.4 + i * (4.8 / 12.0)  # skips the east gap (angle 0)
+		var ang := a + PI
+		var p := Vector3(cos(ang) * 7.0, 0, sin(ang) * 7.0)
+		var q := Vector3(cos(ang + 0.3) * 7.2, 0, sin(ang + 0.3) * 7.2)
+		m.add(K.tube(K.bezier(p, (p + q) * 0.5 + Vector3(0, 3.2 + (i % 3) * 0.6, 0), q, 9), K.taper(9, 0.55, 0.4, 0.15), 8), Transform3D.IDENTITY, bark.lerp(Color("6b4a32"), float(i % 2)))
+		m.put(K.sphere(0.8, 10, 5), p + Vector3(0, 0.4, 0), moss if i % 2 else moss_l, Vector3.ZERO, Vector3(1.2, 0.6, 1.2))
+		_cyl_collider(c + p, 1.0, 4.0)
+		_cyl_collider(c + (p + q) * 0.5, 1.0, 4.0)
+	# The heartwood: an ancient hollow stump with a glowing core.
+	m.add(K.tube(K.bezier(Vector3(0, -0.2, 0), Vector3(0, 1.4, 0), Vector3(0, 2.6, 0), 6), K.taper(6, 1.9, 1.5, 0.2), 14), Transform3D(Basis(), Vector3(-2.5, 0, 0)), Color("6b4a32"))
+	for k in 7:
+		var a := k * TAU / 7.0
+		m.add(K.tube(K.bezier(Vector3(cos(a) * 1.5, 0.8, sin(a) * 1.5), Vector3(cos(a) * 2.4, 0.4, sin(a) * 2.4), Vector3(cos(a) * 3.0, -0.1, sin(a) * 3.0), 6), K.taper(6, 0.35, 0.12), 6), Transform3D(Basis(), Vector3(-2.5, 0, 0)), bark)
+	root.add_child(Props.node(m.commit(), "solid", c))
+	K.add(root, K.sphere(0.6, 14, 7), K.glow(Color("8affc0"), 2.2), c + Vector3(-2.5, 2.4, 0))
+	var lamp := OmniLight3D.new()
+	lamp.light_color = Color("8affc0")
+	lamp.omni_range = 9.0
+	lamp.light_energy = 1.1
+	lamp.position = c + Vector3(-2.5, 3.0, 0)
+	root.add_child(lamp)
+	_cyl_collider(c + Vector3(-2.5, 0, 0), 1.9, 2.6)
+	var motes := FX.motes(Color("b6ffd0"), 26, Vector3(5, 2, 5), 0.05)
+	motes.position = c + Vector3(0, 1.5, 0)
+	root.add_child(motes)
+	# Moss curtain across the east gap: Mossbun's Hidden Sense finds the way through.
+	var gap := c + Vector3(7.0, 0, 0)
+	var curtain := Node3D.new()
+	var cm := MeshMerger.new()
+	for k in 14:
+		var z := -2.6 + k * 0.4
+		cm.add(K.tube(K.bezier(Vector3(0, 3.6, z), Vector3(0.2, 1.8, z + 0.1), Vector3(0, 0.1, z), 6), K.taper(6, 0.14, 0.07), 5), Transform3D.IDENTITY, moss if k % 2 else moss_l)
+	cm.add(K.tube(K.bezier(Vector3(0, 3.7, -3.0), Vector3(0, 4.3, 0), Vector3(0, 3.7, 3.0), 8), K.taper(8, 0.4, 0.4), 8), Transform3D.IDENTITY, bark)
+	curtain.add_child(Props.node(cm.commit(), "foliage"))
+	var open_vis := Node3D.new()
+	var om := MeshMerger.new()
+	om.add(K.tube(K.bezier(Vector3(0, 3.7, -3.0), Vector3(0, 4.3, 0), Vector3(0, 3.7, 3.0), 8), K.taper(8, 0.4, 0.4), 8), Transform3D.IDENTITY, bark)
+	for sx in [-1, 1]:
+		for k in 3:
+			om.add(K.tube(K.bezier(Vector3(0, 3.6, sx * (2.4 + k * 0.2)), Vector3(0.1, 2.0, sx * (2.7 + k * 0.2)), Vector3(0, 0.2, sx * (2.5 + k * 0.2)), 5), K.taper(5, 0.12, 0.07), 5), Transform3D.IDENTITY, moss_l)
+	open_vis.add_child(Props.node(om.commit(), "foliage"))
+	var gate := StaticBody3D.new()
+	var gcs := CollisionShape3D.new()
+	var gbx := BoxShape3D.new()
+	gbx.size = Vector3(1.0, 4.0, 5.6)
+	gcs.shape = gbx
+	gcs.position = Vector3(0, 2.0, 0)
+	gate.add_child(gcs)
+	curtain.add_child(gate)
+	var t := AbilityTarget.new()
+	t.setup("moss_curtain", "heartwood_curtain", curtain, open_vis, {"xp": 40})
+	t.position = gap
+	t.on_activate = func(_t):
+		_enable_collision(gate, false)
+		Events.toast.emit("A hidden way", "Mossbun's ears found a gap behind the hanging moss.", "leaf")
+	add_child(t)
+	_enable_collision(gate, not GameState.flag("ab_heartwood_curtain"))
+	# Seed bed where Mossbun plants its seed (personal quest).
+	var bed := LoreStone.new()
+	bed.setup("heartwood_seed", "the Heartwood seed bed", ["*Mossbun tucks a tiny glowing seed from its moss into the soft earth by the heartwood.*", "*The seed pulses once, and Mossbun's moss pulses with it.*", "*Something has changed. Mossbun is ready to Awaken whenever you are both ready.*"], "Plant Mossbun's seed in")
+	bed.needs = func() -> String:
+		var comp := GameState.companion()
+		if comp != "mossbun":
+			return "Only a Mossbun companion can plant a seed here. Bring Mossbun (in its First Form) with you."
+		return ""
+	K.add(bed, K.cyl(0.9, 1.0, 0.25, 14), K.mat(Color("4a3322")), Vector3(0, 0.12, 0))
+	K.add(bed, K.sphere(0.12, 8, 4), K.glow(Color("c8ffb0"), 1.6), Vector3(0, 0.3, 0))
+	bed.position = c + Vector3(0.5, 0, 2.5)
+	bed.position.y = terrain.height(bed.position.x, bed.position.z)
+	add_child(bed)
+	# Old Grove Stones: the forest's history (needed for the guardian's Awakening).
+	var spots := {"grove_stone_1": c + Vector3(0.5, 0, -2.8), "grove_stone_2": at("grove_stone_2"), "grove_stone_3": at("grove_stone_3")}
+	for sid in spots:
+		var st := LoreStone.new()
+		st.setup(sid, GROVE_LORE[sid][0], GROVE_LORE[sid][1])
+		K.add(st, K.box(Vector3(1.1, 1.6, 0.35)), K.mat(Color("8a8f88")), Vector3(0, 0.8, 0), Vector3(0, 0, 4))
+		K.add(st, K.box(Vector3(0.7, 0.9, 0.05)), K.mat(Color("6dffb0"), 0.6, Color("39e58c"), 0.6), Vector3(0, 0.95, -0.19))
+		K.add(st, K.sphere(0.5, 10, 5), K.mat(moss_l), Vector3(0.1, 1.6, 0), Vector3.ZERO, Vector3(1.2, 0.4, 0.7))
+		st.position = spots[sid]
+		st.position.y = terrain.height(st.position.x, st.position.z)
+		add_child(st)
+		_cyl_collider(st.position, 0.7, 1.8)
+	# Stone III is wrapped in tangled roots that only Root Passage can pull aside.
+	var p3 := at("grove_stone_3")
+	var wrap := Node3D.new()
+	var wm := MeshMerger.new()
+	for k in 9:
+		var a := k * TAU / 9.0
+		wm.add(K.tube(K.bezier(Vector3(cos(a) * 1.6, 0, sin(a) * 1.6), Vector3(cos(a + 1.2) * 0.9, 1.4, sin(a + 1.2) * 0.9), Vector3(cos(a + 2.4) * 1.5, 2.6, sin(a + 2.4) * 1.5), 8), K.taper(8, 0.22, 0.08), 6), Transform3D.IDENTITY, bark.lerp(Color("3a2a1a"), float(k % 3) / 3.0))
+	wrap.add_child(Props.node(wm.commit(), "solid"))
+	var roots_t := AbilityTarget.new()
+	roots_t.setup("tangled_roots", "grove_roots_3", wrap, null, {"xp": 40})
+	roots_t.position = p3
+	add_child(roots_t)
+	var st3: LoreStone = null
+	for n in get_children():
+		if n is LoreStone and n.uid == "grove_stone_3":
+			st3 = n
+	if st3:
+		st3.needs = func() -> String:
+			return "" if GameState.flag("ab_grove_roots_3") else "Tangled roots hold this stone fast. A Mythling with Root Passage could pull them aside."
+
+## Living Shelter: a temporary moss dome around `p`.
+func spawn_shelter(p: Vector3, radius: float, duration: float) -> void:
+	var root := Node3D.new()
+	add_child(root)
+	root.global_position = p
+	var m := MeshMerger.new()
+	for k in 10:
+		var a := k * TAU / 10.0
+		var base := Vector3(cos(a) * radius * 0.8, 0, sin(a) * radius * 0.8)
+		m.add(K.tube(K.bezier(base, base * 0.6 + Vector3(0, 3.4, 0), Vector3(0, 3.6, 0), 8), K.taper(8, 0.18, 0.08), 5), Transform3D.IDENTITY, Color("5a4030"))
+		m.put(K.petal(1.4, 0.7, 0.3), base * 0.55 + Vector3(0, 2.8, 0), Color("6aa648") if k % 2 else Color("86c45e"), Vector3(-50, rad_to_deg(-a) - 90.0, 0))
+	root.add_child(Props.node(m.commit(), "foliage"))
+	root.add_child(FX.motes(Color("c8ffb0"), 20, Vector3(radius, 2, radius), 0.05))
+	root.scale = Vector3(1, 0.02, 1)
+	root.add_to_group("living_shelter")
+	var tw := root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 1.0).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(maxf(duration - 2.0, 0.5))
+	tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 1.0)
+	tw.tween_callback(root.queue_free)
 
 func spawn_footstep_flowers(p: Vector3) -> void:
 	# Pooled blossom meshes that grow and fade where Verdantus walks.
@@ -1189,8 +1334,9 @@ func refresh_creatures() -> void:
 		var d: CreatureData = DB.creature(id)
 		if d == null or not d.model_ready:
 			continue
-		# A form the player evolved no longer appears; its new form does.
-		if GameState.evolved_to(id) != "":
+		# A form the player awakened no longer appears on its own; its new form
+		# does. Form Memory can still bring the earlier form along as companion.
+		if GameState.evolved_to(id) != "" and id != comp:
 			continue
 		var mode := Creature.Mode.WILD
 		var home := sanctuary + Vector3(-8, 0, 9)
@@ -1279,7 +1425,7 @@ func find_open_spot(near: Vector3, d: CreatureData) -> Vector3:
 ## Summon a large or colossal Mythling as your companion. Returns "" or a reason.
 func summon(id: String) -> String:
 	var d: CreatureData = DB.creature(id)
-	if d == null or not GameState.is_discovered(id) or GameState.evolved_to(id) != "":
+	if d == null or not GameState.is_discovered(id):
 		return "You haven't befriended that Mythling."
 	if not d.model_ready:
 		return "%s isn't available in this build." % d.display_name

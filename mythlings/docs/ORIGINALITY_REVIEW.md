@@ -14,6 +14,12 @@ understand the brief: *each evolution stage should be a genuinely different desi
 or features were taken from it. Mosswarden deliberately avoids its key traits: no wood-grain body, no horns, no
 leaf-crest along the back, no tufted lion tail.
 
+Three further user-supplied images (a moss-covered big-eyed creature on a branch, a wooden tree golem, and a
+giant tree guardian beside a person) were treated as **mood references only**; they may be copyrighted. Mossmantle
+takes no shapes from them. It was deliberately kept **non-humanoid** (no walking tree-person silhouette, no face in a
+trunk, no bark "arms and hands" body plan) so it does not resemble well-known tree-people or tree-giant characters
+from film, comics and tabletop games. Branches grow from its shoulders, not its head (to stay away from stag spirits).
+
 ## Notes per design
 | Design | Distinctive features | Status |
 |---|---|---|
@@ -25,6 +31,7 @@ leaf-crest along the back, no tufted lion tail.
 | Bloomtail | Pink quadruped, giant leaf tail, head flower | Needs review |
 | Mosswarden | Cottage-sized round keeper, cloak ears, lantern-seed, crown sapling | Needs review |
 | Glimmerhare | Long-legged runner with root antennae | Needs review |
+| Mossmantle | Long low quadruped, bark shingles, moss mat with ferns, forked boughs from the shoulders, large forward night eyes, three-fingered root hands | **Large-eyed climbers resemble real primates; check against franchise forest creatures. Not humanoid by design.** Needs review |
 | Verdantus | Moss-armoured antlered guardian with back garden | **Forest stag spirits are a well-trodden archetype; review the antler and body treatment.** |
 | Ignaroth | Asymmetric wings, cheek horns curling forward, crown of horns, tail club, magma seams | **Dragons are a broad genre. Compare the specific silhouette against major franchise dragons.** |
 | Shamrelle | Tall stem dancer with a four-leaf parasol crown and ribbon arms | Needs review |

@@ -44,6 +44,10 @@ extends Resource
 @export_multiline var lore: String = ""
 @export var flight: bool = false  # rideable in the air
 @export var originality_notes: String = ""
+## AWAKENINGS: which per-family transformation sequence plays ("grove", "ember", "celestial", "tide", ...).
+@export var awakening_style: String = ""
+## What this form is best at, so earlier forms stay useful after an Awakening.
+@export var form_role: String = ""
 
 func primary_element() -> String:
 	return elements[0] if elements.size() > 0 else "nature"

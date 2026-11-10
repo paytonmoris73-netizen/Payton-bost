@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "root_passage"
+display_name = "Root Passage"
+slot = "primary"
+category = "environmental"
+description = "Mossmantle presses its root-hands into the ground: tangled root walls within 14 m pull aside, and a living root bridge grows 14 m ahead for 25 seconds."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["tangled_roots"],
+"radius": 14.0
+}
+}, {
+"effect": "root_bridge",
+"params": {
+"length": 14.0,
+"duration": 25.0
+}
+}]
+}
+cooldown = 20
+unlock_friendship = 0
+requires_evolved = false
+vfx = "root_wave"
+color = Color(0.435, 0.612, 0.294, 1)
