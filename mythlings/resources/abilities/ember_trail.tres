@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "ember_trail"
+display_name = "Ember Trail"
+slot = "passive"
+category = "movement"
+description = "Cindermaw's warm footsteps light the ground at night, and you move 10% faster on the ash plains beside it."
+effect = "passive_speed"
+params = {
+"mult": 1.1
+}
+cooldown = 0
+unlock_friendship = 0
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.541, 0.227, 1)

@@ -9,7 +9,7 @@ static func has_model(id: String) -> bool:
 	var c: CreatureData = DB.creature(id) if Engine.get_main_loop() else null
 	if c and c.model_scene:
 		return true
-	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "thalassor", "mossmantle"]
+	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "thalassor", "mossmantle", "cindermaw"]
 
 ## variant: cosmetic palette variant id ("" = default)
 static func build(id: String, variant := "", accessory := "") -> CreatureRig:
@@ -46,6 +46,7 @@ static func build(id: String, variant := "", accessory := "") -> CreatureRig:
 		"thornmane": rig = _thornmane(variant)
 		"thalassor": rig = _thalassor(variant)
 		"mossmantle": rig = _mossmantle(variant)
+		"cindermaw": rig = _cindermaw(variant)
 		_:
 			rig = _unknown()
 	rig.name = "Rig_" + id
@@ -1229,6 +1230,87 @@ static func _cindercub(_variant: String) -> CreatureRig:
 	K.add(tail, K.sphere(0.06, 8, 4), K.glow(ember, 1.6))
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail)
 	r.reg("acc_head", K.pivot(head, Vector3(0, 0.2, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 0.5, -0.24)))
+	return r
+
+# ===================================================================== CINDERMAW (Awakened Form of Cindercub)
+static func _cindermaw(_variant: String) -> CreatureRig:
+	## Cindercub grown into a low, broad, heavy-shouldered forager. Basalt plates
+	## have formed over its charcoal hide with glowing seams between them; its
+	## lower jaw is a wide armoured "maw" lit from inside; its ember heart now
+	## shows through a cage of plates on its chest. No wings, no horns: it is a
+	## ground animal, deliberately unlike Ignaroth.
+	var r := _rig("quad")
+	r.gait_speed = 0.7
+	r.bob_height = 0.06
+	var v := r.visual
+	var hide := Color("2b2624"); var hide_l := Color("4a3f3a"); var basalt := Color("3a3330"); var basalt_l := Color("5a4f48")
+	var ember := Color("ff8a3a"); var magma := Color("ff5a1a")
+	var torso := K.pivot(v, Vector3(0, 0.95, 0), "Torso")
+	K.add(torso, K.sphere(0.62, 22, 11), K.mat(hide, 0.95), Vector3(0, 0.08, -0.35), Vector3(8, 0, 0), Vector3(1.15, 0.95, 1.0))
+	K.add(torso, K.sphere(0.52, 20, 10), K.mat(hide, 0.95), Vector3(0, 0.0, 0.35), Vector3.ZERO, Vector3(1.0, 0.85, 1.05))
+	K.add(torso, K.sphere(0.4, 16, 8), K.mat(hide_l), Vector3(0, -0.25, -0.2), Vector3.ZERO, Vector3(1.0, 0.6, 1.6))
+	# Basalt plates over the back (ridged like cooled lava), magma glowing in the seams.
+	for i in 7:
+		var z := -0.78 + i * 0.22
+		var top := 0.66 - clampf(z + 0.35, 0.0, 1.0) * 0.3
+		var w := 0.62 - absf(z + 0.1) * 0.3
+		K.add(torso, K.prism(Vector3(w, 0.2, 0.26)), K.flat(basalt if i % 2 else basalt_l), Vector3(0, top + 0.02, z), Vector3(-10, 0, 0))
+		K.add(torso, K.sphere(0.5, 10, 5), K.glow(magma, 1.8), Vector3(0, top - 0.02, z + 0.13), Vector3.ZERO, Vector3(w * 1.6, 0.06, 0.07))
+		for sx in [-1, 1]:
+			K.add(torso, K.prism(Vector3(0.26, 0.14, 0.24)), K.flat(basalt), Vector3((w * 0.55 + 0.12) * sx, top - 0.2, z), Vector3(0, 0, -50 * sx))
+	# Chest cage: ember heart glowing between vertical plates.
+	K.add(torso, K.sphere(0.22, 14, 7), K.glow(ember, 2.4), Vector3(0, 0.0, -0.9), Vector3.ZERO, Vector3(1.0, 1.1, 0.6))
+	for k in 5:
+		K.add(torso, K.box(Vector3(0.07, 0.42, 0.06)), K.flat(basalt_l), Vector3(-0.2 + k * 0.1, 0.0, -0.98), Vector3(0, 0, -16 + k * 8))
+	var glow := OmniLight3D.new()
+	glow.light_color = ember
+	glow.omni_range = 4.0
+	glow.light_energy = 0.8
+	glow.position = Vector3(0, 0, -1.2)
+	torso.add_child(glow)
+	# Head: low and wide; the armoured jaw is the widest part.
+	var head := K.pivot(v, Vector3(0, 1.05, -1.25), "Head")
+	K.add(head, K.sphere(0.36, 18, 9), K.mat(hide, 0.95), Vector3(0, 0.08, 0.05), Vector3.ZERO, Vector3(1.15, 0.85, 1.0))
+	# The "maw": a wide plated lower jaw with a magma glow along the lip.
+	K.add(head, K.sphere(0.3, 14, 7), K.flat(basalt), Vector3(0, -0.15, -0.22), Vector3(8, 0, 0), Vector3(1.15, 0.45, 1.0))
+	K.add(head, K.sphere(0.3, 14, 7), K.glow(magma, 2.0), Vector3(0, -0.07, -0.24), Vector3(8, 0, 0), Vector3(1.05, 0.12, 0.92))
+	K.add(head, K.sphere(0.26, 14, 7), K.mat(hide_l), Vector3(0, 0.04, -0.26), Vector3(-6, 0, 0), Vector3(1.0, 0.4, 0.95))
+	for k in 4:
+		K.add(head, K.prism(Vector3(0.07, 0.08, 0.05)), K.flat(Color("e8d8c8")), Vector3(-0.15 + k * 0.1, -0.04, -0.45), Vector3(180, 0, 0))
+	K.add(head, K.sphere(0.05, 8, 4), K.mat(Color("1a1414"), 0.3), Vector3(0, 0.12, -0.44))
+	var eyes := []
+	for sx in [-1, 1]:
+		eyes.append(K.eye(head, Vector3(0.18 * sx, 0.2, -0.2), 0.05, Color("3a1a08"), Vector3(0.4 * sx, 0, -1), ember))
+		K.add(head, K.box(Vector3(0.16, 0.05, 0.1)), K.flat(basalt), Vector3(0.18 * sx, 0.27, -0.2), Vector3(0, 0, -12 * sx))
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.26 * sx, 0.34, 0.12), "Ear")
+		K.add(ep, K.sphere(0.12, 10, 5), K.mat(hide), Vector3.ZERO, Vector3.ZERO, Vector3(1, 1, 0.55))
+		K.add(ep, K.torus(0.07, 0.1, 14), K.glow(ember, 1.4), Vector3(0, 0, -0.04), Vector3(90, 0, 0), Vector3(1, 0.5, 1))
+		ears.append(ep)
+	var smoke := FX.motes(Color(0.5, 0.48, 0.46), 10, Vector3(0.3, 0.1, 0.1), 0.06)
+	smoke.position = Vector3(0, 0.45, 0.1)
+	smoke.gravity = Vector3(0, 0.5, 0)
+	head.add_child(smoke)
+	# Thick legs with plated forearms and wide, blunt digging claws.
+	var legs := []
+	for p in [Vector3(-0.42, 0.8, -0.6), Vector3(0.42, 0.8, -0.6), Vector3(-0.4, 0.78, 0.5), Vector3(0.4, 0.78, 0.5)]:
+		var lp := K.pivot(v, p, "Leg")
+		K.add(lp, K.capsule(0.19, 0.7), K.mat(hide), Vector3(0, -0.3, 0))
+		K.add(lp, K.box(Vector3(0.3, 0.32, 0.3)), K.flat(basalt), Vector3(0, -0.45, -0.04), Vector3(6, 0, 0))
+		K.add(lp, K.box(Vector3(0.26, 0.03, 0.03)), K.glow(magma, 1.6), Vector3(0, -0.3, -0.19))
+		K.add(lp, K.sphere(0.18, 10, 5), K.mat(hide_l), Vector3(0, -0.72, -0.06), Vector3.ZERO, Vector3(1.1, 0.5, 1.3))
+		for k in 3:
+			K.add(lp, K.prism(Vector3(0.06, 0.12, 0.06)), K.flat(Color("1a1616")), Vector3(-0.08 + k * 0.08, -0.76, -0.24), Vector3(-90, 0, 0))
+		legs.append(lp)
+	# Short heavy tail ending in a cluster of glowing coals.
+	var tail := K.pivot(v, Vector3(0, 1.0, 0.85), "Tail", Vector3(-25, 0, 0))
+	K.add(tail, K.capsule(0.13, 0.5), K.mat(hide), Vector3(0, 0, 0.2), Vector3(80, 0, 0))
+	for k in 5:
+		K.add(tail, K.sphere(0.08, 6, 3), K.flat(basalt) if k % 2 else K.glow(ember, 1.8), Vector3(cos(k * 1.3) * 0.08, sin(k * 1.3) * 0.08, 0.45))
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.38, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 1.1, -0.9)))
+	r.reg("saddle", K.pivot(v, Vector3(0, 1.62, -0.05)))
 	return r
 
 # ===================================================================== MAGMOLE (Emberfall)

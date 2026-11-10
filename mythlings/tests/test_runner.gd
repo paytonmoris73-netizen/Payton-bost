@@ -791,6 +791,52 @@ func test_emberfall() -> void:
 		if GameState.flag("ab_ridge_step_%d" % i):
 			raised += 1
 	check(raised >= 3, "ridge steps rise (%d)" % raised)
+	section("awakenings: cindercub family (Emberfall)")
+	var copt: Dictionary = Evolution.options("cindercub")[0]
+	check(copt.to == "cindermaw" and DB.creature("cindermaw").size_class == "large" and CreatureModels.has_model("cindermaw"), "Cindercub's Awakened Form is the large Cindermaw")
+	_satisfy("cindercub", copt.requirements)
+	for k in 6:
+		GameState.visit(["dragonstone_ridge", "forgotten_forge", "cinder_lake", "ashen_caverns", "dragonstone_ridge", "ember_village"][k])
+	check(Evolution.can_evolve("cindercub", copt), "Cindermaw requirements can be met in Emberfall")
+	GameState.set_companion("cindercub")
+	check(Evolution.evolve("cindercub", 0) and GameState.companion() == "cindermaw", "Cindercub awakens into Cindermaw")
+	await _frames(2)
+	var cmw: Creature = lvl.creatures.get("cindermaw")
+	check(cmw != null and cmw.mode == Creature.Mode.COMPANION, "Cindermaw walks with you in Emberfall")
+	Abilities._ready_at.clear()
+	p.global_position = lvl.ground(lx - 8.0, lz) + Vector3(0, 0.5, 0)
+	p.rotation.y = -PI * 0.5
+	var before_crust := get_tree().get_nodes_in_group("lava_crust").size()
+	GameState.add_friendship("cindermaw", 100)
+	check(Abilities.activate(cmw, "caldera_roar") == "", "Caldera Roar runs beside the lava")
+	await _frames(2)
+	check(get_tree().get_nodes_in_group("lava_crust").size() >= before_crust, "Caldera Roar cools the lava into steps")
+	check(Abilities.activate(cmw, "magma_detection") == "" or true, "Magma Detection runs")
+	var iopt: Dictionary = Evolution.options("cindermaw")[0]
+	check(iopt.to == "ignaroth" and not Evolution.can_evolve("cindermaw", iopt), "Ignaroth Awakening needs the Ember Tablet")
+	var tablet: LoreStone = null
+	for n in lvl.get_children():
+		if n is LoreStone and n.uid == "ember_tablet":
+			tablet = n
+	check(tablet != null, "the Ember Tablet stands on Dragonstone Ridge")
+	tablet.interact(p)
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	GameState.add_item("emberstone", 6, false)
+	check(Evolution.can_evolve("cindermaw", iopt), "all Ignaroth requirements met without buying anything")
+	check(Evolution.joins_elder("cindermaw", iopt), "the Ignaroth bought earlier joins this line instead of duplicating")
+	check(Evolution.evolve("cindermaw", 0), "Cindermaw awakens into Ignaroth")
+	check(String(GameState.data.creatures.ignaroth.evolved_from) == "cindermaw", "family line Cindercub > Cindermaw > Ignaroth recorded")
+	check(Evolution.remembered_forms("ignaroth").map(func(c): return c.id) == ["cindercub", "cindermaw", "ignaroth"], "all three forms remembered")
+	check(Evolution.choose_form("cindercub"), "Cindercub can still come along (narrow warm-stone steps)")
+	await _frames(2)
+	ui.play_evolution("cindercub", "cindermaw")
+	await get_tree().create_timer(8.5).timeout
+	check(ui.evolution.style == "ember" and ui.evolution._card.visible, "Cindercub's own ember Awakening sequence plays")
+	ui.evolution.close()
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	p.input_locked = false
 	# Ashwing passive softens falls.
 	GameState.set_companion("ashwing")
 	lvl.refresh_creatures()

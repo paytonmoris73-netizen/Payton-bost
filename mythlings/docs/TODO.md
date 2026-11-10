@@ -64,7 +64,7 @@ Done means implemented **and** exercised by tests or screenshots. See QA_CHECKLI
 - [x] Per-family sequences: grove (Mossbun line), ember, celestial; classic fallback
 - [x] **Mossbun family complete:** Mossmantle model + kit (Root Passage, Nature Sense, Living Shelter, Canopy Call), Heartwood Hollow landmark, "The Seed in the Moss", three Old Grove Stones, Verdantus Awakening; tested end-to-end
 - [ ] Cloverling → Petalcrest → Bloomtail (needs Bloomtail restructured from a base form into a large form, plus a new meadow base for the current small Bloomtail)
-- [ ] Cindercub → Cindermaw → Ignaroth (earnable path; the Market purchase stays optional)
+- [x] Cindercub → Cindermaw → Ignaroth (earnable path with Ember Tablet; the Market purchase stays optional)
 - [ ] Magmole → Basaltusk → Obsidra
 - [ ] Bubbloon → Pelaglow → Thalassor, Coralyn → Reefwarden → Coralith (need Tideglass Coast)
 - [ ] Snowpup → Hailhorn → Frostmaw, Shiverowl → Aurorwing → Auroriel (need Frostroot Vale)

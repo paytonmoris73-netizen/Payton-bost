@@ -104,7 +104,7 @@ func refresh() -> void:
 			rr.add_child(UIKit.label(req.progress, "Caption", 15))
 		_info.add_child(rr)
 	if Evolution.joins_elder(a.id, e):
-		_info.add_child(UIKit.label("You already befriended the elder %s. Your %s will take up its mantle and the two bonds become one; nothing is lost." % [b.display_name, a.display_name], "Caption", 15, Palette.TEAL, true))
+		_info.add_child(UIKit.label("You already have %s. Your %s will join it and the two bonds become one (friendship keeps the higher value); nothing is lost." % [b.display_name, a.display_name], "Caption", 15, Palette.TEAL, true))
 	_info.add_child(UIKit.label("Your %s is remembered after Awakening: you can still bring it along from the Mythlings menu, and other paths stay open." % a.display_name, "Caption", 15, Color(0, 0, 0, 0), true))
 	var row := UIKit.hbox(10)
 	var prev := UIKit.button("Preview transformation", "play", "", 58)

@@ -44,11 +44,16 @@ func setup(p: Player, l: MeadowLevel) -> void:
 	evolution = EvolutionCinematic.new()
 	add_child(evolution)
 	evolution.finished.connect(_on_panel_closed)
-	Evolution.evolved.connect(func(_a, _b): l.refresh_creatures())
+	Evolution.evolved.connect(_on_evolved)
 	tutorial = TutorialDirector.new()
 	add_child(tutorial)
 	tutorial.setup(self)
 	Events.request_panel.connect(open_panel)
+
+func _on_evolved(_a: String, _b: String) -> void:
+	# A method (not a lambda capturing the level) so the connection ends with this UI.
+	if is_instance_valid(level):
+		level.refresh_creatures()
 
 func play_evolution(from_id: String, to_id: String) -> void:
 	player.input_locked = true

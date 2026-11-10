@@ -203,7 +203,7 @@ func _run(effect: String, params: Dictionary, c: Creature, p: Player) -> Diction
 			if nearest:
 				return {"ok": false, "msg": "%s senses something to the %s (%dm)." % [c.data.display_name, Creature._compass(nearest.global_position - origin), int(nd)]}
 			if "volcanic_structure" in kinds:
-				return {"ok": false, "msg": "No volcanic mechanisms here. They wait in Emberfall Highlands, coming in a future update."}
+				return {"ok": false, "msg": "No volcanic mechanisms here. They are found in Emberfall Highlands (World Map)."}
 			return {"ok": false, "msg": "%s finds nothing new around here." % c.data.display_name}
 		"highlight":
 			var n := _highlight(origin, float(params.get("radius", 30.0)), params.get("items", []), float(params.get("duration", 25.0)))

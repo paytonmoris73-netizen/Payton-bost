@@ -8,7 +8,7 @@ id = "volcanic_resonance"
 display_name = "Volcanic Resonance"
 slot = "secondary"
 category = "environmental"
-description = "Awakens ancient volcanic mechanisms within 40 m. These appear in Emberfall Highlands, which is not in this build yet."
+description = "Awakens ancient volcanic mechanisms (braziers, forge machinery) within 40 m."
 effect = "reveal"
 params = {
 "kinds": ["volcanic_structure"],

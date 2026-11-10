@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "magma_detection"
+display_name = "Magma Detection"
+slot = "primary"
+category = "exploration"
+description = "Cindermaw tastes the air: highlights emberstone within 70 m and warms cold stones within 20 m."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["warm_stone"],
+"radius": 20.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"items": ["emberstone"],
+"radius": 70.0,
+"duration": 30.0
+}
+}]
+}
+cooldown = 8
+unlock_friendship = 0
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.541, 0.227, 1)

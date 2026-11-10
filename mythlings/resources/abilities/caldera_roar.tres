@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "caldera_roar"
+display_name = "Caldera Roar"
+slot = "signature"
+category = "signature"
+description = "Cindermaw roars into the ground: lava ahead cools into basalt steps for 25 seconds, and warm stones and braziers within 40 m ignite."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "crust",
+"params": {
+"duration": 25.0
+}
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["warm_stone", "volcanic_structure", "dark_lantern"],
+"radius": 40.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "ember_crown"
+color = Color(1.0, 0.353, 0.102, 1)

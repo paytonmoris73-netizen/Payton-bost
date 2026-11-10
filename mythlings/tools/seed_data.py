@@ -336,9 +336,9 @@ P("colossal_thalassor", "Thalassor, the Abyssal Titan", "colossal", "A guarantee
 P("colossal_astravyth", "Astravyth, the Celestial Sovereign", "colossal", "A guaranteed, specific colossal companion: exactly this Astravyth, trusting enough to ride and fly. Optional, never required for the story, and also planned as a free encounter in the Starfall Isles update.", "star_gems", 1500,
   {"creature": "astravyth", "friendship": 45}, rarity="mythic", preview_kind="colossal", preview_id="astravyth", featured=True, tags=["colossal", "rideable", "flying"],
   includes=["Astravyth (rideable, flying)", "Abilities: Starlit Presence, Sky Passage, Starveil, Cosmic Bloom", "Journal entry and lore"])
-P("colossal_ignaroth", "Ignaroth, the Volcanic Emperor", "colossal", "A guaranteed, specific colossal companion: you receive exactly this Ignaroth, already trusting enough to ride and fly. Optional, cosmetic in power, never required for the story.", "star_gems", 1500,
+P("colossal_ignaroth", "Ignaroth, the Volcanic Emperor", "colossal", "A guaranteed, specific colossal companion: you receive exactly this Ignaroth, already trusting enough to ride and fly. Optional and never required for the story: you can also earn Ignaroth for free by awakening a Cindercub through Cindermaw in Emberfall.", "star_gems", 1500,
   {"creature": "ignaroth", "friendship": 45}, rarity="mythic", preview_kind="colossal", preview_id="ignaroth", featured=True, tags=["colossal", "rideable", "flying"],
-  includes=["Ignaroth (rideable, flying)", "Abilities: Warm Glow, Ember Flight, Volcanic Resonance, Infernal Crown", "Journal entry and lore"])
+  includes=["Ignaroth (rideable, flying)", "Abilities: Magma Wake, Ember Flight, Volcanic Resonance, Infernal Crown", "Journal entry and lore"])
 for (cid, name, *_rest) in PREMIUM:
     P("colossal_" + cid, name, "colossal", [r for r in NEW_CREATURES if r[0] == cid][0][7], "star_gems", 0, {}, rarity=[r for r in NEW_CREATURES if r[0] == cid][0][5],
       preview_kind="colossal", preview_id=cid, available=False, unavailable_reason="In development: model not built yet. Not purchasable.", tags=["concept"])

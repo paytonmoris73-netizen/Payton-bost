@@ -31,6 +31,7 @@ from film, comics and tabletop games. Branches grow from its shoulders, not its 
 | Bloomtail | Pink quadruped, giant leaf tail, head flower | Needs review |
 | Mosswarden | Cottage-sized round keeper, cloak ears, lantern-seed, crown sapling | Needs review |
 | Glimmerhare | Long-legged runner with root antennae | Needs review |
+| Cindermaw | Low armoured ground beast, ridged basalt plates with magma seams, lit plated jaw, caged ember heart; no wings or horns | **Bear/badger-like fire beasts exist in other franchises; check proportions and the jaw.** Needs review |
 | Mossmantle | Long low quadruped, bark shingles, moss mat with ferns, forked boughs from the shoulders, large forward night eyes, three-fingered root hands | **Large-eyed climbers resemble real primates; check against franchise forest creatures. Not humanoid by design.** Needs review |
 | Verdantus | Moss-armoured antlered guardian with back garden | **Forest stag spirits are a well-trodden archetype; review the antler and body treatment.** |
 | Ignaroth | Asymmetric wings, cheek horns curling forward, crown of horns, tail club, magma seams | **Dragons are a broad genre. Compare the specific silhouette against major franchise dragons.** |

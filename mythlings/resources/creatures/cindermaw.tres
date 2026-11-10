@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "cindermaw"
+display_name = "Cindermaw"
+region = "emberfall"
+habitat = "Dragonstone Ridge"
+elements = PackedStringArray("fire", "earth")
+rarity = "rare"
+size_class = "large"
+personality = "protective"
+description = "Cindercub's Awakened Form: low, broad and heavy-shouldered. Basalt plates have formed over its charcoal hide with magma glowing in the seams, its wide armoured jaw is lit from inside, and its ember heart burns behind a cage of chest plates."
+personality_text = "Protective and steady. Cindermaw walks between you and the lava, warms its paws on hot stones, and huffs smoke rings when it's content."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "sunberry"
+base_stats = {
+"vitality": 14,
+"spirit": 14,
+"agility": 13
+}
+palette = PackedColorArray(0.169, 0.149, 0.141, 1, 0.227, 0.2, 0.188, 1, 1.0, 0.353, 0.102, 1)
+model_id = "cindermaw"
+locomotion = "quad"
+move_speed = 3.2
+height = 1.8
+sound_pitch = 0.75
+friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Dragonstone Ridge.", "Protective and steady. Cindermaw walks between you and the lava, warms its paws on hot stones, and huffs smoke rings when it's content.", "Ability: unknown.")
+discovery_hint = "Awaken Cindercub: see its Awakening requirements."
+rideable = true
+model_ready = true
+abilities = PackedStringArray("ember_trail", "magma_detection", "heatwave_pulse", "caldera_roar")
+family = "cindercub"
+stage = 2
+evolves_from = "cindercub"
+acquisition = PackedStringArray("evolve")
+awakening_style = "ember"
+form_role = "Large and sturdy: can be ridden, crosses lava with Caldera Roar and finds emberstone from far away. Best for exploring Emberfall."
+lore = "Smiths in Ember Village say a Cindermaw that sleeps by a forge keeps it warm for a week."
+evolutions = Array[Dictionary]([{
+"to": "ignaroth",
+"path": "ascended",
+"requirements": {
+"friendship": 5,
+"quest": "e_main_03",
+"visited": ["cinder_lake", "ashen_caverns"],
+"lore": ["ember_tablet"],
+"items": {
+"emberstone": 6
+}
+},
+"text": "When the Forgotten Forge breathes again and the Ember Tablet has been read, a Cindermaw of complete trust can take the Volcanic Emperor's form.",
+"branch": "Guardian Path"
+}])
+originality_notes = "Low armoured ground beast with a lit jaw and a caged ember heart. No wings or horns (to stay distinct from Ignaroth). Bear/badger-like build is generic; check against fire-bear designs in creature franchises."

@@ -360,6 +360,13 @@ func _build_ridge_steps() -> void:
 		if GameState.flag("ab_ridge_step_%d" % i):
 			body.collision_layer = 1
 	_chest(top + Vector3(0, 0.3, 0), "ridge_lookout", {"crystals": 12, "star_gems": 20}, "Ridge Lookout")
+	# The Ember Tablet: Emberfall's history, part of Cindermaw's Awakening.
+	var tab := LoreStone.new()
+	tab.setup("ember_tablet", "the Ember Tablet", ["*Letters cut into black glass, still warm to the touch:*", "\"The cub that guards the hearth becomes the beast that guards the forge.\"", "\"And the beast that guards the forge, if it is loved, becomes the one who guards the sky.\""])
+	K.add(tab, K.box(Vector3(1.0, 1.4, 0.3)), K.mat(Color("2a2422"), 0.4), Vector3(0, 0.7, 0), Vector3(0, 0, -3))
+	K.add(tab, K.box(Vector3(0.7, 0.9, 0.04)), K.glow(Color("ff8a3a"), 1.2), Vector3(0, 0.8, -0.17))
+	tab.position = top + Vector3(1.8, 0, 1.0)
+	add_child(tab)
 
 func _build_caverns() -> void:
 	var cp := at("ashen_caverns")

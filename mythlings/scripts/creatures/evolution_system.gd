@@ -10,7 +10,7 @@ signal evolved(from_id: String, to_id: String)
 
 const PATH_NAMES := {"natural": "Natural Awakening", "alternate": "Alternate Awakening", "ascended": "Ascended Awakening"}
 const STAGE_NAMES := ["First Form", "Awakened Form", "Advanced Form", "Ascended Form", "Colossal Form"]
-const LORE_NAMES := {"grove_stone_1": "Old Grove Stone I (Heartwood Hollow)", "grove_stone_2": "Old Grove Stone II (near the Forgotten Shrine)", "grove_stone_3": "Old Grove Stone III (bound in roots, west woods)", "heartwood_seed": "Plant Mossbun's seed in the Heartwood Hollow"}
+const LORE_NAMES := {"grove_stone_1": "Old Grove Stone I (Heartwood Hollow)", "grove_stone_2": "Old Grove Stone II (near the Forgotten Shrine)", "grove_stone_3": "Old Grove Stone III (bound in roots, west woods)", "heartwood_seed": "Plant Mossbun's seed in the Heartwood Hollow", "ember_tablet": "the Ember Tablet (Dragonstone Ridge lookout)"}
 
 static func stage_name(c: CreatureData) -> String:
 	if c == null:

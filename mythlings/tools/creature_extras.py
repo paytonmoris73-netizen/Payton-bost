@@ -378,3 +378,34 @@ EXTRA["mosswarden"]["form_role"] = "Large and steady: +1 wood from logs and the 
 EXTRA["glimmerhare"]["form_role"] = "Small and fast: the quickest walking speed bonus and a sky-high Moonleap. Best for scouting."
 EXTRA["verdantus"].update({"evolves_from": "mossmantle", "awakening_style": "grove",
     "form_role": "Colossal: rideable, grows the widest root bridges and its Eternal Grove regrows everything in 40 m. Too big for narrow woods paths."})
+
+# =====================================================================
+# AWAKENINGS — Cindercub family: Cindercub -> Cindermaw -> Ignaroth.
+# Ignaroth stays an optional Market purchase, but is now also earnable.
+# =====================================================================
+A("ember_trail", "Ember Trail", "passive", "movement", "Cindermaw's warm footsteps light the ground at night, and you move 10% faster on the ash plains beside it.", "passive_speed", {"mult": 1.1}, 0, 0, "ember_crown", "ff8a3a")
+A("magma_detection", "Magma Detection", "primary", "exploration", "Cindermaw tastes the air: highlights emberstone within 70 m and warms cold stones within 20 m.", "combo", combo(("reveal", {"kinds": ["warm_stone"], "radius": 20.0}), ("highlight", {"items": ["emberstone"], "radius": 70.0, "duration": 30.0})), 8, 0, "ember_crown", "ff8a3a")
+A("heatwave_pulse", "Heatwave Pulse", "secondary", "environmental", "A pulse of heat lights braziers, volcanic mechanisms and lanterns within 26 m.", "reveal", {"kinds": ["volcanic_structure", "dark_lantern"], "radius": 26.0}, 8, 2, "ember_crown", "ffb347")
+A("caldera_roar", "Caldera Roar", "signature", "signature", "Cindermaw roars into the ground: lava ahead cools into basalt steps for 25 seconds, and warm stones and braziers within 40 m ignite.", "combo", combo(("crust", {"duration": 25.0}), ("reveal", {"kinds": ["warm_stone", "volcanic_structure", "dark_lantern"], "radius": 40.0})), 90, 4, "ember_crown", "ff5a1a")
+A("magma_wake", "Magma Wake", "passive", "support", "Ignaroth's wake glows like cooling magma, lighting the ground around you at night.", "passive_glow", {"color": "ff8a3a"}, 0, 0, "ember_crown", "ff6a1f")
+A("volcanic_resonance", "Volcanic Resonance", "secondary", "environmental", "Awakens ancient volcanic mechanisms (braziers, forge machinery) within 40 m.", "reveal", {"kinds": ["volcanic_structure"], "radius": 40.0}, 10, 0, "ember_crown", "ff6a1f")
+EXTRA["ignaroth"]["abilities"] = PSA(["magma_wake", "ember_flight", "volcanic_resonance", "infernal_crown"])
+
+NEW_CREATURES.append(("cindermaw", "Cindermaw", "emberfall", "Dragonstone Ridge", ["fire", "earth"], "rare", "protective",
+  "Cindercub's Awakened Form: low, broad and heavy-shouldered. Basalt plates have formed over its charcoal hide with magma glowing in the seams, its wide armoured jaw is lit from inside, and its ember heart burns behind a cage of chest plates.",
+  "Protective and steady. Cindermaw walks between you and the lava, warms its paws on hot stones, and huffs smoke rings when it's content.",
+  "", "", "", "sunberry", ["2b2624", "3a3330", "ff5a1a"], "quad", 3.2, 1.8, 0.75, "Awaken Cindercub: see its Awakening requirements.", True))
+EXTRA["cindermaw"] = {"abilities": PSA(["ember_trail", "magma_detection", "heatwave_pulse", "caldera_roar"]), "size_class": "large", "rideable": True,
+    "family": "cindercub", "stage": 2, "evolves_from": "cindercub", "acquisition": PSA(["evolve"]), "awakening_style": "ember",
+    "form_role": "Large and sturdy: can be ridden, crosses lava with Caldera Roar and finds emberstone from far away. Best for exploring Emberfall.",
+    "lore": "Smiths in Ember Village say a Cindermaw that sleeps by a forge keeps it warm for a week.",
+    "evolutions": TypedDictArray([{**evo("ignaroth", "ascended", {"friendship": 5, "quest": "e_main_03", "visited": ["cinder_lake", "ashen_caverns"], "lore": ["ember_tablet"], "items": {"emberstone": 6}},
+        "When the Forgotten Forge breathes again and the Ember Tablet has been read, a Cindermaw of complete trust can take the Volcanic Emperor's form."), "branch": "Guardian Path"}]),
+    "originality_notes": "Low armoured ground beast with a lit jaw and a caged ember heart. No wings or horns (to stay distinct from Ignaroth). Bear/badger-like build is generic; check against fire-bear designs in creature franchises."}
+EXTRA["cindercub"].update({"stage": 1, "awakening_style": "ember",
+    "form_role": "Small and nimble: the only form that fits on the narrow warm-stone steps, and its Kindle lights braziers quickly.",
+    "evolutions": TypedDictArray([{**evo("cindermaw", "natural", {"friendship": 3, "quest": "e_ridge", "visited": ["dragonstone_ridge", "forgotten_forge"], "items": {"emberstone": 3}},
+        "After climbing the warm stairs of Dragonstone Ridge together, Cindercub's markings blaze and stone armour forms around it."), "branch": "Guardian Path"}])})
+EXTRA["ignaroth"].update({"family": "cindercub", "stage": 3, "evolves_from": "cindermaw", "acquisition": PSA(["purchase", "evolve"]), "awakening_style": "ember",
+    "form_role": "Colossal and flying: carries you through the sky. Too big for village streets and caves.",
+    "discovery_hint": "Earn it by awakening Cindercub through Cindermaw, or get it directly in the Grand Market. Never required for the story."})

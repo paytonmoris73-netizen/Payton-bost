@@ -38,3 +38,20 @@ family = "cindercub"
 acquisition = PackedStringArray("explore")
 lore = "Ember Village families keep a warm stone by the door, just in case a Cindercub wants a nap."
 originality_notes = "Redesigned from a fire kitten to a bear cub with an ember heart to avoid resemblance to well-known fire cats."
+stage = 1
+awakening_style = "ember"
+form_role = "Small and nimble: the only form that fits on the narrow warm-stone steps, and its Kindle lights braziers quickly."
+evolutions = Array[Dictionary]([{
+"to": "cindermaw",
+"path": "natural",
+"requirements": {
+"friendship": 3,
+"quest": "e_ridge",
+"visited": ["dragonstone_ridge", "forgotten_forge"],
+"items": {
+"emberstone": 3
+}
+},
+"text": "After climbing the warm stairs of Dragonstone Ridge together, Cindercub's markings blaze and stone armour forms around it.",
+"branch": "Guardian Path"
+}])

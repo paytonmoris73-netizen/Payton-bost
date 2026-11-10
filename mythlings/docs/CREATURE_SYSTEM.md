@@ -67,11 +67,20 @@ The chain is built so each form's abilities matter for the next step: Mossbun's 
 into the Heartwood Hollow (only a Mossbun companion can plant the seed there); Mossmantle's Root Passage frees
 Old Grove Stone III, which Verdantus's Awakening needs.
 
+### Cindercub family (complete, tested in the Emberfall section)
+| Path | Form | Requirements | Gameplay |
+|---|---|---|---|
+| Guardian Path (natural) | **Cindermaw** (Awakened, Large, rideable) | Friendship 3 · "Stairs of Warmth" · visit Dragonstone Ridge and the Forgotten Forge · 3 Emberstone | Ember Trail (+10% speed), **Magma Detection** (emberstone 70 m + warm stones), **Heatwave Pulse** (braziers/lanterns 26 m), **Caldera Roar** (cools lava into steps + ignites everything in 40 m) |
+| Guardian Path → Colossal | **Ignaroth** (Colossal, flying) | Friendship 5 · "The Forgotten Forge" · visit Cinder Lake and the Ashen Caverns · read the **Ember Tablet** on the ridge lookout · 6 Emberstone | Magma Wake, Ember Flight, Volcanic Resonance, Infernal Crown |
+
+Ignaroth stays an optional Grand Market purchase, but it is now **earnable for free** through this line. If you
+already bought it, your Cindermaw joins it instead of creating a second Ignaroth (the Awakening screen says so).
+Cindercub stays useful: it is the only form that fits the narrow warm-stone steps.
+
 ### Other meadow families (previous pass, classic sequence for now)
 - Cloverling → Shamrelle / Thistlepin, Pebblit → Cairnback / Geodrift, Sunfox → Dawnstrider / Lanternwhisk,
   Dewdrop → Cloudwell / Drizzlefin, Bloomtail → Blossomere / Thornmane. Each has its own requirements and kit.
-- The remaining families from the AWAKENINGS brief (Cloverling → Petalcrest → Bloomtail, Cindercub → Cindermaw →
-  Ignaroth, Magmole → Basaltusk → Obsidra, and the Tideglass/Frostroot/Sunpetal/Starfall families) are planned in
+- The remaining families from the AWAKENINGS brief (Cloverling → Petalcrest → Bloomtail, Magmole → Basaltusk → Obsidra, and the Tideglass/Frostroot/Sunpetal/Starfall families) are planned in
   `docs/TODO.md` and will reuse this exact architecture.
 
 ## Premium creatures
