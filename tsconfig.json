@@ -14,8 +14,7 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "allowJs": false,
-    "noEmit": true,
-    "types": ["node"]
+    "noEmit": true
   },
-  "include": ["src", "server"]
+  "include": ["src"]
 }
