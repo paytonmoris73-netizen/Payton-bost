@@ -31,7 +31,7 @@ const DEMO_RESULTS: Record<ConversionType, string> = {
 };
 
 export function StudyMaterialsPage() {
-  const { notes, subjects } = useStore();
+  const { notes } = useStore();
   const [content, setContent] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [generating, setGenerating] = useState<ConversionType | null>(null);

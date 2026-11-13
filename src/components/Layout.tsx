@@ -117,7 +117,6 @@ function TopBar() {
   const setSidebarOpen = useStore((s) => s.setSidebarOpen);
   const darkMode = useStore((s) => s.darkMode);
   const toggleDarkMode = useStore((s) => s.toggleDarkMode);
-  const profile = useStore((s) => s.profile);
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -166,7 +165,6 @@ function TopBar() {
 }
 
 function MobileMoreMenu() {
-  const setSidebarOpen = useStore((s) => s.setSidebarOpen);
   const moreItems = NAV_ITEMS.filter(
     (i) => !MOBILE_NAV.slice(0, 4).some((m) => m.to === i.to)
   );
