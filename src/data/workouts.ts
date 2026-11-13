@@ -10,18 +10,22 @@ export interface Exercise {
   cue: string;
 }
 
+export type Emblem = "flame" | "bolt" | "heart" | "dumbbell" | "wind" | "shield";
+
 export interface Workout {
   id: string;
   name: string;
   tagline: string;
   level: Level | "all";
-  minutes: number;
-  calories: number;
+  /** How many times the circuit is repeated */
+  rounds: number;
+  /** Calories burned per minute at this intensity */
+  burnRate: number;
   focus: Goal;
   pro: boolean;
-  /** Tailwind gradient classes for the cover art */
-  art: string;
-  emblem: "flame" | "bolt" | "heart" | "dumbbell" | "wind" | "shield";
+  /** Palette for the generated cover artwork */
+  tint: { from: string; to: string };
+  emblem: Emblem;
   exercises: Exercise[];
 }
 
@@ -38,11 +42,11 @@ export const WORKOUTS: Workout[] = [
     name: "Full Body Burn",
     tagline: "One circuit, every muscle",
     level: "all",
-    minutes: 20,
-    calories: 210,
+    rounds: 2,
+    burnRate: 10,
     focus: "fat-loss",
     pro: false,
-    art: "from-orange-500/70 via-amber-600/40 to-ink-900",
+    tint: { from: "#c2560a", to: "#351604" },
     emblem: "flame",
     exercises: [
       e("Jumping Jacks", 45, 15, "Land soft, keep a steady rhythm"),
@@ -60,11 +64,11 @@ export const WORKOUTS: Workout[] = [
     name: "Core Crusher",
     tagline: "Forge an unbreakable middle",
     level: "all",
-    minutes: 15,
-    calories: 140,
+    rounds: 3,
+    burnRate: 9,
     focus: "strength",
     pro: false,
-    art: "from-yellow-500/60 via-orange-700/40 to-ink-900",
+    tint: { from: "#9c7510", to: "#2b2008" },
     emblem: "shield",
     exercises: [
       e("Crunches", 40, 15, "Slow and controlled, chin off chest"),
@@ -81,11 +85,11 @@ export const WORKOUTS: Workout[] = [
     name: "Leg Day",
     tagline: "Power from the ground up",
     level: "intermediate",
-    minutes: 30,
-    calories: 290,
+    rounds: 4,
+    burnRate: 9,
     focus: "strength",
     pro: false,
-    art: "from-amber-400/60 via-orange-800/40 to-ink-900",
+    tint: { from: "#a33f10", to: "#2e1206" },
     emblem: "dumbbell",
     exercises: [
       e("Air Squats", 50, 15, "Full depth, weight mid-foot"),
@@ -103,11 +107,11 @@ export const WORKOUTS: Workout[] = [
     name: "Morning Mobility",
     tagline: "Wake up every joint",
     level: "beginner",
-    minutes: 10,
-    calories: 60,
+    rounds: 2,
+    burnRate: 6,
     focus: "mobility",
     pro: false,
-    art: "from-gold-300/50 via-amber-700/30 to-ink-900",
+    tint: { from: "#4a6558", to: "#141f1a" },
     emblem: "wind",
     exercises: [
       e("Neck Circles", 30, 10, "Gentle, half circles each way"),
@@ -124,11 +128,11 @@ export const WORKOUTS: Workout[] = [
     name: "HIIT Inferno",
     tagline: "Max effort, zero mercy",
     level: "advanced",
-    minutes: 25,
-    calories: 330,
+    rounds: 3,
+    burnRate: 13,
     focus: "fat-loss",
     pro: true,
-    art: "from-red-500/60 via-orange-600/40 to-ink-900",
+    tint: { from: "#c0290c", to: "#330a04" },
     emblem: "bolt",
     exercises: [
       e("Burpees", 40, 20, "Chest to floor, full jump at the top"),
@@ -146,11 +150,11 @@ export const WORKOUTS: Workout[] = [
     name: "Upper Body Blast",
     tagline: "Push, pull, and sculpt",
     level: "intermediate",
-    minutes: 25,
-    calories: 230,
+    rounds: 4,
+    burnRate: 9,
     focus: "strength",
     pro: false,
-    art: "from-amber-500/60 via-yellow-800/40 to-ink-900",
+    tint: { from: "#9a6012", to: "#2a1a07" },
     emblem: "dumbbell",
     exercises: [
       e("Push-Ups", 45, 15, "Full range, squeeze at the top"),
@@ -167,11 +171,11 @@ export const WORKOUTS: Workout[] = [
     name: "Cardio Climb",
     tagline: "Build an engine that lasts",
     level: "beginner",
-    minutes: 20,
-    calories: 190,
+    rounds: 3,
+    burnRate: 9,
     focus: "endurance",
     pro: false,
-    art: "from-orange-400/60 via-amber-800/35 to-ink-900",
+    tint: { from: "#b06a0e", to: "#2e1b06" },
     emblem: "heart",
     exercises: [
       e("March in Place", 45, 15, "Tall posture, easy pace"),
@@ -188,11 +192,11 @@ export const WORKOUTS: Workout[] = [
     name: "Push Day",
     tagline: "Chest, shoulders, triceps",
     level: "intermediate",
-    minutes: 28,
-    calories: 250,
+    rounds: 4,
+    burnRate: 9,
     focus: "strength",
     pro: false,
-    art: "from-gold-400/60 via-orange-700/40 to-ink-900",
+    tint: { from: "#8d6b16", to: "#251c08" },
     emblem: "dumbbell",
     exercises: [
       e("Push-Ups", 45, 15, "Set your shoulder blades first"),
@@ -209,11 +213,11 @@ export const WORKOUTS: Workout[] = [
     name: "Flex & Flow",
     tagline: "Strength meets stillness",
     level: "beginner",
-    minutes: 15,
-    calories: 90,
+    rounds: 2,
+    burnRate: 6,
     focus: "mobility",
     pro: false,
-    art: "from-yellow-300/50 via-amber-600/30 to-ink-900",
+    tint: { from: "#46605f", to: "#121c1c" },
     emblem: "wind",
     exercises: [
       e("Sun Salutation", 50, 10, "Flow with each inhale and exhale"),
@@ -230,11 +234,11 @@ export const WORKOUTS: Workout[] = [
     name: "Iron Endurance",
     tagline: "Outlast everything",
     level: "advanced",
-    minutes: 35,
-    calories: 360,
+    rounds: 4,
+    burnRate: 10,
     focus: "endurance",
     pro: true,
-    art: "from-amber-600/60 via-red-800/35 to-ink-900",
+    tint: { from: "#8d3a14", to: "#241005" },
     emblem: "heart",
     exercises: [
       e("High Knees", 50, 10, "Knees above hips, fast arms"),
@@ -250,13 +254,13 @@ export const WORKOUTS: Workout[] = [
   {
     id: "abs-and-core",
     name: "Abs & Core",
-    tagline: "Fifteen minutes to steel",
+    tagline: "Short, sharp, unrelenting",
     level: "all",
-    minutes: 15,
-    calories: 130,
+    rounds: 2,
+    burnRate: 9,
     focus: "strength",
     pro: false,
-    art: "from-gold-500/60 via-amber-800/35 to-ink-900",
+    tint: { from: "#a8800f", to: "#2c2109" },
     emblem: "shield",
     exercises: [
       e("Dead Bug", 40, 15, "Lower back glued to the floor"),
@@ -273,11 +277,11 @@ export const WORKOUTS: Workout[] = [
     name: "Power Primer",
     tagline: "Your very first session",
     level: "beginner",
-    minutes: 12,
-    calories: 90,
+    rounds: 2,
+    burnRate: 8,
     focus: "strength",
     pro: false,
-    art: "from-gold-300/60 via-orange-600/35 to-ink-900",
+    tint: { from: "#b2831a", to: "#2d210a" },
     emblem: "bolt",
     exercises: [
       e("March in Place", 40, 15, "Shake off the day, find your rhythm"),
@@ -294,8 +298,23 @@ export const WORKOUTS: Workout[] = [
 export const getWorkout = (id: string | undefined): Workout | undefined =>
   WORKOUTS.find((w) => w.id === id);
 
-export const workoutSeconds = (w: Workout): number =>
+/** Seconds for a single pass through the circuit. */
+export const circuitSeconds = (w: Workout): number =>
   w.exercises.reduce((sum, ex) => sum + ex.work + ex.rest, 0);
+
+/** Seconds for the full session, all rounds included. */
+export const workoutSeconds = (w: Workout): number => w.rounds * circuitSeconds(w);
+
+/** Session length in whole minutes, derived from the real timings. */
+export const workoutMinutes = (w: Workout): number =>
+  Math.max(1, Math.round(workoutSeconds(w) / 60));
+
+/** Estimated calories, derived from length and intensity. */
+export const workoutCalories = (w: Workout): number =>
+  Math.round(workoutMinutes(w) * w.burnRate);
+
+/** Total number of timed intervals across the whole session. */
+export const totalSteps = (w: Workout): number => w.rounds * w.exercises.length;
 
 export const LEVEL_LABEL: Record<Workout["level"], string> = {
   all: "All Levels",

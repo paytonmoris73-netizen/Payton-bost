@@ -23,6 +23,8 @@ export type IconName =
   | "x"
   | "skip"
   | "comment"
+  | "sound-on"
+  | "sound-off"
   | "apex";
 
 const PATHS: Record<IconName, JSX.Element> = {
@@ -80,6 +82,10 @@ const PATHS: Record<IconName, JSX.Element> = {
   comment: (
     <path d="M21 12a8 8 0 0 1-8 8H4l2.3-3A8 8 0 1 1 21 12Z" />
   ),
+  "sound-on": (
+    <path d="M11 5 6.5 9H3v6h3.5L11 19V5Zm3.5 3.5a5 5 0 0 1 0 7m2.8-9.8a9 9 0 0 1 0 12.6" />
+  ),
+  "sound-off": <path d="M11 5 6.5 9H3v6h3.5L11 19V5Zm4 4 5 6m0-6-5 6" />,
   apex: <path d="M12 2 23 22h-6.6L12 13.6 7.6 22H1L12 2Z" />,
 };
 

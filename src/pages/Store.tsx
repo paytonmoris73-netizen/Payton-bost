@@ -9,7 +9,7 @@ export function StorePage() {
   const buy = (id: string, name: string) => {
     if (id === "premium-pass") {
       setPremium(true);
-      pushToast("Welcome to Premium! 👑", "All Pro workouts are now unlocked");
+      pushToast("Welcome to Premium", "Every Pro workout is now unlocked");
       return;
     }
     purchase(id);

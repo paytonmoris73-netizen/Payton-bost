@@ -1,7 +1,14 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { getWorkout, LEVEL_LABEL, GOAL_LABEL, workoutSeconds } from "../data/workouts";
+import {
+  getWorkout,
+  LEVEL_LABEL,
+  GOAL_LABEL,
+  workoutSeconds,
+  workoutCalories,
+} from "../data/workouts";
 import { useApp } from "../state/AppContext";
 import { Icon } from "../components/Icon";
+import { CoverArt } from "../components/CoverArt";
 import { ProTag } from "../components/ui";
 
 const fmt = (totalSeconds: number) => {
@@ -31,11 +38,15 @@ export function WorkoutDetailPage() {
       </Link>
 
       {/* Hero */}
-      <div className={`card relative mt-4 overflow-hidden bg-gradient-to-br ${workout.art}`}>
-        <Icon
-          name={workout.emblem}
-          className="absolute -right-8 -top-10 h-52 w-52 text-white/10"
+      <div className="card relative mt-4 overflow-hidden">
+        <CoverArt
+          seed={workout.id}
+          emblem={workout.emblem}
+          from={workout.tint.from}
+          to={workout.tint.to}
+          className="absolute inset-0 h-full w-full"
         />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink-950/90 via-ink-950/60 to-ink-950/15" />
         <div className="relative p-6 sm:p-8">
           <div className="flex items-center gap-2">
             <span className="rounded-md bg-ink-950/60 px-2 py-0.5 text-[11px] font-bold backdrop-blur">
@@ -55,11 +66,11 @@ export function WorkoutDetailPage() {
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Icon name="flame" className="h-4 w-4" />
-              ~{workout.calories} cal
+              ~{workoutCalories(workout)} cal
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Icon name="bolt" className="h-4 w-4" />
-              {workout.exercises.length} exercises
+              {workout.exercises.length} exercises{workout.rounds > 1 ? ` × ${workout.rounds} rounds` : ""}
             </span>
             {timesDone > 0 && (
               <span className="inline-flex items-center gap-1.5">

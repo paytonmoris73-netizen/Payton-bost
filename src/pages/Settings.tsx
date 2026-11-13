@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../state/AppContext";
 import { GOAL_LABEL, type Goal, type Level } from "../data/workouts";
-import { Button } from "../components/ui";
+import { Button, ConfirmDialog } from "../components/ui";
 import { Icon } from "../components/Icon";
 
 const GOALS: Goal[] = ["strength", "fat-loss", "endurance", "mobility"];
@@ -146,29 +146,17 @@ export function SettingsPage() {
       </p>
 
       {confirmReset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 p-6 backdrop-blur-sm">
-          <div className="card animate-fade-up w-full max-w-sm p-6 text-center">
-            <h2 className="font-display text-xl font-bold">Reset everything?</h2>
-            <p className="mt-2 text-sm text-cream-dim">
-              All progress, XP, and badges will be permanently deleted.
-            </p>
-            <div className="mt-6 flex gap-3">
-              <Button variant="ghost" className="flex-1" onClick={() => setConfirmReset(false)}>
-                Keep my data
-              </Button>
-              <Button
-                variant="danger"
-                className="flex-1"
-                onClick={() => {
-                  resetAll();
-                  navigate("/", { replace: true });
-                }}
-              >
-                Reset
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Reset everything?"
+          body="All progress, XP, and badges will be permanently deleted."
+          cancelLabel="Keep my data"
+          confirmLabel="Reset"
+          onCancel={() => setConfirmReset(false)}
+          onConfirm={() => {
+            resetAll();
+            navigate("/", { replace: true });
+          }}
+        />
       )}
     </div>
   );

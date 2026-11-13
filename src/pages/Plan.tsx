@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { useApp } from "../state/AppContext";
-import { WORKOUTS, GOAL_LABEL, type Workout } from "../data/workouts";
+import {
+  WORKOUTS,
+  GOAL_LABEL,
+  workoutMinutes,
+  workoutCalories,
+  type Workout,
+} from "../data/workouts";
 import { localDateISO } from "../state/AppContext";
 import { Icon } from "../components/Icon";
 import { WorkoutCard } from "../components/WorkoutCard";
@@ -50,7 +56,9 @@ export function PlanPage() {
         </h1>
         <p className="mt-1 text-sm text-cream-dim">
           Built for your goal: <span className="font-bold text-gold-300">{goalLabel}</span>
-          {state.profile && <> · {state.profile.level}</>}
+          {state.profile && (
+            <> · {state.profile.level[0].toUpperCase() + state.profile.level.slice(1)}</>
+          )}
         </p>
       </header>
 
@@ -60,7 +68,7 @@ export function PlanPage() {
             <Icon name="check" className="h-5 w-5" />
           </span>
           <div>
-            <div className="font-bold">Your plan is ready!</div>
+            <div className="font-bold">Your plan is ready</div>
             <div className="text-xs text-cream-dim">
               4 sessions a week, with recovery days built in. Adjust anytime in Settings.
             </div>
@@ -92,7 +100,7 @@ export function PlanPage() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-bold">{w.name}</div>
                     <div className="text-xs text-cream-dim">
-                      {w.minutes} min · ~{w.calories} cal
+                      {workoutMinutes(w)} min · ~{workoutCalories(w)} cal
                     </div>
                   </div>
                   {isToday && doneToday ? (
@@ -127,7 +135,7 @@ export function PlanPage() {
       {plan[todayIndex] && !doneToday && (
         <section className="mt-8">
           <h2 className="mb-4 font-display text-lg font-bold">Today's session</h2>
-          <WorkoutCard workout={plan[todayIndex]!} wide />
+          <WorkoutCard workout={plan[todayIndex]!} featured />
         </section>
       )}
     </div>

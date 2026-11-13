@@ -22,6 +22,13 @@ body {
   background: rgba(248, 189, 60, 0.3);
 }
 
+/* One consistent focus ring across the whole app. */
+:focus-visible {
+  outline: 2px solid #f8bd3c;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: #37301f transparent;
@@ -57,6 +64,16 @@ body {
   .chip-active {
     @apply border-gold-500/60 bg-gold-500/15 text-gold-300;
   }
+  /* Fine film grain that keeps large dark panels from looking flat. */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
 }
 
 @layer utilities {
@@ -68,6 +85,30 @@ body {
   }
   .no-scrollbar {
     scrollbar-width: none;
+  }
+  /* Children fade up one after another. */
+  .stagger > * {
+    animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 45ms; }
+  .stagger > *:nth-child(3) { animation-delay: 90ms; }
+  .stagger > *:nth-child(4) { animation-delay: 135ms; }
+  .stagger > *:nth-child(5) { animation-delay: 180ms; }
+  .stagger > *:nth-child(6) { animation-delay: 225ms; }
+  .stagger > *:nth-child(7) { animation-delay: 270ms; }
+  .stagger > *:nth-child(8) { animation-delay: 315ms; }
+  .stagger > *:nth-child(n + 9) { animation-delay: 360ms; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

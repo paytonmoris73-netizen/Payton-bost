@@ -1,11 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import { getWorkout, workoutSeconds } from "../data/workouts";
+import {
+  getWorkout,
+  workoutSeconds,
+  circuitSeconds,
+  workoutMinutes,
+  workoutCalories,
+} from "../data/workouts";
 import { useApp, type CompletedSession } from "../state/AppContext";
 import { Icon } from "../components/Icon";
-import { Button, ProgressRing } from "../components/ui";
+import { CoverArt } from "../components/CoverArt";
+import { Button, ConfirmDialog, ProgressRing } from "../components/ui";
+import { cues } from "../lib/audio";
 
-type Phase = "ready" | "work" | "rest" | "done";
+type Phase = "ready" | "countdown" | "work" | "rest" | "done";
+
+const COUNTDOWN_FROM = 3;
 
 export function PlayerPage() {
   const { id } = useParams();
@@ -15,122 +25,213 @@ export function PlayerPage() {
 
   const [phase, setPhase] = useState<Phase>("ready");
   const [index, setIndex] = useState(0);
+  const [round, setRound] = useState(0);
   const [remaining, setRemaining] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [muted, setMuted] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
   const [result, setResult] = useState<CompletedSession | null>(null);
-  const finishedRef = useRef(false);
 
-  const totalSec = useMemo(() => (workout ? workoutSeconds(workout) : 0), [workout]);
-
-  const exercises = workout?.exercises ?? [];
+  const exercises = useMemo(() => workout?.exercises ?? [], [workout]);
   const exercise = exercises[index];
+  const totalSec = useMemo(() => (workout ? workoutSeconds(workout) : 0), [workout]);
+  const lapSec = useMemo(() => (workout ? circuitSeconds(workout) : 0), [workout]);
+  const rounds = workout?.rounds ?? 1;
 
-  // Seconds elapsed before the current phase began.
-  const elapsedBefore = useMemo(() => {
-    let sum = 0;
-    for (let i = 0; i < index; i++) sum += exercises[i].work + exercises[i].rest;
-    if (phase === "rest" && exercise) sum += exercise.work;
-    return sum;
-  }, [index, phase, exercises, exercise]);
+  // Each phase may only advance once, even if effects re-run.
+  const advancedFor = useRef<string>("");
+  const savedRef = useRef(false);
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
 
-  const phaseTotal = phase === "work" ? exercise?.work ?? 0 : phase === "rest" ? exercise?.rest ?? 0 : 0;
-  const overall =
-    phase === "done"
-      ? 1
-      : totalSec > 0
-        ? (elapsedBefore + Math.max(0, phaseTotal - remaining)) / totalSec
-        : 0;
+  const sound = useCallback((fn: () => void) => {
+    if (!mutedRef.current) fn();
+  }, []);
 
-  // Advance through work → rest → next exercise → done.
-  const advance = () => {
-    if (!workout) return;
+  /* ---------- Phase transitions ---------- */
+
+  const enterWork = useCallback(
+    (i: number) => {
+      setIndex(i);
+      setPhase("work");
+      setRemaining(exercises[i].work);
+      sound(cues.go);
+    },
+    [exercises, sound],
+  );
+
+  const advance = useCallback(() => {
+    if (phase === "countdown") {
+      enterWork(0);
+      return;
+    }
     if (phase === "work" && exercise && exercise.rest > 0) {
       setPhase("rest");
       setRemaining(exercise.rest);
+      sound(cues.rest);
       return;
     }
     if (index + 1 < exercises.length) {
-      setIndex(index + 1);
-      setPhase("work");
-      setRemaining(exercises[index + 1].work);
-    } else {
-      setPhase("done");
+      enterWork(index + 1);
+      return;
     }
-  };
+    if (round + 1 < rounds) {
+      setRound(round + 1);
+      enterWork(0);
+      return;
+    }
+    setPhase("done");
+    sound(cues.finish);
+  }, [phase, exercise, index, exercises.length, round, rounds, enterWork, sound]);
 
-  // Tick
+  /* ---------- Clock ---------- */
+
+  const running = (phase === "countdown" || phase === "work" || phase === "rest") && !paused && !confirmQuit;
+
   useEffect(() => {
-    if (paused || phase === "ready" || phase === "done" || confirmQuit) return;
-    const t = window.setInterval(() => {
-      setRemaining((r) => (r > 0 ? r - 1 : 0));
-    }, 1000);
+    if (!running) return;
+    const t = window.setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => window.clearInterval(t);
-  }, [paused, phase, confirmQuit]);
+  }, [running]);
 
-  // Phase complete
+  // Countdown blips on the final seconds of a phase.
   useEffect(() => {
-    if (remaining === 0 && (phase === "work" || phase === "rest") && !paused) {
-      advance();
+    if (!running) return;
+    if (phase === "countdown" && remaining > 0) sound(cues.tick);
+    else if ((phase === "work" || phase === "rest") && remaining > 0 && remaining <= 3) {
+      sound(cues.tick);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, phase, paused]);
+  }, [remaining, phase, running, sound]);
 
-  // Record the session exactly once when finished.
   useEffect(() => {
-    if (phase === "done" && workout && !finishedRef.current) {
-      finishedRef.current = true;
-      const session = completeWorkout({
+    if (remaining !== 0 || paused || confirmQuit) return;
+    if (phase !== "countdown" && phase !== "work" && phase !== "rest") return;
+    const key = `${phase}:${round}:${index}`;
+    if (advancedFor.current === key) return;
+    advancedFor.current = key;
+    advance();
+  }, [remaining, phase, round, index, paused, confirmQuit, advance]);
+
+  /* ---------- Save the session once ---------- */
+
+  useEffect(() => {
+    if (phase !== "done" || !workout || savedRef.current) return;
+    savedRef.current = true;
+    setResult(
+      completeWorkout({
         workoutId: workout.id,
         workoutName: workout.name,
-        minutes: workout.minutes,
-        calories: workout.calories,
-      });
-      setResult(session);
-    }
+        minutes: workoutMinutes(workout),
+        calories: workoutCalories(workout),
+      }),
+    );
   }, [phase, workout, completeWorkout]);
 
-  if (!workout) return <Navigate to="/app/workouts" replace />;
-  const locked = workout.pro && !state.premium;
-  if (locked) return <Navigate to="/app/store" replace />;
+  /* ---------- Keep the screen awake while training ---------- */
 
-  const start = () => {
+  useEffect(() => {
+    if (!running) return;
+    type Sentinel = { release: () => Promise<void> };
+    let sentinel: Sentinel | null = null;
+    let cancelled = false;
+    const wakeLock = (navigator as Navigator & {
+      wakeLock?: { request: (t: "screen") => Promise<Sentinel> };
+    }).wakeLock;
+
+    void (async () => {
+      try {
+        const s = await wakeLock?.request("screen");
+        if (cancelled) void s?.release();
+        else sentinel = s ?? null;
+      } catch {
+        // Not supported, or denied — the timer still works.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      void sentinel?.release().catch(() => {});
+    };
+  }, [running]);
+
+  /* ---------- Controls ---------- */
+
+  const start = useCallback(() => {
+    cues.unlock();
+    advancedFor.current = "";
+    setRound(0);
     setIndex(0);
-    setPhase("work");
-    setRemaining(exercises[0].work);
-  };
+    setPhase("countdown");
+    setRemaining(COUNTDOWN_FROM);
+  }, []);
 
-  const skip = () => {
-    if (phase === "work" || phase === "rest") advance();
-  };
+  const skip = useCallback(() => {
+    if (phase !== "work" && phase !== "rest") return;
+    advancedFor.current = `${phase}:${round}:${index}`;
+    advance();
+  }, [phase, round, index, advance]);
 
-  const back = () => {
-    if (index > 0) {
-      setIndex(index - 1);
-      setPhase("work");
-      setRemaining(exercises[index - 1].work);
-    } else {
-      setPhase("work");
-      setRemaining(exercises[0].work);
-    }
-  };
+  const restart = useCallback(() => {
+    if (phase !== "work" && phase !== "rest") return;
+    const target = phase === "work" && remaining === exercises[index]?.work && index > 0 ? index - 1 : index;
+    advancedFor.current = "";
+    enterWork(target);
+  }, [phase, remaining, exercises, index, enterWork]);
 
-  /* ---------- Ready screen ---------- */
+  // Keyboard shortcuts for the active session.
+  useEffect(() => {
+    if (phase !== "work" && phase !== "rest" && phase !== "countdown") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (confirmQuit) {
+        if (e.key === "Escape") setConfirmQuit(false);
+        return;
+      }
+      if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        setPaused((p) => !p);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        skip();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        restart();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setConfirmQuit(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase, confirmQuit, skip, restart]);
+
+  if (!workout) return <Navigate to="/app/workouts" replace />;
+  if (workout.pro && !state.premium) return <Navigate to="/app/store" replace />;
+
+  /* ---------- Ready ---------- */
+
   if (phase === "ready") {
     return (
       <Shell>
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <span className={`flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br ${workout.art} shadow-glow`}>
-            <Icon name={workout.emblem} className="h-12 w-12 text-gold-200" />
-          </span>
-          <h1 className="mt-6 font-display text-3xl font-bold">{workout.name}</h1>
-          <p className="mt-2 max-w-xs text-sm text-cream-dim">
-            {exercises.length} exercises · about {workout.minutes} minutes. Find your space, grab
-            some water, and get ready.
+          <div className="relative h-32 w-32 overflow-hidden rounded-3xl shadow-glow">
+            <CoverArt
+              seed={workout.id}
+              emblem={workout.emblem}
+              from={workout.tint.from}
+              to={workout.tint.to}
+              className="absolute inset-0 h-full w-full"
+            />
+          </div>
+          <h1 className="mt-6 font-display text-3xl font-bold tracking-tight">{workout.name}</h1>
+          <p className="mt-2 max-w-xs text-sm leading-relaxed text-cream-dim">
+            {rounds > 1
+              ? `${exercises.length} exercises × ${rounds} rounds`
+              : `${exercises.length} exercises`}
+            , about {workoutMinutes(workout)} minutes. Clear some space and grab water.
           </p>
           <Button size="lg" className="mt-8 w-full max-w-xs" onClick={start}>
             <Icon name="play" className="h-5 w-5" />
-            Let's Go
+            Begin
           </Button>
           <Link
             to={`/app/workouts/${workout.id}`}
@@ -143,7 +244,32 @@ export function PlayerPage() {
     );
   }
 
-  /* ---------- Done screen ---------- */
+  /* ---------- Get-ready countdown ---------- */
+
+  if (phase === "countdown") {
+    return (
+      <Shell>
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-gold-400">
+            Get ready
+          </div>
+          <div
+            key={remaining}
+            className="mt-4 font-display text-[120px] font-bold leading-none gold-text"
+            style={{ animation: "fadeUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) both" }}
+          >
+            {remaining === 0 ? "GO" : remaining}
+          </div>
+          <p className="mt-4 text-sm text-cream-dim">
+            First up: <span className="font-bold text-cream">{exercises[0]?.name}</span>
+          </p>
+        </div>
+      </Shell>
+    );
+  }
+
+  /* ---------- Done ---------- */
+
   if (phase === "done") {
     return (
       <Shell>
@@ -151,16 +277,16 @@ export function PlayerPage() {
           <span className="flex h-24 w-24 items-center justify-center rounded-full gold-fill text-ink-950 shadow-glow">
             <Icon name="check" className="h-12 w-12" />
           </span>
-          <h1 className="mt-6 font-display text-3xl font-bold">
-            Workout <span className="gold-text">Complete!</span>
+          <h1 className="mt-6 font-display text-3xl font-bold tracking-tight">
+            Workout <span className="gold-text">complete</span>
           </h1>
           <p className="mt-2 text-sm text-cream-dim">
-            {workout.name} is in the books. Outstanding work.
+            {workout.name} is in the books. Strong work.
           </p>
           <div className="mt-8 grid w-full max-w-sm grid-cols-3 gap-3">
-            <Stat value={`${workout.minutes}`} label="Minutes" />
-            <Stat value={`${workout.calories}`} label="Calories" />
-            <Stat value={`+${result?.xp ?? 0}`} label="XP Earned" gold />
+            <Stat value={String(workoutMinutes(workout))} label="Minutes" />
+            <Stat value={String(workoutCalories(workout))} label="Calories" />
+            <Stat value={`+${result?.xp ?? 0}`} label="XP" gold />
           </div>
           <Button
             size="lg"
@@ -170,27 +296,34 @@ export function PlayerPage() {
               navigate("/app/home");
             }}
           >
-            Finish
+            Done
           </Button>
           <Link
             to="/app/progress"
             className="mt-4 text-sm font-semibold text-gold-400 hover:text-gold-300"
           >
-            View your progress
+            See your progress
           </Link>
         </div>
       </Shell>
     );
   }
 
-  /* ---------- Active workout ---------- */
+  /* ---------- Active ---------- */
+
   const isRest = phase === "rest";
-  const upNext = exercises[index + 1] ?? null;
+  const phaseTotal = isRest ? exercise?.rest ?? 0 : exercise?.work ?? 0;
+  const upNext = isRest ? exercises[index + 1] ?? null : null;
+
+  let elapsed = round * lapSec;
+  for (let i = 0; i < index; i++) elapsed += exercises[i].work + exercises[i].rest;
+  if (isRest && exercise) elapsed += exercise.work;
+  elapsed += Math.max(0, phaseTotal - remaining);
+  const overall = totalSec > 0 ? elapsed / totalSec : 0;
 
   return (
     <Shell>
-      {/* Top bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => setConfirmQuit(true)}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-ink-800 text-cream-dim transition-colors hover:text-cream"
@@ -198,26 +331,49 @@ export function PlayerPage() {
         >
           <Icon name="x" className="h-4 w-4" />
         </button>
-        <div className="text-center">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-cream-faint">
+        <div className="min-w-0 text-center">
+          <div className="truncate text-[11px] font-extrabold uppercase tracking-[0.18em] text-cream-faint">
             {workout.name}
           </div>
           <div className="text-xs font-semibold text-cream-dim">
+            {rounds > 1 && <span className="text-gold-400">Round {round + 1}/{rounds} · </span>}
             Exercise {index + 1} of {exercises.length}
           </div>
         </div>
-        <div className="w-10" />
+        <button
+          onClick={() => setMuted((m) => !m)}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-ink-800 text-cream-dim transition-colors hover:text-cream"
+          aria-label={muted ? "Unmute cues" : "Mute cues"}
+          aria-pressed={muted}
+        >
+          <Icon name={muted ? "sound-off" : "sound-on"} className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Overall progress */}
       <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-ink-700">
         <div
-          className="h-full gold-fill transition-[width] duration-500"
+          className="h-full gold-fill transition-[width] duration-700"
           style={{ width: `${Math.round(overall * 100)}%` }}
         />
       </div>
 
-      {/* Timer */}
+      {/* Circuit dots */}
+      <div className="mt-3 flex items-center justify-center gap-1.5">
+        {exercises.map((ex, i) => (
+          <span
+            key={`${ex.name}-${i}`}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i < index
+                ? "w-1.5 bg-gold-600"
+                : i === index
+                  ? "w-5 gold-fill"
+                  : "w-1.5 bg-ink-700"
+            }`}
+          />
+        ))}
+      </div>
+
       <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
         <div
           className={`text-[11px] font-extrabold uppercase tracking-[0.22em] ${
@@ -226,8 +382,8 @@ export function PlayerPage() {
         >
           {isRest ? "Rest" : "Work"}
         </div>
-        <h1 className="mt-2 max-w-sm font-display text-3xl font-bold leading-tight text-balance">
-          {isRest ? "Breathe & recover" : exercise?.name}
+        <h1 className="mt-2 max-w-sm font-display text-3xl font-bold leading-tight tracking-tight text-balance">
+          {isRest ? "Breathe and recover" : exercise?.name}
         </h1>
         {!isRest && exercise && (
           <p className="mt-2 max-w-xs text-sm text-cream-dim">{exercise.cue}</p>
@@ -238,10 +394,24 @@ export function PlayerPage() {
             progress={phaseTotal > 0 ? remaining / phaseTotal : 0}
             size={210}
             stroke={13}
+            trackColor={isRest ? "#1b2430" : "#272217"}
           >
-            <span className="font-display text-6xl font-bold tabular-nums">{remaining}</span>
-            <span className="text-xs font-semibold text-cream-faint">seconds</span>
+            <span
+              className={`font-display text-6xl font-bold tabular-nums transition-opacity ${
+                paused ? "animate-pulse-soft" : ""
+              }`}
+              aria-live="off"
+            >
+              {remaining}
+            </span>
+            <span className="text-xs font-semibold text-cream-faint">
+              {paused ? "paused" : "seconds"}
+            </span>
           </ProgressRing>
+        </div>
+
+        <div className="sr-only" aria-live="polite">
+          {isRest ? "Rest" : exercise?.name}, {remaining} seconds remaining
         </div>
 
         {upNext && (
@@ -251,12 +421,11 @@ export function PlayerPage() {
         )}
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-center gap-4 pb-4">
+      <div className="flex items-center justify-center gap-4 pb-2">
         <button
-          onClick={back}
+          onClick={restart}
           className="flex h-12 w-12 items-center justify-center rounded-full border border-line bg-ink-800 text-cream-dim transition-colors hover:text-cream"
-          aria-label="Restart exercise"
+          aria-label="Previous exercise"
         >
           <Icon name="arrow-left" className="h-5 w-5" />
         </button>
@@ -270,43 +439,33 @@ export function PlayerPage() {
         <button
           onClick={skip}
           className="flex h-12 w-12 items-center justify-center rounded-full border border-line bg-ink-800 text-cream-dim transition-colors hover:text-cream"
-          aria-label="Skip"
+          aria-label="Skip ahead"
         >
           <Icon name="skip" className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Quit confirmation */}
+      <p className="hidden pb-2 text-center text-[11px] text-cream-faint lg:block">
+        Space to pause · ← → to move · Esc to quit
+      </p>
+
       {confirmQuit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 p-6 backdrop-blur-sm">
-          <div className="card animate-fade-up w-full max-w-sm p-6 text-center">
-            <h2 className="font-display text-xl font-bold">Quit workout?</h2>
-            <p className="mt-2 text-sm text-cream-dim">
-              Your progress in this session won't be saved.
-            </p>
-            <div className="mt-6 flex gap-3">
-              <Button variant="ghost" className="flex-1" onClick={() => setConfirmQuit(false)}>
-                Keep Going
-              </Button>
-              <Button
-                variant="danger"
-                className="flex-1"
-                onClick={() => navigate(`/app/workouts/${workout.id}`)}
-              >
-                Quit
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Quit this workout?"
+          body={`You're ${Math.round(overall * 100)}% through. This session won't be saved.`}
+          cancelLabel="Keep going"
+          confirmLabel="Quit"
+          onCancel={() => setConfirmQuit(false)}
+          onConfirm={() => navigate(`/app/workouts/${workout.id}`)}
+        />
       )}
+
     </Shell>
   );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 py-6">{children}</div>
-  );
+  return <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 py-6">{children}</div>;
 }
 
 function Stat({ value, label, gold = false }: { value: string; label: string; gold?: boolean }) {

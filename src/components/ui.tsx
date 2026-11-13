@@ -1,7 +1,15 @@
-import { type ReactNode, type ButtonHTMLAttributes } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useId,
+  useRef,
+  type ReactNode,
+  type ButtonHTMLAttributes,
+} from "react";
 import { Link } from "react-router-dom";
 import { Icon, type IconName } from "./Icon";
 import { useApp } from "../state/AppContext";
+import { useCountUp } from "../lib/useCountUp";
 
 /* ---------- Buttons ---------- */
 
@@ -23,14 +31,18 @@ const SIZE: Record<NonNullable<ButtonProps["size"]>, string> = {
   lg: "px-7 py-3.5 text-base rounded-xl gap-2",
 };
 
-export function Button({ variant = "gold", size = "md", className = "", ...rest }: ButtonProps) {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = "gold", size = "md", className = "", ...rest },
+  ref,
+) {
   return (
     <button
-      className={`inline-flex items-center justify-center font-semibold transition-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none ${VARIANT[variant]} ${SIZE[size]} ${className}`}
+      ref={ref}
+      className={`inline-flex items-center justify-center font-semibold transition-all duration-150 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 ${VARIANT[variant]} ${SIZE[size]} ${className}`}
       {...rest}
     />
   );
-}
+});
 
 /* ---------- Section header ---------- */
 
@@ -38,21 +50,29 @@ export function SectionHeader({
   title,
   to,
   action = "See all",
+  hint,
 }: {
   title: string;
   to?: string;
   action?: string;
+  hint?: string;
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between">
-      <h2 className="font-display text-lg font-bold tracking-tight">{title}</h2>
+    <div className="mb-4 flex items-end justify-between gap-4">
+      <div className="min-w-0">
+        <h2 className="font-display text-lg font-bold tracking-tight">{title}</h2>
+        {hint && <p className="mt-0.5 truncate text-xs text-cream-faint">{hint}</p>}
+      </div>
       {to && (
         <Link
           to={to}
-          className="group inline-flex items-center gap-0.5 text-xs font-semibold text-gold-400 hover:text-gold-300"
+          className="group inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold text-gold-400 hover:text-gold-300"
         >
           {action}
-          <Icon name="chevron-right" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          <Icon
+            name="chevron-right"
+            className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+          />
         </Link>
       )}
     </div>
@@ -65,49 +85,64 @@ export function StatTile({
   icon,
   value,
   label,
+  suffix,
+  decimals = 0,
   accent = false,
 }: {
   icon: IconName;
-  value: string;
+  value: number;
   label: string;
+  suffix?: string;
+  decimals?: number;
   accent?: boolean;
 }) {
+  const shown = useCountUp(value, 900, decimals);
   return (
-    <div className="card flex flex-col items-center gap-1.5 px-3 py-4 text-center">
-      <span
-        className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-          accent ? "gold-fill text-ink-950" : "bg-gold-500/15 text-gold-400"
-        }`}
-      >
-        <Icon name={icon} className="h-4.5 w-4.5 h-[18px] w-[18px]" />
-      </span>
-      <div className="font-display text-xl font-bold leading-none">{value}</div>
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-cream-faint">{label}</div>
+    <div className="card relative overflow-hidden px-4 py-3.5">
+      {accent && (
+        <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-400 to-transparent" />
+      )}
+      <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-cream-faint">
+        <Icon name={icon} className={`h-3.5 w-3.5 ${accent ? "text-gold-400" : ""}`} />
+        {label}
+      </div>
+      <div className="mt-1.5 font-display text-2xl font-bold leading-none tabular-nums">
+        {shown.toLocaleString(undefined, {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        })}
+        {suffix && <span className="ml-0.5 text-sm font-semibold text-cream-faint">{suffix}</span>}
+      </div>
     </div>
   );
 }
 
-/* ---------- Progress ring (SVG) ---------- */
+/* ---------- Progress ring ---------- */
 
 export function ProgressRing({
   progress,
   size = 150,
   stroke = 11,
+  trackColor = "#272217",
   children,
 }: {
   /** 0..1 */
   progress: number;
   size?: number;
   stroke?: number;
+  trackColor?: string;
   children?: ReactNode;
 }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const clamped = Math.min(1, Math.max(0, progress));
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#272217" strokeWidth={stroke} />
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={trackColor} strokeWidth={stroke} />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -118,7 +153,7 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - clamped)}
-          style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1)" }}
+          style={{ transition: "stroke-dashoffset 0.7s cubic-bezier(0.22, 1, 0.36, 1)" }}
         />
         <defs>
           <linearGradient id="ring-gold" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -134,15 +169,7 @@ export function ProgressRing({
 
 /* ---------- Avatar ---------- */
 
-export function Avatar({
-  name,
-  hue,
-  size = 40,
-}: {
-  name: string;
-  hue: number;
-  size?: number;
-}) {
+export function Avatar({ name, hue, size = 40 }: { name: string; hue: number; size?: number }) {
   const initials = name
     .split(" ")
     .map((p) => p[0])
@@ -181,11 +208,16 @@ export function ProTag() {
 export function ToastStack() {
   const { toasts } = useApp();
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-4 z-[100] flex flex-col items-center gap-2 px-4">
+    <div
+      className="pointer-events-none fixed inset-x-0 top-4 z-[100] flex flex-col items-center gap-2 px-4"
+      role="status"
+      aria-live="polite"
+    >
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="card animate-fade-up flex w-full max-w-sm items-center gap-3 border-gold-500/30 px-4 py-3"
+          className="card flex w-full max-w-sm items-center gap-3 border-gold-500/30 px-4 py-3"
+          style={{ animation: "fadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both" }}
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full gold-fill text-ink-950">
             <Icon name="check" className="h-4 w-4" />
@@ -196,6 +228,91 @@ export function ToastStack() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ---------- Confirmation dialog ---------- */
+
+export function ConfirmDialog({
+  title,
+  body,
+  confirmLabel,
+  cancelLabel = "Cancel",
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  body: ReactNode;
+  confirmLabel: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const titleId = useId();
+  const panel = useRef<HTMLDivElement>(null);
+  const cancelBtn = useRef<HTMLButtonElement>(null);
+
+  // Escape closes; Tab stays inside the dialog.
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    cancelBtn.current?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+        return;
+      }
+      if (e.key !== "Tab" || !panel.current) return;
+      const focusable = panel.current.querySelectorAll<HTMLElement>("button");
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      previous?.focus?.();
+    };
+  }, [onCancel]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/85 p-6 backdrop-blur-sm"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+    >
+      <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="card w-full max-w-sm p-6 text-center"
+        style={{ animation: "fadeUp 0.25s cubic-bezier(0.22, 1, 0.36, 1) both" }}
+      >
+        <h2 id={titleId} className="font-display text-xl font-bold">
+          {title}
+        </h2>
+        <div className="mt-2 text-sm text-cream-dim">{body}</div>
+        <div className="mt-6 flex gap-3">
+          <Button ref={cancelBtn} variant="ghost" className="flex-1" onClick={onCancel}>
+            {cancelLabel}
+          </Button>
+          <Button variant="danger" className="flex-1" onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -214,12 +331,12 @@ export function EmptyState({
   children?: ReactNode;
 }) {
   return (
-    <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gold-500/15 text-gold-400">
+    <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-400 ring-1 ring-gold-500/20">
         <Icon name={icon} className="h-7 w-7" />
       </span>
       <div className="font-display text-lg font-bold">{title}</div>
-      <p className="max-w-xs text-sm text-cream-dim">{body}</p>
+      <p className="max-w-xs text-sm leading-relaxed text-cream-dim">{body}</p>
       {children}
     </div>
   );
