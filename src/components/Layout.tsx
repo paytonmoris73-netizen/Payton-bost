@@ -1,118 +1,247 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Icon, type IconName } from "./Icon";
-import { ToastStack } from "./ui";
-import { useApp, levelFromXp } from "../state/AppContext";
+import { useState } from "react";
+import { Icons } from "./Icons";
+import { useStore } from "../state/store";
 
-const NAV: { to: string; label: string; icon: IconName }[] = [
-  { to: "/app/home", label: "Home", icon: "home" },
-  { to: "/app/workouts", label: "Workouts", icon: "dumbbell" },
-  { to: "/app/progress", label: "Progress", icon: "chart" },
-  { to: "/app/rewards", label: "Rewards", icon: "trophy" },
-  { to: "/app/community", label: "Community", icon: "users" },
-  { to: "/app/store", label: "Store", icon: "store" },
-  { to: "/app/settings", label: "Settings", icon: "settings" },
+const NAV_ITEMS = [
+  { to: "/app/home", icon: Icons.home, label: "Home" },
+  { to: "/app/tutor", icon: Icons.tutor, label: "AI Tutor" },
+  { to: "/app/homework", icon: Icons.homework, label: "Solve Homework" },
+  { to: "/app/notes", icon: Icons.notes, label: "My Notes" },
+  { to: "/app/record", icon: Icons.record, label: "Record & Capture" },
+  { to: "/app/materials", icon: Icons.study, label: "Study Materials" },
+  { to: "/app/flashcards", icon: Icons.flashcards, label: "Flashcards" },
+  { to: "/app/quiz", icon: Icons.quiz, label: "Quizzes" },
+  { to: "/app/exams", icon: Icons.exam, label: "Practice Exams" },
+  { to: "/app/games", icon: Icons.games, label: "Study Games" },
+  { to: "/app/calendar", icon: Icons.calendar, label: "Calendar" },
+  { to: "/app/progress", icon: Icons.progress, label: "Progress" },
 ];
 
-const MOBILE_NAV = NAV.filter((n) =>
-  ["Home", "Workouts", "Progress", "Rewards", "Community"].includes(n.label),
-);
+const BOTTOM_NAV = [
+  { to: "/app/settings", icon: Icons.settings, label: "Settings" },
+];
 
-export function Brand({ compact = false }: { compact?: boolean }) {
+const MOBILE_NAV = [
+  { to: "/app/home", icon: Icons.home, label: "Home" },
+  { to: "/app/tutor", icon: Icons.tutor, label: "Tutor" },
+  { to: "/app/homework", icon: Icons.homework, label: "Solve" },
+  { to: "/app/notes", icon: Icons.notes, label: "Notes" },
+  { to: "/app/more", icon: Icons.grid, label: "More" },
+];
+
+function Sidebar() {
+  const sidebarOpen = useStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useStore((s) => s.setSidebarOpen);
+  const profile = useStore((s) => s.profile);
+
   return (
-    <div className="flex items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl gold-fill text-ink-950 shadow-glow-sm">
-        <Icon name="apex" className="h-5 w-5" />
-      </span>
-      {!compact && (
-        <span className="font-display text-lg font-bold tracking-tight">
-          Apex <span className="gold-text">Fitness</span>
-        </span>
+    <>
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+      <aside
+        className={`fixed top-0 left-0 z-40 h-full w-64 bg-white dark:bg-dark-800 border-r border-warm-200 dark:border-dark-border flex flex-col transition-transform duration-300 lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-warm-200 dark:border-dark-border">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center">
+            <Icons.sparkles size={18} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-base font-bold font-display text-ink-900 dark:text-white">StudyVerse</h1>
+            <p className="text-[10px] text-ink-400 dark:text-gray-500 font-medium uppercase tracking-wider">AI Learning</p>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden btn-ghost p-1.5">
+            <Icons.x size={18} />
+          </button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={() => window.innerWidth < 1024 && setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+                    : "text-ink-600 hover:bg-warm-100 hover:text-ink-800 dark:text-gray-400 dark:hover:bg-dark-600 dark:hover:text-gray-200"
+                }`
+              }
+            >
+              <item.icon size={18} />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="border-t border-warm-200 dark:border-dark-border px-3 py-3 space-y-0.5">
+          {BOTTOM_NAV.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={() => window.innerWidth < 1024 && setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+                    : "text-ink-600 hover:bg-warm-100 hover:text-ink-800 dark:text-gray-400 dark:hover:bg-dark-600 dark:hover:text-gray-200"
+                }`
+              }
+            >
+              <item.icon size={18} />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+          {profile && (
+            <NavLink
+              to="/app/settings"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-warm-100 dark:text-gray-400 dark:hover:bg-dark-600"
+            >
+              <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xs font-bold">
+                {profile.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="truncate">{profile.name}</span>
+            </NavLink>
+          )}
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function TopBar() {
+  const setSidebarOpen = useStore((s) => s.setSidebarOpen);
+  const darkMode = useStore((s) => s.darkMode);
+  const toggleDarkMode = useStore((s) => s.toggleDarkMode);
+  const profile = useStore((s) => s.profile);
+  const location = useLocation();
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const pageTitle = NAV_ITEMS.find((i) => location.pathname.startsWith(i.to))?.label
+    || BOTTOM_NAV.find((i) => location.pathname.startsWith(i.to))?.label
+    || "StudyVerse";
+
+  return (
+    <header className="sticky top-0 z-20 bg-white/80 dark:bg-dark-800/80 backdrop-blur-lg border-b border-warm-200 dark:border-dark-border">
+      <div className="flex items-center gap-3 px-4 lg:px-6 h-14">
+        <button onClick={() => setSidebarOpen(true)} className="lg:hidden btn-ghost p-1.5">
+          <Icons.menu size={20} />
+        </button>
+        <h2 className="text-base font-semibold text-ink-900 dark:text-white lg:hidden">{pageTitle}</h2>
+
+        <div className="hidden lg:flex items-center flex-1">
+          <div className="relative max-w-md w-full">
+            <Icons.search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+            <input
+              type="text"
+              placeholder="Search notes, flashcards, quizzes..."
+              className="input pl-9 pr-4 py-2 text-sm"
+              onFocus={() => setSearchOpen(true)}
+              onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
+            />
+            {searchOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 card p-3 shadow-elevated z-50">
+                <p className="text-xs text-ink-400 dark:text-gray-500">Start typing to search across all your study materials...</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          <button onClick={toggleDarkMode} className="btn-ghost p-2 rounded-lg">
+            {darkMode ? <Icons.sun size={18} /> : <Icons.moon size={18} />}
+          </button>
+          <button className="btn-ghost p-2 rounded-lg relative">
+            <Icons.bell size={18} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function MobileMoreMenu() {
+  const setSidebarOpen = useStore((s) => s.setSidebarOpen);
+  const moreItems = NAV_ITEMS.filter(
+    (i) => !MOBILE_NAV.slice(0, 4).some((m) => m.to === i.to)
+  );
+
+  return (
+    <div className="p-4 pb-24 animate-fade-in">
+      <h2 className="text-xl font-bold font-display text-ink-900 dark:text-white mb-4">More</h2>
+      <div className="grid grid-cols-3 gap-3">
+        {moreItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className="card card-hover flex flex-col items-center gap-2 p-4 text-center"
+          >
+            <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-500/15 flex items-center justify-center text-brand-600 dark:text-brand-400">
+              <item.icon size={20} />
+            </div>
+            <span className="text-xs font-medium text-ink-700 dark:text-gray-300">{item.label}</span>
+          </NavLink>
+        ))}
+        <NavLink
+          to="/app/settings"
+          className="card card-hover flex flex-col items-center gap-2 p-4 text-center"
+        >
+          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-500/15 flex items-center justify-center text-brand-600 dark:text-brand-400">
+            <Icons.settings size={20} />
+          </div>
+          <span className="text-xs font-medium text-ink-700 dark:text-gray-300">Settings</span>
+        </NavLink>
+      </div>
     </div>
   );
 }
 
-export function AppLayout() {
-  const { state } = useApp();
+function MobileTabBar() {
   const location = useLocation();
-  const level = levelFromXp(state.xp);
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-7xl">
-      <ToastStack />
-
-      {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-ink-900/70 px-4 py-6 backdrop-blur lg:flex">
-        <div className="px-2">
-          <Brand />
-        </div>
-        <nav className="mt-8 flex flex-1 flex-col gap-1">
-          {NAV.map((item) => (
+    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-dark-800/90 backdrop-blur-lg border-t border-warm-200 dark:border-dark-border lg:hidden safe-bottom">
+      <div className="flex items-center justify-around h-16 px-2">
+        {MOBILE_NAV.map((item) => {
+          const isActive = item.to === "/app/more"
+            ? location.pathname === "/app/more"
+            : location.pathname.startsWith(item.to);
+          return (
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors ${
-                  isActive
-                    ? "gold-fill text-ink-950 shadow-glow-sm"
-                    : "text-cream-dim hover:bg-ink-800 hover:text-cream"
-                }`
-              }
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
+                isActive ? "text-brand-600 dark:text-brand-400" : "text-ink-400 dark:text-gray-500"
+              }`}
             >
-              <Icon name={item.icon} className="h-[18px] w-[18px]" />
-              {item.label}
+              <item.icon size={20} />
+              <span className="text-[10px] font-medium">{item.label}</span>
             </NavLink>
-          ))}
-        </nav>
-        {state.profile && (
-          <div className="card flex items-center gap-3 px-3 py-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full gold-fill font-display text-sm font-bold text-ink-950">
-              {state.profile.name[0]?.toUpperCase() ?? "A"}
-            </span>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-bold">{state.profile.name}</div>
-              <div className="text-xs text-cream-faint">Level {level}</div>
-            </div>
-          </div>
-        )}
-      </aside>
-
-      {/* Main */}
-      <div className="min-w-0 flex-1 pb-24 lg:pb-10">
-        <div key={location.pathname} className="animate-fade-up px-4 pt-6 sm:px-8">
-          <Outlet />
-        </div>
+          );
+        })}
       </div>
+    </nav>
+  );
+}
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-ink-900/90 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-md items-stretch justify-around px-2">
-          {MOBILE_NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex w-16 flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-bold transition-colors ${
-                  isActive ? "text-gold-400" : "text-cream-faint hover:text-cream-dim"
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <span
-                    className={`flex h-7 w-11 items-center justify-center rounded-full transition-colors ${
-                      isActive ? "bg-gold-500/15" : ""
-                    }`}
-                  >
-                    <Icon name={item.icon} className="h-5 w-5" />
-                  </span>
-                  {item.label}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
+export function AppLayout() {
+  const location = useLocation();
+
+  return (
+    <div className="min-h-screen">
+      <Sidebar />
+      <div className="lg:pl-64">
+        <TopBar />
+        <main className="pb-20 lg:pb-6">
+          {location.pathname === "/app/more" ? <MobileMoreMenu /> : <Outlet />}
+        </main>
+      </div>
+      <MobileTabBar />
     </div>
   );
 }

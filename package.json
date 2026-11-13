@@ -1,7 +1,7 @@
 {
-  "name": "apex-fitness",
+  "name": "studyverse",
   "version": "1.0.0",
-  "description": "Apex Fitness — Train. Improve. Achieve. The ultimate fitness app for everyone, anywhere.",
+  "description": "StudyVerse — The Ultimate AI Learning Platform",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,9 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.18.5"
+    "react-router-dom": "^7.18.5",
+    "zustand": "^4.5.2",
+    "date-fns": "^3.6.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
