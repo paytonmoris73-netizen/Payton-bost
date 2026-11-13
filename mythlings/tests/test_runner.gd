@@ -837,6 +837,79 @@ func test_emberfall() -> void:
 	ui.hud._dlg_queue.clear()
 	ui.hud._dialogue.visible = false
 	p.input_locked = false
+	section("awakenings: magmole family (Emberfall)")
+	GameState.set_companion("magmole")
+	lvl.refresh_creatures()
+	var mopt: Dictionary = Evolution.options("magmole")[0]
+	check(mopt.to == "basaltusk" and DB.creature("basaltusk").size_class == "large" and CreatureModels.has_model("basaltusk"), "Magmole's Awakened Form is the large Basaltusk")
+	var wall: AbilityTarget = null
+	var core_stone: LoreStone = null
+	var records: Array = []
+	for n in lvl.get_children():
+		if n is AbilityTarget and n.uid == "obsidian_wall":
+			wall = n
+		if n is LoreStone and n.uid == "basalt_core":
+			core_stone = n
+		if n is LoreStone and n.uid.begins_with("glass_record_"):
+			records.append(n)
+	check(wall != null, "a glass wall closes the only way into the Obsidian Deep")
+	check(core_stone != null and records.size() == 2, "the hollow column and both Glass Records stand in the deep")
+	GameState.set_companion("cindercub")
+	check(core_stone.needs.call() != "", "only a Magmole companion can hollow the column")
+	GameState.set_companion("magmole")
+	lvl.refresh_creatures()
+	mag = lvl.creatures.magmole
+	Abilities._ready_at.clear()
+	p.global_position = wall.global_position + Vector3(4, 1, 0)
+	mag.global_position = wall.global_position + Vector3(3, 0, 0)
+	check(Abilities.activate(mag, "burrow_break") == "", "Magmole's Burrow Break opens the glass wall")
+	await _frames(2)
+	check(GameState.flag("ab_obsidian_wall"), "the Obsidian Deep is open")
+	core_stone.interact(p)
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	check(GameState.flag("lore_basalt_core"), "Magmole hollows out a basalt column")
+	_satisfy("magmole", mopt.requirements)
+	check(Evolution.can_evolve("magmole", mopt), "Basaltusk requirements can be met by playing")
+	check(Evolution.evolve("magmole", 0) and GameState.companion() == "basaltusk", "Magmole awakens into Basaltusk")
+	await _frames(2)
+	var bas: Creature = lvl.creatures.get("basaltusk")
+	check(bas != null and bas.mode == Creature.Mode.COMPANION, "Basaltusk walks with you in Emberfall")
+	check(DB.creature("basaltusk").rideable, "Basaltusk can be ridden")
+	Abilities._ready_at.clear()
+	GameState.add_friendship("basaltusk", 100)
+	p.global_position = lvl.ground(lx - 8.0, lz) + Vector3(0, 0.5, 0)
+	p.rotation.y = -PI * 0.5
+	var crust_before := get_tree().get_nodes_in_group("lava_crust").size()
+	check(Abilities.activate(bas, "basalt_path") == "", "Basalt Path runs beside the lava")
+	await _frames(2)
+	check(get_tree().get_nodes_in_group("lava_crust").size() >= crust_before, "Basalt Path lays a causeway over the lava")
+	var oopt: Dictionary = Evolution.options("basaltusk")[0]
+	check(oopt.to == "obsidra" and not Evolution.can_evolve("basaltusk", oopt), "Obsidra's Awakening needs the Glass Records")
+	for st in records:
+		st.interact(p)
+		ui.hud._dlg_queue.clear()
+		ui.hud._dialogue.visible = false
+	check(GameState.flag("lore_glass_record_1") and GameState.flag("lore_glass_record_2"), "both Glass Records can be read in the deep")
+	_satisfy("basaltusk", oopt.requirements)
+	check(Evolution.can_evolve("basaltusk", oopt), "all Obsidra requirements met without buying anything")
+	check(Evolution.evolve("basaltusk", 0), "Basaltusk awakens into Obsidra")
+	var obs: CreatureData = DB.creature("obsidra")
+	check(obs.is_colossal() and obs.rideable and not obs.flight and CreatureModels.has_model("obsidra"), "Obsidra is a rideable colossal that walks (it does not fly)")
+	check(String(GameState.data.creatures.obsidra.evolved_from) == "basaltusk", "family line Magmole > Basaltusk > Obsidra recorded")
+	check(Evolution.remembered_forms("obsidra").map(func(c): return c.id) == ["magmole", "basaltusk", "obsidra"], "all three forms remembered")
+	check(not ("purchase" in Array(obs.acquisition)), "Obsidra is earned only: it is never purchasable")
+	var oshop: ShopItemData = DB.product("colossal_obsidra")
+	check(oshop != null and oshop.price == 0 and oshop.currency == "none", "the Market lists Obsidra as free and earned")
+	check(Evolution.choose_form("magmole"), "Magmole can still come along (narrow cave tunnels)")
+	await _frames(2)
+	ui.play_evolution("magmole", "basaltusk")
+	await get_tree().create_timer(8.5).timeout
+	check(ui.evolution.style == "stone" and ui.evolution._card.visible, "the Magmole family's own stone Awakening sequence plays")
+	ui.evolution.close()
+	ui.hud._dlg_queue.clear()
+	ui.hud._dialogue.visible = false
+	p.input_locked = false
 	# Ashwing passive softens falls.
 	GameState.set_companion("ashwing")
 	lvl.refresh_creatures()

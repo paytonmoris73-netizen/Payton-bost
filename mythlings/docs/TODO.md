@@ -61,11 +61,11 @@ Done means implemented **and** exercised by tests or screenshots. See QA_CHECKLI
 - [x] Awakening screen: side-by-side rotatable forms, requirements, abilities (new/kept), size change, true-scale comparison with Keeper and cottage, transformation preview
 - [x] Form Memory (choose which form accompanies you) and re-opening other paths later
 - [x] Awakenings Gallery: family trees, silhouettes, totals
-- [x] Per-family sequences: grove (Mossbun line), ember, celestial; classic fallback
+- [x] Per-family sequences: grove (Mossbun line), ember, stone (Magmole line), celestial; classic fallback
 - [x] **Mossbun family complete:** Mossmantle model + kit (Root Passage, Nature Sense, Living Shelter, Canopy Call), Heartwood Hollow landmark, "The Seed in the Moss", three Old Grove Stones, Verdantus Awakening; tested end-to-end
 - [ ] Cloverling → Petalcrest → Bloomtail (needs Bloomtail restructured from a base form into a large form, plus a new meadow base for the current small Bloomtail)
 - [x] Cindercub → Cindermaw → Ignaroth (earnable path with Ember Tablet; the Market purchase stays optional)
-- [ ] Magmole → Basaltusk → Obsidra
+- [x] **Magmole → Basaltusk → Obsidra:** Basaltusk (large, rideable) and Obsidra (colossal, rideable on the ground) models + kits, the Obsidian Deep landmark in Emberfall, "The Door Under the Ash", two Glass Records, a `stone` Awakening sequence; Obsidra is earned only and never sold. Tested end-to-end
 - [ ] Bubbloon → Pelaglow → Thalassor, Coralyn → Reefwarden → Coralith (need Tideglass Coast)
 - [ ] Snowpup → Hailhorn → Frostmaw, Shiverowl → Aurorwing → Auroriel (need Frostroot Vale)
 - [ ] Fernling → Vinesentinel → Thornvine Titan, Mushmunk → Sporeback → Myceldrum (need Sunpetal Jungle)

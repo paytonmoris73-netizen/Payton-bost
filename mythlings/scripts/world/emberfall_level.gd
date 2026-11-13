@@ -18,6 +18,8 @@ const ELOC := {
 	"magmole": Vector2(-14, -66),
 	"ashwing": Vector2(-52, -6),
 	"lava_bridge": Vector2(0, 15),
+	"obsidian_deep": Vector2(-56, -70),
+	"glass_record_2": Vector2(-68, -78),
 }
 
 const ELOCATIONS := [
@@ -26,6 +28,7 @@ const ELOCATIONS := [
 	["dragonstone_ridge", "Dragonstone Ridge", 14.0],
 	["cinder_lake", "Cinder Lake", 18.0],
 	["forgotten_forge", "The Forgotten Forge", 13.0],
+	["obsidian_deep", "The Obsidian Deep", 7.0],
 ]
 
 var _crusts: Array = []
@@ -71,6 +74,7 @@ func build() -> void:
 	_build_forge()
 	_build_ridge_steps()
 	_build_caverns()
+	_build_obsidian_deep()
 	_build_ember_resources()
 	_build_ember_targets()
 	_build_ember_vegetation()
@@ -367,6 +371,125 @@ func _build_ridge_steps() -> void:
 	K.add(tab, K.box(Vector3(0.7, 0.9, 0.04)), K.glow(Color("ff8a3a"), 1.2), Vector3(0, 0.8, -0.17))
 	tab.position = top + Vector3(1.8, 0, 1.0)
 	add_child(tab)
+
+# ------------------------------------------------------------------ The Obsidian Deep (Magmole's Awakening)
+const GLASS_LORE := {
+	"glass_record_1": ["the First Glass Record", ["*A slab of black glass, written on while it was still soft:*", "\"Before the mountain there was a sea of glass, and the sea remembered everything that walked on it.\"", "\"When the fire came the glass broke into columns, and small diggers carried the pieces so the memory would not be lost.\""]],
+	"glass_record_2": ["the Second Glass Record", ["*The letters here are cut deeper, as if by something very large:*", "\"The guardian of the deep is only a digger that was trusted long enough to stop holding itself together.\"", "\"Its plates are not armour. They are the deep letting go.\"", "\"Read this to your friend. The glass remembers being read to.\""]],
+}
+
+func _build_obsidian_deep() -> void:
+	var c := at("obsidian_deep")
+	var root := Node3D.new()
+	root.name = "ObsidianDeep"
+	add_child(root)
+	var glass := Color("17141c"); var facet := Color("2a2434"); var facet_l := Color("3d3550")
+	var basalt := Color("36302f"); var seam := Color("cdbcff")
+	# A gallery of standing hexagonal columns, open only on the east side.
+	var m := MeshMerger.new()
+	for i in 13:
+		var ang := -2.4 + i * (4.8 / 12.0) + PI  # skips the east gap
+		var p := Vector3(cos(ang) * 8.5, 0, sin(ang) * 8.5)
+		p.y = terrain.height(c.x + p.x, c.z + p.z) - c.y - 0.5  # follow the slope
+		var h := 5.0 + float(i % 4) * 1.3
+		m.put(K.cyl(1.1, 1.25, h, 6), p + Vector3(0, h * 0.5, 0), basalt if i % 2 else facet, Vector3(0, 24 * i, 2.5 - float(i % 3) * 2.0))
+		m.put(K.box(Vector3(0.1, h * 0.7, 0.16)), p + Vector3(1.0, h * 0.5 + 0.4, 0), seam, Vector3(0, 24 * i, 0))
+		_cyl_collider(c + p, 1.3, h)
+	# The great standing column at the centre, lit from inside.
+	for k in 3:
+		var off := Vector3(cos(k * 2.1) * 1.3, 0, sin(k * 2.1) * 1.3)
+		var ch := 7.5 - float(k) * 1.6
+		m.put(K.cyl(1.0 - float(k) * 0.18, 1.15 - float(k) * 0.18, ch, 6), off + Vector3(0, ch * 0.5 - 0.3, 0), glass, Vector3(0, 18 * k, 0))
+		m.put(K.box(Vector3(0.12, ch * 0.75, 0.2)), off + Vector3(0.9 - float(k) * 0.16, ch * 0.5, 0), seam, Vector3(0, 18 * k, 0))
+	root.add_child(Props.node(m.commit(), "solid", c))
+	_cyl_collider(c, 2.4, 7.0)
+	var lamp := OmniLight3D.new()
+	lamp.light_color = seam
+	lamp.omni_range = 14.0
+	lamp.light_energy = 1.2
+	lamp.position = c + Vector3(0, 4.5, 0)
+	root.add_child(lamp)
+	var motes := FX.motes(seam, 24, Vector3(7, 3, 7), 0.07)
+	motes.position = c + Vector3(0, 2.0, 0)
+	root.add_child(motes)
+	# A pane of glass walls the only gap: Magmole's Burrow Break opens it.
+	var gap := c + Vector3(8.5, 0, 0)
+	var wall := Node3D.new()
+	var wm := MeshMerger.new()
+	for k in 5:
+		var z := -2.4 + k * 1.2
+		wm.put(K.box(Vector3(0.5, 5.0 + float(k % 2) * 0.8, 1.2)), Vector3(0, 2.3, z), glass if k % 2 else facet, Vector3(0, 0, 3.0 - float(k)))
+		wm.put(K.box(Vector3(0.1, 3.4, 0.14)), Vector3(-0.3, 2.3, z), seam)
+	wall.add_child(Props.node(wm.commit(), "solid"))
+	var broken := Node3D.new()
+	var bm := MeshMerger.new()
+	for k in 5:
+		var z2 := -2.4 + k * 1.2
+		bm.put(K.box(Vector3(0.5, 1.1, 1.1)), Vector3(0, 0.45, z2), facet, Vector3(0, 0, 8.0 - float(k) * 3.0))
+	for k in 4:
+		bm.put(K.cyl(0.0, 0.3, 0.8, 6), Vector3(0.2, 0.4, -1.8 + k * 1.2), glass, Vector3(14 - k * 8, 20 * k, 0))
+	broken.add_child(Props.node(bm.commit(), "solid"))
+	var gate := StaticBody3D.new()
+	var gcs := CollisionShape3D.new()
+	var gbx := BoxShape3D.new()
+	gbx.size = Vector3(1.2, 5.0, 6.4)
+	gcs.shape = gbx
+	gcs.position = Vector3(0, 2.5, 0)
+	gate.add_child(gcs)
+	wall.add_child(gate)
+	var t := AbilityTarget.new()
+	t.setup("cracked_rock", "obsidian_wall", wall, broken, {"xp": 50, "items": {"crystal": 2}})
+	t.position = gap
+	t.position.y = terrain.height(t.position.x, t.position.z)
+	t.on_activate = func(_t):
+		_enable_collision(gate, false)
+		Events.toast.emit("The glass gives way", "A gallery of standing columns opens up behind the wall.", "fire")
+	add_child(t)
+	_enable_collision(gate, not GameState.flag("ab_obsidian_wall"))
+	# The column Magmole hollows out (its personal quest step).
+	var bed := LoreStone.new()
+	bed.setup("basalt_core", "the hollow column", ["*Magmole braces its claws against a cracked column and digs out its core in one long, patient spiral.*", "*The column rings like a struck bell. Magmole sits inside the hollow it made and will not come out for a while.*", "*Something has settled in it. Magmole is ready to Awaken whenever you both are.*"], "Let Magmole hollow out")
+	bed.needs = func() -> String:
+		if GameState.companion() != "magmole":
+			return "Only a Magmole companion can hollow this column. Bring Magmole (in its First Form) with you."
+		return ""
+	K.add(bed, K.cyl(0.95, 1.05, 2.2, 6), K.mat(basalt, 0.5), Vector3(0, 1.0, 0), Vector3(0, 12, 2))
+	K.add(bed, K.box(Vector3(0.12, 1.5, 0.18)), K.glow(Color("ff6a1f"), 1.8), Vector3(0.85, 1.1, 0))
+	bed.position = c + Vector3(3.4, 0, 3.0)
+	bed.position.y = terrain.height(bed.position.x, bed.position.z)
+	add_child(bed)
+	_cyl_collider(bed.position, 1.1, 2.2)
+	# The two Glass Records: the deep's history, needed for Obsidra's Awakening.
+	var spots := {"glass_record_1": c + Vector3(-1.0, 0, 4.6), "glass_record_2": at("glass_record_2")}
+	for sid in spots:
+		var st := LoreStone.new()
+		st.setup(sid, GLASS_LORE[sid][0], GLASS_LORE[sid][1])
+		K.add(st, K.box(Vector3(1.3, 1.9, 0.4)), K.flat(glass, 0.35), Vector3(0, 0.95, 0), Vector3(0, 0, 5))
+		K.add(st, K.box(Vector3(0.85, 1.2, 0.06)), K.glow(seam, 1.6), Vector3(0, 1.1, -0.22))
+		K.add(st, K.cyl(0.6, 0.75, 0.3, 6), K.flat(facet_l, 0.4), Vector3(0, 0.1, 0), Vector3(0, 20, 0))
+		st.position = spots[sid]
+		st.position.y = terrain.height(st.position.x, st.position.z)
+		add_child(st)
+		_cyl_collider(st.position, 0.8, 2.0)
+	# The deep gallery around the second record: a stand of smaller columns.
+	var gm := MeshMerger.new()
+	var g2: Vector3 = at("glass_record_2")
+	for k in 9:
+		var a2 := k * TAU / 9.0 + 0.4
+		var rr := 4.0 + float(k % 3) * 1.6
+		var hh := 3.0 + float(k % 4) * 1.1
+		var gp := Vector3(cos(a2) * rr, 0, sin(a2) * rr)
+		gp.y = terrain.height(g2.x + gp.x, g2.z + gp.z) - g2.y - 0.4
+		gm.put(K.cyl(0.8, 0.95, hh, 6), gp + Vector3(0, hh * 0.5, 0), basalt if k % 2 else glass, Vector3(0, 20 * k, 3.0 - float(k % 3) * 2.0))
+		_cyl_collider(g2 + gp, 0.95, hh)
+	root.add_child(Props.node(gm.commit(), "solid", g2))
+	for k in 3:
+		var p3 := c + Vector3(-5.0 + k * 2.4, 0, -4.4 - float(k % 2) * 1.2)
+		p3.y = terrain.height(p3.x, p3.z)
+		_resource("emberstone", p3, Props.ember_rock(), "solid", Vector2i(1, 2), 220.0)
+	var cp := c + Vector3(-2.2, 0, -2.0)
+	cp.y = terrain.height(cp.x, cp.z) + 0.3
+	_chest(cp, "obsidian_deep_chest", {"crystals": 15, "star_gems": 25}, "Obsidian Deep")
 
 func _build_caverns() -> void:
 	var cp := at("ashen_caverns")

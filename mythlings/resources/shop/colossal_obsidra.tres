@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1_s")
 id = "colossal_obsidra"
-display_name = "Obsidra"
+display_name = "Obsidra, the Glass Guardian"
 category = "colossal"
-description = "The Void Armor Guardian: a squared four-legged colossus whose armour plates float a hand's width off its body, orbiting slowly around glowing geometric seams."
-currency = "star_gems"
+description = "Earned only through play: awaken a Magmole through Basaltusk in the Obsidian Deep. Obsidra is never sold, in any currency."
+currency = "none"
 price = 0
 grants = {
 
@@ -16,6 +16,7 @@ grants = {
 rarity = "mythic"
 preview_kind = "colossal"
 preview_id = "obsidra"
-available = false
-unavailable_reason = "In development: model not built yet. Not purchasable."
-tags = PackedStringArray("concept")
+featured = true
+tags = PackedStringArray("colossal", "rideable", "evolved")
+earn_path = "Free — earned by awakening Magmole through Basaltusk in Emberfall's Obsidian Deep."
+includes = PackedStringArray("Obsidra (rideable on the ground)", "Abilities: Heavy Lift, Stone Passage, Ancient Shield, Obsidian Orbit", "Journal entry and lore")

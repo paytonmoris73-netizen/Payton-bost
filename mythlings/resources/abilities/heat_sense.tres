@@ -8,7 +8,7 @@ id = "heat_sense"
 display_name = "Heat Sense"
 slot = "passive"
 category = "exploration"
-description = "Magmole feels hot seams in the rock: the HUD points to weakened boulders and seals within 25 m."
+description = "Magmole feels hot seams in the rock: the HUD points to weakened boulders, glass walls and seals within 25 m."
 effect = "passive_sense"
 params = {
 "kinds": ["cracked_rock", "forge_seal"],

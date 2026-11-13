@@ -247,8 +247,8 @@ func _run(effect: String, params: Dictionary, c: Creature, p: Player) -> Diction
 			var dur := float(params.get("duration", 40.0))
 			_shelter = {"pos": p.global_position, "radius": float(params.get("radius", 6.0)), "until": Time.get_ticks_msec() + int(dur * 1000.0), "mult": float(params.get("friendship_mult", 2.0))}
 			if MeadowLevel.current:
-				MeadowLevel.current.spawn_shelter(p.global_position, float(params.get("radius", 6.0)), dur)
-			Events.toast.emit("Living Shelter", "Mythlings nearby feel safe. Interactions inside the shelter earn double friendship.", "leaf")
+				MeadowLevel.current.spawn_shelter(p.global_position, float(params.get("radius", 6.0)), dur, String(params.get("style", "moss")))
+			Events.toast.emit(String(params.get("label", "Living Shelter")), "Mythlings nearby feel safe. Interactions inside the shelter earn double friendship.", "leaf")
 			return {"ok": true, "msg": ""}
 		"weather":
 			var lvl2 := MeadowLevel.current

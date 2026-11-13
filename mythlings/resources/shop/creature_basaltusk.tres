@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_item_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "creature_basaltusk"
+display_name = "Basaltusk"
+category = "large"
+description = "Magmole's Awakened Form: a heavy, broad-shouldered digger about the size of a plough-ox. Six-sided basalt columns have grown into a ridged shell down its back, two long tusks of cooled volcanic glass sweep forward past its shovel jaw, and magma light shows in the joints whenever it moves."
+currency = "none"
+price = 0
+grants = {
+
+}
+rarity = "epic"
+preview_kind = "creature"
+preview_id = "basaltusk"
+earn_path = "Free — earned by evolution."
+tags = PackedStringArray("evolved")

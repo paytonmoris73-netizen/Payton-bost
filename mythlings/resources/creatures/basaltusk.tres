@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "basaltusk"
+display_name = "Basaltusk"
+region = "emberfall"
+habitat = "The Obsidian Deep"
+elements = PackedStringArray("fire", "earth")
+rarity = "epic"
+size_class = "large"
+personality = "calm"
+description = "Magmole's Awakened Form: a heavy, broad-shouldered digger about the size of a plough-ox. Six-sided basalt columns have grown into a ridged shell down its back, two long tusks of cooled volcanic glass sweep forward past its shovel jaw, and magma light shows in the joints whenever it moves."
+personality_text = "Calm and deliberate. Basaltusk tests the ground before every step, leans its shoulder against anything in the way, and hums low in its chest while it digs."
+ability_id = ""
+ability_name = ""
+ability_text = ""
+favorite_treat = "honey_drop"
+base_stats = {
+"vitality": 17,
+"spirit": 16,
+"agility": 15
+}
+palette = PackedColorArray(0.184, 0.165, 0.173, 1, 1.0, 0.416, 0.122, 1, 0.42, 0.384, 0.361, 1)
+model_id = "basaltusk"
+locomotion = "quad"
+move_speed = 2.4
+height = 1.9
+sound_pitch = 0.7
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near The Obsidian Deep.", "Calm and deliberate. Basaltusk tests the ground before every step, leans its shoulder against anything in the way, and hums low in its chest while it digs.", "Ability: unknown.")
+discovery_hint = "Awaken Magmole: see its Awakening requirements."
+rideable = true
+model_ready = true
+abilities = PackedStringArray("tremor_sense", "basalt_path", "tusk_break", "columnar_rise")
+family = "magmole"
+stage = 2
+evolves_from = "magmole"
+acquisition = PackedStringArray("evolve")
+awakening_style = "stone"
+form_role = "Large and strong: can be ridden, lays a basalt causeway across lava and breaks rock at a distance. Best for crossing Emberfall."
+lore = "A Basaltusk will spend a whole night pushing one column straight again. Emberfall's oldest roads are the ones they liked."
+evolutions = Array[Dictionary]([{
+"to": "obsidra",
+"path": "ascended",
+"requirements": {
+"friendship": 5,
+"quest": "e_glass_history",
+"visited": ["obsidian_deep", "cinder_lake", "dragonstone_ridge"],
+"lore": ["glass_record_1", "glass_record_2"],
+"items": {
+"emberstone": 8,
+"crystal": 4
+}
+},
+"text": "With both glass records read and the deep mapped end to end, a Basaltusk of complete trust lets its armour float free and rises into the glass guardian.",
+"branch": "Guardian Path"
+}])
+originality_notes = "Broad digging quadruped with hexagonal basalt columns on its back and forward-sweeping glass tusks; blunt shovel jaw, no mane, no wings. Columnar basalt is a real geological form used as the species' hook. Boar/ox-like diggers are a generic archetype — check the silhouette and tusk shape against franchise ground creatures before release."

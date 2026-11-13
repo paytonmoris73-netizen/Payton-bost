@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "tusk_break"
+display_name = "Tusk Break"
+slot = "secondary"
+category = "support"
+description = "A sweep of its glass tusks: boulders and seals within 24 m break, and up to three nearby stone or emberstone deposits are gathered."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 24.0
+}
+}, {
+"effect": "harvest",
+"params": {
+"items": ["stone", "emberstone"],
+"radius": 14.0,
+"max": 3
+}
+}]
+}
+cooldown = 45
+unlock_friendship = 2
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(0.784, 0.471, 0.227, 1)

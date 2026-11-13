@@ -8,13 +8,30 @@ id = "obsidian_orbit"
 display_name = "Obsidian Orbit"
 slot = "signature"
 category = "signature"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+description = "The plates spin wide and the seams blaze: lava sets for 40 seconds, rock, seals, volcanic mechanisms and hidden treasure within 55 m open, and every resource within 80 m is highlighted."
+effect = "combo"
 params = {
-
+"steps": [{
+"effect": "crust",
+"params": {
+"duration": 40.0
 }
-cooldown = 10
-unlock_friendship = 0
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock", "forge_seal", "volcanic_structure", "hidden_treasure"],
+"radius": 55.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"radius": 80.0,
+"duration": 35.0
+}
+}]
+}
+cooldown = 120
+unlock_friendship = 4
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "star_field"
+color = Color(0.804, 0.737, 1.0, 1)

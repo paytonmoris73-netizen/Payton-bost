@@ -49,4 +49,6 @@ from film, comics and tabletop games. Branches grow from its shoulders, not its 
 | Lanternwhisk | Upright creature carrying its own tail as a lantern | **Lantern-tail designs exist; review.** |
 | Drizzlefin | Small fish that swims through the air on clear fins | Needs review |
 | Thornmane | Rose-and-thorn mane, bark shoulder armour, thorn-fan tail | Needs review |
+| Basaltusk | Heavy digging quadruped: hexagonal basalt columns down the back, two forward-sweeping glass tusks, blunt shovel jaw, glowing joint rings | **Columnar basalt is a real geological form, used here as the species' hook. Tusked boar/ox diggers are a generic archetype — compare the silhouette and tusk curve against franchise ground creatures.** Needs review |
+| Obsidra | Squared black-glass colossus whose armour plates hover detached and rotate slowly around the body, pale violet geometric seams, no wings/horns/tail club | **Floating-armour guardians appear in other games and anime. Review the plate layout, the seam pattern and the head wedge. Deliberately built to contrast with Ignaroth (angular vs organic, violet vs magma).** Needs review |
 | Names | All invented for this project | **Trademark search needed for every creature name and for "Mythlings" itself.** |

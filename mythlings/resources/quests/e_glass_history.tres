@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "e_glass_history"
+title = "Letters in the Glass"
+category = "exploration"
+region = "emberfall"
+description = "Two slabs of written glass stand in the Obsidian Deep. Read both: this is the deep's own history, and the guardian's."
+objectives = Array[Dictionary]([{
+"event": "lore:glass_record_1",
+"count": 1,
+"label": "Read the First Glass Record (Obsidian Deep entry gallery)"
+}, {
+"event": "lore:glass_record_2",
+"count": 1,
+"label": "Read the Second Glass Record (deep gallery, past the standing columns)"
+}])
+rewards = {
+"xp": 200,
+"crystals": 15
+}
+prerequisites = PackedStringArray("c_magmole_deep")
+min_level = 5
+auto_start = true
+giver = "Smith Brenna"
+start_dialogue = PackedStringArray("Brenna taps her hammer on the bench. \"Glass that someone wrote on? That's older than the forge, Keeper. Read it to your digger. They remember what we forget.\"")
+end_dialogue = PackedStringArray()
+sort_order = 67
+map_marker = "obsidian_deep"

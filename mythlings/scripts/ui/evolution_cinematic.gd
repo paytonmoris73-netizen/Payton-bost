@@ -59,8 +59,9 @@ func _ready() -> void:
 	_card.add_child(_card_box)
 
 ## Which sequence plays: the families each have their own ("grove" for the
-## Mossbun line, "ember" for fire lines, "celestial" for star lines); anything
-## else uses the classic light-pillar sequence.
+## Mossbun line, "ember" for fire lines, "stone" for the Magmole line,
+## "celestial" for star lines); anything else uses the classic light-pillar
+## sequence.
 var style := ""
 var _fx: Array = []
 
@@ -88,6 +89,7 @@ func play(from_id: String, to_id: String) -> void:
 		"grove": await _grove(a, b)
 		"ember": await _ember(a, b)
 		"celestial": await _celestial(a, b)
+		"stone": await _stone(a, b)
 		_: await _classic(a, b)
 	for n in _fx:
 		if is_instance_valid(n):
@@ -263,6 +265,64 @@ func _ember(a: CreatureData, b: CreatureData) -> void:
 	sparks.emitting = false
 	create_tween().tween_property(env, "background_color", Color("4a2e24"), 1.4)
 	Audio.play_sfx("restore", 0.7)
+	await _wait(1.4)
+
+# ---------------------------------------------------------------- STONE (Magmole family)
+## Hexagonal basalt columns push up out of the ground in a ring and close over
+## the creature; the columns then split apart into floating plates and drift
+## away, leaving the new form standing in the gap they left.
+func _stone(a: CreatureData, b: CreatureData) -> void:
+	var env := viewer.environment
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color("3a3330")
+	env.ambient_light_energy = 0.45
+	var floor_ := _add_fx(MeshKit.add(Node3D.new(), MeshKit.cyl(2.8, 2.8, 0.06, 6), MeshKit.flat(Color("2f2a2c")), Vector3(0, -0.03, 0)).get_parent())
+	for k in 6:
+		var fa := k * TAU / 6.0
+		MeshKit.add(floor_, MeshKit.box(Vector3(0.06, 0.02, 2.6)), MeshKit.glow(Color("ff6a1f"), 1.6), Vector3(cos(fa) * 1.3, 0.04, sin(fa) * 1.3), Vector3(0, rad_to_deg(-fa) + 90.0, 0))
+	await _wait(0.5)
+	_title.text = "The ground under %s begins to hum…" % a.display_name
+	viewer.play("happy")
+	Audio.play_sfx("stomp", 0.5)
+	await _wait(1.1)
+	# A ring of hexagonal columns rises and closes over it.
+	_title.text = "Basalt columns rise around it…"
+	var cols: Array = []
+	for k in 9:
+		var ang := k * TAU / 9.0
+		var h := 0.85 + (k % 3) * 0.3
+		var cp := MeshKit.add(Node3D.new(), MeshKit.cyl(0.2, 0.22, h, 6), MeshKit.flat(Color("36302f") if k % 2 else Color("514741"), 0.5), Vector3(0, h * 0.5, 0), Vector3(0, 20 * k, 0)).get_parent()
+		_add_fx(cp)
+		MeshKit.add(cp, MeshKit.box(Vector3(0.04, h * 0.75, 0.06)), MeshKit.glow(Color("ff6a1f"), 2.0), Vector3(0.18, h * 0.5, 0))
+		cp.position = Vector3(cos(ang) * 1.3, -h, sin(ang) * 1.3)
+		create_tween().tween_property(cp, "position:y", 0.0, 0.9).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT).set_delay(k * 0.05)
+		cols.append(cp)
+	create_tween().tween_property(env, "background_color", Color("1a1518"), 1.4)
+	Audio.play_sfx("ability", 0.5)
+	await _wait(1.5)
+	for cp in cols:
+		create_tween().tween_property(cp, "position", cp.position * 0.5, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	create_tween().tween_property(viewer.current, "scale", Vector3.ONE * 0.5, 0.6)
+	Audio.play_sfx("stomp", 0.8)
+	await _wait(0.8)
+	# The columns split into plates and drift outward: the new form is inside.
+	_title.text = "The glass splits and lets go…"
+	var reveal := _reveal_new(b, 0.8)
+	for i in cols.size():
+		var cp: Node3D = cols[i]
+		var ang2 := i * TAU / 9.0
+		var t := create_tween().set_parallel(true)
+		t.tween_property(cp, "position", Vector3(cos(ang2) * 3.4, 1.0 + (i % 3) * 0.5, sin(ang2) * 3.4), 1.3).set_trans(Tween.TRANS_QUAD)
+		t.tween_property(cp, "rotation:z", deg_to_rad(40.0 + i * 12.0), 1.3)
+		t.tween_property(cp, "scale", Vector3(1.0, 0.25, 1.0), 1.3)
+	var shards := _spiral(Color("cdbcff"))
+	shards.orbit_velocity_min = 0.2
+	shards.orbit_velocity_max = 0.5
+	_fx.append(shards)
+	reveal.scale = Vector3.ONE * 0.75
+	create_tween().tween_property(reveal, "scale", Vector3.ONE, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	create_tween().tween_property(env, "background_color", Color("2b2638"), 1.4)
+	Audio.play_sfx("restore", 0.6)
 	await _wait(1.4)
 
 # ---------------------------------------------------------------- CELESTIAL (star families)

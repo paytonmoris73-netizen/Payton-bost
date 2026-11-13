@@ -7,14 +7,15 @@ script = ExtResource("1_s")
 id = "heavy_lift"
 display_name = "Heavy Lift"
 slot = "passive"
-category = "exploration"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+category = "support"
+description = "+1 stone, +1 crystal and +1 emberstone from every deposit while Obsidra walks with you."
+effect = "passive_yield"
 params = {
-
+"items": ["stone", "crystal", "emberstone"],
+"bonus": 1
 }
-cooldown = 10
+cooldown = 0
 unlock_friendship = 0
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "rune_pulse"
+color = Color(0.804, 0.737, 1.0, 1)

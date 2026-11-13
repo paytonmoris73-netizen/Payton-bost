@@ -7,14 +7,18 @@ script = ExtResource("1_s")
 id = "ancient_shield"
 display_name = "Ancient Shield"
 slot = "secondary"
-category = "movement"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+category = "support"
+description = "Obsidra's floating plates settle into a dome for 50 seconds. Inside it (8 m), shy Mythlings stay calm and every interaction earns double friendship."
+effect = "shelter"
 params = {
-
+"radius": 8.0,
+"duration": 50.0,
+"friendship_mult": 2.0,
+"label": "Ancient Shield",
+"style": "stone"
 }
-cooldown = 10
-unlock_friendship = 0
+cooldown = 60
+unlock_friendship = 2
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "rune_pulse"
+color = Color(0.624, 0.659, 0.91, 1)

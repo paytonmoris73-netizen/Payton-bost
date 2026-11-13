@@ -9,7 +9,7 @@ static func has_model(id: String) -> bool:
 	var c: CreatureData = DB.creature(id) if Engine.get_main_loop() else null
 	if c and c.model_scene:
 		return true
-	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "thalassor", "mossmantle", "cindermaw"]
+	return id in ["mossbun", "cloverling", "pebblit", "sunfox", "dewdrop", "bloomtail", "verdantus", "mosswarden", "glimmerhare", "ignaroth", "shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "astravyth", "cindercub", "magmole", "ashwing", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "thalassor", "mossmantle", "cindermaw", "basaltusk", "obsidra"]
 
 ## variant: cosmetic palette variant id ("" = default)
 static func build(id: String, variant := "", accessory := "") -> CreatureRig:
@@ -47,6 +47,8 @@ static func build(id: String, variant := "", accessory := "") -> CreatureRig:
 		"thalassor": rig = _thalassor(variant)
 		"mossmantle": rig = _mossmantle(variant)
 		"cindermaw": rig = _cindermaw(variant)
+		"basaltusk": rig = _basaltusk(variant)
+		"obsidra": rig = _obsidra(variant)
 		_:
 			rig = _unknown()
 	rig.name = "Rig_" + id
@@ -1660,6 +1662,171 @@ static func _thalassor(_variant: String) -> CreatureRig:
 	r.reg("head", head); r.reg("eyes", eyes); r.reg("tail", tail); r.reg("wings", wings); r.reg("sway", [crown])
 	r.reg("acc_head", K.pivot(head, Vector3(0, 1.4, 1.4))); r.reg("acc_neck", K.pivot(body, Vector3(0, 1.4, -4.5)))
 	r.reg("saddle", K.pivot(body, Vector3(0, 1.95, -2.2)))
+	return r
+
+# ===================================================================== BASALTUSK (Awakened Form of Magmole)
+static func _basaltusk(_variant: String) -> CreatureRig:
+	## Magmole grown into a heavy plough-ox of a digger. Its volcanic glass
+	## plates have grown into six-sided basalt columns along its back (real
+	## columnar jointing is the species' hook), its claws have fused into two
+	## forward-sweeping glass tusks, and magma light shows in the joints.
+	## No wings, no horns, no mane: a working ground animal.
+	var r := _rig("quad")
+	r.gait_speed = 0.65
+	r.bob_height = 0.05
+	var v := r.visual
+	var hide := Color("2f2a2c"); var hide_l := Color("4a423e"); var belly := Color("6b625c")
+	var basalt := Color("36302f"); var basalt_l := Color("514741"); var glass := Color("1e1a1e")
+	var magma := Color("ff6a1f"); var ember := Color("ff8a3a")
+	var torso := K.pivot(v, Vector3(0, 1.08, 0), "Torso")
+	K.add(torso, K.sphere(0.6, 20, 10), K.mat(hide, 0.95), Vector3(0, 0.1, -0.42), Vector3(6, 0, 0), Vector3(1.3, 1.0, 1.05))
+	K.add(torso, K.sphere(0.5, 18, 9), K.mat(hide, 0.95), Vector3(0, -0.02, 0.4), Vector3.ZERO, Vector3(1.05, 0.9, 1.1))
+	K.add(torso, K.sphere(0.42, 14, 7), K.mat(belly), Vector3(0, -0.3, 0.0), Vector3.ZERO, Vector3(1.0, 0.55, 1.9))
+	# Columnar shell: three ranks of hexagonal basalt columns, tallest over the shoulders.
+	for i in 8:
+		var z := -0.95 + i * 0.26
+		var span := 1.0 - clampf(absf(z + 0.3) - 0.3, 0.0, 1.0) * 0.55  # narrows toward the hips
+		var tall := (0.34 - absf(z + 0.45) * 0.1) * span
+		var top := 0.5 - clampf(z + 0.5, 0.0, 1.4) * 0.17
+		for sx in [-1, 0, 1]:
+			var h: float = maxf(tall * (1.0 if sx == 0 else 0.66), 0.14)
+			K.add(torso, K.cyl(0.12, 0.14, h, 6), K.flat(basalt if (i + sx) % 2 == 0 else basalt_l), Vector3(0.19 * sx * span, top + h * 0.38, z), Vector3(-6, 30 * sx, 6 * sx))
+		K.add(torso, K.box(Vector3(0.42 * span, 0.02, 0.04)), K.glow(magma, 1.8), Vector3(0, top - 0.01, z + 0.12))
+	# Flank plates with molten joints.
+	for sx in [-1, 1]:
+		for k in 4:
+			K.add(torso, K.cyl(0.1, 0.12, 0.16, 6), K.flat(basalt_l), Vector3(0.52 * sx, 0.05 - k * 0.12, -0.7 + k * 0.42), Vector3(0, 0, 70 * sx))
+			K.add(torso, K.box(Vector3(0.03, 0.02, 0.16)), K.glow(magma, 1.5), Vector3(0.48 * sx, 0.12 - k * 0.12, -0.7 + k * 0.42))
+	# Low head with a shovel jaw and two long tusks of cooled volcanic glass.
+	var head := K.pivot(v, Vector3(0, 1.06, -1.2), "Head")
+	K.add(head, K.sphere(0.34, 16, 8), K.mat(hide, 0.95), Vector3(0, 0.04, 0.02), Vector3.ZERO, Vector3(1.1, 0.8, 1.05))
+	K.add(head, K.box(Vector3(0.46, 0.13, 0.32)), K.flat(basalt), Vector3(0, -0.14, -0.26), Vector3(-6, 0, 0))
+	K.add(head, K.box(Vector3(0.38, 0.022, 0.26)), K.glow(magma, 1.6), Vector3(0, -0.065, -0.3))
+	K.add(head, K.sphere(0.24, 14, 7), K.mat(hide_l), Vector3(0, 0.05, -0.3), Vector3(-8, 0, 0), Vector3(1.0, 0.55, 1.0))
+	K.add(head, K.sphere(0.06, 8, 4), K.mat(Color("d88a7a"), 0.4), Vector3(0, 0.06, -0.49), Vector3.ZERO, Vector3(1.4, 0.7, 0.6))
+	for sx in [-1, 1]:
+		var tusk := MeshInstance3D.new()
+		tusk.mesh = K.tube(K.bezier(Vector3(0.23 * sx, -0.08, -0.26), Vector3(0.29 * sx, -0.14, -0.56), Vector3(0.18 * sx, 0.14, -0.74), 9), K.taper(9, 0.09, 0.028), 6)
+		tusk.material_override = K.mat(glass, 0.25, magma, 0.12, 0.35)
+		head.add_child(tusk)
+		K.add(head, K.cyl(0.085, 0.1, 0.07, 6), K.flat(basalt_l), Vector3(0.24 * sx, -0.08, -0.27), Vector3(80, 0, 0))
+	var eyes := []
+	for sx in [-1, 1]:
+		eyes.append(K.eye(head, Vector3(0.21 * sx, 0.14, -0.22), 0.045, Color("2a1008"), Vector3(0.5 * sx, 0, -1), ember))
+		K.add(head, K.torus(0.05, 0.075, 12), K.mat(glass, 0.2, Color.BLACK, 1.0, 0.4), Vector3(0.21 * sx, 0.14, -0.23), Vector3(80, 0, 0))
+	var ears := []
+	for sx in [-1, 1]:
+		var ep := K.pivot(head, Vector3(0.24 * sx, 0.28, 0.1), "Ear")
+		K.add(ep, K.cyl(0.05, 0.07, 0.14, 6), K.flat(basalt), Vector3(0, 0.05, 0), Vector3(0, 0, -22 * sx))
+		ears.append(ep)
+	# Four short, heavy legs: hexagonal column forearms, broad blunt digging claws.
+	var legs := []
+	for p in [Vector3(-0.44, 0.9, -0.62), Vector3(0.44, 0.9, -0.62), Vector3(-0.42, 0.88, 0.54), Vector3(0.42, 0.88, 0.54)]:
+		var lp := K.pivot(v, p, "Leg")
+		K.add(lp, K.capsule(0.2, 0.62), K.mat(hide), Vector3(0, -0.28, 0))
+		K.add(lp, K.cyl(0.21, 0.24, 0.42, 6), K.flat(basalt), Vector3(0, -0.5, -0.02), Vector3(0, 30, 0))
+		K.add(lp, K.torus(0.2, 0.235, 12), K.glow(magma, 1.3), Vector3(0, -0.29, 0), Vector3(0, 0, 0), Vector3(1, 0.3, 1))
+		K.add(lp, K.sphere(0.19, 10, 5), K.mat(hide_l), Vector3(0, -0.76, -0.05), Vector3.ZERO, Vector3(1.15, 0.5, 1.3))
+		for k in 3:
+			K.add(lp, K.cyl(0.0, 0.055, 0.17, 6), K.mat(glass, 0.25), Vector3(-0.09 + k * 0.09, -0.79, -0.22), Vector3(-82, 0, 0))
+		legs.append(lp)
+	# Short heavy tail ending in a cluster of small columns.
+	var tail := K.pivot(v, Vector3(0, 1.0, 0.88), "Tail", Vector3(-18, 0, 0))
+	K.add(tail, K.capsule(0.13, 0.42), K.mat(hide), Vector3(0, 0, 0.18), Vector3(80, 0, 0))
+	for k in 4:
+		K.add(tail, K.cyl(0.07, 0.08, 0.16, 6), K.flat(basalt if k % 2 else basalt_l), Vector3(cos(k * 1.6) * 0.07, sin(k * 1.6) * 0.07, 0.42), Vector3(70 + k * 6, 0, 0))
+	var dust := FX.motes(Color(0.45, 0.4, 0.38), 8, Vector3(0.6, 0.08, 0.6), 0.05)
+	dust.position = Vector3(0, 0.12, 0.2)
+	v.add_child(dust)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("ear_l", ears[0]); r.reg("ear_r", ears[1]); r.reg("legs", legs); r.reg("tail", tail)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 0.34, 0))); r.reg("acc_neck", K.pivot(v, Vector3(0, 1.2, -0.85)))
+	r.reg("saddle", K.pivot(v, Vector3(0, 1.72, -0.1)))
+	return r
+
+# ===================================================================== OBSIDRA (Colossal, Ascended Form of Magmole)
+static func _obsidra(_variant: String) -> CreatureRig:
+	var r := _rig("quad")
+	r.is_colossal = true
+	r.gait_speed = 0.35
+	r.bob_height = 0.12
+	r.orbit_speed = 0.3
+	var v := r.visual
+	var glass := Color("17141c"); var facet := Color("2a2434"); var facet_l := Color("3d3550")
+	var seam := Color("cdbcff"); var pale := Color("9fa8e8")
+	var torso := K.pivot(v, Vector3(0, 4.6, 0), "Torso")
+	# Core: a squared block body, deepest at the shoulders.
+	K.add(torso, K.box(Vector3(3.4, 3.0, 3.4)), K.flat(glass, 0.35), Vector3(0, 0.1, -1.4))
+	K.add(torso, K.box(Vector3(3.0, 2.6, 3.0)), K.flat(glass, 0.35), Vector3(0, -0.15, 1.5))
+	K.add(torso, K.box(Vector3(2.6, 2.2, 1.6)), K.flat(facet, 0.3), Vector3(0, -0.1, 0.2))
+	K.add(torso, K.box(Vector3(3.6, 0.55, 2.6)), K.flat(facet_l, 0.3), Vector3(0, 1.6, -1.3))
+	# Geometric seams: stepped side lines and a chest sigil of three bars.
+	for sx in [-1, 1]:
+		for k in 4:
+			K.add(torso, K.box(Vector3(0.07, 0.12, 2.2 - k * 0.35)), K.glow(seam, 2.0), Vector3(1.73 * sx, 1.0 - k * 0.6, -2.2 + k * 1.0))
+	for k in 3:
+		K.add(torso, K.box(Vector3(1.5 - k * 0.45, 0.14, 0.1)), K.glow(seam, 2.2), Vector3(0, 0.7 - k * 0.5, -3.12))
+	K.add(torso, K.box(Vector3(2.8, 0.1, 2.8)), K.glow(pale, 1.3), Vector3(0, -1.42, -0.4))
+	var core := OmniLight3D.new()
+	core.light_color = seam
+	core.omni_range = 13.0
+	core.light_energy = 1.0
+	core.position = Vector3(0, 0, -1.0)
+	torso.add_child(core)
+	# Floating armour: plates held clear of the body, turning slowly around it.
+	var orbit := K.pivot(torso, Vector3(0, 0.2, -0.5), "Orbit")
+	for k in 8:
+		var ang := k * TAU / 8.0
+		# An ellipse that follows the body, so each plate floats a hand's width clear of it.
+		var pos := Vector3(cos(ang) * (2.05 + float(k % 3) * 0.12), 0.35 - float(k % 4) * 0.55, sin(ang) * (2.7 + float(k % 3) * 0.15))
+		var pl := K.pivot(orbit, pos, "Plate", Vector3(0, rad_to_deg(atan2(pos.x, pos.z)), 14 - float(k % 3) * 11))
+		K.add(pl, K.box(Vector3(0.24, 1.3 - float(k % 3) * 0.22, 1.2)), K.flat(facet, 0.3))
+		K.add(pl, K.box(Vector3(0.06, 0.95 - float(k % 3) * 0.18, 0.15)), K.glow(seam, 2.0), Vector3(-0.16, 0, 0))
+	# Fixed shoulder and hip plates, also floating clear of the body.
+	for sx in [-1, 1]:
+		K.add(torso, K.box(Vector3(0.32, 1.5, 2.2)), K.flat(facet_l, 0.3), Vector3(2.05 * sx, 0.35, -1.4), Vector3(0, 0, 6 * sx))
+		K.add(torso, K.box(Vector3(0.09, 1.1, 1.7)), K.glow(pale, 1.5), Vector3(1.85 * sx, 0.35, -1.4), Vector3(0, 0, 6 * sx))
+		K.add(torso, K.box(Vector3(0.3, 1.3, 1.9)), K.flat(facet_l, 0.3), Vector3(1.9 * sx, -0.05, 1.5), Vector3(0, 0, -5 * sx))
+	# Four squared pillar legs: short and heavy under a very wide body.
+	var legs := []
+	for p in [Vector3(-1.3, 4.1, -2.0), Vector3(1.3, 4.1, -2.0), Vector3(-1.35, 4.1, 1.9), Vector3(1.35, 4.1, 1.9)]:
+		var lp := K.pivot(v, p, "Leg")
+		K.add(lp, K.box(Vector3(1.25, 1.7, 1.25)), K.flat(glass, 0.35), Vector3(0, -0.85, 0))
+		K.add(lp, K.box(Vector3(1.5, 0.4, 1.5)), K.flat(facet_l, 0.3), Vector3(0, -1.85, 0))
+		K.add(lp, K.box(Vector3(1.1, 1.4, 1.1)), K.flat(facet, 0.3), Vector3(0, -2.7, 0))
+		K.add(lp, K.box(Vector3(1.5, 0.45, 1.8)), K.flat(glass, 0.35), Vector3(0, -3.55, -0.2))
+		K.add(lp, K.box(Vector3(1.3, 0.12, 0.12)), K.glow(seam, 2.0), Vector3(0, -1.85, -0.78))
+		for k in 3:
+			K.add(lp, K.box(Vector3(0.28, 0.2, 0.5)), K.flat(facet_l, 0.3), Vector3(-0.45 + k * 0.45, -3.74, -1.0))
+		legs.append(lp)
+	# Neck of three shrinking blocks and a blunt wedge head. No horns, no crown.
+	for k in 3:
+		K.add(v, K.box(Vector3(1.9 - k * 0.22, 1.5 - k * 0.14, 1.3)), K.flat(glass, 0.35), Vector3(0, 5.3 + k * 0.42, -3.0 - k * 0.85), Vector3(-12, 0, 0))
+		K.add(v, K.box(Vector3(1.5 - k * 0.2, 0.1, 0.12)), K.glow(seam, 1.8), Vector3(0, 5.9 + k * 0.42, -3.55 - k * 0.85))
+	var head := K.pivot(v, Vector3(0, 6.3, -5.2), "Head")
+	K.add(head, K.box(Vector3(2.0, 1.6, 2.6)), K.flat(glass, 0.35), Vector3(0, 0, -0.4), Vector3(-6, 0, 0))
+	K.add(head, K.box(Vector3(1.5, 0.7, 1.6)), K.flat(facet, 0.3), Vector3(0, -0.6, -1.5), Vector3(-4, 0, 0))
+	K.add(head, K.box(Vector3(1.3, 0.1, 1.3)), K.glow(seam, 2.0), Vector3(0, -0.24, -1.55))
+	K.add(head, K.box(Vector3(2.1, 0.34, 1.2)), K.flat(facet_l, 0.3), Vector3(0, 0.84, -0.7), Vector3(-8, 0, 0))
+	var eyes := []
+	for sx in [-1, 1]:
+		eyes.append(K.eye(head, Vector3(0.65 * sx, 0.22, -1.38), 0.2, Color("1a1430"), Vector3(0.25 * sx, 0, -1), seam))
+		K.add(head, K.box(Vector3(0.58, 0.12, 0.6)), K.flat(facet_l, 0.3), Vector3(0.65 * sx, 0.56, -1.35))
+	# A cheek plate each side, floating clear of the jaw.
+	for sx in [-1, 1]:
+		K.add(head, K.box(Vector3(0.22, 0.9, 1.3)), K.flat(facet, 0.3), Vector3(1.3 * sx, -0.15, -0.8), Vector3(0, 0, 13 * sx))
+		K.add(head, K.box(Vector3(0.06, 0.6, 0.9)), K.glow(pale, 1.5), Vector3(1.13 * sx, -0.15, -0.8), Vector3(0, 0, 13 * sx))
+	# Short counterweight tail of shrinking blocks: no club, no spade.
+	var tail := K.pivot(v, Vector3(0, 4.7, 3.0), "Tail", Vector3(-8, 0, 0))
+	for k in 4:
+		K.add(tail, K.box(Vector3(1.1 - k * 0.2, 1.0 - k * 0.18, 0.85)), K.flat(glass if k % 2 else facet, 0.35), Vector3(0, -k * 0.22, 0.55 + k * 0.86))
+		K.add(tail, K.box(Vector3(0.7 - k * 0.14, 0.08, 0.1)), K.glow(seam, 1.6), Vector3(0, 0.4 - k * 0.26, 0.55 + k * 0.86))
+	var motes := FX.motes(seam, 20, Vector3(3.5, 2.5, 4.5), 0.06)
+	motes.position = Vector3(0, 4.4, 0)
+	motes.gravity = Vector3(0, 0.25, 0)
+	v.add_child(motes)
+	r.reg("head", head); r.reg("eyes", eyes); r.reg("legs", legs); r.reg("tail", tail); r.reg("orbit", orbit)
+	r.reg("acc_head", K.pivot(head, Vector3(0, 1.0, -0.6))); r.reg("acc_neck", K.pivot(v, Vector3(0, 5.9, -3.4)))
+	r.reg("saddle", K.pivot(torso, Vector3(0, 2.0, -1.0)))
 	return r
 
 # ===================================================================== fallback

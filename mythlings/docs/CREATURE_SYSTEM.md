@@ -77,10 +77,21 @@ Ignaroth stays an optional Grand Market purchase, but it is now **earnable for f
 already bought it, your Cindermaw joins it instead of creating a second Ignaroth (the Awakening screen says so).
 Cindercub stays useful: it is the only form that fits the narrow warm-stone steps.
 
+### Magmole family (complete, tested in the Emberfall section)
+| Path | Form | Requirements | Gameplay |
+|---|---|---|---|
+| Guardian Path (natural) | **Basaltusk** (Awakened, Large, rideable) | Friendship 3 · "The Door Under the Ash" · visit the Ashen Caverns and the Obsidian Deep · 8 Stone, 3 Emberstone | Tremor Sense (rock/seals/treasure 35 m), **Basalt Path** (cools lava for 30 s + breaks rock in 20 m), **Tusk Break** (breaks rock in 24 m + gathers 3 deposits), **Columnar Rise** (35 s causeway, rock in 40 m, emberstone/crystal highlighted to 80 m) |
+| Guardian Path → Colossal | **Obsidra** (Colossal, rideable on the ground) | Friendship 5 · "Letters in the Glass" · visit the Obsidian Deep, Cinder Lake and Dragonstone Ridge · read **both Glass Records** · 8 Emberstone, 4 Crystal | Heavy Lift (+1 stone/crystal/emberstone), **Stone Passage** (40 s causeway + rock in 45 m), **Ancient Shield** (glass dome, 8 m, double friendship for 50 s), **Obsidian Orbit** (everything in 55 m, resources highlighted to 80 m) |
+
+Obsidra is **earned only** — it is not sold in the Grand Market in any currency, and the Market entry says so.
+It walks rather than flies, so it is a ground counterweight to Ignaroth rather than a second sky mount.
+Magmole stays useful: it is the only form small enough for the cave tunnels, and its Burrow Break is what opens
+the Obsidian Deep in the first place.
+
 ### Other meadow families (previous pass, classic sequence for now)
 - Cloverling → Shamrelle / Thistlepin, Pebblit → Cairnback / Geodrift, Sunfox → Dawnstrider / Lanternwhisk,
   Dewdrop → Cloudwell / Drizzlefin, Bloomtail → Blossomere / Thornmane. Each has its own requirements and kit.
-- The remaining families from the AWAKENINGS brief (Cloverling → Petalcrest → Bloomtail, Magmole → Basaltusk → Obsidra, and the Tideglass/Frostroot/Sunpetal/Starfall families) are planned in
+- The remaining families from the AWAKENINGS brief (Cloverling → Petalcrest → Bloomtail and the Tideglass/Frostroot/Sunpetal/Starfall families) are planned in
   `docs/TODO.md` and will reuse this exact architecture.
 
 ## Premium creatures
@@ -89,7 +100,7 @@ Cindercub stays useful: it is the only form that fits the narrow warm-stone step
 - **Thalassor** is sold the same way and rides only in deep water (rivers, the plunge pool, Cinder Lake); it refuses to beach and
   can only be summoned near water. Also planned as a free Tideglass Coast encounter.
 - **Astravyth** is sold the same way (exactly 1500 Star Gems) and is also planned as a free encounter in the Starfall Isles update.
-- Vyrmora, Obsidra, Lumoriel, Carapex, Skyhollow, Quartzephyr, Gearwyrm, Burrowmaw, Driftmoth and Coralith are **concepts only**:
+- Vyrmora, Lumoriel, Carapex, Skyhollow, Quartzephyr, Gearwyrm, Burrowmaw, Driftmoth and Coralith are **concepts only**:
   data entries listed in the Market as "In development — not purchasable". Thalassor, Frostmaw, Thornvine Titan and Astravyth are
   earnable region guardians whose models are not built yet. (Astravyth is now built.)
 

@@ -68,7 +68,6 @@ LOCKED = {
  "thornvine_titan": [("rootcall", "Rootcall"), ("vine_lift", "Vine Lift"), ("jungle_sense", "Jungle Sense"), ("verdant_colossus", "Verdant Colossus")],
  "astravyth": [("starveil", "Starveil"), ("sky_passage", "Sky Passage"), ("astral_vision", "Astral Vision"), ("cosmic_bloom", "Cosmic Bloom")],
  "vyrmora": [("storm_glide", "Storm Glide"), ("wind_lift_vy", "Wind Lift"), ("thunder_beacon", "Thunder Beacon"), ("tempest_rise", "Tempest Rise")],
- "obsidra": [("heavy_lift", "Heavy Lift"), ("stone_passage", "Stone Passage"), ("ancient_shield", "Ancient Shield"), ("obsidian_orbit", "Obsidian Orbit")],
  "lumoriel": [("dream_passage", "Dream Passage"), ("light_discovery", "Light Discovery"), ("gentle_flight", "Gentle Flight"), ("luminous_awakening", "Luminous Awakening")],
 }
 for cid, lst in LOCKED.items():
@@ -132,7 +131,6 @@ EXTRA["ignaroth"].update({"rideable": True, "model_ready": True, "flight": True,
 
 PREMIUM = [
  ("vyrmora", "Vyrmora", "frostroot", "Storm Peaks", ["storm"], "mythic", "proud", "The Storm-Winged Titan: a long serpentine body carried by three pairs of layered wings, with electric-blue markings that crackle before a storm.", "fly"),
- ("obsidra", "Obsidra", "starfall", "Void Plateau", ["earth", "celestial"], "mythic", "mysterious", "The Void Armor Guardian: a squared four-legged colossus whose armour plates float a hand's width off its body, orbiting slowly around glowing geometric seams.", "quad"),
  ("lumoriel", "Lumoriel", "sunpetal", "Dreamlight Canopy", ["celestial", "nature"], "legendary", "gentle", "The Dreamlight Creature: a drifting organism of layered translucent veils and hanging light-ribbons, like a lantern made of jellyfish petals.", "float"),
  ("carapex", "Carapex", "sunpetal", "Beetle Barrows", ["earth", "nature"], "legendary", "protective", "A giant six-legged shell-bearer whose domed back carries a small living garden and a waterfall that drains through its shell.", "quad"),
  ("skyhollow", "Skyhollow", "emberfall", "Ash Cliffs", ["storm", "fire"], "legendary", "energetic", "An enormous furred glider with membrane wings between four limbs, ember-tipped fur and owl-bright eyes.", "fly"),
@@ -409,3 +407,53 @@ EXTRA["cindercub"].update({"stage": 1, "awakening_style": "ember",
 EXTRA["ignaroth"].update({"family": "cindercub", "stage": 3, "evolves_from": "cindermaw", "acquisition": PSA(["purchase", "evolve"]), "awakening_style": "ember",
     "form_role": "Colossal and flying: carries you through the sky. Too big for village streets and caves.",
     "discovery_hint": "Earn it by awakening Cindercub through Cindermaw, or get it directly in the Grand Market. Never required for the story."})
+
+# =====================================================================
+# AWAKENINGS — Magmole family: Magmole -> Basaltusk -> Obsidra.
+# Earned entirely through play: Obsidra is never purchasable.
+# Its "stone" cinematic style and its floating-plate silhouette are
+# deliberately unlike Ignaroth (no wings, no horn crown, no tail club).
+# =====================================================================
+A("tremor_sense", "Tremor Sense", "passive", "exploration", "Basaltusk reads the ground through its feet: the HUD points toward weakened boulders, heated seals and buried treasure within 35 m.", "passive_sense", {"kinds": ["cracked_rock", "forge_seal", "hidden_treasure"], "radius": 35.0}, 0, 0, "rune_pulse", "ff6a1f")
+A("basalt_path", "Basalt Path", "primary", "environmental", "Basaltusk kneels and breathes on the lava: it hardens into a basalt causeway for 30 seconds, and weakened rock within 20 m cracks open.", "combo", combo(("crust", {"duration": 30.0}), ("reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 20.0})), 20, 0, "rune_pulse", "ff6a1f")
+A("tusk_break", "Tusk Break", "secondary", "support", "A sweep of its glass tusks: boulders and seals within 24 m break, and up to three nearby stone or emberstone deposits are gathered.", "combo", combo(("reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 24.0}), ("harvest", {"items": ["stone", "emberstone"], "radius": 14.0, "max": 3})), 45, 2, "rune_pulse", "c8783a")
+A("columnar_rise", "Columnar Rise", "signature", "signature", "Basaltusk stamps and hexagonal columns push up out of the ground: lava ahead cools for 35 seconds, rock within 40 m breaks, and emberstone and crystal within 80 m are highlighted.", "combo", combo(("crust", {"duration": 35.0}), ("reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 40.0}), ("highlight", {"items": ["emberstone", "crystal"], "radius": 80.0, "duration": 30.0})), 90, 4, "rune_pulse", "ff8a3a")
+
+# Obsidra's four abilities replace the region-locked placeholders of the same ids.
+A("heavy_lift", "Heavy Lift", "passive", "support", "+1 stone, +1 crystal and +1 emberstone from every deposit while Obsidra walks with you.", "passive_yield", {"items": ["stone", "crystal", "emberstone"], "bonus": 1}, 0, 0, "rune_pulse", "cdbcff")
+A("stone_passage", "Stone Passage", "primary", "environmental", "Obsidra simply goes through: lava ahead sets into glass for 40 seconds and every weakened boulder and heated seal within 45 m gives way.", "combo", combo(("crust", {"duration": 40.0}), ("reveal", {"kinds": ["cracked_rock", "forge_seal"], "radius": 45.0})), 14, 0, "rune_pulse", "cdbcff")
+A("ancient_shield", "Ancient Shield", "secondary", "support", "Obsidra's floating plates settle into a dome for 50 seconds. Inside it (8 m), shy Mythlings stay calm and every interaction earns double friendship.", "shelter", {"radius": 8.0, "duration": 50.0, "friendship_mult": 2.0, "label": "Ancient Shield", "style": "stone"}, 60, 2, "rune_pulse", "9fa8e8")
+A("obsidian_orbit", "Obsidian Orbit", "signature", "signature", "The plates spin wide and the seams blaze: lava sets for 40 seconds, rock, seals, volcanic mechanisms and hidden treasure within 55 m open, and every resource within 80 m is highlighted.", "combo", combo(("crust", {"duration": 40.0}), ("reveal", {"kinds": ["cracked_rock", "forge_seal", "volcanic_structure", "hidden_treasure"], "radius": 55.0}), ("highlight", {"radius": 80.0, "duration": 35.0})), 120, 4, "star_field", "cdbcff")
+
+# Magmole's own senses now also find the glass wall that hides the Obsidian Deep.
+A("heat_sense", "Heat Sense", "passive", "exploration", "Magmole feels hot seams in the rock: the HUD points to weakened boulders, glass walls and seals within 25 m.", "passive_sense", {"kinds": ["cracked_rock", "forge_seal"], "radius": 25.0}, 0, 0, "rune_pulse", "ff6a1f")
+
+NEW_CREATURES.append(("basaltusk", "Basaltusk", "emberfall", "The Obsidian Deep", ["fire", "earth"], "epic", "calm",
+  "Magmole's Awakened Form: a heavy, broad-shouldered digger about the size of a plough-ox. Six-sided basalt columns have grown into a ridged shell down its back, two long tusks of cooled volcanic glass sweep forward past its shovel jaw, and magma light shows in the joints whenever it moves.",
+  "Calm and deliberate. Basaltusk tests the ground before every step, leans its shoulder against anything in the way, and hums low in its chest while it digs.",
+  "", "", "", "honey_drop", ["2f2a2c", "ff6a1f", "6b625c"], "quad", 2.4, 1.9, 0.7, "Awaken Magmole: see its Awakening requirements.", True))
+NEW_CREATURES.append(("obsidra", "Obsidra", "emberfall", "The Obsidian Deep", ["earth", "celestial"], "mythic", "mysterious",
+  "Magmole's Ascended Form: a squared four-legged colossus of black volcanic glass. Its armour plates float a hand's width clear of its body and turn slowly around it, and the gaps between them glow with pale geometric seams. No wings, no horns, no tail club — it moves like a mountain that has decided to walk.",
+  "Quiet and unhurried. Obsidra answers slowly, lowers its head for those it trusts, and leaves a faint ring of cooled glass wherever it has stood.",
+  "", "", "", "honey_drop", ["17141c", "2a2434", "cdbcff"], "quad", 2.2, 7.6, 0.4,
+  "Awaken Magmole through Basaltusk in the Obsidian Deep. Free — never purchasable.", True, True))
+
+GLASS_RECORDS = ["glass_record_1", "glass_record_2"]
+EXTRA["magmole"].update({"stage": 1, "awakening_style": "stone",
+    "form_role": "Small and nimble: the only form that fits through the Magmole tunnels into the Obsidian Deep, and the fastest at cooling a single path across lava.",
+    "evolutions": TypedDictArray([{**evo("basaltusk", "natural", {"friendship": 3, "quest": "c_magmole_deep", "visited": ["ashen_caverns", "obsidian_deep"], "items": {"stone": 8, "emberstone": 3}},
+        "Once Magmole has hollowed a basalt column in the Obsidian Deep, its glass plates thicken into columns and its claws harden into tusks."), "branch": "Guardian Path"}])})
+EXTRA["basaltusk"] = {"abilities": PSA(["tremor_sense", "basalt_path", "tusk_break", "columnar_rise"]), "size_class": "large", "rideable": True,
+    "family": "magmole", "stage": 2, "evolves_from": "magmole", "acquisition": PSA(["evolve"]), "awakening_style": "stone",
+    "form_role": "Large and strong: can be ridden, lays a basalt causeway across lava and breaks rock at a distance. Best for crossing Emberfall.",
+    "lore": "A Basaltusk will spend a whole night pushing one column straight again. Emberfall's oldest roads are the ones they liked.",
+    "evolutions": TypedDictArray([{**evo("obsidra", "ascended", {"friendship": 5, "quest": "e_glass_history", "visited": ["obsidian_deep", "cinder_lake", "dragonstone_ridge"], "lore": GLASS_RECORDS, "items": {"emberstone": 8, "crystal": 4}},
+        "With both glass records read and the deep mapped end to end, a Basaltusk of complete trust lets its armour float free and rises into the glass guardian."), "branch": "Guardian Path"}]),
+    "originality_notes": "Broad digging quadruped with hexagonal basalt columns on its back and forward-sweeping glass tusks; blunt shovel jaw, no mane, no wings. Columnar basalt is a real geological form used as the species' hook. Boar/ox-like diggers are a generic archetype — check the silhouette and tusk shape against franchise ground creatures before release."}
+EXTRA["obsidra"] = {"abilities": PSA(["heavy_lift", "stone_passage", "ancient_shield", "obsidian_orbit"]), "size_class": "colossal", "rideable": True, "flight": False,
+    "model_ready": True, "family": "magmole", "stage": 3, "evolves_from": "basaltusk", "acquisition": PSA(["evolve"]), "awakening_style": "stone",
+    "locomotion": "quad", "elements": PSA(["earth", "celestial"]), "rarity": "mythic",
+    "form_role": "Colossal: rideable on the ground, walks over lava with Stone Passage and shelters a whole clearing. Too big for the cave tunnels and the village streets.",
+    "lore": "The Obsidian Deep is one long gallery of standing glass. The oldest columns are the ones Obsidra has already been.",
+    "discovery_hint": "Earn it by awakening Magmole through Basaltusk in the Obsidian Deep. Free, and never sold.",
+    "originality_notes": "Squared, blocky glass quadruped whose armour plates hover detached and rotate around the body, lit by pale violet seams. Deliberately built against Ignaroth: no wings, no horn crown, no tail club, no magma orange, angular instead of organic. Floating-armour guardians exist in other media — needs professional review of the plate layout and seam pattern."}

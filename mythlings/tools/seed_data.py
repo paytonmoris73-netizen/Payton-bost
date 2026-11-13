@@ -259,6 +259,14 @@ Q("e_ridge","Stairs of Warmth","exploration","Cold stones lie along the path up 
   [("ability:warm_stone",5,"Raise the warm stones (Cindercub's Hearth Paw)")],{"xp":120,"crystals":10},["e_main_02"],order=63,region="emberfall")
 Q("e_crust","Crust Walker","creature","A Magmole can cool lava into stepping stones. Find one in the Ashen Caverns and try it.",
   [("discover:magmole",1,"Find the Magmole in the Ashen Caverns"),("use_ability:cooling_crust",1,"Use Cooling Crust on the lava")],{"xp":100,"gold":80},["e_main_01"],order=64,marker="magmole",region="emberfall")
+Q("c_magmole_deep","The Door Under the Ash","creature","Magmole keeps scratching at a wall of black glass south-west of the Ashen Caverns and looking back at you. There is something behind it.",
+  [("companion:magmole",1,"Bring Magmole along as your companion"),("ability:cracked_rock",1,"Break the glass wall south-west of the Ashen Caverns (Magmole's Burrow Break)"),("reach:obsidian_deep",1,"Enter the Obsidian Deep"),("lore:basalt_core",1,"Let Magmole hollow out a basalt column")],
+  {"xp":160,"gold":80,"crystals":10},["e_crust"],lvl=5,giver="Magmole",order=66,marker="obsidian_deep",region="emberfall",
+  start=["*Magmole will not leave this wall alone. The glass rings hollow where it scratches.*"])
+Q("e_glass_history","Letters in the Glass","exploration","Two slabs of written glass stand in the Obsidian Deep. Read both: this is the deep's own history, and the guardian's.",
+  [("lore:glass_record_1",1,"Read the First Glass Record (Obsidian Deep entry gallery)"),("lore:glass_record_2",1,"Read the Second Glass Record (deep gallery, past the standing columns)")],
+  {"xp":200,"crystals":15},["c_magmole_deep"],lvl=5,giver="Smith Brenna",order=67,marker="obsidian_deep",region="emberfall",
+  start=["Brenna taps her hammer on the bench. \"Glass that someone wrote on? That's older than the forge, Keeper. Read it to your digger. They remember what we forget.\""])
 Q("e_ashwing","On Smoky Wings","creature","Ashwings ride the updrafts on Dragonstone Ridge.",
   [("discover:ashwing",1,"Find the Ashwing on Dragonstone Ridge"),("use_ability:updraft",1,"Ride an Updraft")],{"xp":100,"gold":80},["e_main_01"],order=65,marker="ashwing",region="emberfall")
 
@@ -326,7 +334,7 @@ for cid in ["mosswarden", "glimmerhare"]:
     row = [r for r in NEW_CREATURES if r[0] == cid][0]
     P("creature_" + cid, row[1], "large" if cid == "mosswarden" else "creature", row[7], "none", 0, rarity=row[5], preview_kind="creature", preview_id=cid,
       earn_path="Free — earned by evolving Mossbun.", tags=["evolved"])
-for cid in ["shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane"]:
+for cid in ["shamrelle", "cairnback", "dawnstrider", "cloudwell", "blossomere", "thistlepin", "geodrift", "lanternwhisk", "drizzlefin", "thornmane", "basaltusk"]:
     row = [r for r in NEW_CREATURES if r[0] == cid][0]
     P("creature_" + cid, row[1], "large" if EXTRA[cid]["size_class"] == "large" else "creature", row[7], "none", 0, rarity=row[5], preview_kind="creature", preview_id=cid,
       earn_path="Free — earned by evolution.", tags=["evolved"])
@@ -336,6 +344,10 @@ P("colossal_thalassor", "Thalassor, the Abyssal Titan", "colossal", "A guarantee
 P("colossal_astravyth", "Astravyth, the Celestial Sovereign", "colossal", "A guaranteed, specific colossal companion: exactly this Astravyth, trusting enough to ride and fly. Optional, never required for the story, and also planned as a free encounter in the Starfall Isles update.", "star_gems", 1500,
   {"creature": "astravyth", "friendship": 45}, rarity="mythic", preview_kind="colossal", preview_id="astravyth", featured=True, tags=["colossal", "rideable", "flying"],
   includes=["Astravyth (rideable, flying)", "Abilities: Starlit Presence, Sky Passage, Starveil, Cosmic Bloom", "Journal entry and lore"])
+P("colossal_obsidra", "Obsidra, the Glass Guardian", "colossal", "Earned only through play: awaken a Magmole through Basaltusk in the Obsidian Deep. Obsidra is never sold, in any currency.", "none", 0,
+  {}, rarity="mythic", preview_kind="colossal", preview_id="obsidra", featured=True, tags=["colossal", "rideable", "evolved"],
+  earn_path="Free — earned by awakening Magmole through Basaltusk in Emberfall's Obsidian Deep.",
+  includes=["Obsidra (rideable on the ground)", "Abilities: Heavy Lift, Stone Passage, Ancient Shield, Obsidian Orbit", "Journal entry and lore"])
 P("colossal_ignaroth", "Ignaroth, the Volcanic Emperor", "colossal", "A guaranteed, specific colossal companion: you receive exactly this Ignaroth, already trusting enough to ride and fly. Optional and never required for the story: you can also earn Ignaroth for free by awakening a Cindercub through Cindermaw in Emberfall.", "star_gems", 1500,
   {"creature": "ignaroth", "friendship": 45}, rarity="mythic", preview_kind="colossal", preview_id="ignaroth", featured=True, tags=["colossal", "rideable", "flying"],
   includes=["Ignaroth (rideable, flying)", "Abilities: Magma Wake, Ember Flight, Volcanic Resonance, Infernal Crown", "Journal entry and lore"])

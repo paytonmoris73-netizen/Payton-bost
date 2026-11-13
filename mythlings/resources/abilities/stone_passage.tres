@@ -8,13 +8,24 @@ id = "stone_passage"
 display_name = "Stone Passage"
 slot = "primary"
 category = "environmental"
-description = "Designed for a future region update. Not usable in this build."
-effect = "region_locked"
+description = "Obsidra simply goes through: lava ahead sets into glass for 40 seconds and every weakened boulder and heated seal within 45 m gives way."
+effect = "combo"
 params = {
-
+"steps": [{
+"effect": "crust",
+"params": {
+"duration": 40.0
 }
-cooldown = 10
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 45.0
+}
+}]
+}
+cooldown = 14
 unlock_friendship = 0
 requires_evolved = false
-vfx = "burst"
-color = Color(0.714, 0.961, 0.784, 1)
+vfx = "rune_pulse"
+color = Color(0.804, 0.737, 1.0, 1)

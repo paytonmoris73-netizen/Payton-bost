@@ -896,18 +896,29 @@ func _build_heartwood() -> void:
 			return "" if GameState.flag("ab_grove_roots_3") else "Tangled roots hold this stone fast. A Mythling with Root Passage could pull them aside."
 
 ## Living Shelter: a temporary moss dome around `p`.
-func spawn_shelter(p: Vector3, radius: float, duration: float) -> void:
+func spawn_shelter(p: Vector3, radius: float, duration: float, style := "moss") -> void:
 	var root := Node3D.new()
 	add_child(root)
 	root.global_position = p
 	var m := MeshMerger.new()
-	for k in 10:
-		var a := k * TAU / 10.0
-		var base := Vector3(cos(a) * radius * 0.8, 0, sin(a) * radius * 0.8)
-		m.add(K.tube(K.bezier(base, base * 0.6 + Vector3(0, 3.4, 0), Vector3(0, 3.6, 0), 8), K.taper(8, 0.18, 0.08), 5), Transform3D.IDENTITY, Color("5a4030"))
-		m.put(K.petal(1.4, 0.7, 0.3), base * 0.55 + Vector3(0, 2.8, 0), Color("6aa648") if k % 2 else Color("86c45e"), Vector3(-50, rad_to_deg(-a) - 90.0, 0))
-	root.add_child(Props.node(m.commit(), "foliage"))
-	root.add_child(FX.motes(Color("c8ffb0"), 20, Vector3(radius, 2, radius), 0.05))
+	if style == "stone":
+		# Obsidra's Ancient Shield: its floating plates settle into a glass dome.
+		for k in 9:
+			var a2 := k * TAU / 9.0
+			var base2 := Vector3(cos(a2) * radius * 0.85, 0, sin(a2) * radius * 0.85)
+			m.put(K.box(Vector3(0.35, 3.6, 1.6)), base2 + Vector3(0, 1.8, 0), Color("2a2434") if k % 2 else Color("17141c"), Vector3(0, rad_to_deg(-a2), 14 - (k % 3) * 8))
+			m.put(K.box(Vector3(0.08, 2.6, 0.18)), base2 * 0.92 + Vector3(0, 1.9, 0), Color("cdbcff"), Vector3(0, rad_to_deg(-a2), 14 - (k % 3) * 8))
+			m.put(K.box(Vector3(1.4, 0.3, 1.4)), base2 * 0.5 + Vector3(0, 3.7, 0), Color("3d3550"), Vector3(0, rad_to_deg(-a2), 24))
+		root.add_child(Props.node(m.commit(), "solid"))
+		root.add_child(FX.motes(Color("cdbcff"), 20, Vector3(radius, 2, radius), 0.07))
+	else:
+		for k in 10:
+			var a := k * TAU / 10.0
+			var base := Vector3(cos(a) * radius * 0.8, 0, sin(a) * radius * 0.8)
+			m.add(K.tube(K.bezier(base, base * 0.6 + Vector3(0, 3.4, 0), Vector3(0, 3.6, 0), 8), K.taper(8, 0.18, 0.08), 5), Transform3D.IDENTITY, Color("5a4030"))
+			m.put(K.petal(1.4, 0.7, 0.3), base * 0.55 + Vector3(0, 2.8, 0), Color("6aa648") if k % 2 else Color("86c45e"), Vector3(-50, rad_to_deg(-a) - 90.0, 0))
+		root.add_child(Props.node(m.commit(), "foliage"))
+		root.add_child(FX.motes(Color("c8ffb0"), 20, Vector3(radius, 2, radius), 0.05))
 	root.scale = Vector3(1, 0.02, 1)
 	root.add_to_group("living_shelter")
 	var tw := root.create_tween()

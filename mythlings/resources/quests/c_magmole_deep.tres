@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/quest_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "c_magmole_deep"
+title = "The Door Under the Ash"
+category = "creature"
+region = "emberfall"
+description = "Magmole keeps scratching at a wall of black glass south-west of the Ashen Caverns and looking back at you. There is something behind it."
+objectives = Array[Dictionary]([{
+"event": "companion:magmole",
+"count": 1,
+"label": "Bring Magmole along as your companion"
+}, {
+"event": "ability:cracked_rock",
+"count": 1,
+"label": "Break the glass wall south-west of the Ashen Caverns (Magmole's Burrow Break)"
+}, {
+"event": "reach:obsidian_deep",
+"count": 1,
+"label": "Enter the Obsidian Deep"
+}, {
+"event": "lore:basalt_core",
+"count": 1,
+"label": "Let Magmole hollow out a basalt column"
+}])
+rewards = {
+"xp": 160,
+"gold": 80,
+"crystals": 10
+}
+prerequisites = PackedStringArray("e_crust")
+min_level = 5
+auto_start = true
+giver = "Magmole"
+start_dialogue = PackedStringArray("*Magmole will not leave this wall alone. The glass rings hollow where it scratches.*")
+end_dialogue = PackedStringArray()
+sort_order = 66
+map_marker = "obsidian_deep"

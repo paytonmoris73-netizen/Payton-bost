@@ -31,6 +31,7 @@ var _look_target := Vector2.ZERO
 var _look_timer := 0.0
 var lower_head := 0.0  # 0..1, used by colossal interactions
 var wing_spread := 0.0  # 0..1
+var orbit_speed := 1.8  # rad/s for a registered "orbit" pivot
 
 func _init() -> void:
 	visual = Node3D.new()
@@ -234,7 +235,7 @@ func _animate_extras(delta: float, move: float) -> void:
 			s.basis = r.basis * Basis.from_euler(Vector3(deg_to_rad(a), 0, deg_to_rad(a * 0.6)))
 	var spin = parts.get("orbit")
 	if spin is Node3D:
-		spin.rotate_y(delta * 1.8)
+		spin.rotate_y(delta * orbit_speed)
 
 func _blink(delta: float) -> void:
 	var eyes = parts.get("eyes")

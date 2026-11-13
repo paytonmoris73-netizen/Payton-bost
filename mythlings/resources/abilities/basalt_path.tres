@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "basalt_path"
+display_name = "Basalt Path"
+slot = "primary"
+category = "environmental"
+description = "Basaltusk kneels and breathes on the lava: it hardens into a basalt causeway for 30 seconds, and weakened rock within 20 m cracks open."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "crust",
+"params": {
+"duration": 30.0
+}
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 20.0
+}
+}]
+}
+cooldown = 20
+unlock_friendship = 0
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(1.0, 0.416, 0.122, 1)

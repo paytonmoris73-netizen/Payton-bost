@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_s"]
+
+[resource]
+script = ExtResource("1_s")
+id = "columnar_rise"
+display_name = "Columnar Rise"
+slot = "signature"
+category = "signature"
+description = "Basaltusk stamps and hexagonal columns push up out of the ground: lava ahead cools for 35 seconds, rock within 40 m breaks, and emberstone and crystal within 80 m are highlighted."
+effect = "combo"
+params = {
+"steps": [{
+"effect": "crust",
+"params": {
+"duration": 35.0
+}
+}, {
+"effect": "reveal",
+"params": {
+"kinds": ["cracked_rock", "forge_seal"],
+"radius": 40.0
+}
+}, {
+"effect": "highlight",
+"params": {
+"items": ["emberstone", "crystal"],
+"radius": 80.0,
+"duration": 30.0
+}
+}]
+}
+cooldown = 90
+unlock_friendship = 4
+requires_evolved = false
+vfx = "rune_pulse"
+color = Color(1.0, 0.541, 0.227, 1)

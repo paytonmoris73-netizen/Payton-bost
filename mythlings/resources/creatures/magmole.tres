@@ -37,3 +37,21 @@ abilities = PackedStringArray("heat_sense", "cooling_crust", "burrow_break", "ma
 family = "magmole"
 acquisition = PackedStringArray("explore")
 lore = "Magmoles carve the tunnels that keep Emberfall's lava flowing gently instead of all at once."
+stage = 1
+awakening_style = "stone"
+form_role = "Small and nimble: the only form that fits through the Magmole tunnels into the Obsidian Deep, and the fastest at cooling a single path across lava."
+evolutions = Array[Dictionary]([{
+"to": "basaltusk",
+"path": "natural",
+"requirements": {
+"friendship": 3,
+"quest": "c_magmole_deep",
+"visited": ["ashen_caverns", "obsidian_deep"],
+"items": {
+"stone": 8,
+"emberstone": 3
+}
+},
+"text": "Once Magmole has hollowed a basalt column in the Obsidian Deep, its glass plates thicken into columns and its claws harden into tusks.",
+"branch": "Guardian Path"
+}])

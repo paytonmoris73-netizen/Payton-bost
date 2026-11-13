@@ -6,35 +6,40 @@
 script = ExtResource("1_s")
 id = "obsidra"
 display_name = "Obsidra"
-region = "starfall"
-habitat = "Void Plateau"
+region = "emberfall"
+habitat = "The Obsidian Deep"
 elements = PackedStringArray("earth", "celestial")
 rarity = "mythic"
 size_class = "colossal"
 personality = "mysterious"
-description = "The Void Armor Guardian: a squared four-legged colossus whose armour plates float a hand's width off its body, orbiting slowly around glowing geometric seams."
-personality_text = ""
+description = "Magmole's Ascended Form: a squared four-legged colossus of black volcanic glass. Its armour plates float a hand's width clear of its body and turn slowly around it, and the gaps between them glow with pale geometric seams. No wings, no horns, no tail club — it moves like a mountain that has decided to walk."
+personality_text = "Quiet and unhurried. Obsidra answers slowly, lowers its head for those it trusts, and leaves a faint ring of cooled glass wherever it has stood."
 ability_id = ""
 ability_name = ""
 ability_text = ""
-favorite_treat = "sunberry"
+favorite_treat = "honey_drop"
 base_stats = {
 "vitality": 84,
 "spirit": 56,
 "agility": 20
 }
-palette = PackedColorArray(0.188, 0.188, 0.29, 1, 0.541, 0.604, 0.91, 1)
+palette = PackedColorArray(0.09, 0.078, 0.11, 1, 0.165, 0.141, 0.204, 1, 0.804, 0.737, 1.0, 1)
 model_id = "obsidra"
 locomotion = "quad"
-move_speed = 3.0
-height = 8.0
-sound_pitch = 0.5
-friendship_notes = PackedStringArray("Prefers sunberry as a treat.", "Often found near Void Plateau.", "", "Ability: unknown.")
-discovery_hint = "Premium concept. Planned for a future update; not available yet."
+move_speed = 2.2
+height = 7.6
+sound_pitch = 0.4
+friendship_notes = PackedStringArray("Prefers honey drop as a treat.", "Often found near The Obsidian Deep.", "Quiet and unhurried. Obsidra answers slowly, lowers its head for those it trusts, and leaves a faint ring of cooled glass wherever it has stood.", "Ability: unknown.")
+discovery_hint = "Earn it by awakening Magmole through Basaltusk in the Obsidian Deep. Free, and never sold."
 rideable = true
-model_ready = false
+model_ready = true
 abilities = PackedStringArray("heavy_lift", "stone_passage", "ancient_shield", "obsidian_orbit")
-acquisition = PackedStringArray("purchase")
-lore = "Concept stage. Model, animations and abilities are not built yet."
-originality_notes = "Concept only; review against existing franchises before modelling."
 flight = false
+family = "magmole"
+stage = 3
+evolves_from = "basaltusk"
+acquisition = PackedStringArray("evolve")
+awakening_style = "stone"
+form_role = "Colossal: rideable on the ground, walks over lava with Stone Passage and shelters a whole clearing. Too big for the cave tunnels and the village streets."
+lore = "The Obsidian Deep is one long gallery of standing glass. The oldest columns are the ones Obsidra has already been."
+originality_notes = "Squared, blocky glass quadruped whose armour plates hover detached and rotate around the body, lit by pale violet seams. Deliberately built against Ignaroth: no wings, no horn crown, no tail club, no magma orange, angular instead of organic. Floating-armour guardians exist in other media — needs professional review of the plate layout and seam pattern."
