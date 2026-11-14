@@ -1,7 +1,7 @@
 {
-  "name": "apex-fitness",
+  "name": "studyverse",
   "version": "1.0.0",
-  "description": "Apex Fitness — Train. Improve. Achieve. The ultimate fitness app for everyone, anywhere.",
+  "description": "StudyVerse — The Ultimate AI Learning Platform",
   "private": true,
   "type": "module",
   "scripts": {

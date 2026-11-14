@@ -62,7 +62,6 @@ function AppRoutes() {
         <Route path="search" element={<SearchPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
-
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
