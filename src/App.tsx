@@ -1,28 +1,33 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { AppProvider, useApp } from "./state/AppContext";
-import { AppLayout } from "./components/Layout";
-import { ToastStack } from "./components/ui";
+import { useAppStore } from "./stores/appStore";
+import { AppLayout } from "./components/layout/AppLayout";
 import { OnboardingPage } from "./pages/Onboarding";
 import { HomePage } from "./pages/Home";
-import { WorkoutsPage } from "./pages/Workouts";
-import { WorkoutDetailPage } from "./pages/WorkoutDetail";
-import { PlayerPage } from "./pages/Player";
-import { ProgressPage } from "./pages/Progress";
-import { RewardsPage } from "./pages/Rewards";
-import { CommunityPage } from "./pages/Community";
-import { StorePage } from "./pages/Store";
-import { PlanPage } from "./pages/Plan";
+import { AITutorPage } from "./pages/AITutor";
+import { AudioStudioPage } from "./pages/AudioStudio";
+import { TestCenterPage } from "./pages/TestCenter";
+import { NotesStudioPage } from "./pages/NotesStudio";
+import { FlashcardsPage } from "./pages/Flashcards";
+import { SubjectsPage } from "./pages/Subjects";
+import { LibraryPage } from "./pages/Library";
+import { AnalyticsPage } from "./pages/Analytics";
+import { PlannerPage } from "./pages/Planner";
+import { StudyGuidesPage } from "./pages/StudyGuides";
+import { GamesPage } from "./pages/Games";
+import { VisualLearningPage } from "./pages/VisualLearning";
+import { PresentationsPage } from "./pages/Presentations";
+import { SearchPage } from "./pages/Search";
 import { SettingsPage } from "./pages/Settings";
 
 function Gate({ children }: { children: React.ReactNode }) {
-  const { state } = useApp();
-  if (!state.profile) return <Navigate to="/" replace />;
+  const user = useAppStore((s) => s.user);
+  if (!user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
 function Landing() {
-  const { state } = useApp();
-  if (state.profile) return <Navigate to="/app/home" replace />;
+  const user = useAppStore((s) => s.user);
+  if (user) return <Navigate to="/app/home" replace />;
   return <OnboardingPage />;
 }
 
@@ -31,18 +36,6 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Landing />} />
 
-      {/* Immersive player (no app chrome) */}
-      <Route
-        path="/app/play/:id"
-        element={
-          <Gate>
-            <ToastStack />
-            <PlayerPage />
-          </Gate>
-        }
-      />
-
-      {/* Main app */}
       <Route
         path="/app"
         element={
@@ -53,13 +46,20 @@ function AppRoutes() {
       >
         <Route index element={<Navigate to="/app/home" replace />} />
         <Route path="home" element={<HomePage />} />
-        <Route path="workouts" element={<WorkoutsPage />} />
-        <Route path="workouts/:id" element={<WorkoutDetailPage />} />
-        <Route path="progress" element={<ProgressPage />} />
-        <Route path="rewards" element={<RewardsPage />} />
-        <Route path="community" element={<CommunityPage />} />
-        <Route path="store" element={<StorePage />} />
-        <Route path="plan" element={<PlanPage />} />
+        <Route path="tutor" element={<AITutorPage />} />
+        <Route path="audio" element={<AudioStudioPage />} />
+        <Route path="tests" element={<TestCenterPage />} />
+        <Route path="notes" element={<NotesStudioPage />} />
+        <Route path="flashcards" element={<FlashcardsPage />} />
+        <Route path="subjects" element={<SubjectsPage />} />
+        <Route path="library" element={<LibraryPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="planner" element={<PlannerPage />} />
+        <Route path="guides" element={<StudyGuidesPage />} />
+        <Route path="games" element={<GamesPage />} />
+        <Route path="visual" element={<VisualLearningPage />} />
+        <Route path="presentations" element={<PresentationsPage />} />
+        <Route path="search" element={<SearchPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
@@ -70,10 +70,8 @@ function AppRoutes() {
 
 export function App() {
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </AppProvider>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }
