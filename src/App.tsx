@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useAppStore } from "./stores/appStore";
+import { ToastProvider } from "./components/ui/Toast";
 import { AppLayout } from "./components/layout/AppLayout";
 import { OnboardingPage } from "./pages/Onboarding";
 import { HomePage } from "./pages/Home";
@@ -70,7 +71,9 @@ function AppRoutes() {
 export function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <ToastProvider>
+        <AppRoutes />
+      </ToastProvider>
     </BrowserRouter>
   );
 }

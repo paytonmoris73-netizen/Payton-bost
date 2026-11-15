@@ -31,8 +31,6 @@ export function HomePage() {
   const notes = useAppStore((s) => s.notes);
   const conversations = useAppStore((s) => s.conversations);
   const tests = useAppStore((s) => s.tests);
-  const testAttempts = useAppStore((s) => s.testAttempts);
-  const flashcardDecks = useAppStore((s) => s.flashcardDecks);
   const recordings = useAppStore((s) => s.recordings);
 
   const recentItems = [

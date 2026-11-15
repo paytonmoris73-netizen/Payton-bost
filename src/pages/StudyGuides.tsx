@@ -2,6 +2,27 @@ import { useState } from "react";
 import { Icon } from "../components/Icon";
 import { useAppStore } from "../stores/appStore";
 
+function renderMarkdown(md: string): string {
+  let html = md
+    .replace(/^### (.+)$/gm, '</p><h3>$1</h3><p>')
+    .replace(/^## (.+)$/gm, '</p><h2>$1</h2><p>')
+    .replace(/^# (.+)$/gm, '</p><h1>$1</h1><p>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  html = html.replace(/((?:^- .+\n?)+)/gm, (block) => {
+    const items = block.trim().split('\n').map((l) => `<li>${l.replace(/^- /, '')}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  });
+  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+    const items = block.trim().split('\n').map((l) => `<li>${l.replace(/^\d+\. /, '')}</li>`).join('');
+    return `<ol>${items}</ol>`;
+  });
+
+  html = html.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
+  return `<p>${html}</p>`.replace(/<p><\/p>/g, '');
+}
+
 export function StudyGuidesPage() {
   const guides = useAppStore((s) => s.studyGuides);
   const addGuide = useAppStore((s) => s.addStudyGuide);
@@ -52,7 +73,7 @@ export function StudyGuidesPage() {
           </div>
         </div>
         <div className="card p-6">
-          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: activeGuide.content.replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^# (.+)$/gm, '<h1>$1</h1>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>').replace(/\n/g, '<br/>') }} />
+          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: renderMarkdown(activeGuide.content) }} />
         </div>
       </div>
     );

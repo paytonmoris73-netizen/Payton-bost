@@ -89,7 +89,7 @@ export function LibraryPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.sort((a, b) => b.createdAt - a.createdAt).map((doc) => (
+          {[...filtered].sort((a, b) => b.createdAt - a.createdAt).map((doc) => (
             <div key={doc.id} className="card card-interactive flex items-center gap-4 px-4 py-3">
               <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
                 doc.type === "pdf" ? "bg-red-500/10 text-red-500" :

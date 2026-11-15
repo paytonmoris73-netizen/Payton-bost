@@ -46,6 +46,7 @@ export function AudioStudioPage() {
   const timerRef = useRef<number>(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animRef = useRef<number>(0);
+  const recordingTimeRef = useRef(0);
 
   const startRecording = useCallback(async () => {
     try {
@@ -53,6 +54,7 @@ export function AudioStudioPage() {
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      recordingTimeRef.current = 0;
 
       const audioCtx = new AudioContext();
       const source = audioCtx.createMediaStreamSource(stream);
@@ -83,7 +85,7 @@ export function AudioStudioPage() {
 
         addRecording({
           title: `Recording ${new Date().toLocaleString()}`,
-          duration: recordingTime,
+          duration: recordingTimeRef.current,
           audioBlob: blob,
           transcript: "Transcript will be generated when a transcription service is configured. The recording has been saved successfully.",
         });
@@ -96,12 +98,13 @@ export function AudioStudioPage() {
       setIsPaused(false);
 
       timerRef.current = window.setInterval(() => {
+        recordingTimeRef.current += 1;
         setRecordingTime((t) => t + 1);
       }, 1000);
     } catch (err) {
       alert("Microphone access is required to record. Please allow microphone access and try again.");
     }
-  }, [addRecording, recordingTime]);
+  }, [addRecording]);
 
   const pauseRecording = () => {
     if (mediaRecorderRef.current?.state === "recording") {

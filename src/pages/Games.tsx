@@ -44,16 +44,16 @@ export function GamesPage() {
   );
 }
 
-function MatchingGame({ onBack }: { onBack: () => void }) {
-  const pairs = [
-    { term: "Photosynthesis", def: "Converting light to energy" },
-    { term: "Mitosis", def: "Cell division process" },
-    { term: "Osmosis", def: "Water through membrane" },
-    { term: "Entropy", def: "Measure of disorder" },
-    { term: "Catalyst", def: "Speeds up reactions" },
-    { term: "Hypothesis", def: "Testable prediction" },
-  ];
+const MATCH_PAIRS = [
+  { term: "Photosynthesis", def: "Converting light to energy" },
+  { term: "Mitosis", def: "Cell division process" },
+  { term: "Osmosis", def: "Water through membrane" },
+  { term: "Entropy", def: "Measure of disorder" },
+  { term: "Catalyst", def: "Speeds up reactions" },
+  { term: "Hypothesis", def: "Testable prediction" },
+];
 
+function MatchingGame({ onBack }: { onBack: () => void }) {
   const [cards, setCards] = useState<MatchCard[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [moves, setMoves] = useState(0);
@@ -61,7 +61,7 @@ function MatchingGame({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     const all: MatchCard[] = [];
-    pairs.forEach((p, i) => {
+    MATCH_PAIRS.forEach((p, i) => {
       all.push({ id: `t${i}`, text: p.term, pairId: String(i), flipped: false, matched: false });
       all.push({ id: `d${i}`, text: p.def, pairId: String(i), flipped: false, matched: false });
     });
@@ -125,8 +125,9 @@ function MatchingGame({ onBack }: { onBack: () => void }) {
   );
 }
 
+const TYPING_WORDS = ["photosynthesis", "metabolism", "chromosome", "evolution", "ecosystem", "hypothesis", "algorithm", "derivative", "equilibrium", "synthesis"];
+
 function TypingGame({ onBack }: { onBack: () => void }) {
-  const words = ["photosynthesis", "metabolism", "chromosome", "evolution", "ecosystem", "hypothesis", "algorithm", "derivative", "equilibrium", "synthesis"];
   const [currentIdx, setCurrentIdx] = useState(0);
   const [input, setInput] = useState("");
   const [score, setScore] = useState(0);
@@ -147,7 +148,7 @@ function TypingGame({ onBack }: { onBack: () => void }) {
 
   const handleInput = (val: string) => {
     setInput(val);
-    if (val.toLowerCase() === words[currentIdx % words.length]) {
+    if (val.toLowerCase() === TYPING_WORDS[currentIdx % TYPING_WORDS.length]) {
       setScore((s) => s + 1);
       setInput("");
       setCurrentIdx((i) => i + 1);
@@ -184,7 +185,7 @@ function TypingGame({ onBack }: { onBack: () => void }) {
         </div>
       ) : (
         <div className="card p-8 text-center space-y-6">
-          <p className="text-2xl font-bold text-text-primary tracking-wide">{words[currentIdx % words.length]}</p>
+          <p className="text-2xl font-bold text-text-primary tracking-wide">{TYPING_WORDS[currentIdx % TYPING_WORDS.length]}</p>
           <input type="text" value={input} onChange={(e) => handleInput(e.target.value)} className="input-field text-center text-lg" autoFocus placeholder="Type the word..." />
           <div className="h-2 rounded-full bg-surface-2">
             <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${(timeLeft / 30) * 100}%` }} />
@@ -280,18 +281,28 @@ function QuizRaceGame({ onBack }: { onBack: () => void }) {
   );
 }
 
+const SCRAMBLE_WORDS = ["molecule", "equation", "variable", "function", "spectrum", "particle", "velocity", "gradient"];
+
+function scrambleWord(w: string): string {
+  const arr = w.split("");
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  const result = arr.join("");
+  return result === w ? scrambleWord(w) : result;
+}
+
 function WordScrambleGame({ onBack }: { onBack: () => void }) {
-  const words = ["molecule", "equation", "variable", "function", "spectrum", "particle", "velocity", "gradient"];
   const [idx, setIdx] = useState(0);
   const [input, setInput] = useState("");
   const [score, setScore] = useState(0);
   const [revealed, setRevealed] = useState(false);
 
-  const scramble = (w: string) => w.split("").sort(() => Math.random() - 0.5).join("");
-  const [scrambled, setScrambled] = useState(() => scramble(words[0]));
+  const [scrambled, setScrambled] = useState(() => scrambleWord(SCRAMBLE_WORDS[0]));
 
   const handleSubmit = () => {
-    if (input.toLowerCase() === words[idx]) {
+    if (input.toLowerCase() === SCRAMBLE_WORDS[idx]) {
       setScore((s) => s + 1);
       next();
     } else {
@@ -301,21 +312,21 @@ function WordScrambleGame({ onBack }: { onBack: () => void }) {
   };
 
   const next = () => {
-    if (idx >= words.length - 1) return;
+    if (idx >= SCRAMBLE_WORDS.length - 1) return;
     const nextIdx = idx + 1;
     setIdx(nextIdx);
     setInput("");
     setRevealed(false);
-    setScrambled(scramble(words[nextIdx]));
+    setScrambled(scrambleWord(SCRAMBLE_WORDS[nextIdx]));
   };
 
-  if (idx >= words.length - 1 && (revealed || input.toLowerCase() === words[idx])) {
+  if (idx >= SCRAMBLE_WORDS.length - 1 && (revealed || input.toLowerCase() === SCRAMBLE_WORDS[idx])) {
     return (
       <div className="max-w-md mx-auto space-y-6">
         <button onClick={onBack} className="btn-ghost"><Icon name="arrow-left" className="h-4 w-4" /> Back</button>
         <div className="card flex flex-col items-center gap-4 py-10 text-center">
           <Icon name="trophy" className="h-10 w-10 text-amber-500" />
-          <h2 className="text-xl font-semibold text-text-primary">{score}/{words.length} Unscrambled!</h2>
+          <h2 className="text-xl font-semibold text-text-primary">{score}/{SCRAMBLE_WORDS.length} Unscrambled!</h2>
           <button onClick={onBack} className="btn-primary">Back to Games</button>
         </div>
       </div>
@@ -326,11 +337,11 @@ function WordScrambleGame({ onBack }: { onBack: () => void }) {
     <div className="max-w-md mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <button onClick={onBack} className="btn-ghost"><Icon name="arrow-left" className="h-4 w-4" /> Back</button>
-        <span className="text-sm text-text-secondary">{idx + 1}/{words.length} &middot; Score: {score}</span>
+        <span className="text-sm text-text-secondary">{idx + 1}/{SCRAMBLE_WORDS.length} &middot; Score: {score}</span>
       </div>
       <div className="card p-8 text-center space-y-6">
         <p className="text-3xl font-bold text-accent tracking-[0.3em]">{scrambled.toUpperCase()}</p>
-        {revealed && <p className="text-sm text-green-600 font-medium">Answer: {words[idx]}</p>}
+        {revealed && <p className="text-sm text-green-600 font-medium">Answer: {SCRAMBLE_WORDS[idx]}</p>}
         <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} className="input-field text-center text-lg" autoFocus placeholder="Unscramble..." />
         <button onClick={handleSubmit} className="btn-primary w-full">Submit</button>
       </div>
