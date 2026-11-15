@@ -23,8 +23,6 @@ const LISTEN_STYLES = [
   { id: "steps", label: "Step by Step", icon: "list-ordered" as IconName },
 ];
 
-const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-
 export function AudioStudioPage() {
   const recordings = useAppStore((s) => s.recordings);
   const podcasts = useAppStore((s) => s.podcasts);

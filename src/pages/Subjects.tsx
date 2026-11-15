@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Icon, type IconName } from "../components/Icon";
+import { Link } from "react-router-dom";
+import { Icon } from "../components/Icon";
 import { useAppStore } from "../stores/appStore";
 
 const SUBJECT_ICONS = ["📚", "🔬", "📐", "🌍", "🎨", "💻", "📖", "🧬", "⚡", "🎵", "🏛️", "🌱", "🧮", "🗺️", "✍️", "🔢"];

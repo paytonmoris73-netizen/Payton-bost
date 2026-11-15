@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Icon } from "../components/Icon";
 import { useAppStore } from "../stores/appStore";
-import { v4 as uuid } from "uuid";
 
 export function FlashcardsPage() {
   const decks = useAppStore((s) => s.flashcardDecks);
@@ -28,8 +27,6 @@ export function FlashcardsPage() {
   }, [activeDeck]);
 
   const currentCard = dueCards[cardIdx];
-  const totalReviewed = activeDeck?.cards.reduce((s, c) => s + c.reviews, 0) ?? 0;
-  const mastered = activeDeck?.cards.filter((c) => c.streak >= 3).length ?? 0;
 
   const handleRate = (rating: "again" | "hard" | "good" | "easy") => {
     if (!activeDeckId || !currentCard) return;

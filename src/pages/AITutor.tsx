@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Icon, type IconName } from "../components/Icon";
 import { useAppStore } from "../stores/appStore";
-import type { AIMode, Conversation } from "../types";
+import type { AIMode } from "../types";
 
 const MODES: { id: AIMode; label: string; icon: IconName; desc: string }[] = [
   { id: "explain", label: "Explain", icon: "sparkles", desc: "Get clear explanations" },
@@ -13,21 +13,6 @@ const MODES: { id: AIMode; label: string; icon: IconName; desc: string }[] = [
   { id: "writing", label: "Writing", icon: "file-text", desc: "Writing assistance" },
   { id: "language", label: "Language", icon: "globe", desc: "Language learning" },
 ];
-
-function getModeSystemPrompt(mode: AIMode): string {
-  const prompts: Record<AIMode, string> = {
-    explain: "You are an expert tutor. Explain concepts clearly and concisely. Use examples and analogies. Adapt your explanation to the student's level.",
-    teach: "You are a patient teacher. Introduce topics step by step. Check understanding after each concept. Use examples and ask follow-up questions.",
-    socratic: "You are a Socratic tutor. Guide the student through questions rather than giving direct answers. Help them discover the answer through reasoning.",
-    homework: "You are a homework helper. Help students understand the question first, then guide them through the solution. Don't just give the answer.",
-    "deep-reasoning": "You are an expert analyst. Break down complex problems carefully. Examine evidence, check calculations, and explain your reasoning clearly.",
-    "test-prep": "You are a test preparation expert. Identify key concepts, test knowledge, explain mistakes, and recommend what to review.",
-    writing: "You are a writing tutor. Help with outlines, structure, grammar, and clarity. Preserve the student's voice while improving quality.",
-    language: "You are a language tutor. Help with vocabulary, grammar, pronunciation guidance, and conversation practice.",
-    "image-tutor": "You are a visual learning tutor. Help students understand diagrams, charts, and images. Describe what you see and explain the concepts.",
-  };
-  return prompts[mode];
-}
 
 function simulateAIResponse(message: string, mode: AIMode): string {
   const responses: Record<string, string[]> = {

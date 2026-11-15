@@ -1,8 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Icon, type IconName } from "../components/Icon";
 import { useAppStore } from "../stores/appStore";
-import { Modal } from "../components/ui/Modal";
-import type { Test, Question, QuestionType, TestSettings, TestAttempt, QuestionResult } from "../types";
+import type { Test, Question, QuestionType, TestAttempt, QuestionResult } from "../types";
 import { v4 as uuid } from "uuid";
 
 const TEST_TYPES = [
@@ -350,7 +349,7 @@ function TestResultsView({ test, attempt, onRetake, onBack }: { test: Test; atte
 
       <h3 className="text-base font-semibold text-text-primary">Question Review</h3>
       <div className="space-y-3">
-        {test.questions.map((q, i) => {
+        {test.questions.map((q) => {
           const result = attempt.questionResults.find((r) => r.questionId === q.id);
           return (
             <div key={q.id} className={`card p-4 border-l-4 ${result?.correct ? "border-l-green-500" : "border-l-red-500"}`}>
@@ -379,7 +378,6 @@ export function TestCenterPage() {
   const addTest = useAppStore((s) => s.addTest);
   const addTestAttempt = useAppStore((s) => s.addTestAttempt);
   const deleteTest = useAppStore((s) => s.deleteTest);
-  const subjects = useAppStore((s) => s.subjects);
 
   const [view, setView] = useState<"list" | "create" | "take" | "results">("list");
   const [activeTestId, setActiveTestId] = useState<string | null>(null);

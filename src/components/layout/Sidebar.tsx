@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Icon, type IconName } from "../Icon";
 import { useAppStore } from "../../stores/appStore";
 
@@ -25,8 +25,6 @@ export function Sidebar() {
   const collapsed = useAppStore((s) => s.sidebarCollapsed);
   const setSidebarCollapsed = useAppStore((s) => s.setSidebarCollapsed);
   const user = useAppStore((s) => s.user);
-  const location = useLocation();
-
   let lastSection = "";
 
   return (
