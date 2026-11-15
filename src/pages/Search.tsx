@@ -116,7 +116,7 @@ export function SearchPage() {
         <div className="space-y-1.5">
           <p className="text-xs text-text-tertiary">{results.length} result{results.length !== 1 ? "s" : ""}</p>
           {results.map((r, i) => (
-            <button key={i} onClick={() => navigate(r.route)} className="card card-interactive flex items-center gap-3 px-4 py-3 w-full text-left">
+            <button key={`${r.type}-${r.title}-${i}`} onClick={() => navigate(r.route)} className="card card-interactive flex items-center gap-3 px-4 py-3 w-full text-left">
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${r.color}`}>
                 <Icon name={r.icon} className="h-4.5 w-4.5" />
               </div>
