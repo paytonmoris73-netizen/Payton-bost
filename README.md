@@ -1,26 +1,23 @@
-# Apex Fitness
+# Lucent
 
-**Train. Improve. Achieve.** The ultimate fitness app for everyone, anywhere — from beginners to pros, kids to seniors.
-
-![Apex Fitness](https://img.shields.io/badge/Apex-Fitness-f8bd3c?style=for-the-badge)
+**Your intelligent learning companion.** Record lectures, generate notes, create tests, study with AI, and master any subject.
 
 ## Features
 
-- **Personalized onboarding** — pick your goal, level, and age group; Apex builds your plan around them
-- **12 guided workouts** — full circuits with per-exercise timers, rest periods, and coaching cues
-- **Immersive workout player** — countdown rings, pause/skip controls, and a celebration screen
-- **Progress analytics** — weekly goal ring, minutes-per-day chart, all-time totals, session history
-- **Rewards & levels** — earn XP for every workout, level up, and unlock 12 achievement badges
-- **Streaks** — daily streak tracking with best-streak records
-- **Community** — feed, joinable challenges, and a friends leaderboard
-- **Store & Premium** — simulated Premium membership that unlocks Pro workouts and 2× XP
-- **Personalized weekly plan** — 4 training days matched to your goal, with recovery days built in
+- **AI Tutor** — eight conversation modes (explain, teach, socratic, homework, and more) with a saved conversation history
+- **Audio Studio** — record lectures in the browser and generate podcast-style study audio
+- **Test Center** — multi-step test builder with auto-grading and per-question review
+- **Notes Studio** — AI-generated notes in eight formats
+- **Flashcards** — spaced repetition with AI deck generation
+- **Study Guides, Study Games, Visual Learning, Presentations** — ways to review and practice a topic
+- **Planner & Analytics** — weekly study calendar and progress tracking
+- **Subjects, Library & Search** — organize materials, upload files, and search everything in one place
 
 Everything persists locally in your browser — no account or server needed.
 
 ## Tech
 
-React 18 · TypeScript (strict) · Vite · Tailwind CSS · React Router 7
+React 18 · TypeScript (strict) · Vite · Tailwind CSS · React Router 7 · Zustand
 
 ## Run it
 
