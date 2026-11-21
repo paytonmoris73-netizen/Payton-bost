@@ -320,7 +320,10 @@ export function chefReply(input: string, ctx: { diet: string[]; allergies: strin
   return { text: "I'm CRUNCH's AI chef. Try asking:\n• What can I make with chicken, rice and spinach?\n• What can I substitute for butter?\n• How can I make this vegetarian?\n• How do I improve the flavour of tomato and mozzarella?\n• Create a dessert using banana and oats.\n\nNote: without a connected AI provider I use CRUNCH's built-in rules engine, which is more limited. Connect a provider in Settings → AI & Integrations for open-ended answers.", suggestRemote: true };
 }
 
-/* ---------- optional remote AI (OpenAI-compatible) ---------- */
+/* ---------- remote AI (OpenAI-compatible) ---------- */
+/** Server proxy (api/chef.ts) that holds the AI key. Used unless the user sets their own endpoint. */
+export const DEFAULT_AI_ENDPOINT = "/api/chef";
+
 export async function askRemote(cfg: AIConfig, messages: { role: "user" | "assistant" | "system"; content: string }[]): Promise<string> {
   const res = await fetch(cfg.endpoint, {
     method: "POST",

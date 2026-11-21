@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { G } from "../icons";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CUISINES, MEALS } from "../data";
-import { DISCLAIMER_TASTE, askRemote, chefReply, findIngredientsInText, generateRecipes, matchScore, type GenRecipe } from "../engine";
+import { DISCLAIMER_TASTE, DEFAULT_AI_ENDPOINT, askRemote, chefReply, findIngredientsInText, generateRecipes, matchScore, type GenRecipe } from "../engine";
 import { genToRecipe } from "../RecipeBody";
 import { useIngredients, useMe, useStore } from "../store";
 import { ImproveTool, SubstituteTool } from "./ChefTools";
@@ -42,7 +42,7 @@ export function GenCard({ g, onSaved }: { g: GenRecipe; onSaved?: (id: string) =
 }
 
 function Chat() {
-  const me = useMe()!; const ai = useStore((s) => s.ai);
+  const me = useMe()!; const ai = useStore((s) => s.ai); const custom = !!ai.endpoint;
   const [msgs, setMsgs] = useState<Msg[]>([{ role: "assistant", text: "Hi, I'm your AI chef. Tell me what you have or what you're craving, and I'll help with ideas, substitutions and technique." }]);
   const [text, setText] = useState(""); const [busy, setBusy] = useState(false); const end = useRef<HTMLDivElement>(null);
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
@@ -50,11 +50,11 @@ function Chat() {
     t = t.trim(); if (!t || busy) return; setText(""); setMsgs((m) => [...m, { role: "user", text: t }]); setBusy(true);
     const local = chefReply(t, { diet: me.diet, allergies: me.allergies });
     try {
-      if (ai.endpoint) {
-        const hist = [...msgs, { role: "user" as const, text: t }].slice(-10).map((m) => ({ role: m.role, content: m.text }));
-        const reply = await askRemote(ai, hist); setMsgs((m) => [...m, { role: "assistant", text: reply, recipes: local.recipes }]);
-      } else { await new Promise((r) => setTimeout(r, 450)); setMsgs((m) => [...m, { role: "assistant", text: local.text, recipes: local.recipes }]); }
-    } catch (e) { setMsgs((m) => [...m, { role: "assistant", text: `I couldn't reach your AI provider (${(e as Error).message}). Here's what my built-in engine suggests:\n\n${local.text}`, recipes: local.recipes }]); }
+      const hist = [...msgs, { role: "user" as const, text: t }].slice(-10).map((m) => ({ role: m.role, content: m.text }));
+      while (hist.length && hist[0].role !== "user") hist.shift();
+      const reply = await askRemote(custom ? ai : { ...ai, endpoint: DEFAULT_AI_ENDPOINT, key: "" }, hist);
+      setMsgs((m) => [...m, { role: "assistant", text: reply, recipes: local.recipes }]);
+    } catch (e) { setMsgs((m) => [...m, { role: "assistant", text: `${custom ? `I couldn't reach your AI provider (${(e as Error).message}). ` : "The AI chef is unavailable right now. "}Here's what my built-in engine suggests:\n\n${local.text}`, recipes: local.recipes }]); }
     setBusy(false);
   };
   return (
@@ -74,7 +74,7 @@ function Chat() {
       <form className="flex gap-2 border-t border-cream p-3" onSubmit={(e) => { e.preventDefault(); send(text); }}>
         <input className="input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask the chef anything…" aria-label="Message the AI chef" maxLength={600} /><button className="btn-primary" disabled={busy || !text.trim()}>Send</button>
       </form>
-      <p className="px-4 pb-3 text-[11px] text-brown">{ai.endpoint ? `Connected to your AI provider (${ai.model || "default model"}).` : "Using CRUNCH's built-in rules engine. Connect an AI provider in Settings for open-ended answers."} AI can make mistakes; check food-safety and allergen details yourself.</p>
+      <p className="px-4 pb-3 text-[11px] text-brown">{custom ? `Connected to your AI provider (${ai.model || "default model"}).` : "Powered by CRUNCH AI."} AI can make mistakes; check food-safety and allergen details yourself.</p>
     </div>
   );
 }
