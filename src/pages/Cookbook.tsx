@@ -9,10 +9,10 @@ const TABS = ["Purchased", "Saved", "Created", "Favourites", "Combinations", "Fo
 
 export default function Cookbook({ saved: onlySaved }: { saved?: boolean }) {
   const me = useMe()!; const cat = useCatalogue(); const owned = useOwnedIds(); const ings = useIngredients();
-  const { saved, favorites, combos, folders, addFolder, deleteFolder, toggleInFolder, cooked, lists, deleteCombo, purchases } = useStore();
-  const [tab, setTab] = useState<(typeof TABS)[number]>(onlySaved ? "Saved" : "Purchased"); const [q, setQ] = useState(""); const [name, setName] = useState(""); const [open, setOpen] = useState<string | null>(null);
+  const { saved, favorites, combos, folders, addFolder, deleteFolder, renameFolder, moveInFolder, toggleInFolder, cooked, lists, deleteCombo, purchases } = useStore();
+  const [stat, setStat] = useState(""); const { cookStatus } = useStore(); const [tab, setTab] = useState<(typeof TABS)[number]>(onlySaved ? "Saved" : "Purchased"); const [q, setQ] = useState(""); const [name, setName] = useState(""); const [open, setOpen] = useState<string | null>(null);
   const byId = (id: string) => cat.find((r) => r.id === id);
-  const filt = <T extends { title: string }>(l: T[]) => l.filter((r) => !q.trim() || matchScore(q, r.title) > 0);
+  const filt = <T extends { title: string; id?: string }>(l: T[]) => l.filter((r) => (!q.trim() || matchScore(q, r.title) > 0) && (!stat || (r.id && cookStatus[r.id] === stat)));
   const purchased = filt(cat.filter((r) => owned.has(r.id) && r.price > 0));
   const savedR = filt(saved.map(byId).filter((r): r is NonNullable<typeof r> => !!r && (r.status === "published" || r.creatorId === me.id)));
   const created = filt(cat.filter((r) => r.creatorId === me.id));
@@ -22,7 +22,8 @@ export default function Cookbook({ saved: onlySaved }: { saved?: boolean }) {
   return (
     <div>
       <PageHeader title={onlySaved ? "Saved Recipes" : "My Cookbook"} sub="Everything you've bought, saved, created and cooked — in one place." />
-      <input className="input mb-3 max-w-md" placeholder="Search your cookbook…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search your cookbook" />
+      <input className="input mb-3 inline-block max-w-md" placeholder="Search your cookbook…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search your cookbook" />
+      <select className="input mb-3 ml-2 !w-auto" aria-label="Filter by cooking status" value={stat} onChange={(e) => setStat(e.target.value)}><option value="">Any status</option><option value="want">Want to try</option><option value="planned">Planned</option><option value="cooked">Cooked</option><option value="favorite">Favorite</option></select>
       <Tabs tabs={TABS} value={tab} onChange={setTab} />
       {tab === "Purchased" && (<>{grid(purchased, "No purchased recipes yet", "/marketplace")}{purchases.length > 0 && <p className="mt-3 text-sm"><Link to="/marketplace/cart" className="font-semibold underline">View purchase history</Link></p>}</>)}
       {tab === "Saved" && grid(savedR, "Nothing saved yet", "/discover")}
@@ -33,8 +34,8 @@ export default function Cookbook({ saved: onlySaved }: { saved?: boolean }) {
         <div>
           <form className="mb-4 flex max-w-md gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim().length < 2) return toast("Name your folder.", "err"); addFolder(name.trim().slice(0, 40)); setName(""); }}><input className="input" placeholder="New folder (e.g. Weekend Cooking)" value={name} onChange={(e) => setName(e.target.value)} aria-label="New folder name" /><button className="btn-dark">Create</button></form>
           <div className="space-y-3">{folders.map((f) => { const rs = f.recipeIds.map(byId).filter(Boolean) as typeof cat; return (
-            <div key={f.id} className="card p-4"><div className="flex items-center justify-between"><button className="text-left" onClick={() => setOpen(open === f.id ? null : f.id)}><b>📁 {f.name}</b> <span className="text-xs text-brown">{rs.length} recipes</span></button><button className="text-xs text-brown underline" onClick={() => { if (confirm(`Delete folder “${f.name}”? Recipes are kept.`)) deleteFolder(f.id); }}>Delete</button></div>
-              {open === f.id && <div className="mt-3">{rs.length ? <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{rs.map((r) => <div key={r.id} className="relative"><RecipeCard r={r} owned={owned.has(r.id)} /><button className="absolute bottom-2 right-2 rounded-full bg-white px-2 py-0.5 text-xs shadow-card" onClick={() => toggleInFolder(f.id, r.id)}>Remove</button></div>)}</div> : <p className="text-sm text-brown">Empty. Open a recipe and use “Add to folder”.</p>}
+            <div key={f.id} className="card p-4"><div className="flex items-center justify-between"><button className="text-left" onClick={() => setOpen(open === f.id ? null : f.id)}><b>📁 {f.name}</b> <span className="text-xs text-brown">{rs.length} recipes</span></button><span className="flex gap-3"><button className="text-xs text-brown underline" onClick={() => { const n = prompt("Collection name", f.name); if (n === null) return; if (n.trim().length < 2) return toast("Name is too short.", "err"); const d = prompt("Description (optional)", f.description ?? ""); renameFolder(f.id, n.trim(), d?.trim() ?? f.description); }}>Edit</button><button className="text-xs text-brown underline" onClick={() => { if (confirm(`Delete folder “${f.name}”? Recipes are kept.`)) deleteFolder(f.id); }}>Delete</button></span></div>{f.description && <p className="mt-1 text-xs text-brown">{f.description}</p>}
+              {open === f.id && <div className="mt-3">{rs.length ? <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{rs.map((r) => <div key={r.id} className="relative"><RecipeCard r={r} owned={owned.has(r.id)} /><div className="absolute bottom-2 right-2 flex gap-1"><button className="rounded-full bg-white px-2 py-0.5 text-xs shadow-card" aria-label="Move earlier" onClick={() => moveInFolder(f.id, r.id, -1)}>←</button><button className="rounded-full bg-white px-2 py-0.5 text-xs shadow-card" aria-label="Move later" onClick={() => moveInFolder(f.id, r.id, 1)}>→</button><button className="rounded-full bg-white px-2 py-0.5 text-xs shadow-card" onClick={() => toggleInFolder(f.id, r.id)}>Remove</button></div></div>)}</div> : <p className="text-sm text-brown">Empty. Open a recipe and use “Add to folder”.</p>}
                 <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold">Add from saved</summary><div className="mt-2 space-y-1">{savedR.filter((r) => !f.recipeIds.includes(r.id)).map((r) => <button key={r.id} className="block w-full rounded-lg bg-cream px-3 py-2 text-left" onClick={() => toggleInFolder(f.id, r.id)}>＋ {r.emoji} {r.title}</button>)}</div></details></div>}</div>); })}</div>
         </div>
       )}

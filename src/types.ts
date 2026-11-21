@@ -57,7 +57,7 @@ export interface Notif { id: string; type: "follow" | "like" | "comment" | "purc
 
 export interface Purchase { id: string; recipeIds: string[]; total: number; at: string; status: "paid" | "refund_requested" | "refunded"; method: "demo" | "stripe" }
 
-export interface Report { id: string; kind: "listing" | "creator" | "post"; targetId: string; reason: string; at: string; status: "open" | "actioned" | "dismissed" }
+export interface Report { id: string; kind: "listing" | "creator" | "post" | "copyright"; targetId: string; reason: string; at: string; status: "open" | "actioned" | "dismissed" }
 
 export interface Account {
   id: string; name: string; email: string; handle: string; bio: string; emoji: string;
@@ -66,5 +66,6 @@ export interface Account {
   notify: Record<string, boolean>; privacy: { publicProfile: boolean; showActivity: boolean; allowDMs: boolean };
 }
 
-export interface Folder { id: string; name: string; recipeIds: string[] }
+export interface Folder { id: string; name: string; description?: string; recipeIds: string[] }
+export type CookStatus = "want" | "planned" | "cooked" | "favorite";
 export interface AIConfig { endpoint: string; model: string; key: string }

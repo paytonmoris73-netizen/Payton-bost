@@ -4,7 +4,7 @@ import { DISCLAIMER_TASTE, totalMin } from "./engine";
 import type { GenRecipe } from "./engine";
 import { creatorOf, useMe, useStore, uid } from "./store";
 import { AllergenNote, Cover, Modal, NutritionPanel, SaveButton, StarPicker, Stars, toast } from "./ui";
-import type { Recipe } from "./types";
+import type { CookStatus, Recipe } from "./types";
 
 export function scaleAmount(a: string, f: number): string {
   if (f === 1) return a;
@@ -24,8 +24,8 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
   const nav = useNavigate(); const me = useMe();
   const [servings, setServings] = useState(r.servings || 1);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const [folderOpen, setFolderOpen] = useState(false); const [reportOpen, setReportOpen] = useState(false); const [reason, setReason] = useState("");
-  const { folders, toggleInFolder, favorites, toggleFav, lists, addToList, createList, markCooked, report, accounts, reviews, addReview, cooked } = useStore();
+  const [folderOpen, setFolderOpen] = useState(false); const [reportOpen, setReportOpen] = useState(false); const [copyright, setCopyright] = useState(false); const [reason, setReason] = useState("");
+  const { folders, toggleInFolder, favorites, toggleFav, lists, addToList, createList, markCooked, report, accounts, notes, setNote, cookStatus, setCookStatus, reviews, addReview, cooked } = useStore();
   const [rating, setRating] = useState(5); const [text, setText] = useState("");
   const c = creatorOf(r.creatorId, accounts); const factor = servings / Math.max(1, r.servings);
   const mine = r.creatorId === me?.id; const rs = reviews.filter((x) => x.recipeId === r.id);
@@ -58,6 +58,15 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
       </div>
 
       <div className="space-y-6">
+        {!preview && (
+          <div className="card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="h-display text-2xl">My notes</h2>
+              <select className="input !w-auto !py-1.5 text-sm" aria-label="Cooking status" value={cookStatus[r.id] ?? ""} onChange={(e) => setCookStatus(r.id, (e.target.value || null) as CookStatus | null)}>
+                <option value="">No status</option><option value="want">Want to try</option><option value="planned">Planned</option><option value="cooked">Cooked</option><option value="favorite">Favorite</option></select></div>
+            <textarea className="input mt-3" rows={3} maxLength={2000} placeholder="Private notes: “added extra garlic”, “needed 10 more minutes”…" value={notes[r.id] ?? ""} onChange={(e) => setNote(r.id, e.target.value)} aria-label="Private notes" />
+            <p className="mt-1 text-xs text-brown">Only you can see this. Notes are never shown publicly.</p>
+          </div>
+        )}
         <div className="card p-5">
           <div className="mb-3 flex items-center justify-between"><h2 className="h-display text-2xl">Ingredients</h2>
             <div className="flex items-center gap-2 text-sm"><button className="grid h-8 w-8 place-items-center rounded-full bg-cream" onClick={() => setServings(Math.max(1, servings - 1))} aria-label="Fewer servings">−</button><span className="w-20 text-center font-semibold">{servings} serving{servings > 1 ? "s" : ""}</span><button className="grid h-8 w-8 place-items-center rounded-full bg-cream" onClick={() => setServings(servings + 1)} aria-label="More servings">+</button></div></div>
@@ -100,8 +109,9 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
         <div className="space-y-2">{folders.map((f) => <label key={f.id} className="flex items-center gap-3 rounded-xl bg-cream p-3 text-sm"><input type="checkbox" className="accent-orange" checked={f.recipeIds.includes(r.id)} onChange={() => toggleInFolder(f.id, r.id)} />{f.name}</label>)}{folders.length === 0 && <p className="text-sm text-brown">Create a folder in My Cookbook first.</p>}</div>
       </Modal>
       <Modal open={reportOpen} onClose={() => setReportOpen(false)} title="Report this recipe">
-        <textarea className="input" rows={3} placeholder="What's wrong? (copied content, unsafe advice, misleading…)" value={reason} onChange={(e) => setReason(e.target.value)} />
-        <button className="btn-dark mt-3" onClick={() => { if (reason.trim().length < 5) return toast("Please add a short reason.", "err"); report("listing", r.id, reason.trim()); setReportOpen(false); setReason(""); toast("Report sent to moderators"); }}>Send report</button>
+        <label className="mb-2 flex items-center gap-2 text-sm"><input type="checkbox" className="accent-orange" checked={copyright} onChange={(e) => setCopyright(e.target.checked)} />This is a copyright complaint (I own, or represent the owner of, this content)</label>
+        <textarea className="input" rows={3} placeholder={copyright ? "Identify the original work and explain why this copies it…" : "What's wrong? (copied content, unsafe advice, misleading…)"} value={reason} onChange={(e) => setReason(e.target.value)} />
+        <button className="btn-dark mt-3" onClick={() => { if (reason.trim().length < 5) return toast("Please add a short reason.", "err"); report(copyright ? "copyright" : "listing", r.id, (copyright ? "[COPYRIGHT] " : "") + reason.trim()); setReportOpen(false); setReason(""); toast("Report sent to moderators"); }}>Send report</button>
       </Modal>
     </div>
   );

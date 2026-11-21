@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ALL_RECIPES, CREATORS, INGREDIENTS, REVIEWS, SEED_POSTS } from "./data";
-import type { AIConfig, Account, Combo, Creator, Folder, Ingredient, Msg, Notif, Post, Purchase, Recipe, Report, Review, ShoppingItem, ShoppingList, Thread } from "./types";
+import type { CookStatus, AIConfig, Account, Combo, Creator, Folder, Ingredient, Msg, Notif, Post, Purchase, Recipe, Report, Review, ShoppingItem, ShoppingList, Thread } from "./types";
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 export const MIN_AGE_SOCIAL = 13;
@@ -27,7 +27,7 @@ interface State {
   threads: Thread[]; notifs: Notif[]; purchases: Purchase[]; cart: string[]; reviews: Review[]; reports: Report[]; searches: string[];
   awarded: Record<string, true>; dailyXp: { day: string; amount: number }; recipeStatusOverride: Record<string, Recipe["status"]>; featuredIds: string[]; announcements: { id: string; text: string; at: string }[];
   banned: string[]; ai: AIConfig; stripeConfigured: boolean;
-  challengeJoined: string[];
+  challengeJoined: string[]; notes: Record<string, string>; cookStatus: Record<string, CookStatus>;
 
   signUp: (p: { name: string; email: string; password: string; birthYear: number }) => Promise<string | null>;
   logIn: (email: string, password: string) => Promise<string | null>;
@@ -37,6 +37,8 @@ interface State {
   award: (key: string, amount: number) => void;
 
   toggleSave: (id: string) => void; toggleFav: (id: string) => void; view: (id: string) => void; markCooked: (id: string) => void;
+  setNote: (id: string, text: string) => void; setCookStatus: (id: string, s: CookStatus | null) => void;
+  renameFolder: (id: string, name: string, description?: string) => void; moveInFolder: (folderId: string, recipeId: string, dir: -1 | 1) => void;
   addFolder: (name: string) => void; deleteFolder: (id: string) => void; toggleInFolder: (folderId: string, recipeId: string) => void;
   upsertRecipe: (r: Recipe) => void; setStatus: (id: string, s: Recipe["status"]) => void;
   saveCombo: (c: Combo) => void; deleteCombo: (id: string) => void;
@@ -75,7 +77,7 @@ export const useStore = create<State>()(
         lists: [{ id: "l1", name: "Groceries", items: [] }], posts: SEED_POSTS, likedPosts: [], savedPosts: [], repostedPosts: [], votes: [], following: ["c1"],
         threads: seedThreads, notifs: seedNotifs, purchases: [], cart: [], reviews: REVIEWS, reports: [], searches: [],
         awarded: {}, dailyXp: { day: "", amount: 0 }, recipeStatusOverride: {}, featuredIds: ["r1", "r3", "r9"], announcements: [],
-        banned: [], ai: { endpoint: "", model: "", key: "" }, stripeConfigured: false, challengeJoined: [],
+        banned: [], ai: { endpoint: "", model: "", key: "" }, stripeConfigured: false, challengeJoined: [], notes: {}, cookStatus: {},
 
         async signUp({ name, email, password, birthYear }) {
           email = email.trim().toLowerCase();
@@ -129,6 +131,10 @@ export const useStore = create<State>()(
         toggleFav(id) { set((s) => ({ favorites: s.favorites.includes(id) ? s.favorites.filter((x) => x !== id) : [id, ...s.favorites] })); },
         view(id) { set((s) => ({ recent: [id, ...s.recent.filter((x) => x !== id)].slice(0, 12) })); },
         markCooked(id) { set((s) => ({ cooked: [{ id, at: new Date().toISOString() }, ...s.cooked] })); get().award("cook:" + id, 20); },
+        setNote(id, text) { set((s) => { const notes = { ...s.notes }; if (text.trim()) notes[id] = text.slice(0, 2000); else delete notes[id]; return { notes }; }); },
+        setCookStatus(id, st) { set((s) => { const cookStatus = { ...s.cookStatus }; if (st) cookStatus[id] = st; else delete cookStatus[id]; return { cookStatus }; }); },
+        renameFolder(id, name, description) { set((s) => ({ folders: s.folders.map((f) => (f.id === id ? { ...f, name: name.slice(0, 40), description: description?.slice(0, 200) } : f)) })); },
+        moveInFolder(fid, rid, dir) { set((s) => ({ folders: s.folders.map((f) => { if (f.id !== fid) return f; const a = [...f.recipeIds]; const i = a.indexOf(rid); const j = i + dir; if (i < 0 || j < 0 || j >= a.length) return f; [a[i], a[j]] = [a[j], a[i]]; return { ...f, recipeIds: a }; }) })); },
         addFolder(name) { set((s) => ({ folders: [...s.folders, { id: uid(), name, recipeIds: [] }] })); },
         deleteFolder(id) { set((s) => ({ folders: s.folders.filter((f) => f.id !== id) })); },
         toggleInFolder(fid, rid) { set((s) => ({ folders: s.folders.map((f) => (f.id === fid ? { ...f, recipeIds: f.recipeIds.includes(rid) ? f.recipeIds.filter((x) => x !== rid) : [...f.recipeIds, rid] } : f)) })); },
