@@ -1,134 +1,44 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { Icon, type IconName } from "../components/Icon";
-import { useAppStore } from "../stores/appStore";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { CREATORS } from "../data";
+import { matchScore, comboToItems } from "../engine";
+import { FilterPanel, defaultFilters, useFiltered, useVisibleRecipes } from "../filters";
+import { useCatalogue, useIngredients, useOwnedIds, useStore } from "../store";
+import { Avatar, Empty, PageHeader, RecipeCard, Tabs } from "../ui";
 
-export function SearchPage() {
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("all");
-  const navigate = useNavigate();
+const TABS = ["All", "Recipes", "Marketplace", "Ingredients", "Creators", "Combinations", "Collections", "Posts"] as const;
 
-  const notes = useAppStore((s) => s.notes);
-  const decks = useAppStore((s) => s.flashcardDecks);
-  const tests = useAppStore((s) => s.tests);
-  const documents = useAppStore((s) => s.documents);
-  const recordings = useAppStore((s) => s.recordings);
-  const conversations = useAppStore((s) => s.conversations);
-  const studyGuides = useAppStore((s) => s.studyGuides);
-
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
-    const q = query.toLowerCase();
-    const items: { type: string; icon: IconName; title: string; subtitle: string; route: string; color: string }[] = [];
-
-    if (filter === "all" || filter === "notes") {
-      notes.filter((n) => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)).forEach((n) =>
-        items.push({ type: "Note", icon: "file-text", title: n.title, subtitle: n.content.slice(0, 80), route: "/app/notes", color: "bg-blue-500/10 text-blue-500" })
-      );
-    }
-    if (filter === "all" || filter === "flashcards") {
-      decks.filter((d) => d.name.toLowerCase().includes(q) || d.cards.some((c) => c.front.toLowerCase().includes(q))).forEach((d) =>
-        items.push({ type: "Deck", icon: "layers", title: d.name, subtitle: `${d.cards.length} cards`, route: "/app/flashcards", color: "bg-purple-500/10 text-purple-500" })
-      );
-    }
-    if (filter === "all" || filter === "tests") {
-      tests.filter((t) => t.title.toLowerCase().includes(q) || (t.description ?? "").toLowerCase().includes(q)).forEach((t) =>
-        items.push({ type: "Test", icon: "test-tube", title: t.title, subtitle: `${t.questions.length} questions`, route: "/app/tests", color: "bg-green-500/10 text-green-600" })
-      );
-    }
-    if (filter === "all" || filter === "documents") {
-      documents.filter((d) => d.name.toLowerCase().includes(q) || (d.extractedText ?? "").toLowerCase().includes(q)).forEach((d) =>
-        items.push({ type: "Document", icon: "upload", title: d.name, subtitle: d.type.toUpperCase(), route: "/app/library", color: "bg-amber-500/10 text-amber-500" })
-      );
-    }
-    if (filter === "all" || filter === "recordings") {
-      recordings.filter((r) => r.title.toLowerCase().includes(q)).forEach((r) =>
-        items.push({ type: "Recording", icon: "mic", title: r.title, subtitle: `${Math.round(r.duration / 60)}m`, route: "/app/audio", color: "bg-red-500/10 text-red-500" })
-      );
-    }
-    if (filter === "all" || filter === "chats") {
-      conversations.filter((c) => c.title.toLowerCase().includes(q) || c.messages.some((m) => m.content.toLowerCase().includes(q))).forEach((c) =>
-        items.push({ type: "Chat", icon: "brain", title: c.title, subtitle: `${c.messages.length} messages`, route: "/app/tutor", color: "bg-cyan-500/10 text-cyan-500" })
-      );
-    }
-    if (filter === "all" || filter === "guides") {
-      studyGuides.filter((g) => g.topic.toLowerCase().includes(q) || g.content.toLowerCase().includes(q)).forEach((g) =>
-        items.push({ type: "Guide", icon: "book-open", title: g.topic, subtitle: g.style, route: "/app/guides", color: "bg-emerald-500/10 text-emerald-500" })
-      );
-    }
-
-    return items;
-  }, [query, filter, notes, decks, tests, documents, recordings, conversations, studyGuides]);
-
+export default function Search() {
+  const [p, setP] = useSearchParams(); const q = p.get("q") ?? ""; const [tab, setTab] = useState<(typeof TABS)[number]>("All"); const [f, setF] = useState(defaultFilters);
+  const cat = useCatalogue(); const owned = useOwnedIds(); const ings = useIngredients(); const combos = useStore((s) => s.combos); const posts = useStore((s) => s.posts); const record = useStore((s) => s.recordSearch);
+  const vis = useVisibleRecipes(cat); const [local, setLocal] = useState(q);
+  useEffect(() => { setLocal(q); setF((x) => ({ ...x, q })); }, [q]);
+  const recipes = useFiltered(vis.filter((r) => !r.bundleOf), f);
+  const market = useFiltered(vis.filter((r) => r.price > 0 && !r.bundleOf), f);
+  const bundles = useFiltered(vis.filter((r) => !!r.bundleOf), f);
+  const iRes = useMemo(() => ings.map((i) => ({ i, s: matchScore(q, i.name) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).map((x) => x.i), [ings, q]);
+  const cRes = CREATORS.filter((c) => matchScore(q, c.name + " " + c.handle + " " + c.bio) > 0);
+  const comboRes = combos.filter((c) => matchScore(q, c.name + " " + c.notes + " " + comboToItems(c, ings).map((i) => i.ing.name).join(" ")) > 0);
+  const postRes = posts.filter((x) => !x.hidden && matchScore(q, x.text + " " + x.ingredients.join(" ")) > 0);
+  const show = (t: (typeof TABS)[number]) => tab === "All" || tab === t;
+  const total = recipes.length + iRes.length + cRes.length + comboRes.length + postRes.length + bundles.length;
+  const didYouMean = total === 0 && q ? ings.map((i) => ({ n: i.name, s: matchScore(q.slice(0, 5), i.name) })).filter((x) => x.s > 0)[0]?.n : undefined;
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary">Search</h1>
-        <p className="text-sm text-text-secondary mt-0.5">Find anything across your learning materials</p>
-      </div>
-
-      <div className="relative">
-        <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-text-tertiary" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search notes, flashcards, tests, documents..."
-          className="input-field pl-11 text-base py-3"
-          autoFocus
-        />
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        {[
-          { value: "all", label: "All" },
-          { value: "notes", label: "Notes" },
-          { value: "flashcards", label: "Flashcards" },
-          { value: "tests", label: "Tests" },
-          { value: "documents", label: "Documents" },
-          { value: "recordings", label: "Recordings" },
-          { value: "chats", label: "Chats" },
-          { value: "guides", label: "Guides" },
-        ].map((f) => (
-          <button key={f.value} onClick={() => setFilter(f.value)} className={`chip shrink-0 ${filter === f.value ? "chip-active" : ""}`}>
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {query.trim() && results.length === 0 && (
-        <div className="card flex flex-col items-center gap-3 py-10 text-center">
-          <Icon name="search" className="h-8 w-8 text-text-tertiary" />
-          <p className="text-sm font-medium text-text-primary">No results found</p>
-          <p className="text-xs text-text-tertiary">Try a different search term or filter.</p>
-        </div>
-      )}
-
-      {!query.trim() && (
-        <div className="card flex flex-col items-center gap-3 py-10 text-center">
-          <Icon name="search" className="h-8 w-8 text-accent" />
-          <p className="text-sm font-medium text-text-primary">Search your learning materials</p>
-          <p className="text-xs text-text-tertiary">Type to search across notes, flashcards, tests, and more.</p>
-        </div>
-      )}
-
-      {results.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs text-text-tertiary">{results.length} result{results.length !== 1 ? "s" : ""}</p>
-          {results.map((r, i) => (
-            <button key={`${r.type}-${r.title}-${i}`} onClick={() => navigate(r.route)} className="card card-interactive flex items-center gap-3 px-4 py-3 w-full text-left">
-              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${r.color}`}>
-                <Icon name={r.icon} className="h-4.5 w-4.5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-text-primary truncate">{r.title}</div>
-                <div className="text-xs text-text-tertiary truncate">{r.subtitle}</div>
-              </div>
-              <span className="chip text-[10px] shrink-0">{r.type}</span>
-            </button>
-          ))}
-        </div>
-      )}
+    <div>
+      <PageHeader title={q ? `Results for “${q}”` : "Search"} sub={q ? `${total} results` : "Search recipes, ingredients, creators, combinations, listings, collections and posts."} />
+      <form className="mb-4 max-w-xl" onSubmit={(e) => { e.preventDefault(); record(local); setP({ q: local }); }}><input className="input" value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Search CRUNCH…" aria-label="Search" autoFocus /></form>
+      <Tabs tabs={TABS} value={tab} onChange={setTab} />
+      {(tab === "All" || tab === "Recipes" || tab === "Marketplace") && <FilterPanel f={f} set={setF} />}
+      {!q && <Empty emoji="🔎" title="What are you hungry for?" text="Try “garlic noodles”, “mango”, or a creator's name. Small typos are fine." />}
+      {q && total === 0 && <Empty emoji="🤷" title="No results" text={didYouMean ? `Did you mean “${didYouMean}”?` : "Try a different spelling or fewer words."} />}
+      {q && show("Recipes") && recipes.length > 0 && <Block title="Recipes"><div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{recipes.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div></Block>}
+      {q && tab === "Marketplace" && market.length > 0 && <Block title="Marketplace listings"><div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{market.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div></Block>}
+      {q && show("Collections") && bundles.length > 0 && <Block title="Collections"><div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{bundles.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div></Block>}
+      {q && show("Ingredients") && iRes.length > 0 && <Block title="Ingredients"><div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">{iRes.slice(0, 12).map((i) => <Link key={i.id} to={`/shop/${i.id}`} className="card p-3 text-center transition hover:-translate-y-1"><div className="text-4xl">{i.emoji}</div><b className="text-sm">{i.name}</b><div className="text-xs text-brown">{i.category}</div></Link>)}</div></Block>}
+      {q && show("Creators") && cRes.length > 0 && <Block title="Creators"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{cRes.map((c) => <Link key={c.id} to={`/creator/${c.id}`} className="card flex items-center gap-3 p-4"><Avatar emoji={c.emoji} hue={c.hue} size={48} /><span><b className="block">{c.name}</b><span className="text-xs text-brown">{c.handle}</span></span></Link>)}</div></Block>}
+      {q && show("Combinations") && comboRes.length > 0 && <Block title="Your combinations"><div className="grid gap-3 sm:grid-cols-2">{comboRes.map((c) => <Link key={c.id} to={`/combiner?combo=${c.id}`} className="card p-4"><b>{c.name}</b><p className="text-xs text-brown">{comboToItems(c, ings).map((i) => i.ing.name).join(", ")}</p></Link>)}</div></Block>}
+      {q && show("Posts") && postRes.length > 0 && <Block title="Community posts"><div className="grid gap-3 sm:grid-cols-2">{postRes.map((x) => <Link key={x.id} to="/community" className="card p-4"><b>{x.userEmoji} {x.userName}</b><p className="text-sm text-brown">{x.text}</p></Link>)}</div></Block>}
     </div>
   );
 }
+function Block({ title, children }: { title: string; children: React.ReactNode }) { return <section className="mb-8"><h2 className="h-display mb-3 text-2xl">{title}</h2>{children}</section>; }

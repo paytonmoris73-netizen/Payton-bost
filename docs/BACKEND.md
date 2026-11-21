@@ -1,0 +1,75 @@
+# CRUNCH backend & integration guide
+
+This repository ships a complete **front-end application**. To keep it runnable with zero setup, all data
+(accounts, recipes you create, purchases, posts, lists, messages) is stored in the browser's `localStorage`
+(`crunch-v1`). That is a development stand-in, **not** a production backend. This guide describes what to
+swap in to make CRUNCH multi-device, secure and real.
+
+## What is real today vs. stand-in
+
+| Area | Today | Production |
+|---|---|---|
+| Auth | Local accounts; PBKDF2-hashed passwords, age gate | Firebase Auth / Supabase Auth (email, Google), server sessions |
+| Roles | First local account = admin (client-side) | Custom claims; enforce in security rules / server |
+| Data | `localStorage` via Zustand (`src/store.ts`) | Firestore / Postgres with rules below |
+| Payments | Demo checkout, clearly labelled, no money moves | Stripe Checkout + webhook (server verifies) |
+| AI chat | Built-in rules engine; optional OpenAI-compatible endpoint | Server proxy holding the key |
+| Combination analysis / recipe generation | Built-in engine (`src/engine.ts`) | Server function calling your LLM with JSON-schema output |
+| Retail prices, barcode/photo recognition, image generation | **Coming soon** (not faked) | Retailer APIs, vision model, image model |
+
+## Security rules to implement (non-negotiable)
+
+1. **Never trust client prices or ownership.** Checkout must be a server function: read price from the recipe
+   document, create a Stripe Checkout Session, and grant access only from the verified `checkout.session.completed`
+   webhook. `src/store.ts → checkout()` shows the shape (price re-read from catalogue) but runs on the client.
+2. **Paid content gating.** Store paid `ingredients` + `steps` in a separate subcollection/table readable only by
+   buyers and the creator (`recipes/{id}/private/content`). The public document holds title, description, cover,
+   first four ingredient names. `canAccess()` in `src/store.ts` mirrors the rule the server must enforce.
+3. **Reviews** only from users with a purchase record (for paid recipes); one per user per recipe.
+4. **Roles**: `admin` via custom claims set from a trusted server; never from a client-writable field.
+5. **Age**: store `birthYear`; block <13 entirely, block purchasing/selling <18 server-side.
+6. **Uploads**: validate type/size server-side, re-encode images, scan, store in a private bucket with signed URLs.
+7. **Rate-limit** AI, auth, posting, reporting, and message endpoints; sanitise all user text on output.
+8. **Never put private API keys in front-end code.** The AI settings screen is for local testing only.
+
+## Example Firestore rules (sketch)
+
+```
+match /recipes/{id} {
+  allow read: if resource.data.status == 'published' || request.auth.uid == resource.data.creatorId || isAdmin();
+  allow create: if request.auth != null && request.resource.data.creatorId == request.auth.uid && request.resource.data.price <= 50;
+  allow update: if request.auth.uid == resource.data.creatorId && !('rating' in request.resource.data.diff(resource.data).affectedKeys());
+  match /private/content {
+    allow read: if request.auth.uid == get(/databases/$(database)/documents/recipes/$(id)).data.creatorId
+                || exists(/databases/$(database)/documents/entitlements/$(request.auth.uid + '_' + id));
+  }
+}
+match /entitlements/{e} { allow read: if request.auth.uid == resource.data.userId; allow write: if false; } // server only
+match /purchases/{p}    { allow read: if request.auth.uid == resource.data.buyerId; allow write: if false; }
+match /reviews/{r}      { allow create: if request.auth.uid == request.resource.data.userId
+                           && exists(/databases/$(database)/documents/entitlements/$(request.auth.uid + '_' + request.resource.data.recipeId)); }
+```
+
+## Data model
+
+`users`, `ingredients`, `recipes` (+ `private/content`), `combinations`, `purchases`, `entitlements`, `reviews`,
+`posts`, `follows`, `collections`, `notifications`, `shoppingLists`, `reports`, `threads/messages`. Field names follow
+the types in `src/types.ts`. Suggested indexes: `recipes(status, price)`, `recipes(creatorId, status)`,
+`recipes(status, createdAt desc)`, `reviews(recipeId, createdAt desc)`, `posts(createdAt desc)`,
+`notifications(userId, read, createdAt desc)`. Add a search index (Algolia/Typesense/Postgres FTS) for typo-tolerant search.
+
+## AI integration
+
+Create a server endpoint (`POST /api/chef`) that holds the provider key, applies per-user rate limits and a system
+prompt that forbids guaranteeing taste or allergy safety, and returns OpenAI-compatible JSON. Point
+**Settings → AI & Integrations** at it. For recipe generation, request a JSON schema matching `GenRecipe` in
+`src/engine.ts` and validate the response before showing it.
+
+## Payments
+
+Use Stripe Checkout (or Stripe Connect for creator payouts). Commission is `MARKET_FEE` (15%) in `src/engine.ts`;
+move it server-side. Handle refunds via the Stripe dashboard/API and revoke the entitlement.
+
+## Backups & logging
+
+Enable point-in-time recovery / daily exports, structured server logs with request IDs, and error reporting.

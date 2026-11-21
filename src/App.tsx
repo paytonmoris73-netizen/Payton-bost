@@ -1,79 +1,85 @@
+import { Component, Suspense, lazy, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { useAppStore } from "./stores/appStore";
-import { ToastProvider } from "./components/ui/Toast";
-import { AppLayout } from "./components/layout/AppLayout";
-import { OnboardingPage } from "./pages/Onboarding";
-import { HomePage } from "./pages/Home";
-import { AITutorPage } from "./pages/AITutor";
-import { AudioStudioPage } from "./pages/AudioStudio";
-import { TestCenterPage } from "./pages/TestCenter";
-import { NotesStudioPage } from "./pages/NotesStudio";
-import { FlashcardsPage } from "./pages/Flashcards";
-import { SubjectsPage } from "./pages/Subjects";
-import { LibraryPage } from "./pages/Library";
-import { AnalyticsPage } from "./pages/Analytics";
-import { PlannerPage } from "./pages/Planner";
-import { StudyGuidesPage } from "./pages/StudyGuides";
-import { GamesPage } from "./pages/Games";
-import { VisualLearningPage } from "./pages/VisualLearning";
-import { PresentationsPage } from "./pages/Presentations";
-import { SearchPage } from "./pages/Search";
-import { SettingsPage } from "./pages/Settings";
+import { Layout } from "./Layout";
+import { useMe } from "./store";
+import { Toaster, CardSkeletons } from "./ui";
 
-function Gate({ children }: { children: React.ReactNode }) {
-  const user = useAppStore((s) => s.user);
-  if (!user) return <Navigate to="/" replace />;
-  return <>{children}</>;
+const Auth = lazy(() => import("./pages/Auth"));
+const Home = lazy(() => import("./pages/Home"));
+const Combiner = lazy(() => import("./pages/Combiner"));
+const Chef = lazy(() => import("./pages/Chef"));
+const Discover = lazy(() => import("./pages/Discover"));
+const Search = lazy(() => import("./pages/Search"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const Product = lazy(() => import("./pages/Product"));
+const Cart = lazy(() => import("./pages/Cart"));
+const RecipePage = lazy(() => import("./pages/RecipePage"));
+const CookMode = lazy(() => import("./pages/CookMode"));
+const Shop = lazy(() => import("./pages/Shop"));
+const Community = lazy(() => import("./pages/Community"));
+const Cookbook = lazy(() => import("./pages/Cookbook"));
+const Lists = lazy(() => import("./pages/Lists"));
+const Messages = lazy(() => import("./pages/Messages"));
+const Profile = lazy(() => import("./pages/Profile"));
+const CreatorPage = lazy(() => import("./pages/CreatorPage"));
+const Studio = lazy(() => import("./pages/Studio"));
+const RecipeEditor = lazy(() => import("./pages/RecipeEditor"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Plus = lazy(() => import("./pages/Plus"));
+
+class Boundary extends Component<{ children: ReactNode }, { err: Error | null }> {
+  state = { err: null as Error | null };
+  static getDerivedStateFromError(err: Error) { return { err }; }
+  componentDidCatch(err: Error) { console.error("[crunch] render error", err); }
+  render() {
+    if (!this.state.err) return this.props.children;
+    return <div className="grid min-h-screen place-items-center p-6 text-center"><div><div className="text-5xl">🫠</div><h1 className="h-display mt-2 text-2xl">Something went wrong</h1><p className="mt-1 text-sm text-brown">{this.state.err.message}</p><button className="btn-primary mt-4" onClick={() => location.assign("/")}>Back home</button></div></div>;
+  }
 }
 
-function Landing() {
-  const user = useAppStore((s) => s.user);
-  if (user) return <Navigate to="/app/home" replace />;
-  return <OnboardingPage />;
-}
-
-function AppRoutes() {
-  return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-
-      <Route
-        path="/app"
-        element={
-          <Gate>
-            <AppLayout />
-          </Gate>
-        }
-      >
-        <Route index element={<Navigate to="/app/home" replace />} />
-        <Route path="home" element={<HomePage />} />
-        <Route path="tutor" element={<AITutorPage />} />
-        <Route path="audio" element={<AudioStudioPage />} />
-        <Route path="tests" element={<TestCenterPage />} />
-        <Route path="notes" element={<NotesStudioPage />} />
-        <Route path="flashcards" element={<FlashcardsPage />} />
-        <Route path="subjects" element={<SubjectsPage />} />
-        <Route path="library" element={<LibraryPage />} />
-        <Route path="analytics" element={<AnalyticsPage />} />
-        <Route path="planner" element={<PlannerPage />} />
-        <Route path="guides" element={<StudyGuidesPage />} />
-        <Route path="games" element={<GamesPage />} />
-        <Route path="visual" element={<VisualLearningPage />} />
-        <Route path="presentations" element={<PresentationsPage />} />
-        <Route path="search" element={<SearchPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
+function Gate({ children }: { children: ReactNode }) { const me = useMe(); return me ? <>{children}</> : <Navigate to="/auth" replace />; }
+function AdminGate({ children }: { children: ReactNode }) { const me = useMe(); return me?.role === "admin" ? <>{children}</> : <Navigate to="/" replace />; }
 
 export function App() {
   return (
-    <BrowserRouter>
-      <ToastProvider>
-        <AppRoutes />
-      </ToastProvider>
-    </BrowserRouter>
+    <Boundary>
+      <BrowserRouter>
+        <Suspense fallback={<div className="mx-auto max-w-7xl p-8"><CardSkeletons /></div>}>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route element={<Gate><Layout /></Gate>}>
+              <Route index element={<Home />} />
+              <Route path="combiner" element={<Combiner />} />
+              <Route path="chef" element={<Chef />} />
+              <Route path="discover" element={<Discover />} />
+              <Route path="search" element={<Search />} />
+              <Route path="marketplace" element={<Marketplace />} />
+              <Route path="marketplace/cart" element={<Cart />} />
+              <Route path="marketplace/:id" element={<Product />} />
+              <Route path="recipe/:id" element={<RecipePage />} />
+              <Route path="cook/:id" element={<CookMode />} />
+              <Route path="shop" element={<Shop />} />
+              <Route path="shop/:id" element={<Shop />} />
+              <Route path="community" element={<Community />} />
+              <Route path="cookbook" element={<Cookbook />} />
+              <Route path="saved" element={<Cookbook saved />} />
+              <Route path="lists" element={<Lists />} />
+              <Route path="messages" element={<Messages />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="creator/new" element={<RecipeEditor />} />
+              <Route path="creator/edit/:id" element={<RecipeEditor />} />
+              <Route path="creator/studio" element={<Studio />} />
+              <Route path="creator/:id" element={<CreatorPage />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="plus" element={<Plus />} />
+              <Route path="admin" element={<AdminGate><Admin /></AdminGate>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </Suspense>
+        <Toaster />
+      </BrowserRouter>
+    </Boundary>
   );
 }

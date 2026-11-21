@@ -1,153 +1,70 @@
-import { Icon } from "../components/Icon";
-import { useAppStore } from "../stores/appStore";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ALLERGENS, DIETS } from "../data";
+import { useMe, useStore } from "../store";
+import { PageHeader, Tabs, toast } from "../ui";
+import type { Account } from "../types";
 
-export function SettingsPage() {
-  const user = useAppStore((s) => s.user);
-  const theme = useAppStore((s) => s.theme);
-  const setTheme = useAppStore((s) => s.setTheme);
-  const updatePreferences = useAppStore((s) => s.updatePreferences);
+const TABS = ["Profile", "Food preferences", "Notifications", "Privacy", "AI & Integrations", "Account"] as const;
+const NOTIFY: [string, string][] = [["follows", "New followers"], ["likes", "Likes on your creations"], ["comments", "Comments"], ["purchases", "Purchases of your recipes"], ["creators", "Posts from creators you follow"], ["reviews", "Reviews on your recipes"], ["challenges", "Challenges starting"], ["updates", "Updates to saved recipes & platform news"]];
 
+export default function Settings() {
+  const me = useMe()!; const nav = useNavigate(); const { updateAccount, ai, setAI, logOut, stripeConfigured } = useStore();
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Profile");
+  const [p, setP] = useState({ name: me.name, handle: me.handle, bio: me.bio, emoji: me.emoji }); const [aiF, setAiF] = useState(ai);
+  const tog = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  const Switch = ({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) => <label className="flex cursor-pointer items-center justify-between py-3 text-sm"><span>{label}</span><button type="button" role="switch" aria-checked={on} onClick={() => set(!on)} className={`relative h-6 w-11 rounded-full transition ${on ? "bg-orange" : "bg-cream-dark"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${on ? "left-[22px]" : "left-0.5"}`} /></button></label>;
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
-        <p className="text-sm text-text-secondary mt-0.5">Customize your Lucent experience</p>
+    <div>
+      <PageHeader title="Settings" />
+      <Tabs tabs={TABS} value={tab} onChange={setTab} />
+      <div className="card max-w-2xl p-6">
+        {tab === "Profile" && (
+          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (p.name.trim().length < 2) return toast("Enter a name.", "err"); if (!/^@[a-z0-9_]{3,20}$/i.test(p.handle)) return toast("Handle must look like @name (3–20 letters, numbers or _).", "err"); updateAccount({ name: p.name.trim(), handle: p.handle, bio: p.bio.slice(0, 280), emoji: p.emoji }); toast("Profile saved"); }}>
+            <div><span className="label">Avatar</span><div className="flex flex-wrap gap-1.5">{["🍳", "👩‍🍳", "👨‍🍳", "🥑", "🍕", "🌶️", "🧁", "🍜", "🥕", "🍋"].map((e) => <button type="button" key={e} onClick={() => setP({ ...p, emoji: e })} className={`grid h-11 w-11 place-items-center rounded-full text-xl ${p.emoji === e ? "bg-orange-light ring-2 ring-orange" : "bg-cream"}`}>{e}</button>)}</div></div>
+            <div><label className="label" htmlFor="sn">Name</label><input id="sn" className="input" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })} maxLength={60} /></div>
+            <div><label className="label" htmlFor="sh">Handle</label><input id="sh" className="input" value={p.handle} onChange={(e) => setP({ ...p, handle: e.target.value })} /></div>
+            <div><label className="label" htmlFor="sb">Bio</label><textarea id="sb" className="input" rows={3} value={p.bio} onChange={(e) => setP({ ...p, bio: e.target.value })} maxLength={280} /></div>
+            <button className="btn-primary">Save profile</button>
+          </form>
+        )}
+        {tab === "Food preferences" && (
+          <div className="space-y-5">
+            <div><span className="label">Cooking experience</span><div className="flex flex-wrap gap-1.5">{(["Beginner", "Home cook", "Confident", "Pro"] as const).map((l) => <button key={l} onClick={() => updateAccount({ level: l })} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${me.level === l ? "bg-charcoal text-ivory" : "bg-cream"}`}>{l}</button>)}</div></div>
+            <div><span className="label">Dietary preferences</span><div className="flex flex-wrap gap-1.5">{DIETS.map((d) => <button key={d} onClick={() => updateAccount({ diet: tog(me.diet, d) })} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${me.diet.includes(d) ? "bg-sage" : "bg-cream"}`}>{d}</button>)}</div></div>
+            <div><span className="label">Allergies &amp; ingredient restrictions</span><div className="flex flex-wrap gap-1.5">{ALLERGENS.map((d) => <button key={d} onClick={() => updateAccount({ allergies: tog(me.allergies, d) })} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${me.allergies.includes(d) ? "bg-orange" : "bg-cream"}`}>{d}</button>)}</div>
+              <p className="mt-2 text-xs text-brown">We use these to tailor recommendations and show warnings. CRUNCH can't guarantee any recipe is safe for someone with an allergy: always read labels and consider cross-contact.</p></div>
+          </div>
+        )}
+        {tab === "Notifications" && <div className="divide-y divide-cream">{NOTIFY.map(([k, l]) => <Switch key={k} label={l} on={me.notify[k] !== false} set={(v) => updateAccount({ notify: { ...me.notify, [k]: v } as Account["notify"] })} />)}</div>}
+        {tab === "Privacy" && <div className="divide-y divide-cream"><Switch label="Public profile" on={me.privacy.publicProfile} set={(v) => updateAccount({ privacy: { ...me.privacy, publicProfile: v } })} /><Switch label="Show my activity to followers" on={me.privacy.showActivity} set={(v) => updateAccount({ privacy: { ...me.privacy, showActivity: v } })} /><Switch label="Allow direct messages" on={me.privacy.allowDMs} set={(v) => updateAccount({ privacy: { ...me.privacy, allowDMs: v } })} /></div>}
+        {tab === "AI & Integrations" && (
+          <div className="space-y-6">
+            <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (aiF.endpoint && !/^https:\/\//.test(aiF.endpoint)) return toast("Endpoint must start with https://", "err"); setAI(aiF); toast(aiF.endpoint ? "AI provider saved" : "Using built-in engine"); }}>
+              <h2 className="h-display text-xl">AI provider</h2>
+              <p className="rounded-xl bg-orange-light/50 p-3 text-xs"><b>Security:</b> keys entered here live in your browser's local storage, so use this only for personal testing. In production, point the endpoint at <i>your own server proxy</i> that holds the key (see docs/BACKEND.md). Never ship private API keys in frontend code.</p>
+              <div><label className="label" htmlFor="ae">Chat completions endpoint (OpenAI-compatible)</label><input id="ae" className="input" placeholder="https://your-proxy.example.com/v1/chat/completions" value={aiF.endpoint} onChange={(e) => setAiF({ ...aiF, endpoint: e.target.value.trim() })} /></div>
+              <div className="grid grid-cols-2 gap-3"><div><label className="label" htmlFor="am">Model</label><input id="am" className="input" value={aiF.model} onChange={(e) => setAiF({ ...aiF, model: e.target.value.trim() })} /></div><div><label className="label" htmlFor="ak">API key (optional)</label><input id="ak" type="password" className="input" autoComplete="off" value={aiF.key} onChange={(e) => setAiF({ ...aiF, key: e.target.value })} /></div></div>
+              <div className="flex gap-2"><button className="btn-primary">Save</button><button type="button" className="btn-ghost" onClick={() => { setAiF({ endpoint: "", model: "", key: "" }); setAI({ endpoint: "", model: "", key: "" }); }}>Use built-in engine</button></div>
+              <p className="text-xs text-brown">Status: {ai.endpoint ? "custom provider connected for AI Chef chat" : "built-in rules engine (no external AI)"}. Recipe generation and combination analysis currently always use the built-in engine.</p>
+            </form>
+            <div className="space-y-2 text-sm"><h2 className="h-display text-xl">Other services</h2>
+              <Row name="Payments (Stripe)" status={stripeConfigured ? "Connected" : "Not configured — demo checkout, no money moves"} />
+              <Row name="Authentication (Firebase / Supabase)" status="Local accounts on this device. Production auth: see docs/BACKEND.md" />
+              <Row name="Image generation" status="Coming soon" /><Row name="Grocery retailer integrations" status="Coming soon — prices and availability are never invented" /><Row name="Photo & barcode ingredient recognition" status="Coming soon" /></div>
+          </div>
+        )}
+        {tab === "Account" && (
+          <div className="space-y-4 text-sm">
+            <p><b>Email:</b> {me.email}</p><p><b>Member since:</b> {new Date(me.createdAt).toLocaleDateString()}</p><p><b>Plan:</b> {me.plus ? "CRUNCH Plus" : "Free"} · <Link to="/plus" className="font-semibold underline">See CRUNCH Plus</Link></p>
+            <div className="flex flex-wrap gap-2"><button className="btn-dark" onClick={() => { logOut(); nav("/auth"); }}>Log out</button>
+              <button className="btn-outline" onClick={() => { const blob = new Blob([localStorage.getItem("crunch-v1") ?? "{}"], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "crunch-data.json"; a.click(); URL.revokeObjectURL(a.href); }}>Export my data</button>
+              <button className="btn-outline !border-red-300 !text-red-700" onClick={() => { if (confirm("Erase ALL CRUNCH data stored on this device, including accounts? This can't be undone.")) { localStorage.removeItem("crunch-v1"); location.assign("/auth"); } }}>Erase local data</button></div>
+            {me.role === "admin" && <p className="text-xs text-brown">You're the administrator of this local install. <Link to="/admin" className="font-semibold underline">Open admin dashboard</Link></p>}
+          </div>
+        )}
       </div>
-
-      {/* Profile */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-text-primary">Profile</h2>
-        <div className="card p-4 flex items-center gap-4">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-xl font-bold text-text-inverse">
-            {user?.name?.[0]?.toUpperCase() ?? "U"}
-          </span>
-          <div>
-            <div className="text-base font-semibold text-text-primary">{user?.name ?? "User"}</div>
-            <div className="text-sm text-text-secondary">{user?.email ?? ""}</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Appearance */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-text-primary">Appearance</h2>
-        <div className="card divide-y divide-border">
-          <div className="p-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-text-primary">Theme</div>
-              <div className="text-xs text-text-tertiary">Choose your preferred color scheme</div>
-            </div>
-            <div className="flex gap-1">
-              {(["light", "dark", "system"] as const).map((t) => (
-                <button key={t} onClick={() => setTheme(t)} className={`chip capitalize ${theme === t ? "chip-active" : ""}`}>
-                  <Icon name={t === "light" ? "sun" : t === "dark" ? "moon" : "settings"} className="h-3.5 w-3.5" />
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="p-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-text-primary">Font Size</div>
-              <div className="text-xs text-text-tertiary">Adjust text size across the app</div>
-            </div>
-            <div className="flex gap-1">
-              {(["small", "medium", "large"] as const).map((s) => (
-                <button key={s} onClick={() => updatePreferences({ fontSize: s })} className={`chip capitalize ${user?.preferences?.fontSize === s ? "chip-active" : ""}`}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="p-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-text-primary">Reduced Motion</div>
-              <div className="text-xs text-text-tertiary">Minimize animations</div>
-            </div>
-            <input type="checkbox" checked={user?.preferences?.reducedMotion ?? false} onChange={(e) => updatePreferences({ reducedMotion: e.target.checked })} className="h-5 w-5 accent-[var(--accent)]" />
-          </div>
-        </div>
-      </section>
-
-      {/* AI Preferences */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-text-primary">AI Tutor Preferences</h2>
-        <div className="card divide-y divide-border">
-          <div className="p-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-text-primary">Difficulty Level</div>
-              <div className="text-xs text-text-tertiary">Default explanation complexity</div>
-            </div>
-            <div className="flex gap-1">
-              {(["beginner", "intermediate", "advanced"] as const).map((d) => (
-                <button key={d} onClick={() => updatePreferences({ aiDifficulty: d })} className={`chip capitalize ${user?.preferences?.aiDifficulty === d ? "chip-active" : ""}`}>
-                  {d}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="p-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-text-primary">Explanation Style</div>
-              <div className="text-xs text-text-tertiary">How the AI explains things by default</div>
-            </div>
-            <select
-              value={user?.preferences?.preferredExplanationStyle ?? "detailed"}
-              onChange={(e) => updatePreferences({ preferredExplanationStyle: e.target.value as any })}
-              className="input-field w-auto"
-            >
-              <option value="simple">Simple</option>
-              <option value="detailed">Detailed</option>
-              <option value="step-by-step">Step by Step</option>
-              <option value="visual">Visual</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      {/* AI Provider Config */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-text-primary">AI Provider Configuration</h2>
-        <div className="card p-4 space-y-3">
-          <p className="text-sm text-text-secondary">Configure API keys for AI providers. Keys are stored locally and never sent to our servers.</p>
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1.5">Anthropic API Key</label>
-            <input type="password" placeholder="sk-ant-..." className="input-field" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1.5">OpenAI API Key</label>
-            <input type="password" placeholder="sk-..." className="input-field" />
-          </div>
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-accent-subtle">
-            <Icon name="info" className="h-4 w-4 text-accent shrink-0" />
-            <p className="text-xs text-accent-text">API keys are required for AI features. They are stored locally on your device.</p>
-          </div>
-          <button className="btn-primary w-full">Save API Keys</button>
-        </div>
-      </section>
-
-      {/* Data */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-text-primary">Data & Privacy</h2>
-        <div className="card divide-y divide-border">
-          <button className="p-4 w-full text-left flex items-center justify-between hover:bg-surface-2 transition-colors">
-            <div>
-              <div className="text-sm font-medium text-text-primary">Export All Data</div>
-              <div className="text-xs text-text-tertiary">Download all your notes, flashcards, and settings</div>
-            </div>
-            <Icon name="download" className="h-4 w-4 text-text-tertiary" />
-          </button>
-          <button className="p-4 w-full text-left flex items-center justify-between hover:bg-surface-2 transition-colors group">
-            <div>
-              <div className="text-sm font-medium text-error">Delete All Data</div>
-              <div className="text-xs text-text-tertiary">Permanently remove all your data</div>
-            </div>
-            <Icon name="trash" className="h-4 w-4 text-error" />
-          </button>
-        </div>
-      </section>
-
-      <p className="text-xs text-text-tertiary text-center pb-8">Lucent v1.0 &middot; Your intelligent learning companion</p>
     </div>
   );
 }
+const Row = ({ name, status }: { name: string; status: string }) => <div className="flex justify-between gap-4 rounded-xl bg-cream px-4 py-3"><b>{name}</b><span className="text-right text-xs text-brown">{status}</span></div>;

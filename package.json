@@ -1,7 +1,7 @@
 {
-  "name": "studyverse",
+  "name": "crunch",
   "version": "1.0.0",
-  "description": "StudyVerse — The Ultimate AI Learning Platform",
+  "description": "CRUNCH — AI food creation and recipe marketplace",
   "private": true,
   "type": "module",
   "scripts": {

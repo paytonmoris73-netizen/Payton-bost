@@ -1,0 +1,134 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { CUISINES, MEALS } from "../data";
+import { DISCLAIMER_TASTE, askRemote, chefReply, findIngredientsInText, generateRecipes, matchScore, type GenRecipe } from "../engine";
+import { genToRecipe } from "../RecipeBody";
+import { useIngredients, useMe, useStore } from "../store";
+import { AllergenNote, Cover, NutritionPanel, PageHeader, Tabs, toast } from "../ui";
+
+interface Msg { role: "user" | "assistant"; text: string; recipes?: GenRecipe[] }
+const PROMPTS = ["What can I make with chicken, rice and spinach?", "What can I substitute for butter?", "How can I make pasta vegetarian?", "Create a dessert using banana and oats", "How do I improve tomato and mozzarella?"];
+const EQUIP = ["Oven", "Stovetop", "Blender", "Air fryer", "Slow cooker", "Microwave", "Grill"];
+
+export function GenCard({ g, onSaved }: { g: GenRecipe; onSaved?: (id: string) => void }) {
+  const me = useMe()!; const upsert = useStore((s) => s.upsertRecipe); const nav = useNavigate(); const [saved, setSaved] = useState<string | null>(null); const [open, setOpen] = useState(false);
+  const save = () => { const r = genToRecipe(g, me.id); upsert(r); setSaved(r.id); onSaved?.(r.id); toast("Saved to My Cookbook → Created"); return r.id; };
+  return (
+    <div className="card overflow-hidden">
+      <div className="grid sm:grid-cols-[180px_1fr]">
+        <Cover emoji={g.emoji} hue={g.emoji.codePointAt(0)! % 360} className="h-40 sm:h-full" />
+        <div className="p-4">
+          <h3 className="font-semibold">{g.title}</h3><p className="mt-1 text-sm text-brown">{g.description}</p>
+          <div className="mt-2 flex flex-wrap gap-1.5 text-xs"><span className="chip">Prep {g.prepMin}m</span><span className="chip">Cook {g.cookMin}m</span><span className="chip">Total {g.prepMin + g.cookMin}m</span><span className="chip">{g.servings} servings</span><span className="chip">{g.difficulty}</span></div>
+          {g.warnings.map((w) => <p key={w} className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs">⚠ {w}</p>)}
+          <div className="mt-3 flex flex-wrap gap-2"><button className="btn-ghost !py-1.5" onClick={() => setOpen(!open)}>{open ? "Hide details" : "View full recipe"}</button>{saved ? <><Link to={`/recipe/${saved}`} className="btn-dark !py-1.5">Open recipe</Link><button className="btn-primary !py-1.5" onClick={() => nav(`/cook/${saved}`)}>▶ Cook</button></> : <button className="btn-dark !py-1.5" onClick={save}>Save recipe</button>}</div>
+        </div>
+      </div>
+      {open && (
+        <div className="space-y-4 border-t border-cream p-4 text-sm">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div><h4 className="mb-1 font-semibold">Ingredients</h4><ul className="space-y-0.5 text-brown">{g.ingredients.map((i) => <li key={i.name}>• {i.amount} {i.name}</li>)}</ul><h4 className="mb-1 mt-3 font-semibold">Equipment</h4><p className="text-brown">{g.equipment.join(", ")}</p></div>
+            <div><h4 className="mb-1 font-semibold">Method</h4><ol className="list-decimal space-y-1.5 pl-5 text-brown">{g.steps.map((s, i) => <li key={i}>{s.text}{s.timerMin ? ` (${s.timerMin} min)` : ""}</li>)}</ol></div>
+          </div>
+          <NutritionPanel n={g.nutrition} servings={g.servings} /><AllergenNote allergens={g.allergens} diet={g.diet} />
+          {g.substitutions.length > 0 && <div><h4 className="mb-1 font-semibold">Substitutions</h4><ul className="list-disc pl-5 text-brown">{g.substitutions.map((s) => <li key={s}>{s}</li>)}</ul></div>}
+          <div><h4 className="mb-1 font-semibold">Storage</h4><p className="text-brown">{g.storage}</p></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Chat() {
+  const me = useMe()!; const ai = useStore((s) => s.ai);
+  const [msgs, setMsgs] = useState<Msg[]>([{ role: "assistant", text: "Hi, I'm your AI chef. Tell me what you have or what you're craving, and I'll help with ideas, substitutions and technique." }]);
+  const [text, setText] = useState(""); const [busy, setBusy] = useState(false); const end = useRef<HTMLDivElement>(null);
+  useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
+  const send = async (t: string) => {
+    t = t.trim(); if (!t || busy) return; setText(""); setMsgs((m) => [...m, { role: "user", text: t }]); setBusy(true);
+    const local = chefReply(t, { diet: me.diet, allergies: me.allergies });
+    try {
+      if (ai.endpoint) {
+        const hist = [...msgs, { role: "user" as const, text: t }].slice(-10).map((m) => ({ role: m.role, content: m.text }));
+        const reply = await askRemote(ai, hist); setMsgs((m) => [...m, { role: "assistant", text: reply, recipes: local.recipes }]);
+      } else { await new Promise((r) => setTimeout(r, 450)); setMsgs((m) => [...m, { role: "assistant", text: local.text, recipes: local.recipes }]); }
+    } catch (e) { setMsgs((m) => [...m, { role: "assistant", text: `I couldn't reach your AI provider (${(e as Error).message}). Here's what my built-in engine suggests:\n\n${local.text}`, recipes: local.recipes }]); }
+    setBusy(false);
+  };
+  return (
+    <div className="card flex h-[70vh] flex-col overflow-hidden">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+        {msgs.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : ""}`}><div className={`max-w-[88%] animate-slide-up ${m.role === "user" ? "rounded-2xl rounded-br-sm bg-charcoal px-4 py-2.5 text-ivory" : ""}`}>
+            {m.role === "assistant" && <div className="mb-1 text-xs font-semibold text-brown">👨‍🍳 AI Chef</div>}
+            <div className={`whitespace-pre-wrap text-sm leading-relaxed ${m.role === "assistant" ? "rounded-2xl rounded-tl-sm bg-cream px-4 py-3" : ""}`}>{m.text.replace(/\*\*(.+?)\*\*/g, "$1")}</div>
+            {m.recipes && <div className="mt-3 space-y-3">{m.recipes.map((g, k) => <GenCard key={k} g={g} />)}</div>}
+          </div></div>
+        ))}
+        {busy && <div className="flex gap-1 px-2">{[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 animate-bounce-soft rounded-full bg-brown-light" style={{ animationDelay: `${i * 0.15}s` }} />)}</div>}
+        <div ref={end} />
+      </div>
+      {msgs.length < 3 && <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-2">{PROMPTS.map((p) => <button key={p} onClick={() => send(p)} className="chip shrink-0 !py-2 hover:bg-orange-light">{p}</button>)}</div>}
+      <form className="flex gap-2 border-t border-cream p-3" onSubmit={(e) => { e.preventDefault(); send(text); }}>
+        <input className="input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask the chef anything…" aria-label="Message the AI chef" maxLength={600} /><button className="btn-primary" disabled={busy || !text.trim()}>Send</button>
+      </form>
+      <p className="px-4 pb-3 text-[11px] text-brown">{ai.endpoint ? `Connected to your AI provider (${ai.model || "default model"}).` : "Using CRUNCH's built-in rules engine. Connect an AI provider in Settings for open-ended answers."} AI can make mistakes; check food-safety and allergen details yourself.</p>
+    </div>
+  );
+}
+
+function Generator() {
+  const me = useMe()!; const ings = useIngredients();
+  const [picked, setPicked] = useState<string[]>([]); const [q, setQ] = useState(""); const [meal, setMeal] = useState("Dinner"); const [cuisine, setCuisine] = useState("Any"); const [time, setTime] = useState(45); const [diff, setDiff] = useState("Easy");
+  const [servings, setServings] = useState(2); const [equip, setEquip] = useState<string[]>(["Stovetop"]); const [diet, setDiet] = useState<string[]>(me.diet); const [flavor, setFlavor] = useState("Balanced");
+  const [out, setOut] = useState<GenRecipe[] | null>(null); const [busy, setBusy] = useState(false);
+  const sugg = q.trim() ? ings.filter((i) => !picked.includes(i.id) && matchScore(q, i.name) > 0).slice(0, 6) : [];
+  const run = () => {
+    if (!picked.length) return toast("Add at least one ingredient.", "err");
+    setBusy(true);
+    setTimeout(() => {
+      const items = picked.map((id) => ({ ing: ings.find((i) => i.id === id)!, qty: 0, unit: "g" }));
+      let r = generateRecipes(items, { meal, cuisine, servings, diet, difficulty: diff, flavor, equipment: equip, maxMinutes: time });
+      const fit = r.filter((x) => x.prepMin + x.cookMin <= time + 15); if (fit.length) r = fit;
+      setOut(r); setBusy(false);
+    }, 600);
+  };
+  const tog = (arr: string[], v: string, set: (a: string[]) => void) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  return (
+    <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
+      <div className="card space-y-4 p-5 lg:sticky lg:top-20 lg:self-start">
+        <div><label className="label" htmlFor="gi">Available ingredients</label>
+          <div className="mb-2 flex flex-wrap gap-1.5">{picked.map((id) => { const i = ings.find((x) => x.id === id)!; return <button key={id} className="chip bg-orange-light" onClick={() => setPicked(picked.filter((x) => x !== id))}>{i.emoji} {i.name} ✕</button>; })}</div>
+          <input id="gi" className="input" placeholder="Type to add… or paste a list" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const found = findIngredientsInText(q); const add = found.length ? found : sugg.slice(0, 1); if (add.length) { setPicked([...new Set([...picked, ...add.map((a) => a.id)])]); setQ(""); } } }} />
+          <div className="mt-2 flex flex-wrap gap-1.5">{sugg.map((i) => <button key={i.id} className="chip hover:bg-orange-light" onClick={() => { setPicked([...picked, i.id]); setQ(""); }}>＋ {i.emoji} {i.name}</button>)}</div></div>
+        <div><span className="label">Meal type</span><div className="flex flex-wrap gap-1.5">{MEALS.map((m) => <button key={m} onClick={() => setMeal(m)} className={`rounded-full px-3 py-1 text-xs font-semibold ${meal === m ? "bg-charcoal text-ivory" : "bg-cream"}`}>{m}</button>)}</div></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="label" htmlFor="gc">Cuisine</label><select id="gc" className="input" value={cuisine} onChange={(e) => setCuisine(e.target.value)}>{CUISINES.map((c) => <option key={c}>{c}</option>)}</select></div>
+          <div><label className="label" htmlFor="gd">Difficulty</label><select id="gd" className="input" value={diff} onChange={(e) => setDiff(e.target.value)}><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
+          <div><label className="label" htmlFor="gt">Max time (min)</label><input id="gt" type="number" min={5} max={480} className="input" value={time} onChange={(e) => setTime(Math.max(5, Number(e.target.value) || 5))} /></div>
+          <div><label className="label" htmlFor="gsv">Servings</label><input id="gsv" type="number" min={1} max={12} className="input" value={servings} onChange={(e) => setServings(Math.max(1, Math.min(12, Number(e.target.value) || 1)))} /></div>
+        </div>
+        <div><span className="label">Equipment</span><div className="flex flex-wrap gap-1.5">{EQUIP.map((m) => <button key={m} onClick={() => tog(equip, m, setEquip)} className={`rounded-full px-3 py-1 text-xs font-semibold ${equip.includes(m) ? "bg-sage" : "bg-cream"}`}>{m}</button>)}</div></div>
+        <div><span className="label">Dietary preferences</span><div className="flex flex-wrap gap-1.5">{["vegan", "vegetarian", "gluten-free", "dairy-free"].map((m) => <button key={m} onClick={() => tog(diet, m, setDiet)} className={`rounded-full px-3 py-1 text-xs font-semibold ${diet.includes(m) ? "bg-sage" : "bg-cream"}`}>{m}</button>)}</div></div>
+        <div><label className="label" htmlFor="gf">Flavour profile</label><select id="gf" className="input" value={flavor} onChange={(e) => setFlavor(e.target.value)}>{["Balanced", "Savoury", "Sweet", "Spicy", "Fresh & bright", "Rich & comforting"].map((f) => <option key={f}>{f}</option>)}</select></div>
+        <button className="btn-primary w-full" onClick={run} disabled={busy}>{busy ? "Generating…" : "✨ Generate recipes"}</button>
+      </div>
+      <div className="space-y-4">
+        {busy && [0, 1, 2].map((i) => <div key={i} className="skeleton h-44" />)}
+        {!busy && !out && <div className="card grid place-items-center px-6 py-16 text-center"><div><div className="text-6xl">👨‍🍳</div><h3 className="h-display mt-2 text-2xl">Tell me what you've got</h3><p className="mx-auto mt-1 max-w-sm text-sm text-brown">Add your ingredients and preferences and I'll draft detailed recipes with quantities, steps, nutrition estimates and allergen notes.</p></div></div>}
+        {!busy && out && <>{out.map((g, i) => <GenCard key={i} g={g} />)}<p className="text-xs text-brown">{DISCLAIMER_TASTE} Generated by CRUNCH's built-in engine. Verify safe cooking temperatures and allergens.</p></>}
+      </div>
+    </div>
+  );
+}
+
+export default function Chef() {
+  const [p, setP] = useSearchParams(); const tab = (p.get("tab") === "generate" ? "Recipe generator" : "Ask the chef") as "Ask the chef" | "Recipe generator";
+  return (
+    <div>
+      <PageHeader title="AI Chef" sub="A knowledgeable cooking assistant for ideas, substitutions, technique and full recipes." />
+      <Tabs tabs={["Ask the chef", "Recipe generator"] as const} value={tab} onChange={(t) => setP(t === "Recipe generator" ? { tab: "generate" } : {})} />
+      {tab === "Ask the chef" ? <Chat /> : <Generator />}
+    </div>
+  );
+}
