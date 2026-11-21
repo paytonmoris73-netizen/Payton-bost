@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { G } from "./icons";
 import { Link } from "react-router-dom";
 import { create } from "zustand";
 import { creatorOf, useStore } from "./store";
@@ -40,7 +41,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
       <div className={`animate-slide-up max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-ivory p-5 shadow-float md:rounded-3xl md:p-7 ${wide ? "md:max-w-3xl" : "md:max-w-lg"}`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="h-display text-2xl">{title}</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-cream text-lg hover:bg-cream-dark" aria-label="Close">✕</button>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-cream text-lg hover:bg-cream-dark" aria-label="Close"><G g="✕" /></button>
         </div>
         {children}
       </div>
@@ -51,12 +52,12 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
   return (
     <span className="inline-flex items-center gap-0.5 text-orange" style={{ fontSize: size }} aria-label={`${value.toFixed(1)} out of 5`}>
-      {"★★★★★".split("").map((_, i) => <span key={i} className={i + 0.5 <= value ? "" : "opacity-25"}>★</span>)}
+      {"★★★★★".split("").map((_, i) => <span key={i} className={i + 0.5 <= value ? "" : "opacity-25"}><G g="★" /></span>)}
     </span>
   );
 }
 export function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
-  return <div className="flex gap-1 text-2xl">{[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" onClick={() => onChange(n)} className={n <= value ? "text-orange" : "text-cream-dark"} aria-label={`${n} stars`}>★</button>)}</div>;
+  return <div className="flex gap-1 text-2xl">{[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" onClick={() => onChange(n)} className={n <= value ? "text-orange" : "text-cream-dark"} aria-label={`${n} stars`}><G g="★" /></button>)}</div>;
 }
 
 export function Cover({ emoji, hue, className = "", size = "text-6xl" }: { emoji: string; hue: number; className?: string; size?: string }) {
@@ -76,7 +77,7 @@ export function Skeleton({ className = "" }: { className?: string }) { return <d
 export function Empty({ emoji = "🍽️", title, text, action }: { emoji?: string; title: string; text?: string; action?: ReactNode }) {
   return (
     <div className="card flex flex-col items-center gap-2 px-6 py-12 text-center">
-      <div className="text-5xl">{emoji}</div><h3 className="h-display text-xl">{title}</h3>
+      <div className="text-5xl text-orange"><G g={emoji} size={44} /></div><h3 className="h-display text-xl">{title}</h3>
       {text && <p className="max-w-sm text-sm text-brown">{text}</p>}{action && <div className="mt-2">{action}</div>}
     </div>
   );
@@ -118,7 +119,7 @@ export function SaveButton({ id, className = "" }: { id: string; className?: str
   return (
     <button aria-pressed={saved} aria-label={saved ? "Unsave recipe" : "Save recipe"} onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(id); setK((n) => n + 1); toast(saved ? "Removed from saved" : "Saved to your cookbook"); }}
       className={`grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-card backdrop-blur transition hover:scale-105 ${className}`}>
-      <span key={k} className={`${k ? "pop" : ""} ${saved ? "text-orange" : "text-charcoal"}`}>{saved ? "♥" : "♡"}</span>
+      <span key={k} className={`${k ? "pop" : ""} ${saved ? "text-orange" : "text-charcoal"}`}><G g={saved ? "♥" : "♡"} size={18} /></span>
     </button>
   );
 }
@@ -139,7 +140,7 @@ export function RecipeCard({ r, compact, owned }: { r: Recipe; compact?: boolean
         <div className="mt-2 flex items-center gap-2 text-xs text-brown">
           <Stars value={r.rating} /> <span>{r.rating.toFixed(1)} ({r.reviews})</span>
         </div>
-        {!bundle && <div className="mt-2 flex gap-2 text-xs"><span className="chip">⏱ {totalMin(r)} min</span><span className="chip">{r.difficulty}</span></div>}
+        {!bundle && <div className="mt-2 flex gap-2 text-xs"><span className="chip"><G g="⏱" /> {totalMin(r)} min</span><span className="chip">{r.difficulty}</span></div>}
         {bundle && <div className="mt-2 text-xs text-brown">{r.bundleOf!.length} recipes</div>}
         {!compact && <p className="mt-2 line-clamp-2 text-xs text-brown">{r.description}</p>}
       </div>

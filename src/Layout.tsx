@@ -5,31 +5,8 @@ import { matchScore } from "./engine";
 import { useIngredients, useMe, useStore } from "./store";
 import { Avatar, Modal } from "./ui";
 
-const P: Record<string, string> = {
-  home: "M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z",
-  combine: "M9 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM15 9a5 5 0 1 0 0 10 5 5 0 0 0 0-10z",
-  chef: "M7 14a4 4 0 1 1 1-7.9A4 4 0 0 1 16 6a4 4 0 1 1 1 8v6H7z",
-  compass: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z",
-  store: "M4 9l1-5h14l1 5M4 9v11h16V9M4 9a3 3 0 0 0 5 0 3 3 0 0 0 6 0 3 3 0 0 0 5 0",
-  basket: "M3 9h18l-2 11H5zM8 9l3-5M16 9l-3-5",
-  people: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 2.7-5 6-5s6 2 6 5M17 11a2.5 2.5 0 1 0 0-5M17 15c2.5 0 4 1.7 4 4",
-  book: "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11",
-  bookmark: "M6 3h12v18l-6-4-6 4z",
-  list: "M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2",
-  msg: "M4 5h16v11H9l-5 4z",
-  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7",
-  plus: "M12 5v14M5 12h14",
-  search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5",
-  bell: "M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 21h4",
-  menu: "M4 7h16M4 12h16M4 17h16",
-  shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
-  settings: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19 12l2-1-2-4-2 1a7 7 0 0 0-2-1l-1-2H9L8 7a7 7 0 0 0-2 1L4 7 2 11l2 1a7 7 0 0 0 0 2l-2 1 2 4 2-1a7 7 0 0 0 2 1l1 2h4l1-2a7 7 0 0 0 2-1l2 1 2-4-2-1a7 7 0 0 0 0-2z",
-  bag: "M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0",
-};
-export function Icon({ n, size = 20, className = "" }: { n: string; size?: number; className?: string }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden><path d={P[n] ?? P.home} /></svg>;
-}
-
+import { G, Icon } from "./icons";
+export { Icon };
 const NAV = [
   { to: "/", label: "Home", icon: "home", end: true }, { to: "/combiner", label: "Food Combiner", icon: "combine" }, { to: "/chef", label: "AI Chef", icon: "chef" },
   { to: "/discover", label: "Discover", icon: "compass" }, { to: "/marketplace", label: "Recipe Marketplace", icon: "store" }, { to: "/shop", label: "Ingredient Shop", icon: "basket" },
@@ -64,7 +41,7 @@ function GlobalSearch() {
       {open && (sugg.length > 0 || (!q && recent.length > 0)) && (
         <div className="animate-scale-in absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl bg-white p-2 shadow-float">
           {!q && <div className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-brown">Recent searches</div>}
-          {!q && recent.map((r) => <button key={r} onClick={() => { setQ(r); go(r); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-cream">🕘 {r}</button>)}
+          {!q && recent.map((r) => <button key={r} onClick={() => { setQ(r); go(r); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-cream"><G g="🕘" /> {r}</button>)}
           {sugg.map((s) => <Link key={s.to + s.label} to={s.to} onClick={() => { record(q); setOpen(false); }} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-cream"><span>{s.label}</span><span className="text-xs text-brown">{s.sub}</span></Link>)}
           {q && <button onClick={() => go(q)} className="mt-1 block w-full rounded-lg bg-cream px-3 py-2 text-left text-sm font-semibold">Search all for “{q}” →</button>}
         </div>
@@ -108,7 +85,7 @@ function CreateSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
   return (
     <Modal open={open} onClose={onClose} title="Create">
       <div className="grid gap-3 sm:grid-cols-2">
-        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className="flex items-center gap-4 rounded-2xl bg-cream p-4 transition hover:bg-cream-dark hover:-translate-y-0.5"><span className="text-3xl">{i.icon}</span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
+        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className="flex items-center gap-4 rounded-2xl bg-cream p-4 transition hover:bg-cream-dark hover:-translate-y-0.5"><span className="grid h-12 w-12 place-items-center rounded-xl bg-white text-orange"><G g={i.icon} size={24} /></span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
       </div>
     </Modal>
   );
@@ -146,7 +123,7 @@ export function Layout() {
         </div>
       </header>
       <div className="px-4 pb-2 pt-3 md:hidden"><GlobalSearch /></div>
-      {ann && <div className="bg-sage-light px-4 py-2 text-center text-sm font-medium">📣 {ann.text}</div>}
+      {ann && <div className="bg-sage-light px-4 py-2 text-center text-sm font-medium"><G g="📣" /> {ann.text}</div>}
 
       <main className="page-enter mx-auto max-w-7xl px-4 pb-28 pt-6 md:px-8 md:pb-12" key={loc.pathname}><Outlet /></main>
 
@@ -164,7 +141,7 @@ export function Layout() {
       {drawer && (
         <div className="fixed inset-0 z-[60] bg-charcoal/50 animate-fade-in md:hidden" onClick={() => setDrawer(false)}>
           <div className="animate-slide-in-right h-full w-72 overflow-y-auto bg-ivory p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="text-xl">✕</button></div>
+            <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="text-xl"><G g="✕" /></button></div>
             {[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${isActive ? "bg-charcoal text-ivory" : ""}`}><Icon n={n.icon} />{n.label}</NavLink>)}
           </div>
         </div>

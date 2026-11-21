@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { G } from "../icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CATEGORIES, COOKING_STYLES, MEALS } from "../data";
 import { DISCLAIMER_TASTE, UNITS, analyze, comboToItems, generateRecipes, matchScore, type ComboItem, type GenRecipe } from "../engine";
@@ -89,7 +90,7 @@ export default function Combiner() {
     <div>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div><h1 className="h-display text-3xl md:text-4xl">Food Combiner</h1><p className="text-sm text-brown">Pick ingredients, arrange them, and see how well they might work together.</p></div>
-        <div className="flex flex-wrap gap-2"><button className="btn-ghost" onClick={() => setScanOpen(true)}>📷 Scan / photo</button><button className="btn-ghost" onClick={() => setListOpen(true)}>📚 My combinations ({combos.length})</button></div>
+        <div className="flex flex-wrap gap-2"><button className="btn-ghost" onClick={() => setScanOpen(true)}><G g="📷" /> Scan / photo</button><button className="btn-ghost" onClick={() => setListOpen(true)}><G g="📚" /> My combinations ({combos.length})</button></div>
       </div>
       <div className="lg:hidden"><Tabs tabs={["Ingredients", "Workspace", "Analysis"] as const} value={tab} onChange={setTab} /></div>
 
@@ -109,13 +110,13 @@ export default function Combiner() {
                     <button onClick={() => { add(i); toast(`${i.name} added`); }} className={`flex w-full flex-col items-center gap-1 rounded-xl p-2.5 text-center transition active:scale-95 ${on ? "bg-orange-light ring-2 ring-orange" : "bg-cream hover:bg-cream-dark"}`} aria-label={`Add ${i.name}`}>
                       <span className="text-3xl">{i.emoji}</span><span className="line-clamp-1 text-[11px] font-semibold">{i.name}</span>
                     </button>
-                    <button onClick={() => toggleFrequent(i.id)} className={`absolute right-1 top-1 text-xs ${frequent.includes(i.id) ? "text-orange" : "text-brown-light"}`} aria-label={frequent.includes(i.id) ? "Remove from frequent" : "Mark as frequent"}>{frequent.includes(i.id) ? "★" : "☆"}</button>
+                    <button onClick={() => toggleFrequent(i.id)} className={`absolute right-1 top-1 text-xs ${frequent.includes(i.id) ? "text-orange" : "text-brown-light"}`} aria-label={frequent.includes(i.id) ? "Remove from frequent" : "Mark as frequent"}><G g={frequent.includes(i.id) ? "★" : "☆"} /></button>
                   </div>
                 );
               })}
               {shown.length === 0 && <div className="col-span-3 py-6 text-center text-sm text-brown">{cat === "Frequent" ? "Star ingredients to find them here." : `No match for “${q}”.`}<br /><button className="mt-2 font-semibold underline" onClick={() => setCustomOpen(true)}>Add it as a custom ingredient</button></div>}
             </div>
-            <button className="btn-outline mt-3 w-full" onClick={() => setCustomOpen(true)}>＋ Add custom ingredient</button>
+            <button className="btn-outline mt-3 w-full" onClick={() => setCustomOpen(true)}><G g="＋" /> Add custom ingredient</button>
           </div>
         </section>
 
@@ -134,7 +135,7 @@ export default function Combiner() {
                   <div key={it.id} className="animate-scale-in absolute select-none rounded-2xl bg-white p-2.5 shadow-card" style={{ left: it.x, top: it.y, width: CARD_W, height: CARD_H }}>
                     <div onPointerDown={(e) => onDown(e, it)} className="flex cursor-grab items-center gap-2 active:cursor-grabbing" style={{ touchAction: "none" }}>
                       <span className="text-3xl">{ing.emoji}</span><span className="line-clamp-2 flex-1 text-xs font-bold leading-tight">{ing.name}</span>
-                      <button onPointerDown={(e) => e.stopPropagation()} onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} className="text-brown-light hover:text-red-600" aria-label={`Remove ${ing.name}`}>✕</button>
+                      <button onPointerDown={(e) => e.stopPropagation()} onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} className="text-brown-light hover:text-red-600" aria-label={`Remove ${ing.name}`}><G g="✕" /></button>
                     </div>
                     <div className="mt-2 flex gap-1">
                       <input type="number" min={0.1} step={it.unit === "g" || it.unit === "ml" ? 10 : 0.5} value={it.qty} onChange={(e) => setItems((p) => p.map((x) => (x.id === it.id ? { ...x, qty: Math.max(0.1, Number(e.target.value) || 0.1) } : x)))} className="w-14 rounded-lg border border-cream-dark px-1.5 py-1 text-xs" aria-label={`${ing.name} quantity`} />
@@ -146,7 +147,7 @@ export default function Combiner() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-1.5" aria-live="polite"><span className="text-xs font-semibold uppercase tracking-wide text-brown">Current combination</span>{comboItems.map((c) => <span key={c.ing.id} className="chip">{c.ing.emoji} {c.qty} {c.unit} {c.ing.name}</span>)}{!items.length && <span className="text-sm text-brown">nothing yet</span>}</div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <button className="btn-primary" disabled={!items.length} onClick={() => setGenOpen(true)}>✨ CREATE MY RECIPE</button>
+              <button className="btn-primary" disabled={!items.length} onClick={() => setGenOpen(true)}><G g="✨" /> CREATE MY RECIPE</button>
               <button className="btn-dark" disabled={!items.length} onClick={() => setSaveOpen(true)}>{comboId ? "Update saved combination" : "Save combination"}</button>
               <button className="btn-ghost" disabled={!items.length} onClick={share}>Share</button>
             </div>
@@ -164,10 +165,10 @@ export default function Combiner() {
                   <div><div className="font-semibold">Compatibility score</div><p className="text-xs text-brown">Out of 100. A rough guide to how conventional and balanced this combination is, not a taste guarantee.</p></div>
                 </div>
                 <div className="grid gap-3"><Meter label="Flavour balance" value={a.flavor} /><Meter label="Texture" value={a.texture} color="#A8B59A" /><Meter label="Versatility" value={a.versatility} color="#8A725E" /><Meter label="Recipe potential" value={a.potential} /></div>
-                <div><h3 className="mb-2 text-sm font-semibold">Why this score</h3><ul className="space-y-1 text-sm text-brown">{a.reasons.map((r) => <li key={r}>✓ {r}</li>)}</ul></div>
+                <div><h3 className="mb-2 text-sm font-semibold">Why this score</h3><ul className="space-y-1 text-sm text-brown">{a.reasons.map((r) => <li key={r}><G g="✓" /> {r}</li>)}</ul></div>
                 <div className="grid grid-cols-3 gap-2 text-center">{([["Sweetness", a.profile.sweet], ["Saltiness", a.profile.salty], ["Sourness", a.profile.sour]] as const).map(([l, v]) => <div key={l} className="rounded-xl bg-cream p-2"><div className="text-lg font-bold">{v}%</div><div className="text-[11px] text-brown">{l}</div></div>)}</div>
-                {a.conflicts.length > 0 && <div className="rounded-xl bg-orange-light/40 p-3"><h3 className="mb-1 text-sm font-semibold">Possible flavour conflicts</h3><ul className="space-y-1 text-sm">{a.conflicts.map((c) => <li key={c}>⚠ {c}</li>)}</ul></div>}
-                {a.suggestions.length > 0 && <div><h3 className="mb-2 text-sm font-semibold">Suggested additions</h3><div className="flex flex-wrap gap-1.5">{a.suggestions.map((s) => <button key={s.id} className="chip hover:bg-orange-light" onClick={() => add(s)}>＋ {s.emoji} {s.name}</button>)}</div></div>}
+                {a.conflicts.length > 0 && <div className="rounded-xl bg-orange-light/40 p-3"><h3 className="mb-1 text-sm font-semibold">Possible flavour conflicts</h3><ul className="space-y-1 text-sm">{a.conflicts.map((c) => <li key={c}><G g="⚠" /> {c}</li>)}</ul></div>}
+                {a.suggestions.length > 0 && <div><h3 className="mb-2 text-sm font-semibold">Suggested additions</h3><div className="flex flex-wrap gap-1.5">{a.suggestions.map((s) => <button key={s.id} className="chip hover:bg-orange-light" onClick={() => add(s)}><G g="＋" /> {s.emoji} {s.name}</button>)}</div></div>}
                 <div><h3 className="mb-2 text-sm font-semibold">Recipe ideas</h3><div className="flex flex-wrap gap-1.5">{a.ideas.map((s) => <span key={s} className="chip">{s}</span>)}</div></div>
                 <div><h3 className="mb-2 text-sm font-semibold">Cooking methods</h3><div className="flex flex-wrap gap-1.5">{a.methods.map((s) => <span key={s} className="chip bg-sage-light">{s}</span>)}</div></div>
                 <div><NutritionPanel n={a.nutrition.perServing} servings={a.nutrition.servings} partial={a.nutrition.partial} />
@@ -236,7 +237,7 @@ function ScanModal({ open, onClose, onPick, onCustom }: { open: boolean; onClose
       <input type="file" accept="image/*" capture="environment" className="mb-3 text-sm" onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; try { setImg(await shrink(f)); } catch (err) { toast((err as Error).message, "err"); } }} />
       {img && <img src={img} alt="Your ingredient photo" className="mb-3 max-h-56 w-full rounded-xl object-cover" />}
       <input className="input mb-2" placeholder="Type what you see or the product name…" value={q} onChange={(e) => setQ(e.target.value)} />
-      <div className="flex flex-wrap gap-2">{res.map((i) => <button key={i.id} className="chip !py-2 hover:bg-orange-light" onClick={() => onPick(i)}>＋ {i.emoji} {i.name}</button>)}</div>
+      <div className="flex flex-wrap gap-2">{res.map((i) => <button key={i.id} className="chip !py-2 hover:bg-orange-light" onClick={() => onPick(i)}><G g="＋" /> {i.emoji} {i.name}</button>)}</div>
       {q.trim() && res.length === 0 && <p className="text-sm text-brown">No match. <button className="font-semibold underline" onClick={onCustom}>Add as custom ingredient</button></p>}
     </Modal>
   );
@@ -262,7 +263,7 @@ function GenerateModal({ items, onClose, onSave }: { items: ComboItem[]; onClose
               {open === i && (
                 <div className="mt-3 border-t border-cream pt-3 text-sm">
                   <p className="text-brown">{g.description}</p>
-                  {g.warnings.map((w) => <p key={w} className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs">⚠ {w}</p>)}
+                  {g.warnings.map((w) => <p key={w} className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs"><G g="⚠" /> {w}</p>)}
                   <h4 className="mt-3 font-semibold">Ingredients</h4><ul className="columns-2 text-brown">{g.ingredients.map((x) => <li key={x.name}>{x.amount} {x.name}</li>)}</ul>
                   <h4 className="mt-3 font-semibold">Method</h4><ol className="list-decimal space-y-1 pl-5 text-brown">{g.steps.map((s, k) => <li key={k}>{s.text}</li>)}</ol>
                   {g.allergens.length > 0 && <p className="mt-3 text-xs text-brown">Contains: {g.allergens.join(", ")}. Check labels; cross-contact can't be ruled out.</p>}

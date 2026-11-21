@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { G } from "./icons";
 import { Link, useNavigate } from "react-router-dom";
 import { DISCLAIMER_TASTE, totalMin } from "./engine";
 import type { GenRecipe } from "./engine";
@@ -39,7 +40,7 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
       <div>
         <div className="relative overflow-hidden rounded-3xl"><Cover emoji={r.emoji} hue={r.hue} className="aspect-[4/3]" size="text-[9rem]" /><SaveButton id={r.id} className="absolute right-4 top-4" /></div>
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="chip">⏱ {totalMin(r)} min total</span><span className="chip">Prep {r.prepMin}m</span><span className="chip">Cook {r.cookMin}m</span><span className="chip">{r.difficulty}</span><span className="chip">{r.cuisine}</span>
+          <span className="chip"><G g="⏱" /> {totalMin(r)} min total</span><span className="chip">Prep {r.prepMin}m</span><span className="chip">Cook {r.cookMin}m</span><span className="chip">{r.difficulty}</span><span className="chip">{r.cuisine}</span>
           {r.ai && <span className="chip bg-sage-light">AI-assisted draft</span>}
         </div>
         <h1 className="h-display mt-3 text-4xl">{r.title}</h1>
@@ -47,11 +48,11 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
         <p className="mt-3 text-brown">{r.description}</p>
         {r.ai && <p className="mt-2 text-xs text-brown">{DISCLAIMER_TASTE}</p>}
         <div className="mt-5 flex flex-wrap gap-2">
-          {!preview && <button className="btn-primary" onClick={() => nav(`/cook/${r.id}`)}>▶ Start cooking</button>}
-          <button className="btn-ghost" onClick={addAll}>🛒 Add to shopping list</button>
-          <button className="btn-ghost" onClick={() => toggleFav(r.id)}>{favorites.includes(r.id) ? "★ Favourite" : "☆ Favourite"}</button>
-          <button className="btn-ghost" onClick={() => setFolderOpen(true)}>📁 Add to folder</button>
-          {!preview && <button className="btn-ghost" onClick={() => { markCooked(r.id); toast("Marked as cooked (+XP)"); }}>✅ I cooked this{cooked.filter((x) => x.id === r.id).length ? ` (${cooked.filter((x) => x.id === r.id).length})` : ""}</button>}
+          {!preview && <button className="btn-primary" onClick={() => nav(`/cook/${r.id}`)}><G g="▶" /> Start cooking</button>}
+          <button className="btn-ghost" onClick={addAll}><G g="🛒" /> Add to shopping list</button>
+          <button className="btn-ghost" onClick={() => toggleFav(r.id)}>{favorites.includes(r.id) ? <><G g="★" /> Favourite</> : <><G g="☆" /> Favourite</>}</button>
+          <button className="btn-ghost" onClick={() => setFolderOpen(true)}><G g="📁" /> Add to folder</button>
+          {!preview && <button className="btn-ghost" onClick={() => { markCooked(r.id); toast("Marked as cooked (+XP)"); }}><G g="✅" /> I cooked this{cooked.filter((x) => x.id === r.id).length ? ` (${cooked.filter((x) => x.id === r.id).length})` : ""}</button>}
           {!mine && !preview && <button className="btn-outline" onClick={() => setReportOpen(true)}>Report</button>}
           {mine && <Link className="btn-outline" to={`/creator/edit/${r.id}`}>Edit</Link>}
         </div>
@@ -78,7 +79,7 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
 
         <div className="card p-5">
           <h2 className="h-display mb-3 text-2xl">Method</h2>
-          <ol className="space-y-4">{r.steps.map((s, i) => <li key={i} className="flex gap-3"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-charcoal text-xs font-bold text-ivory">{i + 1}</span><div><p className="text-sm leading-relaxed">{s.text}</p>{s.timerMin && <span className="mt-1 inline-block text-xs text-brown">⏲ {s.timerMin >= 60 ? `${Math.round(s.timerMin / 6) / 10} h` : `${s.timerMin} min`}</span>}</div></li>)}</ol>
+          <ol className="space-y-4">{r.steps.map((s, i) => <li key={i} className="flex gap-3"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-charcoal text-xs font-bold text-ivory">{i + 1}</span><div><p className="text-sm leading-relaxed">{s.text}</p>{s.timerMin && <span className="mt-1 inline-block text-xs text-brown"><G g="⏲" /> {s.timerMin >= 60 ? `${Math.round(s.timerMin / 6) / 10} h` : `${s.timerMin} min`}</span>}</div></li>)}</ol>
         </div>
 
         <div className="card space-y-4 p-5">

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { G } from "../icons";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { scaleAmount } from "../RecipeBody";
 import { canAccess, useCatalogue, useMe, useOwnedIds, useStore } from "../store";
@@ -18,7 +19,7 @@ export default function CookMode() {
     if (!running) return;
     tick.current = window.setInterval(() => setLeft((l) => {
       if (l === null) return l;
-      if (l <= 1) { window.clearInterval(tick.current); setRunning(false); toast("⏲ Timer finished!"); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); return 0; }
+      if (l <= 1) { window.clearInterval(tick.current); setRunning(false); toast("Timer finished!"); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); return 0; }
       return l - 1;
     }), 1000);
     return () => window.clearInterval(tick.current);
@@ -33,7 +34,7 @@ export default function CookMode() {
     <div className="flex min-h-screen flex-col bg-ivory">
       <div className="h-1.5 bg-cream"><div className="h-full bg-orange transition-all duration-300" style={{ width: `${((i + 1) / r.steps.length) * 100}%` }} /></div>
       <header className="flex items-center justify-between px-4 py-3 md:px-8">
-        <button onClick={() => nav(-1)} className="btn-ghost">✕ Exit</button>
+        <button onClick={() => nav(-1)} className="btn-ghost"><G g="✕" /> Exit</button>
         <div className="text-center"><div className="line-clamp-1 font-semibold">{r.title}</div><div className="text-xs text-brown">Step {i + 1} of {r.steps.length}</div></div>
         <div className="flex gap-2"><button className={`btn-ghost ${voice ? "!bg-orange" : ""}`} onClick={() => { const v = !voice; setVoice(v); if (!v && "speechSynthesis" in window) window.speechSynthesis.cancel(); if (v && !("speechSynthesis" in window)) toast("Voice isn't supported in this browser.", "err"); }} aria-pressed={voice} aria-label="Read steps aloud">🔊</button><button className="btn-ghost" onClick={() => setShowIng(true)}>🧺</button></div>
       </header>
@@ -57,7 +58,7 @@ export default function CookMode() {
       {showIng && (
         <div className="fixed inset-0 z-50 flex justify-end bg-charcoal/50 animate-fade-in" onClick={() => setShowIng(false)}>
           <aside className="animate-slide-in-right h-full w-full max-w-sm overflow-y-auto bg-ivory p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between"><h2 className="h-display text-2xl">Ingredients</h2><button onClick={() => setShowIng(false)} aria-label="Close">✕</button></div>
+            <div className="mb-3 flex items-center justify-between"><h2 className="h-display text-2xl">Ingredients</h2><button onClick={() => setShowIng(false)} aria-label="Close"><G g="✕" /></button></div>
             <div className="mb-3 flex items-center gap-2 text-sm"><button className="grid h-8 w-8 place-items-center rounded-full bg-cream" onClick={() => setServings(Math.max(1, servings - 1))}>−</button><span className="font-semibold">{servings} servings</span><button className="grid h-8 w-8 place-items-center rounded-full bg-cream" onClick={() => setServings(servings + 1)}>+</button></div>
             {r.ingredients.map((g) => <label key={g.name} className="flex items-center gap-3 border-b border-cream py-3"><input type="checkbox" className="h-5 w-5 accent-orange" checked={!!checked[g.name]} onChange={() => setChecked((p) => ({ ...p, [g.name]: !p[g.name] }))} /><span className={`flex-1 ${checked[g.name] ? "text-brown-light line-through" : ""}`}>{g.name}</span><span className="text-brown">{scaleAmount(g.amount, factor)}</span></label>)}
           </aside>

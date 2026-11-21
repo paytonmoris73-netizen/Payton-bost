@@ -1,6 +1,6 @@
 export type Category =
   | "Fruits" | "Vegetables" | "Meats" | "Seafood" | "Dairy" | "Cheese" | "Grains" | "Pasta"
-  | "Sauces" | "Spices" | "Snacks" | "Desserts" | "Drinks" | "Baking" | "Other";
+  | "Sauces" | "Spices" | "Snacks" | "Desserts" | "Nuts & Seeds" | "International" | "Drinks" | "Baking" | "Other";
 
 export type Taste = "sweet" | "salty" | "sour" | "bitter" | "umami" | "fat" | "heat";
 export type Texture = "crisp" | "creamy" | "soft" | "chewy" | "juicy" | "crumbly" | "liquid";

@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { G } from "../icons";
 import { useCatalogue, useMe, useOwnedIds, useStore } from "../store";
 import { Avatar, Empty, RecipeCard } from "../ui";
 
@@ -28,12 +29,12 @@ export default function Profile() {
 
       <div className="mt-5 grid gap-5 md:grid-cols-2">
         <div className="card p-5"><div className="flex items-baseline justify-between"><h2 className="h-display text-xl">Cooking &amp; creator XP</h2><b>Level {level}</b></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-cream"><div className="h-full rounded-full bg-orange transition-all duration-700" style={{ width: `${(into / 200) * 100}%` }} /></div><p className="mt-2 text-xs text-brown">{me.xp} XP · {200 - into} to next level. XP comes from publishing, cooking, reviewing and challenges, with daily caps to prevent farming.</p></div>
-        <div className="card p-5"><h2 className="h-display text-xl">Badges</h2><div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">{BADGES.map((b) => { const on = b.earned(stats); return <div key={b.name} className={`rounded-xl p-3 ${on ? "bg-orange-light" : "bg-cream opacity-60"}`}><b className="text-sm">{on ? "🏅" : "🔒"} {b.name}</b><div className="text-xs text-brown">{b.desc}</div></div>; })}</div></div>
+        <div className="card p-5"><h2 className="h-display text-xl">Badges</h2><div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">{BADGES.map((b) => { const on = b.earned(stats); return <div key={b.name} className={`rounded-xl p-3 ${on ? "bg-orange-light" : "bg-cream opacity-60"}`}><b className="text-sm"><G g={on ? "🏅" : "🔒"} /> {b.name}</b><div className="text-xs text-brown">{b.desc}</div></div>; })}</div></div>
       </div>
 
       <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Published recipes</h2>{mine.length ? <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{mine.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="📝" title="Nothing published yet" action={<Link to="/creator/new" className="btn-primary">Write a recipe</Link>} />}</section>
       {favs.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Favourite creations</h2><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{favs.slice(0, 4).map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div></section>}
-      <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Collections</h2><div className="grid gap-3 sm:grid-cols-3">{folders.map((f) => <Link key={f.id} to="/cookbook" className="card p-4">📁 <b>{f.name}</b><div className="text-xs text-brown">{f.recipeIds.length} recipes</div></Link>)}</div></section>
+      <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Collections</h2><div className="grid gap-3 sm:grid-cols-3">{folders.map((f) => <Link key={f.id} to="/cookbook" className="card p-4"><G g="📁" /> <b>{f.name}</b><div className="text-xs text-brown">{f.recipeIds.length} recipes</div></Link>)}</div></section>
       <button className="btn-outline mt-8" onClick={() => { logOut(); nav("/auth"); }}>Log out</button>
     </div>
   );

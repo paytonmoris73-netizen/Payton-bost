@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { G } from "../icons";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { RecipeBody } from "../RecipeBody";
 import { money, totalMin } from "../engine";
@@ -25,15 +26,15 @@ export default function Product() {
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="relative overflow-hidden rounded-3xl"><Cover emoji={r.emoji} hue={r.hue} className="aspect-[4/3]" size="text-[9rem]" /><SaveButton id={r.id} className="absolute right-4 top-4" /></div>
         <div>
-          <div className="flex flex-wrap gap-2">{r.bundleOf ? <span className="chip bg-orange-light">Collection · {bundle.length} recipes</span> : <><span className="chip">⏱ {totalMin(r)} min</span><span className="chip">{r.difficulty}</span><span className="chip">{r.cuisine}</span></>}{r.diet.map((d) => <span key={d} className="chip bg-sage-light">{d}</span>)}</div>
+          <div className="flex flex-wrap gap-2">{r.bundleOf ? <span className="chip bg-orange-light">Collection · {bundle.length} recipes</span> : <><span className="chip"><G g="⏱" /> {totalMin(r)} min</span><span className="chip">{r.difficulty}</span><span className="chip">{r.cuisine}</span></>}{r.diet.map((d) => <span key={d} className="chip bg-sage-light">{d}</span>)}</div>
           <h1 className="h-display mt-3 text-4xl">{r.title}</h1>
           <div className="mt-2 flex items-center gap-2 text-sm"><Stars value={r.rating} size={16} /><b>{r.rating.toFixed(1)}</b><span className="text-brown">({r.reviews} reviews) · {r.sales.toLocaleString()} sold</span></div>
           <p className="mt-4 text-brown">{r.description}</p>
-          <Link to={`/creator/${c.id}`} className="card mt-5 flex items-center gap-3 p-4 transition hover:shadow-card-hover"><Avatar emoji={c.emoji} hue={c.hue} size={48} /><span className="flex-1"><b className="block">{c.name}{c.verified ? " ✓" : ""}</b><span className="text-xs text-brown">{c.badges.join(" · ") || c.handle}</span></span><button onClick={(e) => { e.preventDefault(); toggleFollow(c.id); }} className={following.includes(c.id) ? "btn-ghost !py-1.5" : "btn-dark !py-1.5"}>{following.includes(c.id) ? "Following" : "Follow"}</button></Link>
+          <Link to={`/creator/${c.id}`} className="card mt-5 flex items-center gap-3 p-4 transition hover:shadow-card-hover"><Avatar emoji={c.emoji} hue={c.hue} size={48} /><span className="flex-1"><b className="block">{c.name}{c.verified ? <G g="✓" className="ml-1 text-orange" /> : null}</b><span className="text-xs text-brown">{c.badges.join(" · ") || c.handle}</span></span><button onClick={(e) => { e.preventDefault(); toggleFollow(c.id); }} className={following.includes(c.id) ? "btn-ghost !py-1.5" : "btn-dark !py-1.5"}>{following.includes(c.id) ? "Following" : "Follow"}</button></Link>
 
           <div className="card mt-5 p-5">
             <div className="flex items-baseline justify-between"><span className="text-3xl font-bold">{money(r.price)}</span><span className="text-xs text-brown">One-time purchase · personal use</span></div>
-            {access ? <p className="mt-3 rounded-xl bg-sage-light p-3 text-sm font-semibold">✓ You own this {r.bundleOf ? "collection" : "recipe"}. Find it in My Cookbook.</p> : (
+            {access ? <p className="mt-3 rounded-xl bg-sage-light p-3 text-sm font-semibold"><G g="✓" /> You own this {r.bundleOf ? "collection" : "recipe"}. Find it in My Cookbook.</p> : (
               <div className="mt-3 flex gap-2">
                 <button className="btn-primary flex-1" onClick={() => { addCart(r.id); nav("/marketplace/cart"); }}>Buy now</button>
                 <button className="btn-ghost" disabled={inCart} onClick={() => { addCart(r.id); toast("Added to cart"); }}>{inCart ? "In cart" : "Add to cart"}</button>
@@ -48,7 +49,7 @@ export default function Product() {
       {!r.bundleOf && (
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
           <div className="card p-5"><h2 className="h-display text-2xl">Ingredient preview</h2><ul className="mt-2 space-y-1 text-sm">{r.ingredients.slice(0, 4).map((i) => <li key={i.name}>• {i.name}</li>)}</ul>{r.ingredients.length > 4 && <p className="mt-1 text-sm text-brown">…and {r.ingredients.length - 4} more, with exact quantities, unlocked after purchase.</p>}</div>
-          <div className="card p-5"><h2 className="h-display text-2xl">What's included</h2><ul className="mt-2 space-y-1 text-sm text-brown"><li>🔒 {r.steps.length} step-by-step instructions</li><li>🔒 Exact quantities &amp; serving scaling</li><li>🔒 Full-screen cooking mode with timers</li><li>🔒 Nutrition estimate, allergens, substitutions, storage</li></ul></div>
+          <div className="card p-5"><h2 className="h-display text-2xl">What's included</h2><ul className="mt-2 space-y-1 text-sm text-brown"><li><G g="🔒" /> {r.steps.length} step-by-step instructions</li><li><G g="🔒" /> Exact quantities &amp; serving scaling</li><li><G g="🔒" /> Full-screen cooking mode with timers</li><li><G g="🔒" /> Nutrition estimate, allergens, substitutions, storage</li></ul></div>
         </div>
       )}
       {bundle.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Included recipes</h2><div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{bundle.map((b) => <RecipeCard key={b.id} r={b} owned={owned.has(b.id)} />)}</div><p className="mt-2 text-xs text-brown">Individually worth {money(bundle.reduce((s, b) => s + b.price, 0))}.</p></section>}

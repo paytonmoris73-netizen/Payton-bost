@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { G } from "./icons";
 import { CUISINES, DIETS, MARKET_CATEGORIES } from "./data";
 import { matchScore, totalMin } from "./engine";
 import { useStore } from "./store";
@@ -27,7 +28,7 @@ export function FilterPanel({ f, set, showPrice = true }: { f: Filters; set: (f:
   return (
     <div className="mb-5">
       <div className="flex flex-wrap items-center gap-2">
-        <button className="btn-ghost" onClick={() => setOpen(!open)} aria-expanded={open}>⚙ Filters{active ? " •" : ""}</button>
+        <button className="btn-ghost" onClick={() => setOpen(!open)} aria-expanded={open}><G g="⚙" /> Filters{active ? " •" : ""}</button>
         <select className="input !w-auto" value={f.sort} onChange={(e) => u({ sort: e.target.value })} aria-label="Sort">
           <option value="relevance">Best match</option><option value="rating">Top rated</option><option value="popular">Most popular</option><option value="newest">Newest</option><option value="quick">Quickest</option>{showPrice && <><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option></>}
         </select>

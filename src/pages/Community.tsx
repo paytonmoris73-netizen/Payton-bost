@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { G } from "../icons";
 import { Link } from "react-router-dom";
 import { CHALLENGES, CREATORS } from "../data";
 import { matchScore } from "../engine";
@@ -13,7 +14,7 @@ function PostCard({ p }: { p: Post }) {
   const [open, setOpen] = useState(false); const [c, setC] = useState(""); const [rep, setRep] = useState(false); const [reason, setReason] = useState("");
   const r = p.recipeId ? cat.find((x) => x.id === p.recipeId) : undefined; const ch = CHALLENGES.find((x) => x.id === p.challengeId);
   const share = async () => { const t = `${p.userName} on CRUNCH: ${p.text}`; try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); toast("Copied to clipboard"); } } catch { /* cancelled */ } };
-  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} aria-pressed={on} className={`rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${on ? "bg-orange-light" : "bg-cream hover:bg-cream-dark"}`}>{label}{count !== undefined ? ` ${count}` : ""}</button>;
+  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} aria-pressed={on} className={`rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${on ? "bg-orange-light" : "bg-cream hover:bg-cream-dark"}`}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <G g={label} size={16} /> : label}{count !== undefined ? count : ""}</span></button>;
   return (
     <article className="card overflow-hidden">
       <div className="flex items-center gap-3 p-4"><Link to={`/creator/${p.userId}`}><Avatar emoji={p.userEmoji} size={40} /></Link><div className="flex-1"><Link to={`/creator/${p.userId}`} className="font-semibold">{p.userName}</Link><div className="text-xs text-brown">{p.createdAt}{ch && ` · Challenge: ${ch.title}`}</div></div><button className="text-xs text-brown underline" onClick={() => setRep(true)}>Report</button></div>
@@ -44,7 +45,7 @@ function Composer({ onClose, challengeId }: { onClose: () => void; challengeId?:
     <Modal open onClose={onClose} title={challengeId ? "Submit challenge entry" : "Share with the community"}>
       <textarea className="input mb-3" rows={3} placeholder="What did you make or discover?" value={text} onChange={(e) => setText(e.target.value)} maxLength={600} aria-label="Post text" />
       <div className="mb-3 flex flex-wrap gap-1.5">{["🍽️", "🍝", "🥗", "🍰", "🍜", "🍳", "🥘", "🍹"].map((e) => <button key={e} onClick={() => setEmoji(e)} className={`grid h-9 w-9 place-items-center rounded-xl text-lg ${emoji === e ? "bg-orange-light ring-2 ring-orange" : "bg-cream"}`}>{e}</button>)}</div>
-      <div className="mb-3"><div className="mb-1 flex flex-wrap gap-1.5">{picked.map((p) => <button key={p} className="chip bg-orange-light" onClick={() => setPicked(picked.filter((x) => x !== p))}>{p} ✕</button>)}</div><input className="input" placeholder="Tag ingredients…" value={q} onChange={(e) => setQ(e.target.value)} /><div className="mt-1 flex flex-wrap gap-1.5">{sugg.map((i) => <button key={i.id} className="chip" onClick={() => { setPicked([...picked, i.name]); setQ(""); }}>＋ {i.name}</button>)}</div></div>
+      <div className="mb-3"><div className="mb-1 flex flex-wrap gap-1.5">{picked.map((p) => <button key={p} className="chip bg-orange-light" onClick={() => setPicked(picked.filter((x) => x !== p))}>{p} <G g="✕" /></button>)}</div><input className="input" placeholder="Tag ingredients…" value={q} onChange={(e) => setQ(e.target.value)} /><div className="mt-1 flex flex-wrap gap-1.5">{sugg.map((i) => <button key={i.id} className="chip" onClick={() => { setPicked([...picked, i.name]); setQ(""); }}><G g="＋" /> {i.name}</button>)}</div></div>
       {mine.length > 0 && <select className="input mb-3" value={recipe} onChange={(e) => setRecipe(e.target.value)} aria-label="Link a recipe"><option value="">Link one of your recipes (optional)</option>{mine.map((r) => <option key={r.id} value={r.id}>{r.title}</option>)}</select>}
       <p className="mb-3 text-xs text-brown">Photo uploads are coming soon. Keep it safe: posts promoting unsafe or inedible food combinations or challenges are removed.</p>
       <button className="btn-primary w-full" onClick={submit}>Post</button>
@@ -60,7 +61,7 @@ export default function Community() {
   const top = [...cat.filter((r) => r.status === "published" && !r.bundleOf)].sort((a, b) => b.sales + b.views / 10 - (a.sales + a.views / 10)).slice(0, 5);
   return (
     <div>
-      <PageHeader title="Community" sub="Share creations, join weekly challenges and follow cooks you like." action={<button className="btn-primary" onClick={() => setCompose(null)}>＋ Share something</button>} />
+      <PageHeader title="Community" sub="Share creations, join weekly challenges and follow cooks you like." action={<button className="btn-primary" onClick={() => setCompose(null)}><G g="＋" /> Share something</button>} />
       <Tabs tabs={TABS} value={tab} onChange={setTab} />
       {(tab === "Feed" || tab === "Following") && (feed.length ? <div className="mx-auto grid max-w-2xl gap-5">{feed.map((p) => <PostCard key={p.id} p={p} />)}</div> : <Empty emoji="👥" title="Nothing here yet" text={tab === "Following" ? "Follow creators to see their posts here." : "Be the first to post."} />)}
       {tab === "Challenges" && (
@@ -72,9 +73,9 @@ export default function Community() {
       )}
       {tab === "Leaderboards" && (
         <div className="grid gap-5 md:grid-cols-2">
-          <Board title="Most helpful creators" rows={[...CREATORS].sort((a, b) => b.rating * Math.log(b.followers) - a.rating * Math.log(a.followers)).slice(0, 5).map((c) => ({ k: c.id, l: `${c.emoji} ${c.name}`, v: `${c.rating} ★`, to: `/creator/${c.id}` }))} />
+          <Board title="Most helpful creators" rows={[...CREATORS].sort((a, b) => b.rating * Math.log(b.followers) - a.rating * Math.log(a.followers)).slice(0, 5).map((c) => ({ k: c.id, l: `${c.emoji} ${c.name}`, v: `${c.rating} rating`, to: `/creator/${c.id}` }))} />
           <Board title="Most popular recipes" rows={top.map((r) => ({ k: r.id, l: `${r.emoji} ${r.title}`, v: `${r.sales + Math.round(r.views / 10)} pts`, to: r.price > 0 ? `/marketplace/${r.id}` : `/recipe/${r.id}` }))} />
-          <Board title="Community favourites" rows={[...visible].sort((a, b) => b.likes - a.likes).slice(0, 5).map((p) => ({ k: p.id, l: `${p.userEmoji} ${p.text.slice(0, 40)}…`, v: `♥ ${p.likes}`, to: "/community" }))} />
+          <Board title="Community favourites" rows={[...visible].sort((a, b) => b.likes - a.likes).slice(0, 5).map((p) => ({ k: p.id, l: `${p.userEmoji} ${p.text.slice(0, 40)}…`, v: `${p.likes} likes`, to: "/community" }))} />
           <Board title="Weekly challenge winners" rows={CHALLENGES.slice(0, 1).flatMap((c) => visible.filter((p) => p.challengeId === c.id).sort((a, b) => b.likes - a.likes).slice(0, 3).map((p) => ({ k: p.id, l: `${p.userEmoji} ${p.userName}`, v: c.title, to: "/community" })))} />
           <p className="text-xs text-brown md:col-span-2">XP is capped per day and only awarded once per action to prevent farming.</p>
         </div>

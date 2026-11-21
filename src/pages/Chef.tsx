@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { G } from "../icons";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CUISINES, MEALS } from "../data";
 import { DISCLAIMER_TASTE, askRemote, chefReply, findIngredientsInText, generateRecipes, matchScore, type GenRecipe } from "../engine";
 import { genToRecipe } from "../RecipeBody";
 import { useIngredients, useMe, useStore } from "../store";
+import { ImproveTool, SubstituteTool } from "./ChefTools";
 import { AllergenNote, Cover, NutritionPanel, PageHeader, Tabs, toast } from "../ui";
 
 interface Msg { role: "user" | "assistant"; text: string; recipes?: GenRecipe[] }
@@ -20,8 +22,8 @@ export function GenCard({ g, onSaved }: { g: GenRecipe; onSaved?: (id: string) =
         <div className="p-4">
           <h3 className="font-semibold">{g.title}</h3><p className="mt-1 text-sm text-brown">{g.description}</p>
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs"><span className="chip">Prep {g.prepMin}m</span><span className="chip">Cook {g.cookMin}m</span><span className="chip">Total {g.prepMin + g.cookMin}m</span><span className="chip">{g.servings} servings</span><span className="chip">{g.difficulty}</span></div>
-          {g.warnings.map((w) => <p key={w} className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs">⚠ {w}</p>)}
-          <div className="mt-3 flex flex-wrap gap-2"><button className="btn-ghost !py-1.5" onClick={() => setOpen(!open)}>{open ? "Hide details" : "View full recipe"}</button>{saved ? <><Link to={`/recipe/${saved}`} className="btn-dark !py-1.5">Open recipe</Link><button className="btn-primary !py-1.5" onClick={() => nav(`/cook/${saved}`)}>▶ Cook</button></> : <button className="btn-dark !py-1.5" onClick={save}>Save recipe</button>}</div>
+          {g.warnings.map((w) => <p key={w} className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs"><G g="⚠" /> {w}</p>)}
+          <div className="mt-3 flex flex-wrap gap-2"><button className="btn-ghost !py-1.5" onClick={() => setOpen(!open)}>{open ? "Hide details" : "View full recipe"}</button>{saved ? <><Link to={`/recipe/${saved}`} className="btn-dark !py-1.5">Open recipe</Link><button className="btn-primary !py-1.5" onClick={() => nav(`/cook/${saved}`)}><G g="▶" /> Cook</button></> : <button className="btn-dark !py-1.5" onClick={save}>Save recipe</button>}</div>
         </div>
       </div>
       {open && (
@@ -98,9 +100,9 @@ function Generator() {
     <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
       <div className="card space-y-4 p-5 lg:sticky lg:top-20 lg:self-start">
         <div><label className="label" htmlFor="gi">Available ingredients</label>
-          <div className="mb-2 flex flex-wrap gap-1.5">{picked.map((id) => { const i = ings.find((x) => x.id === id)!; return <button key={id} className="chip bg-orange-light" onClick={() => setPicked(picked.filter((x) => x !== id))}>{i.emoji} {i.name} ✕</button>; })}</div>
+          <div className="mb-2 flex flex-wrap gap-1.5">{picked.map((id) => { const i = ings.find((x) => x.id === id)!; return <button key={id} className="chip bg-orange-light" onClick={() => setPicked(picked.filter((x) => x !== id))}>{i.emoji} {i.name} <G g="✕" /></button>; })}</div>
           <input id="gi" className="input" placeholder="Type to add… or paste a list" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const found = findIngredientsInText(q); const add = found.length ? found : sugg.slice(0, 1); if (add.length) { setPicked([...new Set([...picked, ...add.map((a) => a.id)])]); setQ(""); } } }} />
-          <div className="mt-2 flex flex-wrap gap-1.5">{sugg.map((i) => <button key={i.id} className="chip hover:bg-orange-light" onClick={() => { setPicked([...picked, i.id]); setQ(""); }}>＋ {i.emoji} {i.name}</button>)}</div></div>
+          <div className="mt-2 flex flex-wrap gap-1.5">{sugg.map((i) => <button key={i.id} className="chip hover:bg-orange-light" onClick={() => { setPicked([...picked, i.id]); setQ(""); }}><G g="＋" /> {i.emoji} {i.name}</button>)}</div></div>
         <div><span className="label">Meal type</span><div className="flex flex-wrap gap-1.5">{MEALS.map((m) => <button key={m} onClick={() => setMeal(m)} className={`rounded-full px-3 py-1 text-xs font-semibold ${meal === m ? "bg-charcoal text-ivory" : "bg-cream"}`}>{m}</button>)}</div></div>
         <div className="grid grid-cols-2 gap-3">
           <div><label className="label" htmlFor="gc">Cuisine</label><select id="gc" className="input" value={cuisine} onChange={(e) => setCuisine(e.target.value)}>{CUISINES.map((c) => <option key={c}>{c}</option>)}</select></div>
@@ -111,7 +113,7 @@ function Generator() {
         <div><span className="label">Equipment</span><div className="flex flex-wrap gap-1.5">{EQUIP.map((m) => <button key={m} onClick={() => tog(equip, m, setEquip)} className={`rounded-full px-3 py-1 text-xs font-semibold ${equip.includes(m) ? "bg-sage" : "bg-cream"}`}>{m}</button>)}</div></div>
         <div><span className="label">Dietary preferences</span><div className="flex flex-wrap gap-1.5">{["vegan", "vegetarian", "gluten-free", "dairy-free"].map((m) => <button key={m} onClick={() => tog(diet, m, setDiet)} className={`rounded-full px-3 py-1 text-xs font-semibold ${diet.includes(m) ? "bg-sage" : "bg-cream"}`}>{m}</button>)}</div></div>
         <div><label className="label" htmlFor="gf">Flavour profile</label><select id="gf" className="input" value={flavor} onChange={(e) => setFlavor(e.target.value)}>{["Balanced", "Savoury", "Sweet", "Spicy", "Fresh & bright", "Rich & comforting"].map((f) => <option key={f}>{f}</option>)}</select></div>
-        <button className="btn-primary w-full" onClick={run} disabled={busy}>{busy ? "Generating…" : "✨ Generate recipes"}</button>
+        <button className="btn-primary w-full" onClick={run} disabled={busy}>{busy ? "Generating…" : <><G g="✨" /> Generate recipes</>}</button>
       </div>
       <div className="space-y-4">
         {busy && [0, 1, 2].map((i) => <div key={i} className="skeleton h-44" />)}
@@ -122,13 +124,16 @@ function Generator() {
   );
 }
 
+const CHEF_TABS = ["Ask the chef", "Recipe generator", "Improve a recipe", "Substitutions"] as const;
+const TAB_KEY: Record<string, (typeof CHEF_TABS)[number]> = { generate: "Recipe generator", improve: "Improve a recipe", substitute: "Substitutions" };
 export default function Chef() {
-  const [p, setP] = useSearchParams(); const tab = (p.get("tab") === "generate" ? "Recipe generator" : "Ask the chef") as "Ask the chef" | "Recipe generator";
+  const [p, setP] = useSearchParams(); const tab = TAB_KEY[p.get("tab") ?? ""] ?? "Ask the chef";
+  const keyOf = (t: string) => Object.entries(TAB_KEY).find(([, v]) => v === t)?.[0];
   return (
     <div>
       <PageHeader title="AI Chef" sub="A knowledgeable cooking assistant for ideas, substitutions, technique and full recipes." />
-      <Tabs tabs={["Ask the chef", "Recipe generator"] as const} value={tab} onChange={(t) => setP(t === "Recipe generator" ? { tab: "generate" } : {})} />
-      {tab === "Ask the chef" ? <Chat /> : <Generator />}
+      <Tabs tabs={CHEF_TABS} value={tab} onChange={(t) => setP(keyOf(t) ? { tab: keyOf(t)! } : {})} />
+      {tab === "Ask the chef" ? <Chat /> : tab === "Recipe generator" ? <Generator /> : tab === "Improve a recipe" ? <ImproveTool /> : <SubstituteTool />}
     </div>
   );
 }

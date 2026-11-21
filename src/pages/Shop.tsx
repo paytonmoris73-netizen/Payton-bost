@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { G } from "../icons";
 import { Link, useParams } from "react-router-dom";
 import { CATEGORIES } from "../data";
 import { DISCLAIMER_ALLERGEN, DISCLAIMER_NUTRITION, matchScore } from "../engine";
@@ -33,7 +34,7 @@ function Detail({ id }: { id: string }) {
       <div className="mt-3 grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="card grid place-items-center p-8 text-center"><div className="text-[8rem] leading-none">{i.emoji}</div><h1 className="h-display mt-2 text-3xl">{i.name}</h1><span className="chip mt-1">{i.category}</span>
           <div className="mt-5 w-full"><select className="input mb-2" value={listId} onChange={(e) => setListId(e.target.value)} aria-label="Shopping list">{lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select>
-            <button className="btn-primary w-full" onClick={() => { const lid = listId || createList("Groceries"); addToList(lid, [{ name: i.name, category: i.category }]); toast(`${i.name} added to your list`); }}>＋ Add to shopping list</button></div></div>
+            <button className="btn-primary w-full" onClick={() => { const lid = listId || createList("Groceries"); addToList(lid, [{ name: i.name, category: i.category }]); toast(`${i.name} added to your list`); }}><G g="＋" /> Add to shopping list</button></div></div>
         <div className="space-y-5">
           <div className="card p-5"><p>{i.description}</p><h2 className="mt-4 font-semibold">Common uses</h2><div className="mt-1 flex flex-wrap gap-1.5">{i.uses.map((u) => <span key={u} className="chip">{u}</span>)}</div></div>
           <div className="grid gap-5 md:grid-cols-2">
