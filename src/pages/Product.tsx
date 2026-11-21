@@ -24,7 +24,7 @@ export default function Product() {
   return (
     <div>
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="relative overflow-hidden rounded-3xl"><Cover emoji={r.emoji} hue={r.hue} className="aspect-[4/3]" size="text-[9rem]" /><SaveButton id={r.id} className="absolute right-4 top-4" /></div>
+        <div className="relative overflow-hidden rounded-3xl"><Cover id={r.id} photo={r.photo} emoji={r.emoji} hue={r.hue} className="aspect-[4/3]" size="text-[9rem]" /><SaveButton id={r.id} className="absolute right-4 top-4" /></div>
         <div>
           <div className="flex flex-wrap gap-2">{r.bundleOf ? <span className="chip bg-orange-light">Collection · {bundle.length} recipes</span> : <><span className="chip"><G g="⏱" /> {totalMin(r)} min</span><span className="chip">{r.difficulty}</span><span className="chip">{r.cuisine}</span></>}{r.diet.map((d) => <span key={d} className="chip bg-sage-light">{d}</span>)}</div>
           <h1 className="h-display mt-3 text-4xl">{r.title}</h1>

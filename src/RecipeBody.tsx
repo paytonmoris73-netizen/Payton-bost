@@ -3,6 +3,7 @@ import { G } from "./icons";
 import { Link, useNavigate } from "react-router-dom";
 import { DISCLAIMER_TASTE, totalMin } from "./engine";
 import type { GenRecipe } from "./engine";
+import { creditFor } from "./photos";
 import { creatorOf, useMe, useStore, uid } from "./store";
 import { AllergenNote, Cover, Modal, NutritionPanel, SaveButton, StarPicker, Stars, toast } from "./ui";
 import type { CookStatus, Recipe } from "./types";
@@ -38,7 +39,7 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
       <div>
-        <div className="relative overflow-hidden rounded-3xl"><Cover emoji={r.emoji} hue={r.hue} className="aspect-[4/3]" size="text-[9rem]" /><SaveButton id={r.id} className="absolute right-4 top-4" /></div>
+        <div className="relative overflow-hidden rounded-3xl"><Cover id={r.id} photo={r.photo} emoji={r.emoji} hue={r.hue} className="aspect-[4/3]" size="text-[9rem]" /><SaveButton id={r.id} className="absolute right-4 top-4" /></div>{creditFor(r.id) && <p className="mt-1 text-xs text-brown">Photo: {creditFor(r.id)!.by} ({creditFor(r.id)!.license})</p>}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <span className="chip"><G g="⏱" /> {totalMin(r)} min total</span><span className="chip">Prep {r.prepMin}m</span><span className="chip">Cook {r.cookMin}m</span><span className="chip">{r.difficulty}</span><span className="chip">{r.cuisine}</span>
           {r.ai && <span className="chip bg-sage-light">AI-assisted draft</span>}

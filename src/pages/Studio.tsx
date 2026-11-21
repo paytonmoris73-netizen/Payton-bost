@@ -32,7 +32,7 @@ export default function Studio() {
         <div className="card divide-y divide-cream">
           {mine.map((r) => (
             <div key={r.id} className="flex flex-wrap items-center gap-3 p-4">
-              <Cover emoji={r.emoji} hue={r.hue} className="h-14 w-14 rounded-xl" size="text-2xl" />
+              <Cover id={r.id} photo={r.photo} emoji={r.emoji} hue={r.hue} className="h-14 w-14 rounded-xl" size="text-2xl" />
               <div className="min-w-0 flex-1"><Link to={r.price > 0 || r.bundleOf ? `/marketplace/${r.id}` : `/recipe/${r.id}`} className="font-semibold">{r.title || "Untitled"}</Link><div className="flex flex-wrap items-center gap-2 text-xs text-brown"><span className={`chip ${r.status === "published" ? "bg-sage-light" : r.status === "removed" ? "bg-red-100" : ""}`}>{r.status}</span>{r.bundleOf ? "collection" : `${r.views} views`} · {r.sales} sales · {money(r.price)} {r.reviews > 0 && <Stars value={r.rating} />}</div></div>
               <div className="flex gap-2">
                 {!r.bundleOf && <Link to={`/creator/edit/${r.id}`} className="btn-ghost !py-1.5">Edit</Link>}

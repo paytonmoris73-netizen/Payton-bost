@@ -5,6 +5,7 @@ import { ALLERGENS, DIETS, INGREDIENTS, MARKET_CATEGORIES, CUISINES, MEALS } fro
 import { MARKET_FEE, money, perServing, sumNutrition } from "../engine";
 import { RecipeBody } from "../RecipeBody";
 import { MIN_AGE_COMMERCE, ageOf, uid, useCatalogue, useMe, useStore } from "../store";
+import { fileToJpeg } from "../photos";
 import { Empty, PageHeader, toast } from "../ui";
 import type { Recipe } from "../types";
 
@@ -67,7 +68,7 @@ export default function RecipeEditor() {
             <div className="card space-y-3 p-5">
               <div><label className="label" htmlFor="rt">Title</label><input id="rt" className="input" value={r.title} onChange={(e) => u({ title: e.target.value.slice(0, 80) })} /></div>
               <div><label className="label" htmlFor="rd">Description</label><textarea id="rd" className="input" rows={3} value={r.description} onChange={(e) => u({ description: e.target.value.slice(0, 500) })} /></div>
-              <div><span className="label">Cover emoji (photo upload coming soon)</span><div className="flex flex-wrap gap-1.5">{EMOJI.map((e) => <button key={e} type="button" onClick={() => u({ emoji: e })} className={`grid h-10 w-10 place-items-center rounded-xl text-xl ${r.emoji === e ? "bg-orange-light ring-2 ring-orange" : "bg-cream"}`}>{e}</button>)}</div></div>
+              <div><span className="label">Cover photo</span>{r.photo && <img src={r.photo} alt="Cover preview" className="mb-2 h-32 w-48 rounded-xl object-cover" />}<div className="mb-2 flex flex-wrap items-center gap-2"><label className="btn-ghost cursor-pointer !py-1.5">{r.photo ? "Replace photo" : "Upload photo"}<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (!f) return; try { u({ photo: await fileToJpeg(f) }); toast("Photo added"); } catch (er) { toast((er as Error).message, "err"); } }} /></label>{r.photo && <button type="button" className="text-xs underline" onClick={() => u({ photo: undefined })}>Remove</button>}</div><p className="mb-2 text-xs text-brown">Only upload photos you took or have permission to use. No photo? Pick a placeholder emoji below.</p><span className="label">Placeholder emoji</span><div className="flex flex-wrap gap-1.5">{EMOJI.map((e) => <button key={e} type="button" onClick={() => u({ emoji: e })} className={`grid h-10 w-10 place-items-center rounded-xl text-xl ${r.emoji === e ? "bg-orange-light ring-2 ring-orange" : "bg-cream"}`}>{e}</button>)}</div></div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div><label className="label">Cuisine</label><select className="input" value={r.cuisine} onChange={(e) => u({ cuisine: e.target.value })}>{[...CUISINES.slice(1), "Fusion", "Global"].map((c) => <option key={c}>{c}</option>)}</select></div>
                 <div><label className="label">Meal</label><select className="input" value={r.meal} onChange={(e) => u({ meal: e.target.value })}>{MEALS.map((c) => <option key={c}>{c}</option>)}</select></div>

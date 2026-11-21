@@ -25,7 +25,7 @@ export interface Recipe {
   meal: string; categories: string[]; diet: string[]; price: number; rating: number; reviews: number;
   sales: number; views: number; nutrition: Nutrition; allergens: string[]; equipment: string[];
   substitutions: string[]; storage: string; status: "published" | "draft" | "unpublished" | "removed";
-  createdAt: string; bundleOf?: string[]; ai?: boolean; featured?: boolean; seasonal?: string;
+  createdAt: string; photo?: string; bundleOf?: string[]; ai?: boolean; featured?: boolean; seasonal?: string;
 }
 
 export interface Creator {

@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { photoFor } from "./photos";
 import { G } from "./icons";
 import { Link } from "react-router-dom";
 import { create } from "zustand";
@@ -60,7 +61,9 @@ export function StarPicker({ value, onChange }: { value: number; onChange: (n: n
   return <div className="flex gap-1 text-2xl">{[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" onClick={() => onChange(n)} className={n <= value ? "text-orange" : "text-cream-dark"} aria-label={`${n} stars`}><G g="★" /></button>)}</div>;
 }
 
-export function Cover({ emoji, hue, className = "", size = "text-6xl" }: { emoji: string; hue: number; className?: string; size?: string }) {
+export function Cover({ emoji, hue, className = "", size = "text-6xl", id, photo }: { emoji: string; hue: number; className?: string; size?: string; id?: string; photo?: string }) {
+  const src = photoFor(id, photo);
+  if (src) return <div className={`relative overflow-hidden bg-cream ${className}`}><img src={src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /></div>;
   return (
     <div className={`relative grid place-items-center overflow-hidden ${className}`} style={{ background: `linear-gradient(135deg, hsl(${hue} 70% 90%), hsl(${(hue + 25) % 360} 60% 82%))` }}>
       <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full opacity-40" style={{ background: `hsl(${hue} 80% 96%)` }} />
@@ -130,7 +133,7 @@ export function RecipeCard({ r, compact, owned }: { r: Recipe; compact?: boolean
   return (
     <Link to={r.price > 0 || bundle ? `/marketplace/${r.id}` : `/recipe/${r.id}`} className={`group card block overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-card-hover ${compact ? "w-64 shrink-0" : ""}`}>
       <div className="relative">
-        <Cover emoji={r.emoji} hue={r.hue} className={compact ? "h-36" : "aspect-[4/3]"} size="text-7xl transition-transform duration-300 group-hover:scale-110" />
+        <Cover id={r.id} photo={r.photo} emoji={r.emoji} hue={r.hue} className={compact ? "h-36" : "aspect-[4/3]"} size="text-7xl transition-transform duration-300 group-hover:scale-110" />
         <SaveButton id={r.id} className="absolute right-3 top-3" />
         <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold ${owned ? "bg-sage text-charcoal" : r.price === 0 ? "bg-white/90" : "bg-orange text-charcoal"}`}>{owned ? "Owned" : bundle ? `Bundle · ${money(r.price)}` : money(r.price)}</span>
       </div>
