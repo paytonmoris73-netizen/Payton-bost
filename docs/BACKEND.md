@@ -73,3 +73,16 @@ move it server-side. Handle refunds via the Stripe dashboard/API and revoke the 
 ## Backups & logging
 
 Enable point-in-time recovery / daily exports, structured server logs with request IDs, and error reporting.
+
+## Supabase schema (Phase 1)
+
+`supabase/migrations/0001_core_schema.sql` defines the tables, indexes, triggers and row-level-security policies.
+`supabase/tests/rls_test.sql` checks the key rules against a local Postgres with a stubbed `auth` schema:
+
+```bash
+psql -f supabase/tests/00_auth_stub.sql -f supabase/migrations/0001_core_schema.sql -f supabase/tests/rls_test.sql
+```
+
+Verified: paid recipe content is hidden from non-buyers, clients cannot create purchases or self-promote to admin,
+only buyers can review paid recipes (`verified_purchase` is set by trigger), and allergy data is owner-only.
+Not yet built: edge functions (Stripe checkout/webhook, AI proxy), storage buckets, and the front-end wiring to Supabase.
