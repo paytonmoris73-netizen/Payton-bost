@@ -4,7 +4,7 @@
 // GEMINI_API_KEY environment variable on the server and never reaches the browser.
 declare const process: { env: Record<string, string | undefined> };
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 const MAX_MESSAGES = 12;
 const MAX_CHARS_PER_MESSAGE = 2000;
 const MAX_TOTAL_CHARS = 10000;
