@@ -62,7 +62,7 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
-  sparkle: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" />,
+  message: <path d="M4 5.5h16v10H9l-5 4z" />,
   send: <path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" />,
   target: (
     <>
@@ -79,7 +79,7 @@ interface Props {
   strokeWidth?: number;
 }
 
-export default function Icon({ name, size = 20, className = "", strokeWidth = 2 }: Props) {
+export default function Icon({ name, size = 20, className = "", strokeWidth = 1.6 }: Props) {
   return (
     <svg
       width={size}

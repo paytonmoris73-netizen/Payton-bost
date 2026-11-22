@@ -54,7 +54,7 @@ export default function WorkoutBuilder({ onClose, onSave }: Props) {
       <button onClick={cancel} className="mb-4 flex items-center gap-1 text-sm text-white/60">
         <Icon name="chevL" size={18} /> Cancel
       </button>
-      <h1 className="text-2xl font-extrabold">Create workout</h1>
+      <h1 className="display text-[38px]">New workout</h1>
 
       <label className="mt-5 block text-xs font-semibold text-white/60" htmlFor="wname">
         Name
@@ -64,14 +64,14 @@ export default function WorkoutBuilder({ onClose, onSave }: Props) {
       <Pills label="Type" options={CATEGORIES} value={category} onChange={setCategory} />
       <Pills label="Level" options={LEVELS} value={level} onChange={setLevel} />
 
-      <h2 className="mb-3 mt-6 text-base font-bold">
+      <h2 className="eyebrow mb-3 mt-6">
         Exercises <span className="text-white/40">({items.length})</span>
       </h2>
       <ol className="space-y-3">
         {items.map((e, i) => (
           <li key={e.key} className="card p-3">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-bold">{e.name}</span>
+              <span className="text-sm font-medium">{e.name}</span>
               <button onClick={() => setItems((xs) => xs.filter((_, j) => j !== i))} aria-label={`Remove ${e.name}`} className="p-1 text-white/40">
                 <Icon name="trash" size={16} />
               </button>
@@ -93,7 +93,7 @@ export default function WorkoutBuilder({ onClose, onSave }: Props) {
         <Icon name="plus" size={16} /> {items.length >= MAX_EXERCISES ? `Max ${MAX_EXERCISES} exercises` : "Add exercise"}
       </button>
 
-      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+6.5rem)] z-10 mt-6">
+      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-10 mt-6">
         <button onClick={save} disabled={!valid} className="btn-primary w-full py-4 text-base shadow-lg shadow-black/50 disabled:opacity-40">
           Save workout{items.length ? ` · ~${estimateMinutes(items)} min` : ""}
         </button>
@@ -142,7 +142,7 @@ function Stepper({ label, value, min, max, step, onChange }: { label: string; va
         <button className="px-2.5 py-2" onClick={() => onChange(clamp(value - step))} aria-label={`Decrease ${label}`}>
           <Icon name="minus" size={14} />
         </button>
-        <span className="text-sm font-bold tabular-nums">{value}</span>
+        <span className="text-sm font-medium tabular-nums">{value}</span>
         <button className="px-2.5 py-2" onClick={() => onChange(clamp(value + step))} aria-label={`Increase ${label}`}>
           <Icon name="plus" size={14} />
         </button>
@@ -169,7 +169,7 @@ function Picker({ onClose, onPick, category }: { onClose: () => void; onPick: (e
       <ul className="max-h-72 space-y-1 overflow-y-auto">
         {query && !exact && (
           <li>
-            <button onClick={() => onPick(make(q.trim().slice(0, 40)))} className="flex w-full items-center gap-2 rounded-xl bg-luna/10 px-3 py-2.5 text-left text-sm font-semibold text-luna">
+            <button onClick={() => onPick(make(q.trim().slice(0, 40)))} className="flex w-full items-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-left text-sm font-medium text-luna-light">
               <Icon name="plus" size={14} /> Add “{q.trim()}”
             </button>
           </li>

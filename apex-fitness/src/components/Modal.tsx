@@ -40,7 +40,7 @@ export default function Modal({ title, onClose, children }: Props) {
       >
         <div className="mx-auto -mt-2 mb-3 h-1 w-10 rounded-full bg-white/20" aria-hidden="true" />
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold">{title}</h3>
+          <h3 className="display text-[28px]">{title}</h3>
           <button onClick={onClose} aria-label="Close" className="btn-ghost p-2">
             <Icon name="x" size={16} />
           </button>

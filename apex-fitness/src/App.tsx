@@ -39,7 +39,7 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-[430px] pb-[calc(env(safe-area-inset-bottom)+7.5rem)]">
+    <div className="mx-auto min-h-dvh max-w-[430px] pb-[calc(env(safe-area-inset-bottom)+6.5rem)]">
       {/* While a workout is running, the page underneath is hidden from screen readers. */}
       <div aria-hidden={sessionId ? true : undefined}>
         {tab === "home" && <Home />}

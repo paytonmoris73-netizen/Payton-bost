@@ -1,28 +1,19 @@
-/** Lunor crescent-moon mark: a glossy violet crescent with a small star. */
+/** Lunor mark: a fine ivory crescent. */
 export function LogoMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <defs>
-        <linearGradient id="lunorg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#f1e9ff" />
-          <stop offset="0.45" stopColor="#b48cff" />
-          <stop offset="1" stopColor="#6d28d9" />
-        </linearGradient>
-      </defs>
-      <path d="M20.5 3.5A12.5 12.5 0 1 0 28.5 22 10 10 0 0 1 20.5 3.5Z" fill="url(#lunorg)" />
-      <path d="M24 6.2l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="#f1e9ff" />
+      <path d="M20.5 4A12 12 0 1 0 28 21.5 9.6 9.6 0 0 1 20.5 4Z" fill="#f2eee8" />
     </svg>
   );
 }
 
-export default function Logo() {
+/** Wordmark: crescent + serif name, optionally with a small descriptor. */
+export default function Logo({ descriptor = true }: { descriptor?: boolean }) {
   return (
     <div className="flex flex-col items-center leading-none">
-      <div className="drop-shadow-[0_0_24px_rgba(155,92,255,0.7)]">
-        <LogoMark size={72} />
-      </div>
-      <div className="shine-text mt-3 text-5xl font-black tracking-[0.12em]">LUNOR</div>
-      <div className="mt-2 text-sm font-bold tracking-[0.55em] text-white/60">FITNESS</div>
+      <LogoMark size={40} />
+      <div className="display mt-5 text-[44px] tracking-[0.02em]">Lunor</div>
+      {descriptor && <div className="eyebrow mt-3">Training &amp; Nutrition</div>}
     </div>
   );
 }

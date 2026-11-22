@@ -61,7 +61,7 @@ export default function Workouts() {
 
   return (
     <div className="animate-fade-up pt-safe space-y-5 px-5">
-      <h1 className="text-center text-xl font-extrabold">Workout</h1>
+      <h1 className="display text-[40px]">Train</h1>
 
       <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5">
         {FILTERS.map((f) => (
@@ -75,13 +75,13 @@ export default function Workouts() {
         ))}
       </div>
 
-      <button onClick={() => setBuilding(true)} className="btn-ghost w-full border-dashed">
-        <Icon name="plus" size={16} /> Create your own workout
+      <button onClick={() => setBuilding(true)} className="btn-ghost w-full">
+        <Icon name="plus" size={16} /> Create a workout
       </button>
 
       {mine.length > 0 && (
         <section>
-          <h2 className="mb-3 text-base font-bold">My Workouts</h2>
+          <h2 className="eyebrow mb-3">Your workouts</h2>
           <ul className="space-y-2.5">
             {mine.map((w) => (
               <Row key={w.id} w={w} onOpen={() => openDetail(w.id)} />
@@ -93,24 +93,21 @@ export default function Workouts() {
       {featured && (
         <button
           onClick={() => openDetail(featured.id)}
-          className="card relative block w-full overflow-hidden rounded-3xl bg-gradient-to-br from-[#33195e] via-[#150e29] to-[#0c0916] p-5 text-left"
+          className="card relative block w-full overflow-hidden p-6 text-left"
         >
-          <div className="absolute -right-8 -top-8 text-luna/15">
-            <Icon name="dumbbell" size={190} strokeWidth={1.2} />
-          </div>
-          <span className="gloss-tile rounded-full px-2.5 py-1 text-[10px] font-bold uppercase text-white">Featured</span>
-          <h2 className="mt-14 text-2xl font-extrabold">{featured.name}</h2>
+          <span className="eyebrow">Featured</span>
+          <h2 className="display mb-2 mt-3 text-[32px]">{featured.name}</h2>
           <p className="text-sm text-white/60">
             {featured.minutes} min · {featured.level}
           </p>
           <span className="btn-primary mt-4 w-full">
-            <Icon name="play" size={14} /> View Workout
+            View session
           </span>
         </button>
       )}
 
       <section>
-        <h2 className="mb-3 text-base font-bold">{filter === "For You" ? "Popular Workouts" : `${filter} Workouts`}</h2>
+        <h2 className="eyebrow mb-3">{filter === "For You" ? "Library" : filter}</h2>
         <ul className="space-y-2.5">
           {rest.map((w) => (
             <Row key={w.id} w={w} onOpen={() => openDetail(w.id)} />
@@ -125,11 +122,11 @@ function Row({ w, onOpen }: { w: Workout; onOpen: () => void }) {
   return (
     <li>
       <button onClick={onOpen} className="card flex w-full items-center gap-3 p-3 text-left transition active:scale-[0.98]">
-        <span className="gloss-tile flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-white">
+        <span className="gloss-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
           <Icon name={iconFor(w)} size={24} />
         </span>
         <span className="flex-1">
-          <span className="block text-sm font-bold">{w.name}</span>
+          <span className="block text-sm font-medium">{w.name}</span>
           <span className="block text-xs text-white/50">
             {w.minutes} min · {w.level}
           </span>
@@ -146,7 +143,7 @@ function Detail({ w, onBack, onStart, onDelete }: { w: Workout; onBack: () => vo
       <button onClick={onBack} className="mb-4 flex items-center gap-1 text-sm text-white/60">
         <Icon name="chevL" size={18} /> Back
       </button>
-      <h1 className="text-2xl font-extrabold">{w.name}</h1>
+      <h1 className="display text-[38px]">{w.name}</h1>
       <p className="mt-1 text-sm text-white/60">{w.focus}</p>
       <div className="mt-4 flex gap-2 text-xs font-semibold">
         <span className="chip bg-ink-2">{w.minutes} min</span>
@@ -154,20 +151,20 @@ function Detail({ w, onBack, onStart, onDelete }: { w: Workout; onBack: () => vo
         <span className="chip bg-ink-2">~{Math.round(w.minutes * w.kcalPerMin)} kcal</span>
       </div>
 
-      <h2 className="mb-3 mt-6 text-base font-bold">Exercises ({w.exercises.length})</h2>
+      <h2 className="eyebrow mb-3 mt-6">Exercises ({w.exercises.length})</h2>
       <ol className="space-y-2">
         {w.exercises.map((e, i) => (
           <li key={e.name + i} className="card flex items-center gap-3 p-3">
-            <span className="gloss-tile flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white">{i + 1}</span>
+            <span className="gloss-tile flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-serif text-base">{i + 1}</span>
             <span className="flex-1 text-sm font-semibold">{e.name}</span>
             <span className="text-sm text-white/60">{target(e)}</span>
           </li>
         ))}
       </ol>
 
-      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+6.5rem)] z-10 mt-6">
+      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-10 mt-6">
         <button onClick={onStart} className="btn-primary w-full py-4 text-base shadow-lg shadow-black/50">
-          <Icon name="play" size={16} /> Start Workout
+          Begin session
         </button>
       </div>
 

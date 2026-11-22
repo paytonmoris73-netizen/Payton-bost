@@ -123,7 +123,7 @@ export function localCoach(q: string, c: CoachContext): string {
   }
 
   if (has(q, /motiv|tired|lazy|skip|can't|cant|excuse|bored|stuck/)) {
-    const s = c.streak > 0 ? `You're on a ${c.streak}-day streak, don't break it. ` : "";
+    const s = c.streak > 0 ? `You're on a ${c.streak}-day streak. ` : "";
     return `${s}Do the 10-minute version: pick Core Crusher or Mobility Flow and just start. Starting is the hard part, and you can stop after one set if you really want to.`;
   }
 
@@ -138,11 +138,11 @@ export function localCoach(q: string, c: CoachContext): string {
   }
 
   if (has(q, /workout|train|exercise|today|lift|cardio|plan|what should/)) {
-    if (c.doneToday) return `Nice, ${first}, you've already done ${c.plannedToday} today. Take it easy now, or do Mobility Flow if you want something light.`;
+    if (c.doneToday) return `You've already completed ${c.plannedToday} today. Take it easy now, or do Mobility Flow if you want something light.`;
     const recentNames = c.recent.slice(-3).map((r) => r.name);
     const tip = recentNames.length ? ` Your last sessions: ${recentNames.join(", ")}.` : "";
     return `Today's plan is ${c.plannedToday}.${tip} Warm up for 5 minutes, then go set by set and rest as the timer says.`;
   }
 
-  return `Hi ${first}! I'm running in offline mode, so I can help with today's workout, nutrition targets, progress, recovery and motivation. Try one of those.`;
+  return `I'm in offline mode at the moment, ${first}, so I can help with today's session, nutrition targets, progress, recovery and consistency.`;
 }

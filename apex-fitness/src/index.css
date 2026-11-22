@@ -14,33 +14,24 @@ body,
 
 body {
   margin: 0;
-  background-color: #06050c;
+  background-color: #0a090d;
   min-height: 100dvh;
-  color: #fff;
+  color: #f2eee8;
   font-family: Inter, system-ui, sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Violet moonlight and a faint star field behind everything (a fixed layer: background-attachment: fixed is broken on iOS). */
+/* A single, very soft wash of light at the top: depth without decoration. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image:
-    radial-gradient(260px 260px at 88% -2%, rgba(236, 228, 255, 0.22), transparent 70%),
-    radial-gradient(560px 360px at 90% -5%, rgba(155, 92, 255, 0.3), transparent 62%),
-    radial-gradient(480px 380px at -10% 30%, rgba(160, 120, 255, 0.14), transparent 60%),
-    radial-gradient(600px 360px at 50% 110%, rgba(110, 60, 220, 0.24), transparent 60%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='12' cy='30' r='.7' opacity='.7'/%3E%3Ccircle cx='70' cy='8' r='.5' opacity='.5'/%3E%3Ccircle cx='130' cy='44' r='.9' opacity='.8'/%3E%3Ccircle cx='200' cy='20' r='.6' opacity='.6'/%3E%3Ccircle cx='226' cy='96' r='.5' opacity='.5'/%3E%3Ccircle cx='160' cy='120' r='.7' opacity='.6'/%3E%3Ccircle cx='96' cy='150' r='.5' opacity='.45'/%3E%3Ccircle cx='30' cy='120' r='.8' opacity='.7'/%3E%3Ccircle cx='58' cy='210' r='.6' opacity='.55'/%3E%3Ccircle cx='140' cy='226' r='.9' opacity='.75'/%3E%3Ccircle cx='210' cy='190' r='.5' opacity='.5'/%3E%3Ccircle cx='186' cy='64' r='.4' opacity='.4'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: auto, auto, auto, auto, 240px 240px;
-  animation: twinkle 7s ease-in-out infinite alternate;
-}
-@keyframes twinkle {
-  from { opacity: 0.85; }
-  to { opacity: 1; }
+  background: radial-gradient(900px 420px at 50% -180px, rgba(201, 187, 232, 0.09), transparent 70%);
 }
 
 button {
@@ -51,11 +42,11 @@ button:disabled {
   cursor: not-allowed;
 }
 :focus-visible {
-  outline: 2px solid #c9a7ff;
+  outline: 1.5px solid #c9bbe8;
   outline-offset: 2px;
 }
 .pt-safe {
-  padding-top: calc(env(safe-area-inset-top) + 1.5rem);
+  padding-top: calc(env(safe-area-inset-top) + 1.75rem);
 }
 
 ::-webkit-scrollbar {
@@ -67,157 +58,105 @@ button:disabled {
 }
 
 @layer components {
-  /* ---------- Glossy glass panel ---------- */
+  /* Surfaces: quiet, hairline-bordered panels. */
   .card {
-    @apply relative rounded-2xl;
-    background-color: #0e0b18;
-    background-image:
-      linear-gradient(180deg, rgba(214, 196, 255, 0.16) 0%, rgba(214, 196, 255, 0.04) 18%, transparent 46%),
-      linear-gradient(160deg, #1c1630 0%, #0d0a17 70%);
-    border: 1px solid rgba(176, 140, 255, 0.3);
-    box-shadow:
-      inset 0 1px 0 rgba(240, 234, 255, 0.42),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.7),
-      inset 0 0 30px rgba(155, 92, 255, 0.06),
-      0 12px 30px -12px rgba(0, 0, 0, 0.9),
-      0 0 26px -10px rgba(155, 92, 255, 0.5);
+    @apply relative rounded-[20px];
+    background-color: #121117;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
   }
-  /* Glass glare: a bright diagonal reflection in the upper-left. */
-  .card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background:
-      radial-gradient(120% 60% at 0% 0%, rgba(246, 242, 255, 0.16), transparent 55%),
-      linear-gradient(115deg, rgba(246, 242, 255, 0.12) 0%, rgba(246, 242, 255, 0.03) 26%, transparent 40%);
+  button.card {
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
   }
-  /* Light sweep across tappable cards. */
-  button.card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(105deg, transparent 35%, rgba(240, 234, 255, 0.16) 50%, transparent 65%);
-    background-size: 250% 100%;
-    background-position: 130% 0;
-    transition: background-position 0.8s ease;
-  }
-  button.card:hover::after,
-  button.card:active::after {
-    background-position: -30% 0;
+  button.card:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background-color: #15141b;
   }
 
-  /* ---------- Polished violet button ---------- */
+  /* Primary action: ivory, quiet, confident. */
   .btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-5 py-3 text-sm font-bold text-black transition active:scale-[0.97];
-    background-image:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.22) 44%, rgba(255, 255, 255, 0) 52%, rgba(46, 18, 110, 0.25) 100%),
-      linear-gradient(135deg, #e6d8ff 0%, #a26bff 45%, #6d28d9 100%);
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),
-      inset 0 -3px 6px rgba(46, 18, 110, 0.5),
-      0 0 0 1px rgba(190, 160, 255, 0.55),
-      0 8px 24px -4px rgba(155, 92, 255, 0.75),
-      0 0 40px -10px rgba(170, 120, 255, 0.8);
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition active:scale-[0.98];
+    background-color: #f2eee8;
+    color: #0b0a0f;
+    letter-spacing: 0.01em;
   }
-  .btn-primary::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: -60%;
-    width: 40%;
-    transform: skewX(-20deg);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
-    animation: sheen 4.5s ease-in-out infinite;
-    pointer-events: none;
-  }
-  .btn-primary:disabled::after {
-    animation: none;
+  .btn-primary:hover:not(:disabled) {
+    background-color: #ffffff;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition active:scale-[0.97];
-    background-image: linear-gradient(180deg, rgba(214, 196, 255, 0.18), rgba(214, 196, 255, 0.04) 50%, rgba(0, 0, 0, 0.35));
-    background-color: rgba(22, 18, 36, 0.9);
-    border: 1px solid rgba(176, 140, 255, 0.35);
-    box-shadow: inset 0 1px 0 rgba(240, 234, 255, 0.35), 0 4px 14px -6px rgba(0, 0, 0, 0.8);
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition active:scale-[0.98];
+    color: #f2eee8;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.28);
   }
 
-  /* ---------- Chips: utilities set the colour, this adds the gloss on top ---------- */
+  /* Segmented / filter pills. Pages mark the selected one with bg-luna. */
   .chip {
-    @apply rounded-full px-4 py-2 text-xs font-semibold transition;
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 48%, rgba(0, 0, 0, 0.18) 100%);
-    border: 1px solid rgba(176, 140, 255, 0.22);
-    box-shadow: inset 0 1px 0 rgba(242, 236, 255, 0.3);
+    @apply rounded-full px-4 py-2 text-xs font-medium transition;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    letter-spacing: 0.01em;
   }
   .chip.bg-luna {
-    border-color: rgba(205, 180, 255, 0.8);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 18px -4px rgba(155, 92, 255, 0.8);
+    background-color: #f2eee8 !important;
+    color: #0b0a0f !important;
+    border-color: #f2eee8;
+  }
+  .chip.bg-ink-2,
+  .chip.bg-ink-3 {
+    background-color: transparent;
   }
 
   .input {
-    @apply w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(200, 175, 255, 0.05));
-    border: 1px solid rgba(176, 140, 255, 0.25);
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(240, 234, 255, 0.08);
+    @apply w-full rounded-xl px-3.5 py-3 text-sm outline-none transition placeholder:text-white/25;
+    color: #f2eee8;
+    background-color: #0e0d12;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   .input:focus {
-    border-color: #9b5cff;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55), 0 0 0 3px rgba(155, 92, 255, 0.25), 0 0 18px -4px rgba(155, 92, 255, 0.6);
+    border-color: rgba(201, 187, 232, 0.7);
   }
 
-  /* Glossy icon tile (the round/square icon backgrounds). */
+  /* Icon holder: a faint outlined square, icon in the accent colour. */
   .gloss-tile {
-    background-image:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 48%, rgba(0, 0, 0, 0) 52%),
-      linear-gradient(145deg, rgba(150, 95, 255, 0.4), rgba(36, 18, 80, 0.5));
-    border: 1px solid rgba(190, 160, 255, 0.4);
-    box-shadow: inset 0 1px 0 rgba(245, 240, 255, 0.55), 0 0 16px -4px rgba(155, 92, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #c9bbe8 !important;
   }
 
-  /* Metallic shine for highlighted words. */
+  /* Accent text (names, key numbers). */
   .shine-text {
-    background-image: linear-gradient(100deg, #c9a7ff 0%, #f1e9ff 22%, #9b5cff 45%, #e2d2ff 62%, #9b5cff 100%);
-    background-size: 220% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 0 12px rgba(155, 92, 255, 0.45));
-    animation: textShine 6s linear infinite;
+    color: #e2d9f5;
   }
 
-  /* Glass bars (bottom nav, composer, sheets). */
+  /* Bars and sheets: solid, blurred, hairline edge. */
   .glass-bar {
-    background:
-      linear-gradient(180deg, rgba(214, 196, 255, 0.14), rgba(214, 196, 255, 0.02) 40%),
-      rgba(12, 10, 20, 0.94);
-    border: 1px solid rgba(176, 140, 255, 0.34);
-    box-shadow:
-      inset 0 1px 0 rgba(240, 234, 255, 0.45),
-      0 -8px 30px -10px rgba(0, 0, 0, 0.9),
-      0 0 30px -8px rgba(155, 92, 255, 0.5);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    backdrop-filter: blur(18px) saturate(160%);
+    background-color: rgba(14, 13, 18, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
   }
 
-  /* Glowing progress fill. */
   .glow-fill {
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%), linear-gradient(90deg, #c9a7ff, #9b5cff);
-    box-shadow: 0 0 12px rgba(155, 92, 255, 0.8);
+    background-color: #c9bbe8;
   }
-}
 
-@keyframes sheen {
-  0%, 60% { left: -60%; }
-  85%, 100% { left: 130%; }
-}
-@keyframes textShine {
-  from { background-position: 220% 0; }
-  to { background-position: 0% 0; }
+  /* Editorial section label: small caps, wide tracking. */
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(242, 238, 232, 0.45);
+  }
+  .display {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    /* Lining figures: the default old-style numerals make "0" read as "o". */
+    font-feature-settings: "lnum" 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

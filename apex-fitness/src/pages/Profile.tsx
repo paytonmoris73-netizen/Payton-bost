@@ -24,26 +24,23 @@ export default function Profile() {
   const premium = hasPremium(useApp((s) => s.subscription), useToday());
 
   return (
-    <div className="animate-fade-up pt-safe space-y-5 px-5">
-      <header className="flex items-center gap-3">
-        <div className="gloss-tile flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white">
+    <div className="animate-fade-up pt-safe space-y-6 px-6">
+      <header className="flex items-center gap-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 font-serif text-2xl text-luna-light">
           {name.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1">
-          <h1 className="shine-text text-lg font-extrabold">{name}</h1>
-          <p className="flex items-center gap-1 text-xs text-white/50">
-            {premium && <Icon name="crown" size={12} className="text-moon" />}
-            {premium ? "Premium member" : "Free plan"}
-          </p>
+          <h1 className="display text-[34px]">{name}</h1>
+          <p className={`eyebrow mt-1 ${premium ? "!text-moon" : ""}`}>{premium ? "Premium member" : "Standard"}</p>
         </div>
       </header>
 
-      <div className="card flex gap-1 rounded-full p-1">
+      <div className="flex gap-1.5">
         {SECTIONS.map((s) => (
           <button
             key={s.id}
             onClick={() => go("profile", s.id)}
-            className={`chip flex-1 px-1 ${section === s.id ? "bg-luna text-black" : "text-white/60"}`}
+            className={`chip flex-1 !px-1 ${section === s.id ? "bg-luna text-black" : "bg-ink-2 text-white/60"}`}
           >
             {s.label}
           </button>
@@ -145,8 +142,8 @@ function Progress() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold">Body Measurements</h2>
-          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs font-semibold text-luna">
+          <h2 className="eyebrow">Body Measurements</h2>
+          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs font-medium text-luna-light">
             <Icon name="plus" size={14} /> Log
           </button>
         </div>
@@ -158,16 +155,16 @@ function Progress() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-bold">Personal Records</h2>
+        <h2 className="eyebrow mb-3">Personal Records</h2>
         {prs.length === 0 ? (
           <div className="card p-4 text-sm text-white/50">Enter the weight you lift during a workout and your best lifts show up here.</div>
         ) : (
           <ul className="card divide-y divide-line overflow-hidden">
             {prs.map((p) => (
               <li key={p.exercise} className="flex items-center gap-3 px-4 py-3">
-                <Icon name="trophy" size={16} className="text-moon" />
-                <span className="flex-1 text-sm font-semibold">{p.exercise}</span>
-                <span className="text-sm font-bold">{p.weight} lbs</span>
+                <Icon name="trophy" size={15} className="text-moon" />
+                <span className="flex-1 text-sm">{p.exercise}</span>
+                <span className="text-sm font-medium tabular-nums">{p.weight} lbs</span>
                 <span className="text-xs text-white/40">× {p.reps}</span>
               </li>
             ))}
@@ -176,7 +173,7 @@ function Progress() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-bold">Workout History</h2>
+        <h2 className="eyebrow mb-3">Workout History</h2>
         {history.length === 0 ? (
           <div className="card p-4 text-sm text-white/50">No workouts logged yet.</div>
         ) : (
@@ -184,7 +181,7 @@ function Progress() {
             {history.map((l) => (
               <li key={l.id} className="card flex items-center gap-3 p-3">
                 <div className="flex-1">
-                  <p className="text-sm font-semibold">{l.name}</p>
+                  <p className="text-sm font-medium">{l.name}</p>
                   <p className="text-xs text-white/50">
                     {fmtDay(l.date)} · {l.minutes} min · {fmtNum(l.calories)} kcal
                   </p>
@@ -219,8 +216,8 @@ function Progress() {
 function Delta({ value, label, good }: { value: string; label: string; good: boolean }) {
   return (
     <div className="card py-4 text-center">
-      <div className={`text-lg font-extrabold ${good ? "text-lime-luna" : "text-luna"}`}>{value}</div>
-      <div className="text-[11px] text-white/50">{label}</div>
+      <div className={`display text-[26px] ${good ? "text-lime-luna" : "text-[#e3b5a4]"}`}>{value}</div>
+      <div className="text-[11px] text-white/45">{label}</div>
     </div>
   );
 }
@@ -229,7 +226,7 @@ function Measure({ label, value }: { label: string; value: string }) {
   return (
     <div className="card p-3">
       <div className="text-[11px] text-white/50">{label}</div>
-      <div className="mt-1 text-base font-extrabold">{value}</div>
+      <div className="display mt-1 text-[22px]">{value}</div>
     </div>
   );
 }
@@ -300,48 +297,35 @@ function Leaderboard() {
         ))}
       </div>
 
-      <div className="flex items-end justify-center gap-3 pt-2">
-        {[podium[1], podium[0], podium[2]].map((p, i) => {
-          const place = [2, 1, 3][i];
-          return (
-            <div key={`${place}-${p.name}`} className={`flex flex-col items-center ${place === 1 ? "-translate-y-2" : ""}`}>
-              {place === 1 && <Icon name="crown" size={20} className="mb-1 text-moon" />}
-              <div
-                className={`gloss-tile flex items-center justify-center rounded-full font-black ${
-                  place === 1 ? "h-20 w-20 !border-4 !border-moon text-2xl" : "h-14 w-14 text-lg"
-                } ${p.me ? "text-black" : "text-white"}`}
-              >
-                {p.me ? name.charAt(0).toUpperCase() : p.name.charAt(0)}
-              </div>
-              <div className={`mt-2 max-w-[6rem] truncate text-sm font-bold ${p.me ? "text-luna" : ""}`}>{p.me ? "You" : p.name}</div>
-              <div className="text-xs text-white/50">{fmtNum(p.pts)} pts</div>
-              <div className="text-[10px] font-bold text-white/30">#{place}</div>
-            </div>
-          );
-        })}
+      <div className="card grid grid-cols-3 divide-x divide-white/[0.07] py-5 text-center">
+        {podium.map((p, i) => (
+          <div key={`${i}-${p.name}`} className="px-2">
+            <div className={`eyebrow ${i === 0 ? "!text-moon" : ""}`}>{["First", "Second", "Third"][i]}</div>
+            <div className={`display mt-2 truncate text-[22px] ${p.me ? "italic text-luna-light" : ""}`}>{p.me ? "You" : p.name}</div>
+            <div className="mt-1 text-xs tabular-nums text-white/45">{fmtNum(p.pts)} pts</div>
+          </div>
+        ))}
       </div>
 
       <ul className="card divide-y divide-line overflow-hidden">
         {rows.map((r, i) => (
-          <li key={`${i}-${r.name}`} className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-luna/10" : ""}`}>
-            <span className="w-5 text-sm font-bold text-white/50">{i + 1}</span>
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold">{r.me ? name.charAt(0).toUpperCase() : r.name.charAt(0)}</span>
-            <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${r.me ? "text-luna" : ""}`}>{r.me ? `${name} (You)` : r.name}</span>
-            <span className="text-sm text-white/60">{fmtNum(r.pts)} pts</span>
+          <li key={`${i}-${r.name}`} className={`flex items-center gap-4 px-5 py-3.5 ${r.me ? "bg-white/[0.03]" : ""}`}>
+            <span className="w-5 font-serif text-lg text-white/40">{i + 1}</span>
+            <span className={`min-w-0 flex-1 truncate text-sm ${r.me ? "font-medium text-luna-light" : ""}`}>{r.me ? `${name} (you)` : r.name}</span>
+            <span className="text-sm tabular-nums text-white/55">{fmtNum(r.pts)}</span>
           </li>
         ))}
       </ul>
 
-      <div className="card flex items-center gap-3 border-luna/30 bg-luna/10 p-4">
-        <Icon name="trophy" size={26} className="text-moon" />
-        <p className="text-sm">
-          {mine === 0 ? (
-            <>Finish a workout to get on the board. <span className="text-white/50">100 pts per workout + 5 per minute.</span></>
-          ) : (
-            <>You're ranked <b>#{myRank}</b>. Keep going to climb!</>
-          )}
-        </p>
-      </div>
+      <p className="px-1 text-sm leading-relaxed text-white/60">
+        {mine === 0 ? (
+          <>Complete a session to join the standings. Each session earns 100 points, plus 5 per active minute.</>
+        ) : (
+          <>
+            You are currently ranked <span className="font-medium text-[#f2eee8]">#{myRank}</span>.
+          </>
+        )}
+      </p>
       <p className="text-center text-[11px] text-white/30">Other athletes are sample data — there's no server behind this demo.</p>
     </>
   );
@@ -362,13 +346,10 @@ function Premium() {
 
   return (
     <>
-      <div className="card relative overflow-hidden bg-gradient-to-br from-[#2c1a52] via-[#160f2a] to-[#0c0916] p-6">
-        <div className="absolute -right-6 -top-6 text-moon/10">
-          <Icon name="crown" size={180} strokeWidth={1.2} />
-        </div>
-        <Icon name="crown" size={34} className="text-moon" />
-        <h2 className="mt-3 text-2xl font-black">
-          Lunor <span className="shine-text">Premium</span>
+      <div className="card relative overflow-hidden p-6">
+        <p className="eyebrow !text-moon">Membership</p>
+        <h2 className="display mt-2 text-[36px]">
+          Lunor <span className="italic text-moon">Premium</span>
         </h2>
 
         {active && sub ? (
@@ -399,13 +380,11 @@ function Premium() {
           </>
         ) : (
           <>
-            <p className="mt-1 text-sm text-white/60">Get the most out of your fitness journey.</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/55">Deeper programming, detailed nutrition and priority support.</p>
             <ul className="my-5 space-y-3">
               {PREMIUM_FEATURES.map((f) => (
                 <li key={f} className="flex items-center gap-3 text-sm">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-moon/20 text-moon">
-                    <Icon name="check" size={12} strokeWidth={3} />
-                  </span>
+                  <Icon name="check" size={14} className="text-moon" />
                   {f}
                 </li>
               ))}
@@ -420,14 +399,14 @@ function Premium() {
                     aria-checked={on}
                     onClick={() => setPlanId(p.id)}
                     className={`relative rounded-2xl border p-3 text-left transition ${
-                      on ? "border-moon bg-moon/15 shadow-[0_0_20px_-4px_rgba(225, 210, 255,0.6),inset_0_1px_0_rgba(240, 234, 255,0.4)]" : "border-white/15 bg-black/25"
+                      on ? "border-moon/70 bg-white/[0.03]" : "border-white/10"
                     }`}
                   >
                     {p.note && (
-                      <span className="absolute -top-2 right-2 rounded-full bg-moon px-2 py-0.5 text-[10px] font-extrabold text-black">{p.note}</span>
+                      <span className="absolute -top-2 right-2 rounded-full bg-moon px-2 py-0.5 text-[10px] font-medium text-black">{p.note}</span>
                     )}
-                    <span className="block text-xs font-semibold text-white/60">{p.name}</span>
-                    <span className="block text-xl font-black">{fmtMoney(p.price)}</span>
+                    <span className="eyebrow block">{p.name}</span>
+                    <span className="display mt-1 block text-[30px]">{fmtMoney(p.price)}</span>
                     <span className="block text-[11px] text-white/50">
                       per {p.period}
                       {p.period === "year" ? ` · ${fmtMoney(p.price / 12)}/mo` : ""}
@@ -437,7 +416,7 @@ function Premium() {
               })}
             </div>
             <button onClick={() => setCheckout(true)} className="btn-primary mt-5 w-full py-3.5 text-base">
-              Go Premium · {fmtMoney(planById(planId).price)}
+              Continue · {fmtMoney(planById(planId).price)}
             </button>
             <p className="mt-3 text-center text-[11px] text-white/35">Test mode — payments are simulated and no real money is charged.</p>
           </>
@@ -446,7 +425,7 @@ function Premium() {
 
       {payments.length > 0 && (
         <section>
-          <h2 className="mb-3 text-base font-bold">Billing history</h2>
+          <h2 className="eyebrow mb-3">Billing history</h2>
           <ul className="card divide-y divide-line overflow-hidden">
             {payments.slice(0, 24).map((p) => (
               <li key={p.id} className="flex items-center gap-3 px-4 py-3">
@@ -457,7 +436,7 @@ function Premium() {
                     {longDate(p.date)} · {p.brand} •••• {p.last4}
                   </span>
                 </span>
-                <span className="text-sm font-bold">{fmtMoney(p.amount)}</span>
+                <span className="text-sm tabular-nums">{fmtMoney(p.amount)}</span>
               </li>
             ))}
           </ul>
@@ -542,7 +521,7 @@ function Settings() {
   return (
     <div className="space-y-5">
       <section className="card space-y-3 p-4">
-        <h2 className="text-base font-bold">Profile & goals</h2>
+        <h2 className="eyebrow">Profile &amp; goals</h2>
         <label className="block text-xs font-semibold text-white/60">
           Name
           <input className="input mt-1" value={name} maxLength={24} onChange={(e) => { setName(e.target.value); setMsg(null); }} />
@@ -573,7 +552,7 @@ function Settings() {
       </section>
 
       <section className="card space-y-3 p-4">
-        <h2 className="text-base font-bold">Your data</h2>
+        <h2 className="eyebrow">Your data</h2>
         <p className="text-xs text-white/50">
           Everything is stored only in this browser. Download a backup so you don't lose it if you clear your browser data or switch phones.
         </p>

@@ -22,13 +22,13 @@ export default function Nutrition() {
 
   return (
     <div className="animate-fade-up pt-safe space-y-6 px-5">
-      <h1 className="text-center text-xl font-extrabold">Nutrition</h1>
+      <h1 className="display text-[40px]">Nutrition</h1>
 
       <section className="flex flex-col items-center">
-        <Ring value={cals} max={calorieGoal} size={210} stroke={14}>
-          <Icon name="flame" size={22} className="text-luna" />
-          <span className="shine-text text-4xl font-black tabular-nums">{cals.toLocaleString()}</span>
-          <span className="text-xs text-white/50">/ {calorieGoal.toLocaleString()} Calories</span>
+        <Ring value={cals} max={calorieGoal} size={220}>
+          <span className="eyebrow">Consumed</span>
+          <span className="display mt-1 text-[52px] tabular-nums">{cals.toLocaleString()}</span>
+          <span className="text-xs text-white/45">of {calorieGoal.toLocaleString()} kcal</span>
         </Ring>
         <p className="mt-3 text-sm text-white/60">
           {remaining >= 0 ? `${remaining.toLocaleString()} kcal remaining` : `${(-remaining).toLocaleString()} kcal over goal`}
@@ -36,14 +36,14 @@ export default function Nutrition() {
       </section>
 
       <section className="grid grid-cols-3 gap-3">
-        <Macro label="Protein" value={sum("protein")} goal={proteinGoal} color="#ef4444" />
-        <Macro label="Carbs" value={sum("carbs")} goal={carbGoal} color="#3b82f6" />
-        <Macro label="Fats" value={sum("fat")} goal={fatGoal} color="#6bd34a" />
+        <Macro label="Protein" value={sum("protein")} goal={proteinGoal} color="#e3b5a4" />
+        <Macro label="Carbs" value={sum("carbs")} goal={carbGoal} color="#9cb8e0" />
+        <Macro label="Fats" value={sum("fat")} goal={fatGoal} color="#9fd3b4" />
       </section>
 
       <section className="card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold">Water</h2>
+          <h2 className="eyebrow">Water</h2>
           <span className="text-sm text-white/60">
             {glasses} / {WATER_GOAL} glasses
           </span>
@@ -56,7 +56,7 @@ export default function Nutrition() {
             {Array.from({ length: WATER_GOAL }, (_, i) => (
               <div
                 key={i}
-                className={`h-6 flex-1 rounded-md transition ${i < glasses ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8),inset_0_1px_0_rgba(255,255,255,0.6)]" : "bg-white/10"}`}
+                className={`h-6 flex-1 rounded-md transition ${i < glasses ? "bg-[#9cb8e0]" : "bg-white/10"}`}
               />
             ))}
           </div>
@@ -67,7 +67,7 @@ export default function Nutrition() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-bold">Your Meals</h2>
+        <h2 className="eyebrow mb-3">Meals</h2>
         {todays.length === 0 ? (
           <div className="card p-4 text-sm text-white/50">Nothing logged yet today.</div>
         ) : (
@@ -75,7 +75,7 @@ export default function Nutrition() {
             {todays.map((m) => (
               <li key={m.id} className="card flex items-center gap-3 p-3">
                 <div className="flex-1">
-                  <p className="text-sm font-bold">{m.name}</p>
+                  <p className="text-sm font-medium">{m.name}</p>
                   <p className="text-xs text-white/50">
                     {m.calories} cal · {m.protein}g P · {m.carbs}g C · {m.fat}g F
                   </p>
@@ -90,7 +90,7 @@ export default function Nutrition() {
       </section>
 
       <button onClick={() => setOpen(true)} className="btn-primary w-full py-3.5 text-base">
-        Add Meal <Icon name="plus" size={16} />
+        <Icon name="plus" size={16} /> Log a meal
       </button>
 
       {open && (
@@ -111,10 +111,10 @@ function Macro({ label, value, goal, color }: { label: string; value: number; go
   return (
     <div className="text-center">
       <div className="mx-auto mb-1 h-2 w-2 rounded-full" style={{ background: color }} />
-      <div className="text-xl font-extrabold tabular-nums">{value}g</div>
+      <div className="display text-[28px] tabular-nums">{value}g</div>
       <div className="text-xs text-white/50">{label}</div>
       <div className="mx-auto mt-2 h-1 w-14 overflow-hidden rounded-full bg-ink-3">
-        <div className="h-full" style={{ width: `${pct}%`, background: color, boxShadow: `0 0 8px ${color}` }} />
+        <div className="h-full" style={{ width: `${pct}%`, background: color }} />
       </div>
       <div className="mt-1 text-[10px] text-white/35">of {goal}g</div>
     </div>
@@ -134,7 +134,7 @@ function AddMeal({ onClose, onAdd }: { onClose: () => void; onAdd: (m: { name: s
       <p className="mb-2 text-xs font-semibold text-white/50">Quick add</p>
       <div className="no-scrollbar -mx-5 mb-4 flex gap-2 overflow-x-auto px-5">
         {MEAL_PRESETS.map((p) => (
-          <button key={p.name} onClick={() => onAdd(p)} className="chip shrink-0 bg-ink-3 text-white/80 hover:bg-luna hover:text-black">
+          <button key={p.name} onClick={() => onAdd(p)} className="chip shrink-0 bg-ink-3 text-white/80 hover:border-white/30">
             {p.name} · {p.calories}
           </button>
         ))}

@@ -181,25 +181,25 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
     return (
       <Shell>
         <div className="animate-pop flex flex-1 flex-col items-center justify-center text-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-lime-luna/15 text-lime-luna">
-            <Icon name="check" size={48} strokeWidth={3} />
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/15 text-luna-light">
+            <Icon name="check" size={26} />
           </div>
-          <h1 className="mt-6 text-3xl font-extrabold">Workout complete!</h1>
-          <p className="mt-1 text-white/60">{w.name}</p>
-          <div className="mt-8 grid w-full max-w-xs grid-cols-3 gap-3">
+          <p className="eyebrow mt-8">Session complete</p>
+          <h1 className="display mt-2 text-[40px]">{w.name}</h1>
+          <div className="card mt-8 grid w-full max-w-xs grid-cols-3 divide-x divide-white/[0.07] py-4">
             <Summary label="Minutes" value={String(minutes)} />
             <Summary label="Calories" value={String(calories)} />
             <Summary label="Sets" value={String(s.setsDone)} />
           </div>
           {prs.length > 0 && (
-            <div className="mt-5 w-full max-w-xs rounded-2xl border border-moon/40 bg-moon/10 p-4 text-left">
-              <p className="flex items-center gap-2 text-sm font-bold text-moon">
-                <Icon name="trophy" size={16} /> New personal record{prs.length > 1 ? "s" : ""}!
+            <div className="card mt-4 w-full max-w-xs p-5 text-left">
+              <p className="eyebrow flex items-center gap-2 !text-moon">
+                <Icon name="trophy" size={14} /> Personal record{prs.length > 1 ? "s" : ""}
               </p>
               <ul className="mt-2 space-y-1 text-sm">
                 {prs.map((p) => (
                   <li key={p.exercise}>
-                    {p.exercise}: <b>{p.weight} lbs</b> <span className="text-white/50">(was {before.get(p.exercise)})</span>
+                    {p.exercise}: <span className="font-medium">{p.weight} lbs</span> <span className="text-white/50">(was {before.get(p.exercise)})</span>
                   </li>
                 ))}
               </ul>
@@ -261,11 +261,11 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
 
       {s.phase === "rest" ? (
         <div className="flex flex-1 flex-col items-center justify-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-luna-light">Rest</p>
+          <p className="eyebrow">Rest</p>
           <div className="my-6">
-            <Ring value={s.rest} max={Math.max(e.rest, s.rest)} size={220} stroke={12} color="#c9a7ff">
-              <span className="shine-text text-6xl font-black tabular-nums">{s.rest}</span>
-              <span className="text-xs text-white/50">seconds</span>
+            <Ring value={s.rest} max={Math.max(e.rest, s.rest)} size={230}>
+              <span className="display text-[76px] tabular-nums">{s.rest}</span>
+              <span className="eyebrow mt-3">seconds</span>
             </Ring>
           </div>
           <p className="text-sm text-white/60">
@@ -279,28 +279,28 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
               +15s
             </button>
             <button className="btn-primary" onClick={() => setS((p) => ({ ...advance(p, w), paused: false }))}>
-              <Icon name="skip" size={14} /> Skip rest
+              Skip rest
             </button>
           </div>
-          {s.paused && <p className="mt-4 text-xs font-semibold text-moon">Paused</p>}
+          {s.paused && <p className="eyebrow mt-4 !text-moon">Paused</p>}
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-luna">
+          <p className="eyebrow">
             Set {s.set} of {e.sets}
           </p>
-          <h1 className="mt-3 break-words text-4xl font-black leading-tight">{e.name}</h1>
+          <h1 className="display mt-4 break-words text-[44px]">{e.name}</h1>
           {timed && s.workLeft !== null ? (
             <div className="mt-6">
-              <Ring value={s.workLeft} max={Math.max(e.seconds ?? 0, s.workLeft)} size={200} stroke={12} color="#9b5cff">
-                <span className="shine-text text-6xl font-black tabular-nums">{s.workLeft}</span>
-                <span className="text-xs text-white/50">seconds left</span>
+              <Ring value={s.workLeft} max={Math.max(e.seconds ?? 0, s.workLeft)} size={210}>
+                <span className="display text-[68px] tabular-nums">{s.workLeft}</span>
+                <span className="eyebrow mt-3">seconds left</span>
               </Ring>
             </div>
           ) : (
-            <p className="mt-6 text-6xl font-black">
-              <span className="shine-text">{e.reps ?? e.seconds ?? "Go"}</span>
-              {(e.reps || e.seconds) && <span className="ml-2 text-2xl font-bold text-white/50">{e.reps ? "reps" : "sec"}</span>}
+            <p className="mt-8">
+              <span className="display text-[84px] tabular-nums">{e.reps ?? e.seconds ?? "Go"}</span>
+              {(e.reps || e.seconds) && <span className="eyebrow ml-2">{e.reps ? "reps" : "seconds"}</span>}
             </p>
           )}
 
@@ -315,7 +315,7 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
                 </button>
                 <input
                   id="weight"
-                  className="input text-center text-lg font-bold"
+                  className="input text-center font-serif text-2xl"
                   type="number"
                   inputMode="decimal"
                   min={0}
@@ -339,11 +339,11 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
               onClick={() => setS((p) => ({ ...p, paused: false, workLeft: e.seconds ?? 0 }))}
               className="btn-primary mt-8 w-full max-w-xs py-4 text-base"
             >
-              <Icon name="play" size={16} /> Start {e.seconds}s timer
+              Start {e.seconds}-second timer
             </button>
           ) : (
             <button onClick={finishSet} disabled={!weightOk} className="btn-primary mt-8 w-full max-w-xs py-4 text-base disabled:opacity-40">
-              <Icon name="check" size={18} /> {timed ? "Done early" : "Complete set"}
+              {timed ? "Finish early" : "Complete set"}
             </button>
           )}
           {timed && s.workLeft === null && (
@@ -351,7 +351,7 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
               Mark set done without the timer
             </button>
           )}
-          {s.paused && <p className="mt-4 text-xs font-semibold text-moon">Paused</p>}
+          {s.paused && <p className="eyebrow mt-4 !text-moon">Paused</p>}
         </div>
       )}
     </Shell>
@@ -364,7 +364,7 @@ function Shell({ children }: { children: ReactNode }) {
       role="dialog"
       aria-modal="true"
       aria-label="Workout in progress"
-      className="fixed inset-0 z-[60] flex justify-center bg-[#06050c] bg-[radial-gradient(ellipse_at_top,rgba(70, 36, 150,0.45)_0%,transparent_60%)]"
+      className="fixed inset-0 z-[60] flex justify-center bg-[#0a090d]"
     >
       <div className="flex w-full max-w-[430px] flex-col overflow-y-auto px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[calc(env(safe-area-inset-top)+1.5rem)]">
         {children}
@@ -375,9 +375,9 @@ function Shell({ children }: { children: ReactNode }) {
 
 function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card py-4">
-      <div className="text-2xl font-extrabold">{value}</div>
-      <div className="text-[11px] text-white/50">{label}</div>
+    <div className="px-2">
+      <div className="display text-[30px] tabular-nums">{value}</div>
+      <div className="text-[11px] text-white/45">{label}</div>
     </div>
   );
 }

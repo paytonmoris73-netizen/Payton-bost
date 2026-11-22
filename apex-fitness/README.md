@@ -1,6 +1,6 @@
 # Lunor
 
-**Train. Track. Improve.** A mobile-first workout app with a glossy violet, moonlit look: guided workouts, nutrition tracking, progress analytics and leaderboards.
+**Train. Track. Improve.** A mobile-first workout app with a quiet, editorial dark design: guided workouts, nutrition tracking, progress analytics and leaderboards.
 
 ## Features
 

@@ -21,91 +21,72 @@ export default function Home() {
   const planned = workoutById(WEEK_PLAN[new Date(`${today}T00:00:00`).getDay()])!;
   const doneToday = todayLogs.some((l) => l.workoutId === planned.id);
   const recent = [...logs].reverse().slice(0, 3);
+  const dateLine = new Date(`${today}T00:00:00`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return (
-    <div className="animate-fade-up pt-safe space-y-6 px-5">
-      <header className="flex items-start justify-between">
-        <div>
-          <LogoMark size={26} />
-          <p className="mt-2 text-sm text-white/60">{greeting()},</p>
-          <h1 className="text-2xl font-extrabold"><span className="shine-text">{name}</span> 👋</h1>
+    <div className="animate-fade-up pt-safe space-y-8 px-6">
+      <header>
+        <div className="flex items-center justify-between">
+          <LogoMark size={22} />
+          {streak > 0 && <span className="eyebrow">{streak}-day streak</span>}
         </div>
-        <div className="card flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold" title="Day streak" aria-label={`${streak} day streak`}>
-          <Icon name="flame" size={16} className="text-luna" />
-          {streak} day{streak === 1 ? "" : "s"}
-        </div>
+        <p className="eyebrow mt-8">{dateLine}</p>
+        <h1 className="display mt-2 text-[40px]">
+          {greeting()},
+          <br />
+          <span className="italic text-luna-light">{name}</span>
+        </h1>
       </header>
 
-      <section className="card relative overflow-hidden bg-gradient-to-br from-[#2d1858] via-[#150e28] to-[#0c0916] p-5">
-        <div className="absolute -right-6 -top-6 text-luna/10">
-          <Icon name="dumbbell" size={150} strokeWidth={1.2} />
+      <section className="card p-6">
+        <div className="flex items-center justify-between">
+          <p className="eyebrow">Today's session</p>
+          {doneToday && (
+            <span className="flex items-center gap-1 text-[11px] font-medium text-lime-luna">
+              <Icon name="check" size={13} /> Completed
+            </span>
+          )}
         </div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-luna">Today's workout</p>
-        <h2 className="mt-1 text-xl font-extrabold">{planned.name}</h2>
-        <p className="mt-1 text-sm text-white/60">
-          {planned.minutes} min · {planned.level} · {planned.exercises.length} exercises
+        <h2 className="display mt-3 text-[32px]">{planned.name}</h2>
+        <p className="mt-2 text-sm text-white/50">
+          {planned.minutes} minutes · {planned.level} · {planned.exercises.length} exercises
         </p>
-        <button onClick={() => startSession(planned.id)} className="btn-primary relative mt-4">
-          {doneToday ? "Do it again" : "Start Workout"}
-          <Icon name="play" size={14} />
+        <button onClick={() => startSession(planned.id)} className="btn-primary mt-6 w-full">
+          {doneToday ? "Train again" : "Begin session"}
         </button>
-        {doneToday && (
-          <span className="absolute right-4 bottom-4 flex items-center gap-1 text-xs font-semibold text-lime-luna">
-            <Icon name="check" size={14} /> Done today
-          </span>
-        )}
       </section>
 
-      <button
-        onClick={() => go("coach")}
-        className="card flex w-full items-center gap-3 p-4 text-left transition active:scale-[0.98]"
-      >
-        <span className="gloss-tile flex h-10 w-10 items-center justify-center rounded-full text-white">
-          <Icon name="sparkle" size={20} />
-        </span>
-        <span className="flex-1">
-          <span className="block text-sm font-bold">Ask your AI Coach</span>
-          <span className="block text-xs text-white/50">Workout, nutrition and recovery advice</span>
-        </span>
-        <Icon name="chevR" size={18} className="text-white/40" />
-      </button>
-
-      <section>
-        <h2 className="mb-3 text-base font-bold">Your Stats</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <Stat icon="flame" value={burned.toLocaleString()} label="Calories burned" />
-          <Stat icon="clock" value={`${active} min`} label="Active" />
-          <Stat icon="target" value={`${goalPct}%`} label={`Goal (${dailyActiveGoal}m)`} />
-        </div>
+      <section className="card grid grid-cols-3 divide-x divide-white/[0.07] py-5">
+        <Stat value={burned.toLocaleString()} label="kcal burned" />
+        <Stat value={String(active)} label="active min" />
+        <Stat value={`${goalPct}%`} label={`of ${dailyActiveGoal} min goal`} />
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-bold">Quick Actions</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <Action icon="apple" label="Track Nutrition" onClick={() => go("nutrition")} />
-          <Action icon="trend" label="View Progress" onClick={() => go("profile", "progress")} />
-          <Action icon="users" label="Leaderboards" onClick={() => go("profile", "leaderboard")} />
-        </div>
-        <p className="mt-3 text-center text-xs text-white/40">
-          {eaten.toLocaleString()} / {calorieGoal.toLocaleString()} kcal eaten today
-        </p>
+        <p className="eyebrow mb-3">Explore</p>
+        <ul className="card divide-y divide-white/[0.07] overflow-hidden">
+          <LinkRow icon="message" title="Coach" note="Training, nutrition and recovery" onClick={() => go("coach")} />
+          <LinkRow icon="apple" title="Nutrition" note={`${eaten.toLocaleString()} of ${calorieGoal.toLocaleString()} kcal today`} onClick={() => go("nutrition")} />
+          <LinkRow icon="trend" title="Progress" note="Body measurements and records" onClick={() => go("profile", "progress")} />
+          <LinkRow icon="trophy" title="Leaderboard" note="This week's standings" onClick={() => go("profile", "leaderboard")} />
+        </ul>
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-bold">Recent Activity</h2>
+        <p className="eyebrow mb-3">Recent activity</p>
         {recent.length === 0 ? (
-          <div className="card p-4 text-sm text-white/50">No workouts yet — start one above!</div>
+          <div className="card p-5 text-sm text-white/45">No sessions yet. Your first one will appear here.</div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="card divide-y divide-white/[0.07] overflow-hidden">
             {recent.map((l) => (
-              <li key={l.id} className="card flex items-center justify-between p-3">
+              <li key={l.id} className="flex items-center justify-between px-5 py-4">
                 <div>
-                  <p className="text-sm font-semibold">{l.name}</p>
-                  <p className="text-xs text-white/50">
+                  <p className="text-sm font-medium">{l.name}</p>
+                  <p className="mt-0.5 text-xs text-white/45">
                     {fmtDay(l.date)} · {l.minutes} min
                   </p>
                 </div>
-                <span className="text-sm font-bold text-luna">{l.calories} kcal</span>
+                <span className="text-sm tabular-nums text-white/70">{l.calories} kcal</span>
               </li>
             ))}
           </ul>
@@ -115,23 +96,26 @@ export default function Home() {
   );
 }
 
-function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
+function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="card flex flex-col items-center gap-1 py-4">
-      <Icon name={icon} size={20} className="text-luna" />
-      <span className="text-lg font-extrabold">{value}</span>
-      <span className="text-[11px] text-white/50">{label}</span>
+    <div className="px-2 text-center">
+      <div className="display text-[30px] tabular-nums">{value}</div>
+      <div className="mt-1 text-[11px] text-white/45">{label}</div>
     </div>
   );
 }
 
-function Action({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+function LinkRow({ icon, title, note, onClick }: { icon: string; title: string; note: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="card flex flex-col items-center gap-2 py-4 text-xs font-semibold transition active:scale-95">
-      <span className="gloss-tile flex h-10 w-10 items-center justify-center rounded-xl text-white">
-        <Icon name={icon} size={20} />
-      </span>
-      {label}
-    </button>
+    <li>
+      <button onClick={onClick} className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-white/[0.02]">
+        <Icon name={icon} size={19} className="text-luna" />
+        <span className="flex-1">
+          <span className="block text-sm font-medium">{title}</span>
+          <span className="mt-0.5 block text-xs text-white/45">{note}</span>
+        </span>
+        <Icon name="chevR" size={16} className="text-white/25" />
+      </button>
+    </li>
   );
 }
