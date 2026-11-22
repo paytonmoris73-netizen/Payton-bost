@@ -14,7 +14,7 @@ export default function BottomNav() {
   const tab = useNav((s) => s.tab);
   const go = useNav((s) => s.go);
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-[430px] -translate-x-1/2 border-t border-line bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <nav className="fixed left-1/2 z-40 glass-bar bottom-3 w-[calc(100%-1.5rem)] max-w-[406px] -translate-x-1/2 rounded-3xl">
       <ul className="flex">
         {ITEMS.map((it) => {
           const active = tab === it.tab;
