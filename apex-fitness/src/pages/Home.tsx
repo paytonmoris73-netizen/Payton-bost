@@ -55,6 +55,20 @@ export default function Home() {
         )}
       </section>
 
+      <button
+        onClick={() => go("coach")}
+        className="card flex w-full items-center gap-3 p-4 text-left transition active:scale-[0.98]"
+      >
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-apex/15 text-apex">
+          <Icon name="sparkle" size={20} />
+        </span>
+        <span className="flex-1">
+          <span className="block text-sm font-bold">Ask your AI Coach</span>
+          <span className="block text-xs text-white/50">Workout, nutrition and recovery advice</span>
+        </span>
+        <Icon name="chevR" size={18} className="text-white/40" />
+      </button>
+
       <section>
         <h2 className="mb-3 text-base font-bold">Your Stats</h2>
         <div className="grid grid-cols-3 gap-3">

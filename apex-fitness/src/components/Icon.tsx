@@ -50,6 +50,8 @@ const PATHS: Record<string, ReactNode> = {
   star: <path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.3l1.1-6.2L3 9.7l6.2-.9z" />,
   x: <path d="M6 6l12 12M18 6 6 18" />,
   trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
+  sparkle: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" />,
+  send: <path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" />,
   target: (
     <>
       <circle cx="12" cy="12" r="9" />

@@ -49,5 +49,13 @@ export interface Measurement {
   muscle: number; // lbs
 }
 
-export type Tab = "home" | "workouts" | "nutrition" | "profile";
+export type Tab = "home" | "workouts" | "nutrition" | "coach" | "profile";
 export type ProfileSection = "progress" | "leaderboard" | "premium";
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  /** Where an assistant reply came from. */
+  source?: "ai" | "local" | "error";
+}

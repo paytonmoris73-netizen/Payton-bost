@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Measurement, Meal, ProfileSection, Tab, WorkoutLog } from "./types";
+import type { ChatMessage, Measurement, Meal, ProfileSection, Tab, WorkoutLog } from "./types";
 import { daysAgo, uid } from "./lib";
 
 /* ---------- persisted app data ---------- */
@@ -17,12 +17,15 @@ interface DataState {
   logs: WorkoutLog[];
   meals: Meal[];
   measurements: Measurement[];
+  coachChat: ChatMessage[];
 
   finishOnboarding: (name: string) => void;
   logWorkout: (l: Omit<WorkoutLog, "id">) => void;
   addMeal: (m: Omit<Meal, "id">) => void;
   removeMeal: (id: string) => void;
   addMeasurement: (m: Measurement) => void;
+  addCoachMsg: (m: Omit<ChatMessage, "id">) => void;
+  clearCoach: () => void;
   setPremium: (v: boolean) => void;
   setCalorieGoal: (n: number) => void;
   reset: () => void;
@@ -52,6 +55,7 @@ const initialData = () => ({
   logs: [] as WorkoutLog[],
   meals: [] as Meal[],
   measurements: seedMeasurements(),
+  coachChat: [] as ChatMessage[],
 });
 
 export const useApp = create<DataState>()(
@@ -68,6 +72,8 @@ export const useApp = create<DataState>()(
             a.date.localeCompare(b.date),
           ),
         })),
+      addCoachMsg: (m) => set((s) => ({ coachChat: [...s.coachChat, { ...m, id: uid() }].slice(-40) })),
+      clearCoach: () => set({ coachChat: [] }),
       setPremium: (v) => set({ premium: v }),
       setCalorieGoal: (n) => set({ calorieGoal: n }),
       reset: () => set(initialData()),

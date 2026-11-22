@@ -6,6 +6,7 @@ const ITEMS: { tab: Tab; label: string; icon: string }[] = [
   { tab: "home", label: "Home", icon: "home" },
   { tab: "workouts", label: "Workouts", icon: "dumbbell" },
   { tab: "nutrition", label: "Nutrition", icon: "apple" },
+  { tab: "coach", label: "Coach", icon: "sparkle" },
   { tab: "profile", label: "Profile", icon: "user" },
 ];
 

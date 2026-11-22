@@ -1,4 +1,5 @@
 import BottomNav from "./components/BottomNav";
+import Coach from "./pages/Coach";
 import Home from "./pages/Home";
 import Nutrition from "./pages/Nutrition";
 import Profile from "./pages/Profile";
@@ -25,6 +26,7 @@ export default function App() {
       {tab === "home" && <Home />}
       {tab === "workouts" && <Workouts />}
       {tab === "nutrition" && <Nutrition />}
+      {tab === "coach" && <Coach />}
       {tab === "profile" && <Profile />}
       <BottomNav />
       {sessionId && <Session key={sessionId} />}
