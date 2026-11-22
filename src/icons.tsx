@@ -44,6 +44,12 @@ export const P: Record<string, string> = {
   utensils: "M7 3v8a2 2 0 0 0 2 2v8M7 3v6M11 3v6M16 3c-2 2-2 6 0 8v10",
   leaf: "M5 19C5 10 10 5 20 4c0 10-5 15-14 15zM5 19l8-8",
   bag: "M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0",
+  share: "M12 3v12M8 7l4-4 4 4M5 13v6h14v-6",
+  sound: "M4 9h4l5-4v14l-5-4H4zM17 9a4 4 0 0 1 0 6M19.5 6.5a8 8 0 0 1 0 11",
+  mute: "M4 9h4l5-4v14l-5-4H4zM17 9.5l5 5M22 9.5l-5 5",
+  up: "M6 15l6-6 6 6",
+  down: "M6 9l6 6 6-6",
+  back: "M15 5l-7 7 7 7",
 };
 
 

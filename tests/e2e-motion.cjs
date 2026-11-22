@@ -42,7 +42,9 @@ for (const [name,vp,mobile] of [['phone',{width:390,height:844},true],['desktop'
  rep(await p.locator('.fly-glyph').count()===0, `${name} no leftover flying icon`);
  rep(/1/.test(await p.locator('a[aria-label^="Cart"]').innerText()), `${name} cart badge shows 1`);
  await p.goto(BASE+'/community'); await p.waitForTimeout(1200);
+ const likes0 = await p.locator('button[aria-label^="Liked,"]').count();
  await act('like a post', ()=>p.locator('button[aria-label^="Like,"]').first().click());
+ rep(await p.locator('button[aria-label^="Liked,"]').count() === likes0 + 1, `${name} like actually toggles the button to Liked`);
  await act('follow from sidebar/creators', async()=>{ const f=p.locator('button:has-text("Follow")').first(); if (await f.isVisible()) await f.click(); });
  await p.goto(BASE+'/marketplace/cart'); await p.waitForTimeout(1000);
  await act('remove from cart (slide out)', ()=>p.locator('button[aria-label^="Remove"]').first().click());

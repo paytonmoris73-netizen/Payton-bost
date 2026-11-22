@@ -3,7 +3,7 @@
 const { chromium } = require('playwright'); const fs = require('fs');
 const BASE = process.env.BASE || 'http://127.0.0.1:5199';
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
-const ROUTES = ['/', '/combiner', '/chef', '/discover', '/search?q=pasta', '/marketplace', '/marketplace/cart', '/marketplace/r2', '/recipe/r1', '/cook/r1', '/shop', '/community', '/cookbook', '/saved', '/lists', '/messages', '/profile', '/creator/c1', '/creator/studio', '/creator/new', '/settings', '/plus', '/safety', '/terms', '/admin', '/nope'];
+const ROUTES = ['/', '/combiner', '/chef', '/discover', '/search?q=pasta', '/marketplace', '/marketplace/cart', '/marketplace/r2', '/recipe/r1', '/cook/r1', '/shop', '/community', '/bites', '/cookbook', '/saved', '/lists', '/messages', '/profile', '/creator/c1', '/creator/studio', '/creator/new', '/settings', '/plus', '/safety', '/terms', '/admin', '/nope'];
 (async () => {
   const b = await chromium.launch(); const issues = {}; const add = (k, m) => { (issues[k] = issues[k] || new Set()).add(m); };
   for (const [vp, w, h, mobile] of [['phone', 390, 844, true], ['desktop', 1280, 860, false]]) for (const scheme of ['light', 'dark']) {

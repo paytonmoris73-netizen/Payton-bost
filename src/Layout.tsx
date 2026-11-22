@@ -13,7 +13,7 @@ export { Icon };
 const NAV = [
   { to: "/", label: "Home", icon: "home", end: true }, { to: "/combiner", label: "Food Combiner", icon: "combine" }, { to: "/chef", label: "AI Chef", icon: "chef" },
   { to: "/discover", label: "Discover", icon: "compass" }, { to: "/marketplace", label: "Recipe Marketplace", icon: "store" }, { to: "/shop", label: "Ingredient Shop", icon: "basket" },
-  { to: "/community", label: "Community", icon: "people" }, { to: "/cookbook", label: "My Cookbook", icon: "book" }, { to: "/saved", label: "Saved Recipes", icon: "bookmark" },
+  { to: "/community", label: "Community", icon: "people" }, { to: "/bites", label: "Bites", icon: "play" }, { to: "/cookbook", label: "My Cookbook", icon: "book" }, { to: "/saved", label: "Saved Recipes", icon: "bookmark" },
   { to: "/lists", label: "Shopping Lists", icon: "list" }, { to: "/messages", label: "Messages", icon: "msg" }, { to: "/safety", label: "Safety Center", icon: "shield" }, { to: "/profile", label: "Profile", icon: "user" },
 ];
 
@@ -83,6 +83,7 @@ function Bell() {
 
 function CreateSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const items = [
+    { to: "/bites?new=1", icon: "🎬", t: "Post a Bite", d: "Share a photo or short video of your food", wide: true },
     { to: "/combiner", icon: "🥕", t: "Combine foods", d: "Build and analyse an ingredient combination" },
     { to: "/chef?tab=generate", icon: "✨", t: "Generate a recipe", d: "Let the AI chef draft recipes" },
     { to: "/creator/new", icon: "📝", t: "Upload a recipe", d: "Write your own and share or sell it" },
@@ -91,7 +92,7 @@ function CreateSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
   return (
     <Modal open={open} onClose={onClose} title="Create">
       <div className="stagger grid gap-3 sm:grid-cols-2">
-        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className="tile lift flex items-center gap-4 p-4"><span className="grid h-12 w-12 place-items-center rounded-[0.95rem] accent-fill"><G g={i.icon} size={24} /></span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
+        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className={`tile lift flex items-center gap-4 p-4 ${"wide" in i ? "sm:col-span-2" : ""}`}><span className="grid h-12 w-12 place-items-center rounded-[0.95rem] accent-fill"><G g={i.icon} size={24} /></span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
       </div>
     </Modal>
   );

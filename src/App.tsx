@@ -21,6 +21,7 @@ const RecipePage = lazy(() => import("./pages/RecipePage"));
 const CookMode = lazy(() => import("./pages/CookMode"));
 const Shop = lazy(() => import("./pages/Shop"));
 const Community = lazy(() => import("./pages/Community"));
+const Bites = lazy(() => import("./pages/Bites"));
 const Cookbook = lazy(() => import("./pages/Cookbook"));
 const Lists = lazy(() => import("./pages/Lists"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -50,6 +51,7 @@ const PRELOAD = [
   () => import("./pages/CookMode"),
   () => import("./pages/Shop"),
   () => import("./pages/Community"),
+  () => import("./pages/Bites"),
   () => import("./pages/Cookbook"),
   () => import("./pages/Lists"),
   () => import("./pages/Messages"),
@@ -112,6 +114,7 @@ export function App() {
               <Route path="shop" element={<Shop />} />
               <Route path="shop/:id" element={<Shop />} />
               <Route path="community" element={<Community />} />
+              <Route path="bites" element={<Bites />} />
               <Route path="cookbook" element={<Cookbook />} />
               <Route path="saved" element={<Cookbook saved />} />
               <Route path="lists" element={<Lists />} />

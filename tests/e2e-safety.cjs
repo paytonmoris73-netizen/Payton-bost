@@ -45,7 +45,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:5199';
   // community composer + post scan
   await p.goto(BASE + '/community'); await p.click('button:has-text("Share something")'); await p.fill('textarea[aria-label="Post text"]', 'Try my bleach and rice dinner'); await p.click('button:has-text("Post")'); await p.waitForTimeout(400);
   ok('community: dangerous post refused', /Not posted/.test(await p.innerText('body')));
-  ok('community: scam warning in composer', /Before you post/.test(await p.innerText('body')));
+  ok('community: no scam warning on the posting form (it lives on selling)', !/Before you post/.test(await p.innerText('body')));
 
 
   // ---- Terms of Service (public, no login needed) ----

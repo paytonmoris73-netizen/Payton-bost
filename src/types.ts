@@ -39,6 +39,8 @@ export interface Post {
   id: string; userId: string; userName: string; userEmoji: string; text: string; emoji: string; hue: number;
   ingredients: string[]; recipeId?: string; likes: number; comments: { id: string; userName: string; text: string; userId?: string }[];
   saves: number; reposts: number; createdAt: string; challengeId?: string; hidden?: boolean;
+  /** Photo or short video for Bites. The file itself lives in IndexedDB under `id` (see src/media.ts). */
+  media?: { kind: "image" | "video"; id: string };
 }
 
 export interface Challenge { id: string; title: string; description: string; emoji: string; endsIn: string; rule: string }

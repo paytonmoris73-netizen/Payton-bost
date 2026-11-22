@@ -258,7 +258,15 @@ export const useStore = create<State>()(
         hidePost(id) { set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, hidden: !p.hidden } : p)) })); },
       };
     },
-    { name: "crunch-v1", version: 1 },
+    {
+      name: "crunch-v1", version: 1,
+      // New sample posts (Bites) also reach accounts created before they existed. Nothing is duplicated or un-hidden.
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<State>;
+        const posts = p.posts ? [...p.posts, ...SEED_POSTS.filter((sp) => !p.posts!.some((x) => x.id === sp.id))] : current.posts;
+        return { ...current, ...p, posts };
+      },
+    },
   ),
 );
 
