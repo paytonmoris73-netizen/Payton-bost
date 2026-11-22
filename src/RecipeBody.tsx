@@ -1,3 +1,4 @@
+import { ReportDialog } from "./safetyUi";
 import { useState } from "react";
 import { G } from "./icons";
 import { Link, useNavigate } from "react-router-dom";
@@ -27,8 +28,8 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
   const nav = useNavigate(); const me = useMe();
   const [servings, setServings] = useState(r.servings || 1);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const [folderOpen, setFolderOpen] = useState(false); const [reportOpen, setReportOpen] = useState(false); const [copyright, setCopyright] = useState(false); const [reason, setReason] = useState("");
-  const { folders, toggleInFolder, favorites, toggleFav, lists, addToList, createList, markCooked, report, accounts, notes, setNote, cookStatus, setCookStatus, reviews, addReview, cooked } = useStore();
+  const [folderOpen, setFolderOpen] = useState(false); const [reportOpen, setReportOpen] = useState(false);
+  const { folders, toggleInFolder, favorites, toggleFav, lists, addToList, createList, markCooked, accounts, notes, setNote, cookStatus, setCookStatus, reviews, addReview, cooked } = useStore();
   const [rating, setRating] = useState(5); const [text, setText] = useState("");
   const c = creatorOf(r.creatorId, accounts); const factor = servings / Math.max(1, r.servings);
   const mine = r.creatorId === me?.id; const rs = reviews.filter((x) => x.recipeId === r.id);
@@ -110,11 +111,7 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
       <Modal open={folderOpen} onClose={() => setFolderOpen(false)} title="Add to folder">
         <div className="space-y-2">{folders.map((f) => <label key={f.id} className="flex items-center gap-3 rounded-xl bg-cream p-3 text-sm"><input type="checkbox" className="accent-orange" checked={f.recipeIds.includes(r.id)} onChange={() => toggleInFolder(f.id, r.id)} />{f.name}</label>)}{folders.length === 0 && <p className="text-sm text-brown">Create a folder in My Cookbook first.</p>}</div>
       </Modal>
-      <Modal open={reportOpen} onClose={() => setReportOpen(false)} title="Report this recipe">
-        <label className="mb-2 flex items-center gap-2 text-sm"><input type="checkbox" className="accent-orange" checked={copyright} onChange={(e) => setCopyright(e.target.checked)} />This is a copyright complaint (I own, or represent the owner of, this content)</label>
-        <textarea className="input" rows={3} placeholder={copyright ? "Identify the original work and explain why this copies it…" : "What's wrong? (copied content, unsafe advice, misleading…)"} value={reason} onChange={(e) => setReason(e.target.value)} />
-        <button className="btn-dark mt-3" onClick={() => { if (reason.trim().length < 5) return toast("Please add a short reason.", "err"); report(copyright ? "copyright" : "listing", r.id, (copyright ? "[COPYRIGHT] " : "") + reason.trim()); setReportOpen(false); setReason(""); toast("Report sent to moderators"); }}>Send report</button>
-      </Modal>
+      <ReportDialog open={reportOpen} onClose={() => setReportOpen(false)} kind="listing" targetId={r.id} title="Report this recipe" allowCopyright />
     </div>
   );
 }

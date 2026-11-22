@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ALL_RECIPES, CREATORS, INGREDIENTS, REVIEWS, SEED_POSTS } from "./data";
-import type { CookStatus, AIConfig, Account, Combo, Creator, Folder, Ingredient, Msg, Notif, Post, Purchase, Recipe, Report, Review, ShoppingItem, ShoppingList, Thread } from "./types";
+import type { CookStatus, AIConfig, Account, Appeal, Combo, Creator, Folder, Hold, Ingredient, Msg, Notif, Post, Purchase, Recipe, Removal, Report, ReportCategory, ReporterStats, Review, ShoppingItem, ShoppingList, Strike, Thread } from "./types";
+import { blockReason, createSafety, type PostOutcome, type PublishOutcome } from "./safetyStore";
+import type { Penalty } from "./safety";
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 export const MIN_AGE_SOCIAL = 13;
@@ -19,7 +21,7 @@ async function hashPw(pw: string, salt: string) {
 
 const defaultNotify = { follows: true, likes: true, comments: true, purchases: true, creators: true, reviews: true, challenges: true, updates: true };
 
-interface State {
+export interface State {
   accounts: Account[]; creds: Cred[]; session: string | null;
   customRecipes: Recipe[]; saved: string[]; favorites: string[]; recent: string[]; cooked: { id: string; at: string }[]; folders: Folder[];
   combos: Combo[]; customIngredients: Ingredient[]; frequent: string[];
@@ -27,6 +29,7 @@ interface State {
   threads: Thread[]; notifs: Notif[]; purchases: Purchase[]; cart: string[]; reviews: Review[]; reports: Report[]; searches: string[];
   awarded: Record<string, true>; dailyXp: { day: string; amount: number }; recipeStatusOverride: Record<string, Recipe["status"]>; featuredIds: string[]; announcements: { id: string; text: string; at: string }[];
   banned: string[]; ai: AIConfig; stripeConfigured: boolean;
+  strikes: Strike[]; holds: Record<string, Hold>; appeals: Appeal[]; removals: Removal[]; reporterStats: Record<string, ReporterStats>; suspensions: Record<string, string>; blockedAttempts: Record<string, number>;
   challengeJoined: string[]; notes: Record<string, string>; cookStatus: Record<string, CookStatus>;
 
   signUp: (p: { name: string; email: string; password: string; birthYear: number }) => Promise<string | null>;
@@ -40,19 +43,21 @@ interface State {
   setNote: (id: string, text: string) => void; setCookStatus: (id: string, s: CookStatus | null) => void;
   renameFolder: (id: string, name: string, description?: string) => void; moveInFolder: (folderId: string, recipeId: string, dir: -1 | 1) => void;
   addFolder: (name: string) => void; deleteFolder: (id: string) => void; toggleInFolder: (folderId: string, recipeId: string) => void;
-  upsertRecipe: (r: Recipe) => void; setStatus: (id: string, s: Recipe["status"]) => void;
+  upsertRecipe: (r: Recipe) => PublishOutcome; publishRecipe: (id: string) => PublishOutcome; setStatus: (id: string, s: Recipe["status"]) => void;
   saveCombo: (c: Combo) => void; deleteCombo: (id: string) => void;
   addCustomIngredient: (i: Ingredient) => void; toggleFrequent: (id: string) => void;
   createList: (name: string) => string; deleteList: (id: string) => void; addToList: (listId: string, items: { name: string; qty?: string; category?: string }[]) => void;
   toggleItem: (listId: string, itemId: string) => void; removeItem: (listId: string, itemId: string) => void; setItemQty: (listId: string, itemId: string, qty: string) => void; clearChecked: (listId: string) => void;
-  addPost: (p: Omit<Post, "id" | "userId" | "userName" | "userEmoji" | "likes" | "comments" | "saves" | "reposts" | "createdAt">) => void;
+  addPost: (p: Omit<Post, "id" | "userId" | "userName" | "userEmoji" | "likes" | "comments" | "saves" | "reposts" | "createdAt">) => PostOutcome;
   toggleLike: (id: string) => void; toggleSavePost: (id: string) => void; repost: (id: string) => void; addComment: (id: string, text: string) => void; vote: (id: string) => void; joinChallenge: (id: string) => void;
   toggleFollow: (id: string) => void;
   openThread: (c: Creator) => string; send: (threadId: string, text: string) => void; readThread: (id: string) => void;
   readAll: () => void; readNotif: (id: string) => void;
   addCart: (id: string) => void; removeCart: (id: string) => void; checkout: () => { ok: boolean; error?: string }; requestRefund: (id: string) => void;
   addReview: (recipeId: string, rating: number, text: string) => string | null;
-  report: (kind: Report["kind"], targetId: string, reason: string) => void; resolveReport: (id: string, status: Report["status"]) => void;
+  report: (kind: Report["kind"], targetId: string, reason: string, category?: ReportCategory) => string | null; resolveReport: (id: string, status: Report["status"]) => void;
+  actionReport: (id: string) => void; dismissReport: (id: string) => void; approveHold: (id: string) => void; rejectHold: (id: string, withStrike: boolean) => void;
+  appeal: (targetId: string, text: string) => string | null; decideAppeal: (id: string, approve: boolean) => void; addStrike: (accountId: string, reason: string, targetId?: string) => Penalty | null;
   recordSearch: (q: string) => void; clearSearches: () => void;
   setAI: (c: AIConfig) => void; announce: (text: string) => void; toggleFeatured: (id: string) => void; ban: (id: string) => void;
   hidePost: (id: string) => void;
@@ -70,6 +75,7 @@ export const useStore = create<State>()(
     (set, get) => {
       const notify = (n: Omit<Notif, "id" | "at" | "read">) => set((s) => ({ notifs: [{ id: uid(), at: "now", read: false, ...n }, ...s.notifs] }));
       const me = () => get().accounts.find((a) => a.id === get().session) ?? null;
+      const safety = createSafety(set, get);
       return {
         accounts: [], creds: [], session: null,
         customRecipes: [], saved: ["r3", "r4"], favorites: [], recent: [], cooked: [], folders: [{ id: "f1", name: "Recipes to Try", recipeIds: [] }, { id: "f2", name: "Family Favorites", recipeIds: [] }],
@@ -77,6 +83,7 @@ export const useStore = create<State>()(
         lists: [{ id: "l1", name: "Groceries", items: [] }], posts: SEED_POSTS, likedPosts: [], savedPosts: [], repostedPosts: [], votes: [], following: ["c1"],
         threads: seedThreads, notifs: seedNotifs, purchases: [], cart: [], reviews: REVIEWS, reports: [], searches: [],
         awarded: {}, dailyXp: { day: "", amount: 0 }, recipeStatusOverride: {}, featuredIds: ["r1", "r3", "r9"], announcements: [],
+        strikes: [], holds: {}, appeals: [], removals: [], reporterStats: {}, suspensions: {}, blockedAttempts: {},
         banned: [], ai: { endpoint: "", model: "", key: "" }, stripeConfigured: false, challengeJoined: [], notes: {}, cookStatus: {},
 
         async signUp({ name, email, password, birthYear }) {
@@ -103,7 +110,7 @@ export const useStore = create<State>()(
           email = email.trim().toLowerCase();
           const c = get().creds.find((x) => x.email === email);
           if (!c || (await hashPw(password, c.salt)) !== c.hash) return "Incorrect email or password.";
-          if (get().banned.includes(c.accountId)) return "This account has been suspended.";
+          if (get().banned.includes(c.accountId)) return "This account has been permanently banned for breaking the safety rules.";
           set({ session: c.accountId });
           return null;
         },
@@ -138,10 +145,8 @@ export const useStore = create<State>()(
         addFolder(name) { set((s) => ({ folders: [...s.folders, { id: uid(), name, recipeIds: [] }] })); },
         deleteFolder(id) { set((s) => ({ folders: s.folders.filter((f) => f.id !== id) })); },
         toggleInFolder(fid, rid) { set((s) => ({ folders: s.folders.map((f) => (f.id === fid ? { ...f, recipeIds: f.recipeIds.includes(rid) ? f.recipeIds.filter((x) => x !== rid) : [...f.recipeIds, rid] } : f)) })); },
-        upsertRecipe(r) {
-          set((s) => ({ customRecipes: s.customRecipes.some((x) => x.id === r.id) ? s.customRecipes.map((x) => (x.id === r.id ? r : x)) : [r, ...s.customRecipes] }));
-          if (r.status === "published") get().award("publish:" + r.id, 50);
-        },
+        ...safety,
+        publishRecipe(id) { const r = get().customRecipes.find((x) => x.id === id); return r ? safety.upsertRecipe({ ...r, status: "published" }) : { result: "blocked", flags: [], message: "Recipe not found." }; },
         setStatus(id, status) {
           const isCustom = get().customRecipes.some((r) => r.id === id);
           if (isCustom) set((s) => ({ customRecipes: s.customRecipes.map((r) => (r.id === id ? { ...r, status } : r)) }));
@@ -170,11 +175,6 @@ export const useStore = create<State>()(
         setItemQty(l, i, qty) { set((s) => ({ lists: s.lists.map((x) => (x.id === l ? { ...x, items: x.items.map((it: ShoppingItem) => (it.id === i ? { ...it, qty } : it)) } : x)) })); },
         clearChecked(l) { set((s) => ({ lists: s.lists.map((x) => (x.id === l ? { ...x, items: x.items.filter((it) => !it.checked) } : x)) })); },
 
-        addPost(p) {
-          const a = me(); if (!a) return;
-          set((s) => ({ posts: [{ ...p, id: uid(), userId: a.id, userName: a.name, userEmoji: a.emoji, likes: 0, comments: [], saves: 0, reposts: 0, createdAt: "now" }, ...s.posts] }));
-          get().award("post:" + uid(), 5);
-        },
         toggleLike(id) {
           const liked = get().likedPosts.includes(id);
           set((s) => ({ likedPosts: liked ? s.likedPosts.filter((x) => x !== id) : [...s.likedPosts, id], posts: s.posts.map((p) => (p.id === id ? { ...p, likes: p.likes + (liked ? -1 : 1) } : p)) }));
@@ -202,7 +202,7 @@ export const useStore = create<State>()(
           set((s) => ({ threads: [t, ...s.threads] })); return t.id;
         },
         send(threadId, text) {
-          const t = text.trim().slice(0, 2000); if (!t) return;
+          const t = text.trim().slice(0, 2000); if (!t || blockReason(get(), get().session)) return;
           const m: Msg = { id: uid(), from: "me", text: t, at: new Date().toISOString() };
           set((s) => ({ threads: s.threads.map((x) => (x.id === threadId ? { ...x, messages: [...x.messages, m] } : x)) }));
         },
@@ -234,6 +234,7 @@ export const useStore = create<State>()(
         requestRefund(id) { set((s) => ({ purchases: s.purchases.map((p) => (p.id === id && p.status === "paid" ? { ...p, status: "refund_requested" } : p)) })); notify({ type: "update", text: "Refund request submitted. We review requests within 5 business days." }); },
         addReview(recipeId, rating, text) {
           const s = get(); const a = me(); if (!a) return "Sign in to review.";
+          const blocked = blockReason(s, a.id); if (blocked) return blocked;
           const owns = s.purchases.some((p) => p.status !== "refunded" && p.recipeIds.includes(recipeId));
           const recipe = [...ALL_RECIPES, ...s.customRecipes].find((r) => r.id === recipeId);
           if (recipe && recipe.price > 0 && !owns) return "Only buyers can review paid recipes.";
@@ -244,8 +245,7 @@ export const useStore = create<State>()(
           get().award("review:" + recipeId, 10);
           return null;
         },
-        report(kind, targetId, reason) { set((s) => ({ reports: [{ id: uid(), kind, targetId, reason, at: new Date().toISOString(), status: "open" }, ...s.reports] })); },
-        resolveReport(id, status) { set((s) => ({ reports: s.reports.map((r) => (r.id === id ? { ...r, status } : r)) })); },
+        resolveReport(id, status) { if (status === "actioned") safety.actionReport(id); else if (status === "dismissed") safety.dismissReport(id); },
         recordSearch(q) { q = q.trim(); if (q) set((s) => ({ searches: [q, ...s.searches.filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, 8) })); },
         clearSearches: () => set({ searches: [] }),
         setAI: (ai) => set({ ai }),

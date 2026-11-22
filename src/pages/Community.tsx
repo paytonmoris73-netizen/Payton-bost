@@ -1,3 +1,4 @@
+import { ReportDialog, ScamWarning } from "../safetyUi";
 import { useState } from "react";
 import { G } from "../icons";
 import { Link } from "react-router-dom";
@@ -11,8 +12,8 @@ import { Select } from "../glass";
 const TABS = ["Feed", "Following", "Challenges", "Leaderboards", "Creators"] as const;
 
 function PostCard({ p }: { p: Post }) {
-  const { likedPosts, savedPosts, repostedPosts, toggleLike, toggleSavePost, repost, addComment, report, votes, vote } = useStore(); const cat = useCatalogue();
-  const [open, setOpen] = useState(false); const [c, setC] = useState(""); const [rep, setRep] = useState(false); const [reason, setReason] = useState("");
+  const { likedPosts, savedPosts, repostedPosts, toggleLike, toggleSavePost, repost, addComment, votes, vote } = useStore(); const cat = useCatalogue();
+  const [open, setOpen] = useState(false); const [c, setC] = useState(""); const [rep, setRep] = useState(false);
   const r = p.recipeId ? cat.find((x) => x.id === p.recipeId) : undefined; const ch = CHALLENGES.find((x) => x.id === p.challengeId);
   const share = async () => { const t = `${p.userName} on CRUNCH: ${p.text}`; try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); toast("Copied to clipboard"); } } catch { /* cancelled */ } };
   const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} className="pick" aria-pressed={on}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <G g={label} size={16} /> : label}{count !== undefined ? count : ""}</span></button>;
@@ -27,7 +28,7 @@ function PostCard({ p }: { p: Post }) {
         <div className="flex flex-wrap gap-2"><Btn on={likedPosts.includes(p.id)} onClick={() => toggleLike(p.id)} label={likedPosts.includes(p.id) ? "♥" : "♡"} count={p.likes} /><Btn onClick={() => setOpen(!open)} label="💬" count={p.comments.length} /><Btn on={savedPosts.includes(p.id)} onClick={() => { toggleSavePost(p.id); }} label="🔖" count={p.saves} /><Btn on={repostedPosts.includes(p.id)} onClick={() => { repost(p.id); toast("Reposted"); }} label="🔁" count={p.reposts} /><Btn onClick={share} label="Share" />{ch && <Btn on={votes.includes(p.id)} onClick={() => { vote(p.id); }} label="🗳 Vote" />}</div>
         {open && <div className="space-y-2 border-t border-cream pt-3">{p.comments.map((k) => <p key={k.id} className="text-sm"><b>{k.userName}</b> {k.text}</p>)}<form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); addComment(p.id, c); setC(""); }}><input className="input" placeholder="Add a comment…" value={c} onChange={(e) => setC(e.target.value)} maxLength={500} aria-label="Comment" /><button className="btn-dark">Post</button></form></div>}
       </div>
-      <Modal open={rep} onClose={() => setRep(false)} title="Report post"><textarea className="input" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why are you reporting this?" /><button className="btn-dark mt-3" onClick={() => { if (reason.trim().length < 5) return toast("Please add a short reason.", "err"); report("post", p.id, reason.trim()); setRep(false); setReason(""); toast("Report sent"); }}>Send report</button></Modal>
+      <ReportDialog open={rep} onClose={() => setRep(false)} kind="post" targetId={p.id} title="Report post" />
     </article>
   );
 }
@@ -39,8 +40,9 @@ function Composer({ onClose, challengeId }: { onClose: () => void; challengeId?:
   const mine = cat.filter((r) => r.creatorId === me.id && r.status === "published");
   const submit = () => {
     if (text.trim().length < 5) return toast("Write a few words about your creation.", "err");
-    addPost({ text: text.trim().slice(0, 600), emoji, hue: (emoji.codePointAt(0) ?? 30) % 360, ingredients: picked, recipeId: recipe || undefined, challengeId });
-    if (challengeId) join(challengeId); onClose(); toast("Posted to the community");
+    const out = addPost({ text: text.trim().slice(0, 600), emoji, hue: (emoji.codePointAt(0) ?? 30) % 360, ingredients: picked, recipeId: recipe || undefined, challengeId });
+    if (out.result === "blocked") return toast(out.message, "err");
+    if (challengeId) join(challengeId); onClose(); toast(out.message);
   };
   return (
     <Modal open onClose={onClose} title={challengeId ? "Submit challenge entry" : "Share with the community"}>
@@ -48,7 +50,8 @@ function Composer({ onClose, challengeId }: { onClose: () => void; challengeId?:
       <div className="mb-3 flex flex-wrap gap-1.5">{["🍽️", "🍝", "🥗", "🍰", "🍜", "🍳", "🥘", "🍹"].map((e) => <button key={e} onClick={() => setEmoji(e)} aria-pressed={emoji === e} className={`press grid h-10 w-10 place-items-center rounded-[0.9rem] text-lg transition-[background,box-shadow] duration-300 ${emoji === e ? "sel-fill" : "tile"}`}>{e}</button>)}</div>
       <div className="mb-3"><div className="mb-1 flex flex-wrap gap-1.5">{picked.map((p) => <button key={p} className="chip bg-orange-light" onClick={() => setPicked(picked.filter((x) => x !== p))}>{p} <G g="✕" /></button>)}</div><input className="input" placeholder="Tag ingredients…" value={q} onChange={(e) => setQ(e.target.value)} /><div className="mt-1 flex flex-wrap gap-1.5">{sugg.map((i) => <button key={i.id} className="chip" onClick={() => { setPicked([...picked, i.name]); setQ(""); }}><G g="＋" /> {i.name}</button>)}</div></div>
       {mine.length > 0 && <div className="mb-3"><Select label="Link a recipe" value={recipe} onChange={setRecipe} options={[{ value: "", label: "Link one of your recipes (optional)" }, ...mine.map((r) => ({ value: r.id, label: r.title }))]} /></div>}
-      <p className="mb-3 text-xs text-brown">Photo uploads are coming soon. Keep it safe: posts promoting unsafe or inedible food combinations or challenges are removed.</p>
+      <p className="mb-3 text-xs text-brown">Photo uploads are coming soon.</p>
+      <div className="mb-3"><ScamWarning /></div>
       <button className="btn-primary w-full" onClick={submit}>Post</button>
     </Modal>
   );

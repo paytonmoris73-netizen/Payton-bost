@@ -86,3 +86,13 @@ psql -f supabase/tests/00_auth_stub.sql -f supabase/migrations/0001_core_schema.
 Verified: paid recipe content is hidden from non-buyers, clients cannot create purchases or self-promote to admin,
 only buyers can review paid recipes (`verified_purchase` is set by trigger), and allergy data is owner-only.
 Not yet built: edge functions (Stripe checkout/webhook, AI proxy), storage buckets, and the front-end wiring to Supabase.
+
+## Safety system (trust & safety)
+
+Implemented in `src/safety.ts` (pure rules), `src/safetyStore.ts` (actions), `src/safetyUi.tsx`, `src/pages/Safety.tsx` and the Admin → Safety tab.
+Tests: `npx tsx tests/safety.test.ts`, `npx tsx tests/safety-store.test.ts`, and the browser test `node tests/e2e-safety.cjs` (with `npm run dev -- --port 5199` running).
+
+**This is enforced in the browser only**, like the rest of the local build, so a determined person could bypass it with dev tools. Before real users:
+- Run the same `scanRecipe` / `publishDecision` / `reporterWeight` / `reportScore` code in the server function that writes recipes, posts and reports (the modules have no React or browser dependencies), and make `status`, `strikes`, `holds`, `suspensions` and `banned` writable by the server/admin role only.
+- Store `reporterId` server-side from the auth token, never from the client, and rate-limit `report` there.
+- The keyword scan is a first filter, not a guarantee of safe food. Keep a human in the loop (the held-for-review queue) for anything that reaches the public.

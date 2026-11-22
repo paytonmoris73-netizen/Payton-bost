@@ -24,7 +24,7 @@ export interface Recipe {
   prepMin: number; cookMin: number; servings: number; difficulty: Difficulty; cuisine: string;
   meal: string; categories: string[]; diet: string[]; price: number; rating: number; reviews: number;
   sales: number; views: number; nutrition: Nutrition; allergens: string[]; equipment: string[];
-  substitutions: string[]; storage: string; status: "published" | "draft" | "unpublished" | "removed";
+  substitutions: string[]; storage: string; status: "published" | "draft" | "unpublished" | "removed" | "review";
   createdAt: string; photo?: string; bundleOf?: string[]; ai?: boolean; featured?: boolean; seasonal?: string;
 }
 
@@ -57,7 +57,18 @@ export interface Notif { id: string; type: "follow" | "like" | "comment" | "purc
 
 export interface Purchase { id: string; recipeIds: string[]; total: number; at: string; status: "paid" | "refund_requested" | "refunded"; method: "demo" | "stripe" }
 
-export interface Report { id: string; kind: "listing" | "creator" | "post" | "copyright"; targetId: string; reason: string; at: string; status: "open" | "actioned" | "dismissed" }
+export type ReportCategory = "unsafe" | "scam" | "misleading" | "stolen" | "spam" | "harassment" | "other";
+export interface Report {
+  id: string; kind: "listing" | "creator" | "post" | "copyright"; targetId: string; reason: string; at: string; status: "open" | "actioned" | "dismissed";
+  reporterId?: string; category?: ReportCategory; weight?: number; suspicious?: boolean;
+}
+
+/** Safety system records (all local for now; see docs/BACKEND.md for the server-side version). */
+export interface Strike { id: string; accountId: string; reason: string; at: string; targetId?: string; revoked?: boolean }
+export interface Hold { targetId: string; kind: "recipe" | "post"; reason: "scan" | "reports" | "new-account"; flags: string[]; at: string }
+export interface Appeal { id: string; accountId: string; targetId: string; text: string; at: string; status: "open" | "approved" | "denied" }
+export interface Removal { id: string; what: string; category: ReportCategory | "scan"; outcome: string; at: string; example?: boolean }
+export interface ReporterStats { upheld: number; dismissed: number; pausedUntil?: string }
 
 export interface Account {
   id: string; name: string; email: string; handle: string; bio: string; emoji: string;

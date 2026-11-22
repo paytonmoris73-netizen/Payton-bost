@@ -31,6 +31,7 @@ const RecipeEditor = lazy(() => import("./pages/RecipeEditor"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Plus = lazy(() => import("./pages/Plus"));
+const Safety = lazy(() => import("./pages/Safety"));
 
 /** Warm every page's code in the background after start-up, so tapping around is instant (no loading flash). */
 const PRELOAD = [
@@ -57,6 +58,7 @@ const PRELOAD = [
   () => import("./pages/Settings"),
   () => import("./pages/Admin"),
   () => import("./pages/Plus"),
+  () => import("./pages/Safety"),
 ];
 if (typeof window !== "undefined") {
   const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
@@ -111,6 +113,7 @@ export function App() {
               <Route path="creator/:id" element={<CreatorPage />} />
               <Route path="settings" element={<Settings />} />
               <Route path="plus" element={<Plus />} />
+              <Route path="safety" element={<Safety />} />
               <Route path="admin" element={<AdminGate><Admin /></AdminGate>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

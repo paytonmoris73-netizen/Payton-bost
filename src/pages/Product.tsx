@@ -1,15 +1,16 @@
+import { ReportDialog } from "../safetyUi";
 import { useEffect, useState } from "react";
 import { G } from "../icons";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { RecipeBody } from "../RecipeBody";
 import { money, totalMin } from "../engine";
 import { canAccess, creatorOf, useCatalogue, useMe, useOwnedIds, useStore } from "../store";
-import { Avatar, Cover, Empty, Modal, RecipeCard, SaveButton, Stars, toast } from "../ui";
+import { Avatar, Cover, Empty, RecipeCard, SaveButton, Stars, toast } from "../ui";
 
 export default function Product() {
   const { id } = useParams(); const nav = useNavigate(); const cat = useCatalogue(); const owned = useOwnedIds(); const me = useMe();
-  const { addCart, cart, accounts, reviews, view, report, toggleFollow, following } = useStore();
-  const [rep, setRep] = useState<null | "listing" | "creator">(null); const [reason, setReason] = useState("");
+  const { addCart, cart, accounts, reviews, view, toggleFollow, following } = useStore();
+  const [rep, setRep] = useState<null | "listing" | "creator">(null);
   const r = cat.find((x) => x.id === id);
   useEffect(() => { if (r) view(r.id); }, [r?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!r || (r.status !== "published" && r.creatorId !== me?.id)) return <Empty emoji="🔍" title="Listing not found" text="It may have been unpublished." action={<Link to="/marketplace" className="btn-primary">Back to marketplace</Link>} />;
@@ -18,7 +19,6 @@ export default function Product() {
   const others = cat.filter((x) => x.creatorId === c.id && x.id !== r.id && x.status === "published").slice(0, 4);
   const similar = cat.filter((x) => x.id !== r.id && x.status === "published" && !x.bundleOf && (x.cuisine === r.cuisine || x.meal === r.meal)).slice(0, 4);
   const rs = reviews.filter((v) => v.recipeId === r.id);
-  const sendReport = () => { if (reason.trim().length < 5) return toast("Please add a short reason.", "err"); report(rep!, rep === "creator" ? c.id : r.id, reason.trim()); setRep(null); setReason(""); toast("Report sent to moderators"); };
 
   if (!r.bundleOf && access) return <RecipeBody r={r} />;
   return (
@@ -58,10 +58,7 @@ export default function Product() {
       {others.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">More from {c.name}</h2><div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{others.map((o) => <RecipeCard key={o.id} r={o} owned={owned.has(o.id)} />)}</div></section>}
       {similar.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Similar recipes</h2><div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{similar.map((o) => <RecipeCard key={o.id} r={o} owned={owned.has(o.id)} />)}</div></section>}
 
-      <Modal open={!!rep} onClose={() => setRep(null)} title={rep === "creator" ? "Report creator" : "Report listing"}>
-        <textarea className="input" rows={3} placeholder="Copied content, misleading description, unsafe advice…" value={reason} onChange={(e) => setReason(e.target.value)} />
-        <button className="btn-dark mt-3" onClick={sendReport}>Send report</button>
-      </Modal>
+      <ReportDialog open={!!rep} onClose={() => setRep(null)} kind={rep ?? "listing"} targetId={rep === "creator" ? c.id : r.id} title={rep === "creator" ? "Report creator" : "Report listing"} allowCopyright={rep === "listing"} />
     </div>
   );
 }

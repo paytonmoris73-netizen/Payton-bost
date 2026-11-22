@@ -5,6 +5,7 @@ import { matchScore } from "./engine";
 import { useIngredients, useMe, useStore } from "./store";
 import { Avatar, Modal, usePresence } from "./ui";
 import { HeaderLights } from "./theme";
+import { SafetyBanner } from "./safetyUi";
 
 import { G, Icon } from "./icons";
 export { Icon };
@@ -12,7 +13,7 @@ const NAV = [
   { to: "/", label: "Home", icon: "home", end: true }, { to: "/combiner", label: "Food Combiner", icon: "combine" }, { to: "/chef", label: "AI Chef", icon: "chef" },
   { to: "/discover", label: "Discover", icon: "compass" }, { to: "/marketplace", label: "Recipe Marketplace", icon: "store" }, { to: "/shop", label: "Ingredient Shop", icon: "basket" },
   { to: "/community", label: "Community", icon: "people" }, { to: "/cookbook", label: "My Cookbook", icon: "book" }, { to: "/saved", label: "Saved Recipes", icon: "bookmark" },
-  { to: "/lists", label: "Shopping Lists", icon: "list" }, { to: "/messages", label: "Messages", icon: "msg" }, { to: "/profile", label: "Profile", icon: "user" },
+  { to: "/lists", label: "Shopping Lists", icon: "list" }, { to: "/messages", label: "Messages", icon: "msg" }, { to: "/safety", label: "Safety Center", icon: "shield" }, { to: "/profile", label: "Profile", icon: "user" },
 ];
 
 export function Logo({ dark }: { dark?: boolean }) {
@@ -145,7 +146,7 @@ export function Layout() {
       <div className="px-4 pb-1 pt-3 md:hidden"><GlobalSearch /></div>
       {ann && <div className="mx-4 mt-3 rounded-full px-4 py-2 text-center text-sm font-medium glass md:mx-8"><G g="📣" /> {ann.text}</div>}
 
-      <main className="page-enter mx-auto max-w-7xl px-4 pb-32 pt-6 md:px-8 md:pb-12" key={loc.pathname}><Outlet /></main>
+      <main className="page-enter mx-auto max-w-7xl px-4 pb-32 pt-6 md:px-8 md:pb-12" key={loc.pathname}><SafetyBanner /><Outlet /></main>
 
       <nav className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 md:hidden" aria-label="Primary">
         <div className="glass-thick relative grid grid-cols-5 items-center rounded-[1.9rem] p-1.5">

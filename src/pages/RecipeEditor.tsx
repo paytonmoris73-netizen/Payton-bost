@@ -6,6 +6,8 @@ import { MARKET_FEE, money, perServing, sumNutrition } from "../engine";
 import { RecipeBody } from "../RecipeBody";
 import { MIN_AGE_COMMERCE, ageOf, uid, useCatalogue, useMe, useStore } from "../store";
 import { fileToJpeg } from "../photos";
+import { scanRecipe } from "../safety";
+import { ScamWarning } from "../safetyUi";
 import { Empty, PageHeader, toast } from "../ui";
 import type { Recipe } from "../types";
 import { Segmented, Select, Stepper } from "../glass";
@@ -48,13 +50,16 @@ export default function RecipeEditor() {
       if (clean.price < 0 || clean.price > 50) e.push("Price must be between $0 and $50.");
       if (clean.price > 0 && ageOf(me) < MIN_AGE_COMMERCE) e.push(`Selling requires an account holder aged ${MIN_AGE_COMMERCE}+. You can still publish free recipes.`);
       if (!original) e.push("Please confirm this is your original work.");
+      scanRecipe(clean).filter((f) => f.level === "block").forEach((f) => e.push(`This recipe ${f.message}. Recipes like this can't be published on CRUNCH.`));
       const mine = words(clean.title + " " + clean.ingredients.map((i) => i.name).join(" ") + " " + clean.steps.map((s) => s.text).join(" "));
       const dup = cat.find((o) => o.id !== r.id && o.status === "published" && o.creatorId !== me.id && jaccard(mine, words(o.title + " " + o.ingredients.map((i) => i.name).join(" ") + " " + o.steps.map((s) => s.text).join(" "))) > 0.7);
       if (dup) e.push(`This looks very similar to “${dup.title}”. Duplicate or copied listings aren't allowed.`);
     }
     setErrs(e); return e.length === 0;
   };
-  const save = (status: Recipe["status"]) => { if (!validate(status === "published")) { window.scrollTo({ top: 0, behavior: "smooth" }); return; } upsert({ ...clean, status }); toast(status === "published" ? "Published!" : "Draft saved"); nav(status === "published" ? "/creator/studio" : "/cookbook"); };
+  const save = (status: Recipe["status"]) => { if (!validate(status === "published")) { window.scrollTo({ top: 0, behavior: "smooth" }); return; } const out = upsert({ ...clean, status });
+    if (out.result === "blocked") { setErrs([out.message]); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    toast(status === "published" ? out.message : "Draft saved", out.result === "review" ? "ok" : "ok"); nav(status === "published" ? "/creator/studio" : "/cookbook"); };
 
   if (id && !existing) return <Empty emoji="🔍" title="Recipe not found" action={<Link to="/creator/studio" className="btn-primary">Studio</Link>} />;
   const earn = r.price * (1 - MARKET_FEE);
@@ -102,7 +107,8 @@ export default function RecipeEditor() {
               {r.price > 0 && <p className="mt-2 text-xs text-brown">Buyer pays {money(r.price)}. After CRUNCH's {MARKET_FEE * 100}% commission you earn about {money(Math.round(earn * 100) / 100)} (payment-processor fees extra).</p>}
               {ageOf(me) < MIN_AGE_COMMERCE && <p className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs">Selling requires age {MIN_AGE_COMMERCE}+.</p>}</div>
             <div className="card p-5 text-sm"><h2 className="h-display text-xl">Creator guidelines</h2><ul className="mt-2 list-disc space-y-1 pl-5 text-brown"><li>Only publish recipes you created or have the right to sell.</li><li>Don't copy other creators' recipes, photos or text.</li><li>Be accurate about allergens and safe cooking temperatures.</li><li>No unsafe or inedible combinations.</li></ul>
-              <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" className="mt-0.5 accent-orange" checked={original} onChange={(e) => setOriginal(e.target.checked)} />I confirm this is my original work and I agree to the creator guidelines.</label></div>
+              <div className="mt-3"><ScamWarning /></div>
+              <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" className="mt-0.5 accent-orange" checked={original} onChange={(e) => setOriginal(e.target.checked)} />I confirm this is my original work, that the recipe works as described, and I agree to the Safety Promise.</label></div>
             <div className="flex flex-col gap-2"><button className="btn-primary" onClick={() => save("published")}>Publish</button><button className="btn-dark" onClick={() => save("draft")}>Save draft</button></div>
           </aside>
         </div>
