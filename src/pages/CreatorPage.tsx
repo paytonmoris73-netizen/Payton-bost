@@ -19,7 +19,7 @@ export default function CreatorPage() {
         <div className="flex gap-2"><button className={f ? "btn-ghost" : "btn-dark"} onClick={() => toggleFollow(c.id)}>{f ? "Following" : "Follow"}</button><button className="btn-outline" onClick={() => { const t = openThread(c); nav(`/messages?t=${t}`); }}>Message</button></div>
       </div>
       <h2 className="h-display mb-3 mt-8 text-2xl">Recipes</h2>
-      {recipes.length ? <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{recipes.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="🍳" title="No published recipes yet" />}
+      {recipes.length ? <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{recipes.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="🍳" title="No published recipes yet" />}
     </div>
   );
 }

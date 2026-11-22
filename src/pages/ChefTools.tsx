@@ -22,7 +22,7 @@ export function ImproveTool() {
         <div><label className="label" htmlFor="it">Recipe name</label><input id="it" className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} /></div>
         <div><label className="label" htmlFor="ii">Ingredients (one per line)</label><textarea id="ii" className="input" rows={7} value={ing} onChange={(e) => setIng(e.target.value)} placeholder={"2 chicken breast\n1 cup cream\n2 tbsp honey"} /></div>
         <div><label className="label" htmlFor="is">Method (one step per line)</label><textarea id="is" className="input" rows={6} value={steps} onChange={(e) => setSteps(e.target.value)} placeholder={"Cook the chicken until golden.\nAdd the cream."} /></div>
-        <div><span className="label">What would you like to change?</span><div className="flex flex-wrap gap-1.5">{GOALS.map((g) => <button key={g.id} type="button" aria-pressed={goals.includes(g.id)} onClick={() => tog(g.id)} className={`rounded-full px-3 py-1 text-xs font-semibold ${goals.includes(g.id) ? "bg-sage" : "bg-cream"}`}>{g.label}</button>)}</div></div>
+        <div><span className="label">What would you like to change?</span><div className="flex flex-wrap gap-1.5">{GOALS.map((g) => <button key={g.id} type="button" onClick={() => tog(g.id)} className="pick sm sage" aria-pressed={goals.includes(g.id)}>{g.label}</button>)}</div></div>
         <button className="btn-primary w-full" onClick={run}>Analyse and improve</button>
         <p className="text-xs text-brown">Built-in rules engine, not a language model. Your original is never changed.</p>
       </div>

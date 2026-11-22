@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import { ALL_RECIPES, CREATORS } from "./data";
 import { matchScore } from "./engine";
 import { useIngredients, useMe, useStore } from "./store";
-import { Avatar, Modal } from "./ui";
+import { Avatar, Modal, usePresence } from "./ui";
 
 import { G, Icon } from "./icons";
 export { Icon };
@@ -15,7 +15,7 @@ const NAV = [
 ];
 
 export function Logo({ dark }: { dark?: boolean }) {
-  return <Link to="/" className="flex items-center gap-2.5" aria-label="CRUNCH home"><span className="grid h-9 w-9 place-items-center rounded-xl bg-charcoal font-display text-xl text-orange">C</span><span className={`h-display text-2xl tracking-wide ${dark ? "text-ivory" : ""}`}>CRUNCH</span></Link>;
+  return <Link to="/" className="flex items-center gap-2.5" aria-label="CRUNCH home"><span className="grid h-9 w-9 place-items-center rounded-[0.8rem] bg-gradient-to-b from-[#3A3731] to-charcoal font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_6px_14px_-6px_rgba(37,35,31,.6)]">C</span><span className={`h-display text-2xl tracking-wide ${dark ? "text-ivory" : ""}`}>CRUNCH</span></Link>;
 }
 
 function GlobalSearch() {
@@ -36,14 +36,14 @@ function GlobalSearch() {
     <div ref={ref} className="relative w-full max-w-xl">
       <form onSubmit={(e) => { e.preventDefault(); if (q.trim()) go(q); }} role="search">
         <Icon n="search" size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brown" />
-        <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} placeholder="Search recipes, ingredients, creators…" className="w-full rounded-full border border-cream-dark bg-white py-2.5 pl-10 pr-4 text-sm focus:border-orange focus:outline-none" aria-label="Search CRUNCH" />
+        <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} placeholder="Search recipes, ingredients, creators…" className="input !rounded-full !py-2.5 !pl-10" aria-label="Search CRUNCH" />
       </form>
       {open && (sugg.length > 0 || (!q && recent.length > 0)) && (
-        <div className="animate-scale-in absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl bg-white p-2 shadow-float">
+        <div className="menu pop-in absolute left-0 right-0 top-full z-50 mt-2">
           {!q && <div className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-brown">Recent searches</div>}
-          {!q && recent.map((r) => <button key={r} onClick={() => { setQ(r); go(r); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-cream"><G g="🕘" /> {r}</button>)}
-          {sugg.map((s) => <Link key={s.to + s.label} to={s.to} onClick={() => { record(q); setOpen(false); }} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-cream"><span>{s.label}</span><span className="text-xs text-brown">{s.sub}</span></Link>)}
-          {q && <button onClick={() => go(q)} className="mt-1 block w-full rounded-lg bg-cream px-3 py-2 text-left text-sm font-semibold">Search all for “{q}” →</button>}
+          {!q && recent.map((r) => <button key={r} onClick={() => { setQ(r); go(r); }} className="menu-item hover:bg-charcoal/[0.06]"><G g="🕘" /> {r}</button>)}
+          {sugg.map((s) => <Link key={s.to + s.label} to={s.to} onClick={() => { record(q); setOpen(false); }} className="menu-item justify-between hover:bg-charcoal/[0.06]"><span>{s.label}</span><span className="text-xs text-brown">{s.sub}</span></Link>)}
+          {q && <button onClick={() => go(q)} className="menu-item mt-1 bg-charcoal/[0.05] font-semibold">Search all for “{q}” →</button>}
         </div>
       )}
     </div>
@@ -58,17 +58,17 @@ function Bell() {
   const unread = visible.filter((n) => !n.read).length;
   return (
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen(!open)} className="relative grid h-10 w-10 place-items-center rounded-full bg-white shadow-card" aria-label={`Notifications, ${unread} unread`}>
+      <button onClick={() => setOpen(!open)} className="glass press relative grid h-10 w-10 place-items-center rounded-full" aria-label={`Notifications, ${unread} unread`}>
         <Icon n="bell" size={18} />{unread > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold">{unread}</span>}
       </button>
       {open && (
-        <div className="animate-scale-in absolute right-0 top-full z-50 mt-2 w-80 max-w-[90vw] rounded-2xl bg-white p-2 shadow-float">
+        <div className="menu pop-in absolute right-0 top-full z-50 mt-2 w-80 max-w-[90vw] [--origin:top_right]">
           <div className="flex items-center justify-between px-3 py-2"><span className="font-semibold">Notifications</span><button onClick={readAll} className="text-xs font-semibold text-brown">Mark all read</button></div>
           <div className="max-h-80 overflow-y-auto">
             {visible.length === 0 && <p className="px-3 py-6 text-center text-sm text-brown">You're all caught up.</p>}
-            {visible.map((n) => <button key={n.id} onClick={() => read(n.id)} className={`flex w-full gap-2 rounded-lg px-3 py-2.5 text-left text-sm hover:bg-cream ${n.read ? "" : "bg-orange-light/30"}`}><span className="flex-1">{n.text}</span><span className="text-xs text-brown">{n.at}</span></button>)}
+            {visible.map((n) => <button key={n.id} onClick={() => read(n.id)} className={`menu-item gap-2 hover:bg-charcoal/[0.06] ${n.read ? "" : "bg-orange-light/40"}`}><span className="flex-1">{n.text}</span><span className="text-xs text-brown">{n.at}</span></button>)}
           </div>
-          <Link to="/settings" onClick={() => setOpen(false)} className="block border-t border-cream px-3 py-2 text-xs font-semibold text-brown">Notification settings</Link>
+          <Link to="/settings" onClick={() => setOpen(false)} className="mt-1 block border-t border-cream px-3 pb-1 pt-2.5 text-xs font-semibold text-brown">Notification settings</Link>
         </div>
       )}
     </div>
@@ -84,65 +84,86 @@ function CreateSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
   ];
   return (
     <Modal open={open} onClose={onClose} title="Create">
-      <div className="grid gap-3 sm:grid-cols-2">
-        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className="flex items-center gap-4 rounded-2xl bg-cream p-4 transition hover:bg-cream-dark hover:-translate-y-0.5"><span className="grid h-12 w-12 place-items-center rounded-xl bg-white text-orange"><G g={i.icon} size={24} /></span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
+      <div className="stagger grid gap-3 sm:grid-cols-2">
+        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className="tile lift flex items-center gap-4 p-4"><span className="grid h-12 w-12 place-items-center rounded-[0.95rem] bg-gradient-to-b from-[#F7B582] to-[#EF9C59] text-charcoal shadow-[inset_0_1px_0_rgba(255,255,255,.55)]"><G g={i.icon} size={24} /></span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
       </div>
     </Modal>
   );
 }
 
+/** Sliding highlight that follows the active NavLink (vertical sidebar). */
+function useNavIndicator(dep: string) {
+  const ref = useRef<HTMLElement>(null); const [box, setBox] = useState<{ y: number; h: number } | null>(null); const [anim, setAnim] = useState(false);
+  useEffect(() => {
+    const el = ref.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    setBox(el ? { y: el.offsetTop, h: el.offsetHeight } : null);
+    const id = requestAnimationFrame(() => setAnim(true)); return () => cancelAnimationFrame(id);
+  }, [dep]);
+  return { ref, style: box ? { height: box.h, transform: `translate3d(0,${box.y}px,0)`, transition: anim ? undefined : "none" } : { opacity: 0 } };
+}
+
+const TAB_BAR = [{ to: "/", l: "Home", i: "home", end: true }, null, { to: "/discover", l: "Discover", i: "compass" }, { to: "/marketplace", l: "Market", i: "store" }, { to: "/profile", l: "Profile", i: "user" }] as const;
+
 export function Layout() {
   const me = useMe(); const loc = useLocation(); const [create, setCreate] = useState(false); const [drawer, setDrawer] = useState(false);
   const ann = useStore((s) => s.announcements[0]); const cartN = useStore((s) => s.cart.length);
+  const drawerP = usePresence(drawer, 280);
   useEffect(() => { window.scrollTo(0, 0); setDrawer(false); }, [loc.pathname]);
+  const side = useNavIndicator(loc.pathname);
   const cooking = loc.pathname.startsWith("/cook/");
   if (cooking) return <Outlet />;
   const nav = me?.role === "admin" ? [...NAV, { to: "/admin", label: "Admin", icon: "shield" }] : NAV;
+  const tabIdx = TAB_BAR.findIndex((t) => t && (t.to === "/" ? loc.pathname === "/" : loc.pathname.startsWith(t.to)));
   return (
-    <div className="min-h-screen md:pl-[72px] lg:pl-64">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col border-r border-cream-dark bg-ivory py-5 md:flex lg:w-64 lg:px-4">
-        <div className="mb-6 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" className="grid h-10 w-10 place-items-center rounded-xl bg-charcoal font-display text-xl text-orange">C</Link></span><span className="hidden lg:block"><Logo /></span></div>
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar px-2 lg:px-0" aria-label="Main">
+    <div className="min-h-screen md:pl-[84px] lg:pl-[17rem]">
+      <aside className="fixed inset-y-3 left-3 z-40 hidden w-[68px] flex-col rounded-[1.75rem] py-4 card md:flex lg:w-60 lg:px-3">
+        <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="CRUNCH home" className="grid h-10 w-10 place-items-center rounded-[0.85rem] bg-gradient-to-b from-[#3A3731] to-charcoal font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18)]">C</Link></span><span className="hidden lg:block"><Logo /></span></div>
+        <nav ref={side.ref} className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar px-2 lg:px-0" aria-label="Main">
+          <span aria-hidden className="pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] bg-gradient-to-b from-[#3A3731] to-charcoal shadow-[inset_0_1px_0_rgba(255,255,255,.16),0_8px_18px_-8px_rgba(37,35,31,.55)] transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />
           {nav.map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} title={n.label} className={({ isActive }) => `group flex items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition lg:justify-start ${isActive ? "bg-charcoal text-ivory" : "text-charcoal hover:bg-cream"}`}>
+            <NavLink key={n.to} to={n.to} end={n.end} title={n.label} className={({ isActive }) => `press relative z-[1] flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium transition-colors duration-300 lg:justify-start ${isActive ? "text-ivory" : "text-charcoal/80 hover:bg-white/60"}`}>
               <Icon n={n.icon} /><span className="hidden lg:inline">{n.label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="px-2 pt-3 lg:px-0"><Link to="/settings" title="Settings" className="flex items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-cream lg:justify-start"><Icon n="settings" /><span className="hidden lg:inline">Settings</span></Link></div>
+        <div className="px-2 pt-3 lg:px-0"><NavLink to="/settings" title="Settings" className={({ isActive }) => `press flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium lg:justify-start ${isActive ? "bg-charcoal text-ivory" : "text-charcoal/80 hover:bg-white/60"}`}><Icon n="settings" /><span className="hidden lg:inline">Settings</span></NavLink></div>
       </aside>
 
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-cream-dark bg-ivory/90 px-4 py-3 backdrop-blur md:px-8">
-        <button onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-full bg-white shadow-card md:hidden" aria-label="Open menu"><Icon n="menu" size={18} /></button>
+      <header className="glass-bar sticky top-0 z-30 flex items-center gap-3 border-b border-white/50 px-4 py-2.5 shadow-[0_1px_0_rgba(37,35,31,.05)] md:px-8 md:py-3">
+        <button onClick={() => setDrawer(true)} className="glass press grid h-10 w-10 place-items-center rounded-full md:hidden" aria-label="Open menu"><Icon n="menu" size={18} /></button>
         <div className="md:hidden"><Logo /></div>
         <div className="hidden flex-1 md:block"><GlobalSearch /></div>
         <div className="ml-auto flex items-center gap-2">
-          <Link to="/marketplace/cart" className="relative grid h-10 w-10 place-items-center rounded-full bg-white shadow-card" aria-label={`Cart, ${cartN} items`}><Icon n="bag" size={18} />{cartN > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold">{cartN}</span>}</Link>
+          <Link to="/marketplace/cart" className="glass press relative grid h-10 w-10 place-items-center rounded-full" aria-label={`Cart, ${cartN} items`}><Icon n="bag" size={18} />{cartN > 0 && <span key={cartN} className="pop absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-orange px-1 text-[10px] font-bold shadow">{cartN}</span>}</Link>
           <Bell />
-          <Link to="/profile" aria-label="Your profile"><Avatar emoji={me?.emoji ?? "🍳"} size={40} /></Link>
+          <Link to="/profile" aria-label="Your profile" className="press rounded-full shadow-[0_0_0_2px_rgba(255,255,255,.9),0_4px_10px_-4px_rgba(37,35,31,.3)]"><Avatar emoji={me?.emoji ?? "🍳"} size={40} /></Link>
         </div>
       </header>
-      <div className="px-4 pb-2 pt-3 md:hidden"><GlobalSearch /></div>
-      {ann && <div className="bg-sage-light px-4 py-2 text-center text-sm font-medium"><G g="📣" /> {ann.text}</div>}
+      <div className="px-4 pb-1 pt-3 md:hidden"><GlobalSearch /></div>
+      {ann && <div className="mx-4 mt-3 rounded-full px-4 py-2 text-center text-sm font-medium glass md:mx-8"><G g="📣" /> {ann.text}</div>}
 
-      <main className="page-enter mx-auto max-w-7xl px-4 pb-28 pt-6 md:px-8 md:pb-12" key={loc.pathname}><Outlet /></main>
+      <main className="page-enter mx-auto max-w-7xl px-4 pb-32 pt-6 md:px-8 md:pb-12" key={loc.pathname}><Outlet /></main>
 
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 items-end border-t border-cream-dark bg-ivory/95 px-2 pt-1.5 backdrop-blur md:hidden" aria-label="Primary">
-        {[{ to: "/", l: "Home", i: "home", end: true }, null, { to: "/discover", l: "Discover", i: "compass" }, { to: "/marketplace", l: "Market", i: "store" }, { to: "/profile", l: "Profile", i: "user" }].map((n, idx) =>
-          n === null ? (
-            <button key="c" onClick={() => setCreate(true)} className="mx-auto -mt-5 grid h-14 w-14 place-items-center rounded-full bg-orange text-charcoal shadow-float transition active:scale-95" aria-label="Create"><Icon n="plus" size={26} /></button>
-          ) : (
-            <NavLink key={n.to + idx} to={n.to} end={n.end} className={({ isActive }) => `flex flex-col items-center gap-0.5 py-1.5 text-[11px] font-semibold ${isActive ? "text-charcoal" : "text-brown-light"}`}><Icon n={n.i} size={22} />{n.l}</NavLink>
-          ),
-        )}
+      <nav className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 md:hidden" aria-label="Primary">
+        <div className="glass-thick relative grid grid-cols-5 items-center rounded-[1.9rem] p-1.5">
+          {tabIdx >= 0 && <span aria-hidden className="absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/5)] rounded-[1.5rem] bg-charcoal/[0.07] transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `translate3d(${tabIdx * 100}%,0,0)` }} />}
+          {TAB_BAR.map((n, idx) =>
+            n === null ? (
+              <button key="c" onClick={() => setCreate(true)} className="press relative mx-auto grid h-12 w-12 place-items-center rounded-full bg-gradient-to-b from-[#F7B582] to-[#EF9C59] text-charcoal shadow-[inset_0_1px_0_rgba(255,255,255,.55),0_8px_18px_-6px_rgba(232,145,74,.75)]" aria-label="Create"><Icon n="plus" size={24} /></button>
+            ) : (
+              <NavLink key={n.to + idx} to={n.to} end={"end" in n} className={({ isActive }) => `press relative flex flex-col items-center gap-0.5 rounded-[1.5rem] py-1.5 text-[10.5px] font-semibold transition-colors duration-300 ${isActive ? "text-charcoal" : "text-charcoal/45"}`}><Icon n={n.i} size={22} />{n.l}</NavLink>
+            ),
+          )}
+        </div>
       </nav>
 
       <CreateSheet open={create} onClose={() => setCreate(false)} />
-      {drawer && (
-        <div className="fixed inset-0 z-[60] bg-charcoal/50 animate-fade-in md:hidden" onClick={() => setDrawer(false)}>
-          <div className="animate-slide-in-right h-full w-72 overflow-y-auto bg-ivory p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="text-xl"><G g="✕" /></button></div>
-            {[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${isActive ? "bg-charcoal text-ivory" : ""}`}><Icon n={n.icon} />{n.label}</NavLink>)}
+      {drawerP.mounted && (
+        <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+          <div className={`absolute inset-0 bg-charcoal/35 ${drawerP.leaving ? "backdrop-out" : "backdrop-in"}`} onClick={() => setDrawer(false)} />
+          <div className={`glass-thick absolute inset-y-2 left-2 w-72 overflow-y-auto rounded-[1.75rem] p-4 ${drawerP.leaving ? "[animation:drawerIn_260ms_var(--ease-spring)_reverse_both]" : "drawer-in"}`}>
+            <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="press grid h-9 w-9 place-items-center rounded-full bg-charcoal/[0.07]"><G g="✕" size={15} /></button></div>
+            <div className="stagger space-y-0.5">{[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `press flex items-center gap-3 rounded-[0.95rem] px-3 py-3 text-sm font-medium ${isActive ? "bg-charcoal text-ivory" : "hover:bg-white/60"}`}><Icon n={n.icon} />{n.label}</NavLink>)}</div>
           </div>
         </div>
       )}

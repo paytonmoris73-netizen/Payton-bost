@@ -6,6 +6,7 @@ import { matchScore } from "../engine";
 import { useCatalogue, useIngredients, useMe, useStore } from "../store";
 import { Avatar, Cover, Empty, Modal, PageHeader, Tabs, toast } from "../ui";
 import type { Post } from "../types";
+import { Select } from "../glass";
 
 const TABS = ["Feed", "Following", "Challenges", "Leaderboards", "Creators"] as const;
 
@@ -14,7 +15,7 @@ function PostCard({ p }: { p: Post }) {
   const [open, setOpen] = useState(false); const [c, setC] = useState(""); const [rep, setRep] = useState(false); const [reason, setReason] = useState("");
   const r = p.recipeId ? cat.find((x) => x.id === p.recipeId) : undefined; const ch = CHALLENGES.find((x) => x.id === p.challengeId);
   const share = async () => { const t = `${p.userName} on CRUNCH: ${p.text}`; try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); toast("Copied to clipboard"); } } catch { /* cancelled */ } };
-  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} aria-pressed={on} className={`rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${on ? "bg-orange-light" : "bg-cream hover:bg-cream-dark"}`}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <G g={label} size={16} /> : label}{count !== undefined ? count : ""}</span></button>;
+  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} className="pick" aria-pressed={on}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <G g={label} size={16} /> : label}{count !== undefined ? count : ""}</span></button>;
   return (
     <article className="card overflow-hidden">
       <div className="flex items-center gap-3 p-4"><Link to={`/creator/${p.userId}`}><Avatar emoji={p.userEmoji} size={40} /></Link><div className="flex-1"><Link to={`/creator/${p.userId}`} className="font-semibold">{p.userName}</Link><div className="text-xs text-brown">{p.createdAt}{ch && ` · Challenge: ${ch.title}`}</div></div><button className="text-xs text-brown underline" onClick={() => setRep(true)}>Report</button></div>
@@ -44,9 +45,9 @@ function Composer({ onClose, challengeId }: { onClose: () => void; challengeId?:
   return (
     <Modal open onClose={onClose} title={challengeId ? "Submit challenge entry" : "Share with the community"}>
       <textarea className="input mb-3" rows={3} placeholder="What did you make or discover?" value={text} onChange={(e) => setText(e.target.value)} maxLength={600} aria-label="Post text" />
-      <div className="mb-3 flex flex-wrap gap-1.5">{["🍽️", "🍝", "🥗", "🍰", "🍜", "🍳", "🥘", "🍹"].map((e) => <button key={e} onClick={() => setEmoji(e)} className={`grid h-9 w-9 place-items-center rounded-xl text-lg ${emoji === e ? "bg-orange-light ring-2 ring-orange" : "bg-cream"}`}>{e}</button>)}</div>
+      <div className="mb-3 flex flex-wrap gap-1.5">{["🍽️", "🍝", "🥗", "🍰", "🍜", "🍳", "🥘", "🍹"].map((e) => <button key={e} onClick={() => setEmoji(e)} aria-pressed={emoji === e} className={`press grid h-10 w-10 place-items-center rounded-[0.9rem] text-lg transition-[background,box-shadow] duration-300 ${emoji === e ? "bg-gradient-to-b from-[#FCE3CB] to-[#F8C9A0] shadow-[inset_0_1px_0_#fff,0_0_0_2px_#F2A66B]" : "tile"}`}>{e}</button>)}</div>
       <div className="mb-3"><div className="mb-1 flex flex-wrap gap-1.5">{picked.map((p) => <button key={p} className="chip bg-orange-light" onClick={() => setPicked(picked.filter((x) => x !== p))}>{p} <G g="✕" /></button>)}</div><input className="input" placeholder="Tag ingredients…" value={q} onChange={(e) => setQ(e.target.value)} /><div className="mt-1 flex flex-wrap gap-1.5">{sugg.map((i) => <button key={i.id} className="chip" onClick={() => { setPicked([...picked, i.name]); setQ(""); }}><G g="＋" /> {i.name}</button>)}</div></div>
-      {mine.length > 0 && <select className="input mb-3" value={recipe} onChange={(e) => setRecipe(e.target.value)} aria-label="Link a recipe"><option value="">Link one of your recipes (optional)</option>{mine.map((r) => <option key={r.id} value={r.id}>{r.title}</option>)}</select>}
+      {mine.length > 0 && <div className="mb-3"><Select label="Link a recipe" value={recipe} onChange={setRecipe} options={[{ value: "", label: "Link one of your recipes (optional)" }, ...mine.map((r) => ({ value: r.id, label: r.title }))]} /></div>}
       <p className="mb-3 text-xs text-brown">Photo uploads are coming soon. Keep it safe: posts promoting unsafe or inedible food combinations or challenges are removed.</p>
       <button className="btn-primary w-full" onClick={submit}>Post</button>
     </Modal>

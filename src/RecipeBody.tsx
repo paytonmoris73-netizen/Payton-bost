@@ -7,6 +7,7 @@ import { creditFor } from "./photos";
 import { creatorOf, useMe, useStore, uid } from "./store";
 import { AllergenNote, Cover, Modal, NutritionPanel, SaveButton, StarPicker, Stars, toast } from "./ui";
 import type { CookStatus, Recipe } from "./types";
+import { Select } from "./glass";
 
 export function scaleAmount(a: string, f: number): string {
   if (f === 1) return a;
@@ -63,8 +64,7 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
         {!preview && (
           <div className="card p-5">
             <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="h-display text-2xl">My notes</h2>
-              <select className="input !w-auto !py-1.5 text-sm" aria-label="Cooking status" value={cookStatus[r.id] ?? ""} onChange={(e) => setCookStatus(r.id, (e.target.value || null) as CookStatus | null)}>
-                <option value="">No status</option><option value="want">Want to try</option><option value="planned">Planned</option><option value="cooked">Cooked</option><option value="favorite">Favorite</option></select></div>
+              <Select className="!w-auto !py-1.5" label="Cooking status" value={cookStatus[r.id] ?? ""} onChange={(v) => setCookStatus(r.id, (v || null) as CookStatus | null)} options={[{ value: "", label: "No status" }, { value: "want", label: "Want to try" }, { value: "planned", label: "Planned" }, { value: "cooked", label: "Cooked" }, { value: "favorite", label: "Favorite" }]} /></div>
             <textarea className="input mt-3" rows={3} maxLength={2000} placeholder="Private notes: “added extra garlic”, “needed 10 more minutes”…" value={notes[r.id] ?? ""} onChange={(e) => setNote(r.id, e.target.value)} aria-label="Private notes" />
             <p className="mt-1 text-xs text-brown">Only you can see this. Notes are never shown publicly.</p>
           </div>

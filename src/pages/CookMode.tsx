@@ -31,34 +31,34 @@ export default function CookMode() {
   const step = r.steps[i]; const last = i === r.steps.length - 1; const factor = servings / Math.max(1, r.servings);
   const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   return (
-    <div className="flex min-h-screen flex-col bg-ivory">
-      <div className="h-1.5 bg-cream"><div className="h-full bg-orange transition-all duration-300" style={{ width: `${((i + 1) / r.steps.length) * 100}%` }} /></div>
-      <header className="flex items-center justify-between px-4 py-3 md:px-8">
+    <div className="flex min-h-screen flex-col">
+      <div className="h-1.5 bg-charcoal/[0.06]"><div className="h-full w-full origin-left bg-gradient-to-r from-[#F7B582] to-[#EF9C59] transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `scaleX(${(i + 1) / r.steps.length})` }} /></div>
+      <header className="glass-bar sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-3 md:px-8">
         <button onClick={() => nav(-1)} className="btn-ghost"><G g="✕" /> Exit</button>
         <div className="text-center"><div className="line-clamp-1 font-semibold">{r.title}</div><div className="text-xs text-brown">Step {i + 1} of {r.steps.length}</div></div>
         <div className="flex gap-2"><button className={`btn-ghost ${voice ? "!bg-orange" : ""}`} onClick={() => { const v = !voice; setVoice(v); if (!v && "speechSynthesis" in window) window.speechSynthesis.cancel(); if (v && !("speechSynthesis" in window)) toast("Voice isn't supported in this browser.", "err"); }} aria-pressed={voice} aria-label="Read steps aloud">🔊</button><button className="btn-ghost" onClick={() => setShowIng(true)}>🧺</button></div>
       </header>
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-6 py-6">
-        <div key={i} className="animate-slide-up">
-          <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-charcoal text-xl font-bold text-ivory">{i + 1}</div>
+        <div key={i} className="rise-in">
+          <div className="pop-in mb-4 grid h-12 w-12 place-items-center rounded-full bg-gradient-to-b from-[#3A3731] to-charcoal text-xl font-bold text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.15),0_8px_18px_-8px_rgba(37,35,31,.6)]">{i + 1}</div>
           <p className="text-2xl font-medium leading-snug md:text-4xl md:leading-snug">{step.text}</p>
           {step.timerMin && step.timerMin < 180 && (
             <div className="mt-8 flex items-center gap-4">
-              <div className="rounded-2xl bg-cream px-5 py-3 text-3xl font-bold tabular-nums">{mm(left ?? step.timerMin * 60)}</div>
+              <div className="glass rounded-[1.4rem] px-5 py-3 text-3xl font-bold tabular-nums">{mm(left ?? step.timerMin * 60)}</div>
               {!running ? <button className="btn-primary" onClick={() => { setLeft(left && left > 0 ? left : step.timerMin! * 60); setRunning(true); }}>{left && left > 0 ? "Resume" : "Start timer"}</button> : <button className="btn-ghost" onClick={() => setRunning(false)}>Pause</button>}
               {left !== null && <button className="text-sm text-brown" onClick={() => { setLeft(null); setRunning(false); }}>Reset</button>}
             </div>
           )}
         </div>
       </main>
-      <footer className="safe-bottom flex gap-3 border-t border-cream-dark p-4 md:px-8">
+      <footer className="glass-bar safe-bottom sticky bottom-0 flex gap-3 border-t border-white/60 p-4 md:px-8">
         <button className="btn-ghost flex-1 !py-4 text-base" disabled={i === 0} onClick={() => setI(i - 1)}>← Previous</button>
         {last ? <button className="btn-primary flex-1 !py-4 text-base" onClick={() => { markCooked(r.id); toast("Nice work! Logged as cooked."); nav(`/recipe/${r.id}`); }}>Finish 🎉</button> : <button className="btn-dark flex-1 !py-4 text-base" onClick={() => setI(i + 1)}>Next →</button>}
       </footer>
       {showIng && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-charcoal/50 animate-fade-in" onClick={() => setShowIng(false)}>
-          <aside className="animate-slide-in-right h-full w-full max-w-sm overflow-y-auto bg-ivory p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between"><h2 className="h-display text-2xl">Ingredients</h2><button onClick={() => setShowIng(false)} aria-label="Close"><G g="✕" /></button></div>
+        <div className="backdrop-in fixed inset-0 z-50 flex justify-end bg-charcoal/35" onClick={() => setShowIng(false)}>
+          <aside className="glass-thick m-2 h-[calc(100%-1rem)] w-full max-w-sm overflow-y-auto rounded-[1.75rem] p-5 [animation:sheetUp_480ms_var(--ease-spring)_both] md:[animation:riseIn_420ms_var(--ease-spring)_both]" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between"><h2 className="h-display text-2xl">Ingredients</h2><button onClick={() => setShowIng(false)} aria-label="Close" className="press grid h-9 w-9 place-items-center rounded-full bg-charcoal/[0.07]"><G g="✕" size={15} /></button></div>
             <div className="mb-3 flex items-center gap-2 text-sm"><button className="grid h-8 w-8 place-items-center rounded-full bg-cream" onClick={() => setServings(Math.max(1, servings - 1))}>−</button><span className="font-semibold">{servings} servings</span><button className="grid h-8 w-8 place-items-center rounded-full bg-cream" onClick={() => setServings(servings + 1)}>+</button></div>
             {r.ingredients.map((g) => <label key={g.name} className="flex items-center gap-3 border-b border-cream py-3"><input type="checkbox" className="h-5 w-5 accent-orange" checked={!!checked[g.name]} onChange={() => setChecked((p) => ({ ...p, [g.name]: !p[g.name] }))} /><span className={`flex-1 ${checked[g.name] ? "text-brown-light line-through" : ""}`}>{g.name}</span><span className="text-brown">{scaleAmount(g.amount, factor)}</span></label>)}
           </aside>

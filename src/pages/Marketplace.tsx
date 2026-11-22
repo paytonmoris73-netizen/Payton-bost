@@ -13,7 +13,7 @@ export default function Marketplace() {
   const [f, setF] = useState({ ...defaultFilters, maxPrice: 20 }); const [browse, setBrowse] = useState(false);
   const res = useFiltered(vis, f);
   const solo = vis.filter((r) => !r.bundleOf);
-  const grid = (l: Recipe[]) => <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{l.slice(0, 4).map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>;
+  const grid = (l: Recipe[]) => <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{l.slice(0, 4).map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>;
   const interest = new Set([...saved, ...recent].map((id) => cat.find((r) => r.id === id)?.cuisine));
   const personal = solo.filter((r) => interest.has(r.cuisine) && !owned.has(r.id));
   return (
@@ -27,7 +27,7 @@ export default function Marketplace() {
         <>
           <input className="input mb-3 max-w-md" placeholder="Search listings…" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} aria-label="Search listings" />
           <FilterPanel f={f} set={setF} />
-          {res.length ? <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{res.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="🛍️" title="No listings match" action={<button className="btn-primary" onClick={() => setF(defaultFilters)}>Reset filters</button>} />}
+          {res.length ? <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{res.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="🛍️" title="No listings match" action={<button className="btn-primary" onClick={() => setF(defaultFilters)}>Reset filters</button>} />}
         </>
       ) : loading ? <CardSkeletons /> : (
         <>
@@ -36,12 +36,12 @@ export default function Marketplace() {
           <Section title="Best sellers">{grid([...solo].sort((a, b) => b.sales - a.sales))}</Section>
           <Section title="New releases">{grid([...solo].sort((a, b) => b.createdAt.localeCompare(a.createdAt)))}</Section>
           <Section title="Editor's picks" sub="Hand-picked by the CRUNCH team">{grid(solo.filter((r) => featuredIds.includes(r.id)).reverse())}</Section>
-          <Section title="Premium collections" sub="Bundles save you money">{(() => { const b = vis.filter((r) => r.bundleOf); return b.length ? <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{b.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <p className="text-sm text-brown">No collections yet.</p>; })()}</Section>
+          <Section title="Premium collections" sub="Bundles save you money">{(() => { const b = vis.filter((r) => r.bundleOf); return b.length ? <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{b.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <p className="text-sm text-brown">No collections yet.</p>; })()}</Section>
           <Section title="Recipes under $5">{grid(solo.filter((r) => r.price < 5))}</Section>
           {solo.some((r) => r.seasonal) && <Section title="Seasonal">{grid(solo.filter((r) => r.seasonal))}</Section>}
           {personal.length > 0 && <Section title="Recommended for you" sub="Based on cuisines you've saved or viewed">{grid(personal)}</Section>}
           <Section title="Top-rated creators">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...CREATORS].sort((a, b) => b.rating - a.rating).slice(0, 3).map((c) => <Link key={c.id} to={`/creator/${c.id}`} className="card flex items-center gap-3 p-4 transition hover:-translate-y-1"><Avatar emoji={c.emoji} hue={c.hue} size={52} /><span><b className="block">{c.name}</b><span className="flex items-center gap-1 text-xs text-brown"><Stars value={c.rating} /> {c.rating}</span></span></Link>)}</div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...CREATORS].sort((a, b) => b.rating - a.rating).slice(0, 3).map((c) => <Link key={c.id} to={`/creator/${c.id}`} className="card flex items-center gap-3 p-4 lift"><Avatar emoji={c.emoji} hue={c.hue} size={52} /><span><b className="block">{c.name}</b><span className="flex items-center gap-1 text-xs text-brown"><Stars value={c.rating} /> {c.rating}</span></span></Link>)}</div>
           </Section>
         </>
       )}

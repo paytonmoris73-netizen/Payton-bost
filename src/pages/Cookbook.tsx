@@ -5,6 +5,7 @@ import { matchScore } from "../engine";
 import { comboToItems } from "../engine";
 import { useCatalogue, useIngredients, useMe, useOwnedIds, useStore } from "../store";
 import { Empty, PageHeader, RecipeCard, Tabs, toast } from "../ui";
+import { Select } from "../glass";
 
 const TABS = ["Purchased", "Saved", "Created", "Favourites", "Combinations", "Folders", "Recently cooked", "Shopping lists"] as const;
 
@@ -19,12 +20,14 @@ export default function Cookbook({ saved: onlySaved }: { saved?: boolean }) {
   const created = filt(cat.filter((r) => r.creatorId === me.id));
   const favs = filt(favorites.map(byId).filter((r): r is NonNullable<typeof r> => !!r));
   const cookedR = cooked.map((c) => ({ ...c, r: byId(c.id) })).filter((x) => x.r);
-  const grid = (l: typeof cat, empty: string, to?: string) => l.length ? <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{l.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="📖" title={empty} action={to ? <Link to={to} className="btn-primary">Explore</Link> : undefined} />;
+  const grid = (l: typeof cat, empty: string, to?: string) => l.length ? <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{l.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="📖" title={empty} action={to ? <Link to={to} className="btn-primary">Explore</Link> : undefined} />;
   return (
     <div>
       <PageHeader title={onlySaved ? "Saved Recipes" : "My Cookbook"} sub="Everything you've bought, saved, created and cooked — in one place." />
-      <input className="input mb-3 inline-block max-w-md" placeholder="Search your cookbook…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search your cookbook" />
-      <select className="input mb-3 ml-2 !w-auto" aria-label="Filter by cooking status" value={stat} onChange={(e) => setStat(e.target.value)}><option value="">Any status</option><option value="want">Want to try</option><option value="planned">Planned</option><option value="cooked">Cooked</option><option value="favorite">Favorite</option></select>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <input className="input min-w-0 flex-1 sm:max-w-md" placeholder="Search your cookbook…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search your cookbook" />
+        <Select className="!w-auto" label="Filter by cooking status" value={stat} onChange={setStat} options={[{ value: "", label: "Any status" }, { value: "want", label: "Want to try" }, { value: "planned", label: "Planned" }, { value: "cooked", label: "Cooked" }, { value: "favorite", label: "Favorite" }]} />
+      </div>
       <Tabs tabs={TABS} value={tab} onChange={setTab} />
       {tab === "Purchased" && (<>{grid(purchased, "No purchased recipes yet", "/marketplace")}{purchases.length > 0 && <p className="mt-3 text-sm"><Link to="/marketplace/cart" className="font-semibold underline">View purchase history</Link></p>}</>)}
       {tab === "Saved" && grid(savedR, "Nothing saved yet", "/discover")}

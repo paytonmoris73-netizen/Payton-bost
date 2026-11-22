@@ -27,40 +27,42 @@ export default function Home() {
   return (
     <div>
       <div className="mb-8 flex items-center gap-4">
-        <Avatar emoji={me.emoji} size={56} />
+        <span className="rounded-full shadow-[0_0_0_3px_rgba(255,255,255,.9),0_10px_24px_-10px_rgba(37,35,31,.35)]"><Avatar emoji={me.emoji} size={56} /></span>
         <div className="flex-1"><h1 className="h-display text-3xl md:text-4xl">{greet}, {me.name.split(" ")[0]}</h1><p className="text-sm text-brown">💡 {fact}</p></div>
       </div>
 
       <div className="mb-10 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Link to="/combiner" className="group relative overflow-hidden rounded-3xl bg-charcoal p-7 pt-24 text-ivory transition hover:-translate-y-0.5 hover:shadow-float md:p-9">
-          <div className="absolute right-2 top-2 flex gap-2 text-5xl opacity-90 transition-transform duration-500 group-hover:rotate-6 md:-right-4 md:-top-4 md:text-7xl">{["🍅", "🧀", "🌿"].map((e, i) => <span key={e} className="animate-float" style={{ animationDelay: `${i * 0.5}s` }}>{e}</span>)}</div>
+        <Link to="/combiner" className="lift group relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#36332D] via-[#2A2824] to-[#1C1A17] p-7 pt-24 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_24px_50px_-24px_rgba(37,35,31,.7)] md:p-9 md:pt-28">
+          <div aria-hidden className="pointer-events-none absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full bg-orange/30 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 -z-10 h-56 w-56 rounded-full bg-sage/25 blur-3xl" />
+          <div className="absolute right-5 top-5 flex gap-2 text-5xl transition-transform duration-700 [transition-timing-function:var(--ease-spring)] group-hover:-translate-y-1 group-hover:rotate-3 md:right-7 md:top-6 md:text-6xl" aria-hidden>{["🍅", "🧀", "🌿"].map((e, i) => <span key={e} className="animate-float" style={{ animationDelay: `${i * 0.5}s` }}>{e}</span>)}</div>
           <p className="text-sm font-semibold uppercase tracking-wide text-orange">Your next food creation</p>
           <h2 className="h-display mt-2 max-w-sm text-3xl md:text-4xl">What are you in the mood to invent?</h2>
           <p className="mt-2 max-w-sm text-ivory/70">Pick a few ingredients, see how they work together, and turn them into a recipe.</p>
           <span className="btn-primary mt-5">Open the Food Combiner →</span>
         </Link>
         <div className="grid gap-4">
-          <Link to="/chef" className="card flex items-center gap-4 p-5 transition hover:-translate-y-0.5 hover:shadow-card-hover"><span className="text-4xl">👨‍🍳</span><span><b className="block">Ask the AI Chef</b><span className="text-sm text-brown">"What can I make with what's in my fridge?"</span></span></Link>
-          <Link to="/community" className="card flex items-center gap-4 p-5 transition hover:-translate-y-0.5 hover:shadow-card-hover"><span className="text-4xl">🏆</span><span><b className="block">Weekly challenge</b><span className="text-sm text-brown">Three-Ingredient Wonders · 5 days left</span></span></Link>
+          <Link to="/chef" className="card flex items-center gap-4 p-5 lift"><span className="tile grid h-14 w-14 shrink-0 place-items-center text-3xl">👨‍🍳</span><span><b className="block">Ask the AI Chef</b><span className="text-sm text-brown">"What can I make with what's in my fridge?"</span></span></Link>
+          <Link to="/community" className="card flex items-center gap-4 p-5 lift"><span className="tile grid h-14 w-14 shrink-0 place-items-center text-3xl">🏆</span><span><b className="block">Weekly challenge</b><span className="text-sm text-brown">Three-Ingredient Wonders · 5 days left</span></span></Link>
         </div>
       </div>
 
       <Section title="Trending combinations" sub="Tap one to open it in the Combiner">
-        <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 md:mx-0 md:px-0">
+        <div className="no-scrollbar stagger -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 pt-1 md:mx-0 md:px-0 [&>*]:snap-start">
           {TRENDING_COMBOS.map((c) => (
-            <Link key={c.name} to={`/combiner?ing=${c.ids.join(",")}`} className="card w-56 shrink-0 p-4 transition hover:-translate-y-1 hover:shadow-card-hover">
-              <div className="mb-3 flex text-3xl">{c.ids.map((id) => <span key={id} className="-mr-1 rounded-full bg-cream px-1.5 py-1">{ING(id)?.emoji}</span>)}</div>
+            <Link key={c.name} to={`/combiner?ing=${c.ids.join(",")}`} className="card w-56 shrink-0 p-4 lift">
+              <div className="mb-3 flex text-3xl">{c.ids.map((id) => <span key={id} className="-mr-2 grid h-12 w-12 place-items-center rounded-full border-2 border-white bg-gradient-to-b from-white to-[#FFF3E4] shadow-[0_4px_10px_-4px_rgba(37,35,31,.25)]">{ING(id)?.emoji}</span>)}</div>
               <b className="block">{c.name}</b><span className="text-xs text-brown">{c.ids.map((id) => ING(id)?.name).join(" + ")}</span><p className="mt-1 text-xs text-brown">{c.note}</p>
             </Link>
           ))}
         </div>
       </Section>
 
-      <Section title="Popular recipes" to="/discover">{loading ? <CardSkeletons /> : <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{popular.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>}</Section>
-      <Section title="Made for you" sub={`Based on ${reason}.`}>{loading ? <CardSkeletons /> : <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{forYou.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>}</Section>
+      <Section title="Popular recipes" to="/discover">{loading ? <CardSkeletons /> : <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{popular.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>}</Section>
+      <Section title="Made for you" sub={`Based on ${reason}.`}>{loading ? <CardSkeletons /> : <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{forYou.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>}</Section>
 
       <Section title="Trending creators" to="/community">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CREATORS.slice(0, 6).map((c) => (
             <div key={c.id} className="card flex items-center gap-3 p-4">
               <Link to={`/creator/${c.id}`}><Avatar emoji={c.emoji} hue={c.hue} size={52} /></Link>
@@ -71,7 +73,7 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section title="Marketplace highlights" to="/marketplace" sub="Original recipes from creators">{loading ? <CardSkeletons /> : <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{market.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>}</Section>
+      <Section title="Marketplace highlights" to="/marketplace" sub="Original recipes from creators">{loading ? <CardSkeletons /> : <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{market.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>}</Section>
 
       {recentRecipes.length > 0 && <Section title="Recently viewed" sub="Pick up where you left off"><div className="no-scrollbar -mx-4 flex gap-4 overflow-x-auto px-4 md:mx-0 md:px-0">{recentRecipes.map((r) => <RecipeCard key={r.id} r={r} compact owned={owned.has(r.id)} />)}</div></Section>}
     </div>

@@ -20,7 +20,9 @@ export default function Auth() {
   };
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-charcoal p-12 text-ivory lg:flex lg:flex-col lg:justify-between">
+      <div className="relative isolate m-3 hidden overflow-hidden rounded-[2.25rem] bg-gradient-to-br from-[#36332D] via-[#2A2824] to-[#1C1A17] p-12 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_30px_60px_-30px_rgba(37,35,31,.7)] lg:flex lg:flex-col lg:justify-between">
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 -z-10 h-96 w-96 rounded-full bg-orange/30 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-16 -z-10 h-80 w-80 rounded-full bg-sage/25 blur-3xl" />
         <div className="flex items-center gap-2.5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-orange font-display text-xl text-charcoal">C</span><span className="h-display text-2xl tracking-wide">CRUNCH</span></div>
         <div>
           <h1 className="h-display text-5xl leading-tight">Three random ingredients.<br />One new recipe.</h1>
@@ -29,8 +31,8 @@ export default function Auth() {
         </div>
         <p className="text-xs text-ivory/50">Account data on this build is stored locally in your browser. See docs/BACKEND.md for the production setup.</p>
       </div>
-      <div className="flex items-center justify-center p-6">
-        <form onSubmit={submit} className="w-full max-w-sm" noValidate>
+      <div className="flex items-center justify-center p-4 sm:p-6">
+        <form onSubmit={submit} className="glass-thick rise-in w-full max-w-sm rounded-[2rem] p-6 sm:p-8" noValidate>
           <h2 className="h-display text-3xl">{mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset password"}</h2>
           <p className="mb-6 mt-1 text-sm text-brown">{mode === "login" ? "Log in to your cookbook." : mode === "signup" ? "Free to join. You must be 13 or older." : "Enter your email and a new password."}</p>
           {mode === "signup" && <div className="mb-3"><label className="label" htmlFor="n">Name</label><input id="n" className="input" value={f.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" /></div>}
@@ -42,7 +44,7 @@ export default function Auth() {
               <label className="mb-3 flex items-start gap-2 text-xs text-brown"><input type="checkbox" checked={f.agree} onChange={(e) => set("agree", e.target.checked)} className="mt-0.5" />I agree to the Terms, Privacy Policy and Community Guidelines.</label>
             </>
           )}
-          {err && <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
+          {err && <p role="alert" className="pop-in mb-3 rounded-2xl bg-red-50/90 px-3 py-2 text-sm text-red-700">{err}</p>}
           <button className="btn-primary w-full" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Log in" : mode === "signup" ? "Create account" : "Update password"}</button>
           {mode !== "reset" && (
             <button type="button" disabled className="btn-outline mt-2 w-full" title="Requires Firebase Auth configuration">Continue with Google <span className="rounded-full bg-sage-light px-2 py-0.5 text-[10px] font-bold uppercase">Coming soon</span></button>

@@ -6,6 +6,7 @@ import { DISCLAIMER_ALLERGEN, DISCLAIMER_NUTRITION, matchScore } from "../engine
 import { useCatalogue, useIngredients, useOwnedIds, useStore } from "../store";
 import { Empty, Meter, PageHeader, RecipeCard, Tabs, toast } from "../ui";
 import type { Category } from "../types";
+import { Select } from "../glass";
 
 export default function Shop() {
   const { id } = useParams(); const ings = useIngredients();
@@ -17,7 +18,7 @@ export default function Shop() {
       <PageHeader title="Ingredient Shop" sub="Explore what's in your kitchen: flavour, storage, nutrition, substitutions and the recipes that use it." />
       <input className="input mb-3 max-w-md" placeholder="Search ingredients…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search ingredients" />
       <Tabs tabs={["All", ...CATEGORIES] as readonly ("All" | Category)[]} value={cat} onChange={setCat} />
-      {shown.length === 0 ? <Empty emoji="🥕" title="No ingredients found" /> : <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{shown.map((i) => <Link key={i.id} to={`/shop/${i.id}`} className="card p-4 text-center transition hover:-translate-y-1 hover:shadow-card-hover"><div className="text-5xl">{i.emoji}</div><b className="mt-1 block text-sm">{i.name}</b><span className="text-xs text-brown">{i.category}</span></Link>)}</div>}
+      {shown.length === 0 ? <Empty emoji="🥕" title="No ingredients found" /> : <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{shown.map((i) => <Link key={i.id} to={`/shop/${i.id}`} className="card p-4 text-center lift"><div className="text-5xl">{i.emoji}</div><b className="mt-1 block text-sm">{i.name}</b><span className="text-xs text-brown">{i.category}</span></Link>)}</div>}
     </div>
   );
 }
@@ -33,7 +34,7 @@ function Detail({ id }: { id: string }) {
       <Link to="/shop" className="text-sm font-semibold text-brown">← Ingredient Shop</Link>
       <div className="mt-3 grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="card grid place-items-center p-8 text-center"><div className="text-[8rem] leading-none">{i.emoji}</div><h1 className="h-display mt-2 text-3xl">{i.name}</h1><span className="chip mt-1">{i.category}</span>
-          <div className="mt-5 w-full"><select className="input mb-2" value={listId} onChange={(e) => setListId(e.target.value)} aria-label="Shopping list">{lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select>
+          <div className="mt-5 w-full"><div className="mb-2"><Select label="Shopping list" value={listId} onChange={setListId} options={lists.map((l) => ({ value: l.id, label: l.name }))} /></div>
             <button className="btn-primary w-full" onClick={() => { const lid = listId || createList("Groceries"); addToList(lid, [{ name: i.name, category: i.category }]); toast(`${i.name} added to your list`); }}><G g="＋" /> Add to shopping list</button></div></div>
         <div className="space-y-5">
           <div className="card p-5"><p>{i.description}</p><h2 className="mt-4 font-semibold">Common uses</h2><div className="mt-1 flex flex-wrap gap-1.5">{i.uses.map((u) => <span key={u} className="chip">{u}</span>)}</div></div>
@@ -48,7 +49,7 @@ function Detail({ id }: { id: string }) {
           <div className="card p-5"><h2 className="font-semibold">Where to buy</h2><p className="mt-1 text-sm text-brown">Grocery retailer integrations (products, package sizes, live prices and availability) are <b>coming soon</b>. CRUNCH doesn't show prices or stock it can't verify. For now, add this to a shopping list and take it to your usual store.</p></div>
         </div>
       </div>
-      {related.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Recipes using {i.name.toLowerCase()}</h2><div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{related.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div></section>}
+      {related.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Recipes using {i.name.toLowerCase()}</h2><div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{related.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div></section>}
     </div>
   );
 }

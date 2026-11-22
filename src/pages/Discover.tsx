@@ -25,7 +25,7 @@ export default function Discover() {
           <input className="input mb-3 max-w-md" placeholder="Search within recipes…" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} aria-label="Search recipes" />
           <FilterPanel f={f} set={setF} />
           <p className="mb-3 text-sm text-brown">{res.length} recipe{res.length === 1 ? "" : "s"}{f.category !== "Any" ? ` in ${f.category}` : ""}</p>
-          {res.length ? <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{res.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="🔎" title="Nothing matches those filters" text="Try loosening a filter." action={<button className="btn-primary" onClick={() => setF(defaultFilters)}>Reset filters</button>} />}
+          {res.length ? <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">{res.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <Empty emoji="🔎" title="Nothing matches those filters" text="Try loosening a filter." action={<button className="btn-primary" onClick={() => setF(defaultFilters)}>Reset filters</button>} />}
         </>
       ) : loading ? <CardSkeletons /> : (
         <>
@@ -34,11 +34,11 @@ export default function Discover() {
           <Section title="Ready in 25 minutes or less"><Grid list={quick} owned={owned} /></Section>
           {season.length > 0 && <Section title="In season"><Grid list={season} owned={owned} /></Section>}
           <Section title="Creators to follow" to="/community">
-            <div className="no-scrollbar flex gap-3 overflow-x-auto">{CREATORS.map((c) => <Link key={c.id} to={`/creator/${c.id}`} className="card flex w-44 shrink-0 flex-col items-center p-4 text-center transition hover:-translate-y-1"><Avatar emoji={c.emoji} hue={c.hue} size={56} /><b className="mt-2 text-sm">{c.name}</b><span className="text-xs text-brown">{c.badges[0]}</span></Link>)}</div>
+            <div className="no-scrollbar flex gap-3 overflow-x-auto">{CREATORS.map((c) => <Link key={c.id} to={`/creator/${c.id}`} className="card flex w-44 shrink-0 flex-col items-center p-4 text-center lift"><Avatar emoji={c.emoji} hue={c.hue} size={56} /><b className="mt-2 text-sm">{c.name}</b><span className="text-xs text-brown">{c.badges[0]}</span></Link>)}</div>
           </Section>
         </>
       )}
     </div>
   );
 }
-function Grid({ list, owned }: { list: ReturnType<typeof useCatalogue>; owned: Set<string> }) { return <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{list.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>; }
+function Grid({ list, owned }: { list: ReturnType<typeof useCatalogue>; owned: Set<string> }) { return <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{list.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>; }

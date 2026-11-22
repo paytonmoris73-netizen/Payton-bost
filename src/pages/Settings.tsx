@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { ALLERGENS, DIETS } from "../data";
 import { useMe, useStore } from "../store";
 import { PageHeader, Tabs, toast } from "../ui";
+import { Segmented, Switch as GSwitch } from "../glass";
+import { getFxMode, isLite, setFxMode, type FxMode } from "../fx";
 import type { Account } from "../types";
 
-const TABS = ["Profile", "Food preferences", "Notifications", "Privacy", "AI & Integrations", "Account"] as const;
+const TABS = ["Profile", "Food preferences", "Appearance", "Notifications", "Privacy", "AI & Integrations", "Account"] as const;
 const NOTIFY: [string, string][] = [["follows", "New followers"], ["likes", "Likes on your creations"], ["comments", "Comments"], ["purchases", "Purchases of your recipes"], ["creators", "Posts from creators you follow"], ["reviews", "Reviews on your recipes"], ["challenges", "Challenges starting"], ["updates", "Updates to saved recipes & platform news"]];
 
 export default function Settings() {
@@ -13,7 +15,8 @@ export default function Settings() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Profile");
   const [p, setP] = useState({ name: me.name, handle: me.handle, bio: me.bio, emoji: me.emoji }); const [aiF, setAiF] = useState(ai);
   const tog = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
-  const Switch = ({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) => <label className="flex cursor-pointer items-center justify-between py-3 text-sm"><span>{label}</span><button type="button" role="switch" aria-checked={on} onClick={() => set(!on)} className={`relative h-6 w-11 rounded-full transition ${on ? "bg-orange" : "bg-cream-dark"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${on ? "left-[22px]" : "left-0.5"}`} /></button></label>;
+  const Switch = ({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) => <div className="flex items-center justify-between gap-4 py-3 text-sm"><span>{label}</span><GSwitch on={on} onChange={set} label={label} /></div>;
+  const [fx, setFx] = useState<FxMode>(getFxMode()); const [, rerender] = useState(0);
   return (
     <div>
       <PageHeader title="Settings" />
@@ -21,7 +24,7 @@ export default function Settings() {
       <div className="card max-w-2xl p-6">
         {tab === "Profile" && (
           <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (p.name.trim().length < 2) return toast("Enter a name.", "err"); if (!/^@[a-z0-9_]{3,20}$/i.test(p.handle)) return toast("Handle must look like @name (3–20 letters, numbers or _).", "err"); updateAccount({ name: p.name.trim(), handle: p.handle, bio: p.bio.slice(0, 280), emoji: p.emoji }); toast("Profile saved"); }}>
-            <div><span className="label">Avatar</span><div className="flex flex-wrap gap-1.5">{["🍳", "👩‍🍳", "👨‍🍳", "🥑", "🍕", "🌶️", "🧁", "🍜", "🥕", "🍋"].map((e) => <button type="button" key={e} onClick={() => setP({ ...p, emoji: e })} className={`grid h-11 w-11 place-items-center rounded-full text-xl ${p.emoji === e ? "bg-orange-light ring-2 ring-orange" : "bg-cream"}`}>{e}</button>)}</div></div>
+            <div><span className="label">Avatar</span><div className="flex flex-wrap gap-1.5">{["🍳", "👩‍🍳", "👨‍🍳", "🥑", "🍕", "🌶️", "🧁", "🍜", "🥕", "🍋"].map((e) => <button type="button" key={e} onClick={() => setP({ ...p, emoji: e })} aria-pressed={p.emoji === e} aria-label={`Avatar ${e}`} className={`press grid h-12 w-12 place-items-center rounded-full text-2xl transition-[background,box-shadow] duration-300 ${p.emoji === e ? "bg-gradient-to-b from-[#FCE3CB] to-[#F8C9A0] shadow-[inset_0_1px_0_#fff,0_0_0_2px_#F2A66B]" : "tile"}`}>{e}</button>)}</div></div>
             <div><label className="label" htmlFor="sn">Name</label><input id="sn" className="input" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })} maxLength={60} /></div>
             <div><label className="label" htmlFor="sh">Handle</label><input id="sh" className="input" value={p.handle} onChange={(e) => setP({ ...p, handle: e.target.value })} /></div>
             <div><label className="label" htmlFor="sb">Bio</label><textarea id="sb" className="input" rows={3} value={p.bio} onChange={(e) => setP({ ...p, bio: e.target.value })} maxLength={280} /></div>
@@ -30,10 +33,17 @@ export default function Settings() {
         )}
         {tab === "Food preferences" && (
           <div className="space-y-5">
-            <div><span className="label">Cooking experience</span><div className="flex flex-wrap gap-1.5">{(["Beginner", "Home cook", "Confident", "Pro"] as const).map((l) => <button key={l} onClick={() => updateAccount({ level: l })} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${me.level === l ? "bg-charcoal text-ivory" : "bg-cream"}`}>{l}</button>)}</div></div>
-            <div><span className="label">Dietary preferences</span><div className="flex flex-wrap gap-1.5">{DIETS.map((d) => <button key={d} onClick={() => updateAccount({ diet: tog(me.diet, d) })} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${me.diet.includes(d) ? "bg-sage" : "bg-cream"}`}>{d}</button>)}</div></div>
-            <div><span className="label">Allergies &amp; ingredient restrictions</span><div className="flex flex-wrap gap-1.5">{ALLERGENS.map((d) => <button key={d} onClick={() => updateAccount({ allergies: tog(me.allergies, d) })} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${me.allergies.includes(d) ? "bg-orange" : "bg-cream"}`}>{d}</button>)}</div>
+            <div><span className="label">Cooking experience</span><div className="flex flex-wrap gap-1.5">{(["Beginner", "Home cook", "Confident", "Pro"] as const).map((l) => <button key={l} onClick={() => updateAccount({ level: l })} className="pick" aria-pressed={me.level === l}>{l}</button>)}</div></div>
+            <div><span className="label">Dietary preferences</span><div className="flex flex-wrap gap-1.5">{DIETS.map((d) => <button key={d} onClick={() => updateAccount({ diet: tog(me.diet, d) })} className="pick sage" aria-pressed={me.diet.includes(d)}>{d}</button>)}</div></div>
+            <div><span className="label">Allergies &amp; ingredient restrictions</span><div className="flex flex-wrap gap-1.5">{ALLERGENS.map((d) => <button key={d} onClick={() => updateAccount({ allergies: tog(me.allergies, d) })} className="pick" aria-pressed={me.allergies.includes(d)}>{d}</button>)}</div>
               <p className="mt-2 text-xs text-brown">We use these to tailor recommendations and show warnings. CRUNCH can't guarantee any recipe is safe for someone with an allergy: always read labels and consider cross-contact.</p></div>
+          </div>
+        )}
+        {tab === "Appearance" && (
+          <div className="space-y-4">
+            <div><h2 className="h-display text-xl">Visual effects</h2><p className="mt-1 text-sm text-brown">CRUNCH uses frosted Liquid Glass. On older or slower devices it automatically switches to a lighter look with the same design but no live blur, so everything stays smooth.</p></div>
+            <Segmented label="Visual effects" options={[{ value: "auto", label: "Automatic" }, { value: "full", label: "Full glass" }, { value: "lite", label: "Reduced" }] as const} value={fx} onChange={(m) => { setFx(m); setFxMode(m); rerender((n) => n + 1); toast(m === "auto" ? "Effects set to automatic" : m === "full" ? "Full glass effects on" : "Reduced effects on"); }} />
+            <p className="text-xs text-brown">Currently using: <b>{isLite() ? "reduced effects" : "full glass"}</b>{fx === "auto" ? " (chosen automatically for this device)" : ""}. Your system's Reduce Motion and Reduce Transparency settings are always respected.</p>
           </div>
         )}
         {tab === "Notifications" && <div className="divide-y divide-cream">{NOTIFY.map(([k, l]) => <Switch key={k} label={l} on={me.notify[k] !== false} set={(v) => updateAccount({ notify: { ...me.notify, [k]: v } as Account["notify"] })} />)}</div>}
