@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Icon from "../components/Icon";
 import LineChart from "../components/LineChart";
 import Modal from "../components/Modal";
+import { exportBackup, parseBackup } from "../backup";
 import { PREMIUM_FEATURES, RIVALS } from "../data";
-import { daysAgo, dayKey, fmtNum, pointsFor } from "../lib";
+import { daysAgo, dayKey, fmtNum, pointsFor, topPrs } from "../lib";
 import { useApp, useNav } from "../store";
 import type { ProfileSection } from "../types";
 
@@ -11,6 +12,7 @@ const SECTIONS: { id: ProfileSection; label: string }[] = [
   { id: "progress", label: "Progress" },
   { id: "leaderboard", label: "Leaderboard" },
   { id: "premium", label: "Premium" },
+  { id: "settings", label: "Settings" },
 ];
 
 export default function Profile() {
@@ -18,7 +20,6 @@ export default function Profile() {
   const go = useNav((s) => s.go);
   const name = useApp((s) => s.name);
   const premium = useApp((s) => s.premium);
-  const reset = useApp((s) => s.reset);
 
   return (
     <div className="animate-fade-up space-y-5 px-5 pt-6">
@@ -40,7 +41,7 @@ export default function Profile() {
           <button
             key={s.id}
             onClick={() => go("profile", s.id)}
-            className={`chip flex-1 ${section === s.id ? "bg-apex text-black" : "text-white/60"}`}
+            className={`chip flex-1 px-1 ${section === s.id ? "bg-apex text-black" : "text-white/60"}`}
           >
             {s.label}
           </button>
@@ -50,13 +51,7 @@ export default function Profile() {
       {section === "progress" && <Progress />}
       {section === "leaderboard" && <Leaderboard />}
       {section === "premium" && <Premium />}
-
-      <button
-        onClick={() => window.confirm("Erase all your workouts, meals and measurements on this device?") && reset()}
-        className="mx-auto block pt-4 text-xs text-white/30 underline"
-      >
-        Reset all data
-      </button>
+      {section === "settings" && <Settings />}
     </div>
   );
 }
@@ -72,7 +67,7 @@ const RANGES = [
 ] as const;
 
 function Progress() {
-  const { measurements, logs, addMeasurement } = useApp();
+  const { measurements, logs, addMeasurement, deleteLog } = useApp();
   const [range, setRange] = useState<(typeof RANGES)[number]["id"]>("3M");
   const [open, setOpen] = useState(false);
 
@@ -94,6 +89,8 @@ function Progress() {
     return { d, label: new Date(d + "T00:00").toLocaleDateString("en-US", { weekday: "narrow" }), min: logs.filter((l) => l.date === d).reduce((s, l) => s + l.minutes, 0) };
   });
   const maxMin = Math.max(30, ...week.map((w) => w.min));
+  const prs = useMemo(() => topPrs(logs, 5), [logs]);
+  const history = useMemo(() => [...logs].reverse().slice(0, 10), [logs]);
 
   return (
     <>
@@ -146,6 +143,51 @@ function Progress() {
           <Measure label="Body Fat" value={`${last.bodyFat}%`} />
           <Measure label="Muscle Mass" value={`${last.muscle} lbs`} />
         </div>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-base font-bold">Personal Records</h2>
+        {prs.length === 0 ? (
+          <div className="card p-4 text-sm text-white/50">Enter the weight you lift during a workout and your best lifts show up here.</div>
+        ) : (
+          <ul className="card divide-y divide-line overflow-hidden">
+            {prs.map((p) => (
+              <li key={p.exercise} className="flex items-center gap-3 px-4 py-3">
+                <Icon name="trophy" size={16} className="text-gold" />
+                <span className="flex-1 text-sm font-semibold">{p.exercise}</span>
+                <span className="text-sm font-bold">{p.weight} lbs</span>
+                <span className="text-xs text-white/40">× {p.reps}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-base font-bold">Workout History</h2>
+        {history.length === 0 ? (
+          <div className="card p-4 text-sm text-white/50">No workouts logged yet.</div>
+        ) : (
+          <ul className="space-y-2">
+            {history.map((l) => (
+              <li key={l.id} className="card flex items-center gap-3 p-3">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">{l.name}</p>
+                  <p className="text-xs text-white/50">
+                    {l.date === dayKey() ? "Today" : l.date} · {l.minutes} min · {l.calories} kcal
+                  </p>
+                </div>
+                <button
+                  onClick={() => window.confirm(`Delete this ${l.name} entry?`) && deleteLog(l.id)}
+                  aria-label={`Delete ${l.name} on ${l.date}`}
+                  className="p-2 text-white/30 hover:text-white"
+                >
+                  <Icon name="trash" size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {open && (
@@ -231,7 +273,6 @@ function Leaderboard() {
   const rows = [...rivals, { name: "You", pts: mine, me: true }].sort((a, b) => b.pts - a.pts);
   const myRank = rows.findIndex((r) => r.me) + 1;
   const podium = rows.slice(0, 3);
-  void name;
 
   return (
     <>
@@ -320,6 +361,118 @@ function Premium() {
         {premium ? "Premium active · tap to cancel" : "Go Premium"}
       </button>
       <p className="mt-3 text-center text-[11px] text-white/30">Demo only — no payment is taken and these features aren't built yet.</p>
+    </div>
+  );
+}
+
+/* ---------------- Settings ---------------- */
+
+const FIELDS = [
+  { key: "calorieGoal", label: "Daily calories (kcal)", min: 1200, max: 6000 },
+  { key: "proteinGoal", label: "Protein (g)", min: 20, max: 400 },
+  { key: "carbGoal", label: "Carbs (g)", min: 20, max: 800 },
+  { key: "fatGoal", label: "Fat (g)", min: 10, max: 300 },
+  { key: "dailyActiveGoal", label: "Active minutes per day", min: 5, max: 300 },
+] as const;
+
+function Settings() {
+  const app = useApp();
+  const [name, setName] = useState(app.name);
+  const [vals, setVals] = useState<Record<string, string>>(() => Object.fromEntries(FIELDS.map((f) => [f.key, String(app[f.key])])));
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const save = () => {
+    const out: Record<string, number> = {};
+    for (const f of FIELDS) {
+      const n = Number(vals[f.key]);
+      if (!Number.isFinite(n) || n < f.min || n > f.max) return setMsg({ ok: false, text: `${f.label} must be between ${f.min} and ${f.max}.` });
+      out[f.key] = Math.round(n);
+    }
+    app.setGoals(out);
+    app.setName(name);
+    setMsg({ ok: true, text: "Saved." });
+  };
+
+  const download = () => {
+    const blob = new Blob([exportBackup(app)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `apex-fitness-backup-${dayKey()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const onFile = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const data = parseBackup(await file.text());
+      if (!window.confirm(`Replace everything on this device with the backup? (${data.logs.length} workouts, ${data.meals.length} meals)`)) return;
+      app.restore(data);
+      setName(data.name);
+      setVals(Object.fromEntries(FIELDS.map((f) => [f.key, String(data[f.key])])));
+      setMsg({ ok: true, text: "Backup restored." });
+    } catch (e) {
+      setMsg({ ok: false, text: e instanceof Error ? e.message : "Couldn't read that file." });
+    }
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  return (
+    <div className="space-y-5">
+      <section className="card space-y-3 p-4">
+        <h2 className="text-base font-bold">Profile & goals</h2>
+        <label className="block text-xs font-semibold text-white/60">
+          Name
+          <input className="input mt-1" value={name} maxLength={24} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          {FIELDS.map((f) => (
+            <label key={f.key} className="block text-xs font-semibold text-white/60">
+              {f.label}
+              <input
+                className="input mt-1"
+                type="number"
+                inputMode="numeric"
+                value={vals[f.key]}
+                onChange={(e) => setVals({ ...vals, [f.key]: e.target.value })}
+              />
+            </label>
+          ))}
+        </div>
+        <button onClick={save} className="btn-primary w-full">
+          Save changes
+        </button>
+      </section>
+
+      <section className="card space-y-3 p-4">
+        <h2 className="text-base font-bold">Your data</h2>
+        <p className="text-xs text-white/50">
+          Everything is stored only in this browser. Download a backup so you don't lose it if you clear your browser data or switch phones.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={download} className="btn-ghost flex-1">
+            Export backup
+          </button>
+          <button onClick={() => fileRef.current?.click()} className="btn-ghost flex-1">
+            Import backup
+          </button>
+        </div>
+        <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => void onFile(e.target.files?.[0])} />
+        <button
+          onClick={() => window.confirm("Erase all your workouts, meals and measurements on this device?") && app.reset()}
+          className="mx-auto block pt-1 text-xs text-white/30 underline"
+        >
+          Reset all data
+        </button>
+      </section>
+
+      {msg && (
+        <p role="status" className={`text-center text-sm font-semibold ${msg.ok ? "text-lime-apex" : "text-red-400"}`}>
+          {msg.text}
+        </p>
+      )}
     </div>
   );
 }

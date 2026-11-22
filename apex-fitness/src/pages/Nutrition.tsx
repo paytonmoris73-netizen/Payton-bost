@@ -2,14 +2,15 @@ import { useState } from "react";
 import Icon from "../components/Icon";
 import Modal from "../components/Modal";
 import Ring from "../components/Ring";
-import { MEAL_PRESETS } from "../data";
+import { MEAL_PRESETS, WATER_GOAL } from "../data";
 import { dayKey } from "../lib";
 import { useApp } from "../store";
 
 const num = (v: string) => Math.max(0, Math.round(Number(v) || 0));
 
 export default function Nutrition() {
-  const { meals, calorieGoal, proteinGoal, carbGoal, fatGoal, addMeal, removeMeal } = useApp();
+  const { meals, calorieGoal, proteinGoal, carbGoal, fatGoal, addMeal, removeMeal, addWater } = useApp();
+  const glasses = useApp((s) => s.water[dayKey()] ?? 0);
   const [open, setOpen] = useState(false);
 
   const today = dayKey();
@@ -37,6 +38,28 @@ export default function Nutrition() {
         <Macro label="Protein" value={sum("protein")} goal={proteinGoal} color="#ef4444" />
         <Macro label="Carbs" value={sum("carbs")} goal={carbGoal} color="#3b82f6" />
         <Macro label="Fats" value={sum("fat")} goal={fatGoal} color="#6bd34a" />
+      </section>
+
+      <section className="card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold">Water</h2>
+          <span className="text-sm text-white/60">
+            {glasses} / {WATER_GOAL} glasses
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => addWater(dayKey(), -1)} disabled={glasses === 0} aria-label="Remove a glass" className="btn-ghost px-3 py-2 disabled:opacity-40">
+            <Icon name="minus" size={16} />
+          </button>
+          <div className="flex flex-1 gap-1" role="img" aria-label={`${glasses} of ${WATER_GOAL} glasses`}>
+            {Array.from({ length: WATER_GOAL }, (_, i) => (
+              <div key={i} className={`h-6 flex-1 rounded-md ${i < glasses ? "bg-blue-500" : "bg-ink-3"}`} />
+            ))}
+          </div>
+          <button onClick={() => addWater(dayKey(), 1)} aria-label="Add a glass" className="btn-primary px-3 py-2">
+            <Icon name="plus" size={16} />
+          </button>
+        </div>
       </section>
 
       <section>

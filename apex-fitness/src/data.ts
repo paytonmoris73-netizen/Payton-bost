@@ -179,3 +179,47 @@ export const PREMIUM_FEATURES = [
   "Ad-free experience",
   "Priority support",
 ];
+
+export interface LibExercise {
+  name: string;
+  group: string;
+  /** Timed (seconds) rather than counted (reps). */
+  timed?: boolean;
+}
+
+export const EXERCISE_LIBRARY: LibExercise[] = [
+  { name: "Bench Press", group: "Chest" },
+  { name: "Incline Dumbbell Press", group: "Chest" },
+  { name: "Push-Ups", group: "Chest" },
+  { name: "Cable Fly", group: "Chest" },
+  { name: "Deadlift", group: "Back" },
+  { name: "Pull-Ups", group: "Back" },
+  { name: "Bent-Over Row", group: "Back" },
+  { name: "Lat Pulldown", group: "Back" },
+  { name: "Cable Row", group: "Back" },
+  { name: "Back Squat", group: "Legs" },
+  { name: "Front Squat", group: "Legs" },
+  { name: "Romanian Deadlift", group: "Legs" },
+  { name: "Walking Lunges", group: "Legs" },
+  { name: "Leg Press", group: "Legs" },
+  { name: "Hip Thrust", group: "Legs" },
+  { name: "Standing Calf Raise", group: "Legs" },
+  { name: "Overhead Press", group: "Shoulders" },
+  { name: "Lateral Raise", group: "Shoulders" },
+  { name: "Face Pull", group: "Shoulders" },
+  { name: "Dumbbell Curl", group: "Arms" },
+  { name: "Hammer Curl", group: "Arms" },
+  { name: "Triceps Dips", group: "Arms" },
+  { name: "Triceps Pushdown", group: "Arms" },
+  { name: "Plank", group: "Core", timed: true },
+  { name: "Crunches", group: "Core" },
+  { name: "Russian Twists", group: "Core" },
+  { name: "Leg Raises", group: "Core" },
+  { name: "Burpees", group: "Cardio" },
+  { name: "Jump Rope", group: "Cardio", timed: true },
+  { name: "Mountain Climbers", group: "Cardio", timed: true },
+  { name: "High Knees", group: "Cardio", timed: true },
+  { name: "Fast Run", group: "Cardio", timed: true },
+];
+
+export const WATER_GOAL = 8; // glasses

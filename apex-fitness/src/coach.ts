@@ -1,6 +1,6 @@
-import { MEAL_PRESETS, WEEK_PLAN, WORKOUTS, workoutById } from "./data";
-import { computeStreak, dayKey } from "./lib";
-import { useApp } from "./store";
+import { MEAL_PRESETS, WEEK_PLAN, workoutById } from "./data";
+import { computeStreak, dayKey, topPrs } from "./lib";
+import { allWorkouts, useApp } from "./store";
 import type { ChatMessage, Measurement } from "./types";
 
 export interface Macros {
@@ -20,6 +20,7 @@ export interface CoachContext {
   recent: { date: string; name: string; minutes: number }[];
   body: { first: Measurement | null; last: Measurement | null };
   catalog: string[];
+  prs: { exercise: string; weight: number; reps: number }[];
 }
 
 /** Snapshot of the user's data, sent along with each question. */
@@ -44,7 +45,8 @@ export function buildContext(): CoachContext {
       .slice(-10)
       .map((l) => ({ date: l.date, name: l.name, minutes: l.minutes })),
     body: { first: s.measurements[0] ?? null, last: s.measurements[s.measurements.length - 1] ?? null },
-    catalog: WORKOUTS.map((w) => w.name),
+    catalog: allWorkouts().map((w) => w.name),
+    prs: topPrs(s.logs, 5).map(({ exercise, weight, reps }) => ({ exercise, weight, reps })),
   };
 }
 
@@ -116,6 +118,12 @@ export function localCoach(q: string, c: CoachContext): string {
   if (has(q, /motiv|tired|lazy|skip|can't|cant|excuse|bored|stuck/)) {
     const s = c.streak > 0 ? `You're on a ${c.streak}-day streak, don't break it. ` : "";
     return `${s}Do the 10-minute version: pick Core Crusher or Mobility Flow and just start. Starting is the hard part, and you can stop after one set if you really want to.`;
+  }
+
+  if (has(q, /\blift|\bpr\b|record|heavy|strength|bench|squat|deadlift/)) {
+    if (!c.prs.length) return "Log the weight you use during a workout (there's a weight field on each set) and I'll track your personal records and tell you when to go heavier.";
+    const list = c.prs.map((p) => `${p.exercise} ${p.weight} lbs`).join(", ");
+    return `Your top lifts so far: ${list}. If the last set felt easy, add 5 lbs next time; if you hit every rep, that's the signal to progress.`;
   }
 
   if (has(q, /recover|rest|sleep|stretch|mobility/)) {

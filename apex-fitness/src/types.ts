@@ -21,6 +21,14 @@ export interface Workout {
   focus: string;
   kcalPerMin: number;
   exercises: Exercise[];
+  /** True for workouts the user built themselves. */
+  custom?: boolean;
+}
+
+export interface Lift {
+  exercise: string;
+  weight: number; // lbs
+  reps: number;
 }
 
 export interface WorkoutLog {
@@ -30,6 +38,7 @@ export interface WorkoutLog {
   date: string; // YYYY-MM-DD (local)
   minutes: number;
   calories: number;
+  lifts?: Lift[];
 }
 
 export interface Meal {
@@ -50,7 +59,7 @@ export interface Measurement {
 }
 
 export type Tab = "home" | "workouts" | "nutrition" | "coach" | "profile";
-export type ProfileSection = "progress" | "leaderboard" | "premium";
+export type ProfileSection = "progress" | "leaderboard" | "premium" | "settings";
 
 export interface ChatMessage {
   id: string;

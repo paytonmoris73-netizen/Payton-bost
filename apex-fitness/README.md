@@ -4,13 +4,15 @@
 
 ## Features
 
-- **Workouts** — 8 built-in workouts (Strength / Cardio / Mobility) with exercise lists, filters and detail pages
-- **Guided sessions** — set-by-set flow, rest timers (+15s / skip), pause, live progress; finished sessions are logged automatically
+- **Workouts** — 8 built-in workouts (Strength / Cardio / Mobility), plus a **workout builder** to create, save and delete your own from a 30+ exercise library (or type your own)
+- **Guided sessions** — set-by-set flow, rest timers (+15s / skip), pause, live progress, screen stays awake, timers stay accurate when the phone throttles the page. Log the weight per set (prefilled from last time); beating a previous best shows a **personal record** banner
 - **Home** — today's planned workout (weekly rotation), calories burned, active minutes, daily goal, streak, recent activity
-- **Nutrition** — calorie ring, protein/carb/fat tracking, quick-add presets and custom meals
-- **Progress** — range filters (1W–All), weight trend chart, muscle / body-fat deltas, 7-day activity bars, log measurements
+- **Nutrition** — calorie ring, protein/carb/fat tracking, quick-add presets and custom meals, plus a daily **water tracker**
+- **Progress** — range filters (1W–All), weight trend chart, muscle / body-fat deltas, 7-day activity bars, log measurements, personal records, and workout history (with delete)
 - **Leaderboards** — Friends / Global / Weekly. Your points (100 per workout + 5 per active minute) are real; the other athletes are sample data
 - **AI Coach** — chat with a coach that sees your workouts, meals and progress; it can suggest a workout and start it in one tap. Uses Claude via a server function, with a built-in offline coach as fallback
+- **Settings** — edit your name and calorie / macro / active-minute goals, **export and import a JSON backup** (imports are validated), reset
+- **Installable (PWA)** — add to your home screen and use it offline (production builds)
 - **Premium** — demo screen only; no payments, and the listed features aren't built
 
 Everything is stored locally in your browser (`localStorage`) — no account or server.

@@ -45,3 +45,26 @@ export const pointsFor = (logs: { date: string; minutes: number }[], days: numbe
   const cutoff = daysAgo(days - 1);
   return logs.filter((l) => l.date >= cutoff).reduce((sum, l) => sum + 100 + l.minutes * 5, 0);
 };
+
+type LogWithLifts = { date: string; lifts?: { exercise: string; weight: number; reps: number }[] };
+
+/** Heaviest weight lifted per exercise, with the date it was set. */
+export const topPrs = (logs: LogWithLifts[], limit = 5): { exercise: string; weight: number; reps: number; date: string }[] => {
+  const best = new Map<string, { exercise: string; weight: number; reps: number; date: string }>();
+  for (const l of logs) {
+    for (const x of l.lifts ?? []) {
+      const cur = best.get(x.exercise);
+      if (!cur || x.weight > cur.weight) best.set(x.exercise, { ...x, date: l.date });
+    }
+  }
+  return [...best.values()].sort((a, b) => b.weight - a.weight).slice(0, limit);
+};
+
+/** Most recent logged weight for an exercise, or 0. */
+export const lastWeight = (logs: LogWithLifts[], exercise: string): number => {
+  for (let i = logs.length - 1; i >= 0; i--) {
+    const hit = [...(logs[i].lifts ?? [])].reverse().find((x) => x.exercise === exercise);
+    if (hit) return hit.weight;
+  }
+  return 0;
+};

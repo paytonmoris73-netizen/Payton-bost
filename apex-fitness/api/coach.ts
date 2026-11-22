@@ -65,7 +65,8 @@ function contextJson(raw: unknown): string {
     recentWorkouts: arr(c.recent, 10).map((r) => ({ date: str(obj(r).date, 10), name: str(obj(r).name, 40), minutes: num(obj(r).minutes) })),
     bodyStart: body(b.first),
     bodyLatest: body(b.last),
-    workoutCatalog: arr(c.catalog, 12).map((n) => str(n, 40)),
+    workoutCatalog: arr(c.catalog, 24).map((n) => str(n, 40)),
+    personalRecords: arr(c.prs, 5).map((r) => ({ exercise: str(obj(r).exercise, 40), weightLbs: num(obj(r).weight), reps: num(obj(r).reps) })),
   });
 }
 

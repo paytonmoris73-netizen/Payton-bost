@@ -1,24 +1,63 @@
 import { useState } from "react";
 import Icon from "../components/Icon";
-import { WORKOUTS, workoutById } from "../data";
-import { useNav } from "../store";
+import { WORKOUTS } from "../data";
+import { useApp, useNav } from "../store";
 import type { Category, Exercise, Workout } from "../types";
+import WorkoutBuilder from "./WorkoutBuilder";
 
 const FILTERS: ("For You" | Category)[] = ["For You", "Strength", "Cardio", "Mobility"];
 
 const target = (e: Exercise) => (e.reps ? `${e.sets} × ${e.reps}` : `${e.sets} × ${e.seconds}s`);
+const iconFor = (w: Workout) => (w.category === "Cardio" ? "flame" : w.category === "Mobility" ? "target" : "dumbbell");
 
 export default function Workouts() {
   const detailId = useNav((s) => s.detailId);
   const openDetail = useNav((s) => s.openDetail);
   const startSession = useNav((s) => s.startSession);
+  const custom = useApp((s) => s.customWorkouts);
+  const addCustom = useApp((s) => s.addCustomWorkout);
+  const deleteCustom = useApp((s) => s.deleteCustomWorkout);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("For You");
+  const [building, setBuilding] = useState(false);
 
-  const detail = detailId ? workoutById(detailId) : undefined;
-  if (detail) return <Detail w={detail} onBack={() => openDetail(null)} onStart={() => startSession(detail.id)} />;
+  if (building) {
+    return (
+      <WorkoutBuilder
+        onClose={() => setBuilding(false)}
+        onSave={(w) => {
+          addCustom(w);
+          setBuilding(false);
+          openDetail(w.id);
+        }}
+      />
+    );
+  }
 
-  const list = filter === "For You" ? WORKOUTS : WORKOUTS.filter((w) => w.category === filter);
-  const [featured, ...rest] = list;
+  const detail = detailId ? [...custom, ...WORKOUTS].find((w) => w.id === detailId) : undefined;
+  if (detail) {
+    return (
+      <Detail
+        w={detail}
+        onBack={() => openDetail(null)}
+        onStart={() => startSession(detail.id)}
+        onDelete={
+          detail.custom
+            ? () => {
+                if (window.confirm(`Delete "${detail.name}"?`)) {
+                  deleteCustom(detail.id);
+                  openDetail(null);
+                }
+              }
+            : undefined
+        }
+      />
+    );
+  }
+
+  const match = (w: Workout) => filter === "For You" || w.category === filter;
+  const builtIn = WORKOUTS.filter(match);
+  const mine = custom.filter(match);
+  const [featured, ...rest] = builtIn;
 
   return (
     <div className="animate-fade-up space-y-5 px-5 pt-6">
@@ -35,6 +74,21 @@ export default function Workouts() {
           </button>
         ))}
       </div>
+
+      <button onClick={() => setBuilding(true)} className="btn-ghost w-full border-dashed">
+        <Icon name="plus" size={16} /> Create your own workout
+      </button>
+
+      {mine.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-base font-bold">My Workouts</h2>
+          <ul className="space-y-2.5">
+            {mine.map((w) => (
+              <Row key={w.id} w={w} onOpen={() => openDetail(w.id)} />
+            ))}
+          </ul>
+        </section>
+      )}
 
       {featured && (
         <button
@@ -59,20 +113,7 @@ export default function Workouts() {
         <h2 className="mb-3 text-base font-bold">{filter === "For You" ? "Popular Workouts" : `${filter} Workouts`}</h2>
         <ul className="space-y-2.5">
           {rest.map((w) => (
-            <li key={w.id}>
-              <button onClick={() => openDetail(w.id)} className="card flex w-full items-center gap-3 p-3 text-left transition active:scale-[0.98]">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-apex/30 to-ink-3 text-apex">
-                  <Icon name={w.category === "Cardio" ? "flame" : w.category === "Mobility" ? "target" : "dumbbell"} size={24} />
-                </span>
-                <span className="flex-1">
-                  <span className="block text-sm font-bold">{w.name}</span>
-                  <span className="block text-xs text-white/50">
-                    {w.minutes} min · {w.level}
-                  </span>
-                </span>
-                <Icon name="chevR" size={18} className="text-white/40" />
-              </button>
-            </li>
+            <Row key={w.id} w={w} onOpen={() => openDetail(w.id)} />
           ))}
         </ul>
       </section>
@@ -80,7 +121,26 @@ export default function Workouts() {
   );
 }
 
-function Detail({ w, onBack, onStart }: { w: Workout; onBack: () => void; onStart: () => void }) {
+function Row({ w, onOpen }: { w: Workout; onOpen: () => void }) {
+  return (
+    <li>
+      <button onClick={onOpen} className="card flex w-full items-center gap-3 p-3 text-left transition active:scale-[0.98]">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-apex/30 to-ink-3 text-apex">
+          <Icon name={iconFor(w)} size={24} />
+        </span>
+        <span className="flex-1">
+          <span className="block text-sm font-bold">{w.name}</span>
+          <span className="block text-xs text-white/50">
+            {w.minutes} min · {w.level}
+          </span>
+        </span>
+        <Icon name="chevR" size={18} className="text-white/40" />
+      </button>
+    </li>
+  );
+}
+
+function Detail({ w, onBack, onStart, onDelete }: { w: Workout; onBack: () => void; onStart: () => void; onDelete?: () => void }) {
   return (
     <div className="animate-fade-up px-5 pt-6">
       <button onClick={onBack} className="mb-4 flex items-center gap-1 text-sm text-white/60">
@@ -110,6 +170,12 @@ function Detail({ w, onBack, onStart }: { w: Workout; onBack: () => void; onStar
           <Icon name="play" size={16} /> Start Workout
         </button>
       </div>
+
+      {onDelete && (
+        <button onClick={onDelete} className="mx-auto mt-4 flex items-center gap-1 text-xs text-white/40 underline">
+          <Icon name="trash" size={12} /> Delete this workout
+        </button>
+      )}
     </div>
   );
 }
