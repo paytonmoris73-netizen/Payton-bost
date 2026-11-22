@@ -33,7 +33,7 @@ export default function CookMode() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="h-1.5 bg-charcoal/[0.06]"><div className="h-full w-full origin-left accent-fill transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `scaleX(${(i + 1) / r.steps.length})` }} /></div>
-      <header className="glass-bar sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-3 md:px-8">
+      <header className="glass-bar safe-top sticky top-0 z-10 flex items-center justify-between gap-2 px-4 pb-3 md:px-8">
         <button onClick={() => nav(-1)} className="btn-ghost"><G g="✕" /> Exit</button>
         <div className="text-center"><div className="line-clamp-1 font-semibold">{r.title}</div><div className="text-xs text-brown">Step {i + 1} of {r.steps.length}</div></div>
         <div className="flex gap-2"><button className={`btn-ghost ${voice ? "!bg-orange" : ""}`} onClick={() => { const v = !voice; setVoice(v); if (!v && "speechSynthesis" in window) window.speechSynthesis.cancel(); if (v && !("speechSynthesis" in window)) toast("Voice isn't supported in this browser.", "err"); }} aria-pressed={voice} aria-label="Read steps aloud">🔊</button><button className="btn-ghost" onClick={() => setShowIng(true)}>🧺</button></div>

@@ -9,7 +9,7 @@ export default function Messages() {
   const [sel, setSel] = useState<string | null>(p.get("t")); const [text, setText] = useState(""); const [newOpen, setNewOpen] = useState(false); const end = useRef<HTMLDivElement>(null);
   const t = threads.find((x) => x.id === sel);
   useEffect(() => { if (sel) readThread(sel); if (p.get("t")) setP({}, { replace: true }); }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { end.current?.scrollIntoView(); }, [t?.messages.length]);
+  useEffect(() => { const box = end.current?.parentElement; if (box) box.scrollTop = box.scrollHeight; }, [t?.messages.length]);
   return (
     <div>
       <PageHeader title="Messages" sub="Direct messages with other cooks." action={<button className="btn-primary" onClick={() => setNewOpen(true)}>New message</button>} />

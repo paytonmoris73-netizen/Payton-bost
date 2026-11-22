@@ -504,6 +504,15 @@ html.fx-lite .bg-white { background-color: rgb(var(--white)); }
 html.dark .bg-red-50, html.dark .bg-red-50\/90 { background-color: rgb(127 29 29 / 0.35); }
 html.dark .text-red-700, html.dark .text-red-800 { color: rgb(254 202 202); }
 
+/* ---------- installed-app polish ----------
+   Full-screen on iPhone/iPad (status bar overlays the app): keep bars clear of the notch / clock.
+   env() is 0 in a normal browser, so these are safe everywhere. */
+.safe-top { padding-top: calc(env(safe-area-inset-top, 0px) + 0.625rem); }
+.safe-inset-top { top: calc(env(safe-area-inset-top, 0px) + 0.75rem); }
+/* Native feel: interface chrome isn't text-selectable (content still is). */
+header, nav, aside, button, [role="tab"], [role="radio"], .seg, .pick, .btn { -webkit-user-select: none; user-select: none; }
+html.standalone body { overscroll-behavior: none; }
+
 /* ---------- motion ---------- */
 .skeleton {
   border-radius: 1rem;

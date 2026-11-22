@@ -46,7 +46,7 @@ function Chat() {
   const me = useMe()!; const ai = useStore((s) => s.ai); const custom = !!ai.endpoint;
   const [msgs, setMsgs] = useState<Msg[]>([{ role: "assistant", text: "Hi, I'm your AI chef. Tell me what you have or what you're craving, and I'll help with ideas, substitutions and technique." }]);
   const [text, setText] = useState(""); const [busy, setBusy] = useState(false); const end = useRef<HTMLDivElement>(null);
-  useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
+  useEffect(() => { const box = end.current?.parentElement; if (box) box.scrollTo({ top: box.scrollHeight, behavior: msgs.length > 1 ? "smooth" : "auto" }); }, [msgs, busy]); // scroll the chat box only, never the page
   const send = async (t: string) => {
     t = t.trim(); if (!t || busy) return; setText(""); setMsgs((m) => [...m, { role: "user", text: t }]); setBusy(true);
     const local = chefReply(t, { diet: me.diet, allergies: me.allergies });

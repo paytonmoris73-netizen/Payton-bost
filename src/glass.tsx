@@ -31,7 +31,17 @@ export function Segmented<T extends string>({ options, value, onChange, size, da
   options: readonly Opt<T>[]; value: T; onChange: (v: T) => void; size?: "sm"; dark?: boolean; label?: string; className?: string; role?: "radiogroup" | "tablist";
 }) {
   const { track, thumbStyle } = useThumb(value);
-  useEffect(() => { track.current?.querySelector<HTMLElement>('[data-active="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }); }, [value, track]);
+  // Keep the selected segment visible by scrolling only this control's own row (never the page).
+  const first = useRef(true);
+  useEffect(() => {
+    const row = track.current?.parentElement; const el = track.current?.querySelector<HTMLElement>('[data-active="true"]');
+    if (row && el && row.scrollWidth > row.clientWidth) {
+      const left = el.offsetLeft - 12, right = el.offsetLeft + el.offsetWidth - row.clientWidth + 12;
+      const to = row.scrollLeft > left ? left : row.scrollLeft < right ? right : row.scrollLeft;
+      if (to !== row.scrollLeft) row.scrollTo({ left: to, behavior: first.current ? "auto" : "smooth" });
+    }
+    first.current = false;
+  }, [value, track]);
   const item = role === "tablist" ? "tab" : "radio";
   return (
     <div className={`no-scrollbar max-w-full overflow-x-auto ${className}`}>

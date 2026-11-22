@@ -118,7 +118,7 @@ export function Layout() {
   const tabIdx = TAB_BAR.findIndex((t) => t && (t.to === "/" ? loc.pathname === "/" : loc.pathname.startsWith(t.to)));
   return (
     <div className="min-h-screen md:pl-[84px] lg:pl-[17rem]">
-      <aside className="fixed inset-y-3 left-3 z-40 hidden w-[68px] flex-col rounded-[1.75rem] py-4 card md:flex lg:w-60 lg:px-3">
+      <aside className="safe-inset-top fixed bottom-3 left-3 z-40 hidden w-[68px] flex-col rounded-[1.75rem] py-4 card md:flex lg:w-60 lg:px-3">
         <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="CRUNCH home" className="grid h-10 w-10 place-items-center rounded-[0.85rem] ink-fill font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18)]">C</Link></span><span className="hidden lg:block"><Logo /></span></div>
         <nav ref={side.ref} className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar px-2 lg:px-0" aria-label="Main">
           <span aria-hidden className="pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] ink-fill transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />
@@ -131,7 +131,7 @@ export function Layout() {
         <div className="px-2 pt-3 lg:px-0"><NavLink to="/settings" title="Settings" className={({ isActive }) => `press flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium lg:justify-start ${isActive ? "bg-charcoal text-ivory" : "text-charcoal/80 hover:bg-white/60"}`}><Icon n="settings" /><span className="hidden lg:inline">Settings</span></NavLink></div>
       </aside>
 
-      <header className="glass-bar sticky top-0 z-30 flex items-center gap-3 border-b border-white/50 px-4 py-2.5 shadow-[0_1px_0_rgba(37,35,31,.05)] md:px-8 md:py-3">
+      <header className="glass-bar safe-top sticky top-0 z-30 flex items-center gap-3 border-b border-white/50 px-4 pb-2.5 shadow-[0_1px_0_rgba(37,35,31,.05)] md:px-8 md:pb-3">
         <button onClick={() => setDrawer(true)} className="glass press grid h-10 w-10 place-items-center rounded-full md:hidden" aria-label="Open menu"><Icon n="menu" size={18} /></button>
         <div className="md:hidden"><Logo /></div>
         <div className="hidden flex-1 md:block"><GlobalSearch /></div>
@@ -164,7 +164,7 @@ export function Layout() {
       {drawerP.mounted && (
         <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <div className={`scrim-blur absolute inset-0 ${drawerP.leaving ? "backdrop-out" : "backdrop-in"}`} onClick={() => setDrawer(false)} />
-          <div className={`sheet absolute inset-y-2 left-2 w-72 overflow-y-auto rounded-[1.75rem] p-4 ${drawerP.leaving ? "[animation:drawerIn_260ms_var(--ease-spring)_reverse_both]" : "drawer-in"}`}>
+          <div className={`sheet safe-inset-top absolute bottom-2 left-2 w-72 overflow-y-auto rounded-[1.75rem] p-4 ${drawerP.leaving ? "[animation:drawerIn_260ms_var(--ease-spring)_reverse_both]" : "drawer-in"}`}>
             <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="press grid h-9 w-9 place-items-center rounded-full bg-charcoal/[0.07]"><G g="✕" size={15} /></button></div>
             <div className="stagger space-y-0.5">{[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `press flex items-center gap-3 rounded-[0.95rem] px-3 py-3 text-sm font-medium ${isActive ? "bg-charcoal text-ivory" : "hover:bg-white/60"}`}><Icon n={n.icon} />{n.label}</NavLink>)}</div>
           </div>

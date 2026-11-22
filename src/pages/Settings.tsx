@@ -6,6 +6,7 @@ import { PageHeader, Tabs, toast } from "../ui";
 import { Segmented, Switch as GSwitch } from "../glass";
 import { getFxMode, isLite, setFxMode, type FxMode } from "../fx";
 import { THEMES, useAppearance, useResolvedTheme } from "../theme";
+import { InstallCard } from "../InstallApp";
 import type { Account } from "../types";
 
 const TABS = ["Profile", "Food preferences", "Appearance", "Notifications", "Privacy", "AI & Integrations", "Account"] as const;
@@ -43,6 +44,7 @@ export default function Settings() {
         )}
         {tab === "Appearance" && (
           <div className="space-y-8">
+            <section className="space-y-3"><h2 className="h-display text-xl">App</h2><InstallCard /></section>
             <section className="space-y-3">
               <div><h2 className="h-display text-xl">Light or dark</h2><p className="mt-1 text-sm text-brown">Automatic follows your phone or computer, switching to dark at night if your system does.</p></div>
               <Segmented label="Light or dark mode" options={[{ value: "auto", label: "Automatic" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }] as const} value={appearance.mode} onChange={appearance.setMode} />

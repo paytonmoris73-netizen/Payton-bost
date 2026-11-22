@@ -1,3 +1,4 @@
+import { InstallBanner } from "../InstallApp";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { CREATORS, FOOD_FACTS, ING, TRENDING_COMBOS } from "../data";
@@ -26,6 +27,7 @@ export default function Home() {
 
   return (
     <div>
+      <InstallBanner />
       <div className="mb-8 flex items-center gap-4">
         <span className="rounded-full shadow-[0_0_0_3px_rgba(255,255,255,.9),0_10px_24px_-10px_rgba(37,35,31,.35)]"><Avatar emoji={me.emoji} size={56} /></span>
         <div className="flex-1"><h1 className="h-display text-shine text-3xl md:text-4xl">{greet}, {me.name.split(" ")[0]}</h1><p className="text-sm text-brown">💡 {fact}</p></div>
