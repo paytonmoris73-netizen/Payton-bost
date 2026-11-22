@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "../components/Icon";
 import { askCoach, buildContext } from "../coach";
-import { WORKOUTS } from "../data";
-import { useApp, useNav } from "../store";
+import { allWorkouts, useApp, useNav } from "../store";
 
 const SUGGESTIONS = [
   "What should I train today?",
@@ -18,6 +17,8 @@ export default function Coach() {
   const addMsg = useApp((s) => s.addCoachMsg);
   const clear = useApp((s) => s.clearCoach);
   const startSession = useNav((s) => s.startSession);
+  const custom = useApp((s) => s.customWorkouts);
+  const catalog = [...custom, ...allWorkouts().filter((w) => !w.custom)];
 
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,22 +34,22 @@ export default function Coach() {
     setText("");
     addMsg({ role: "user", content });
     setBusy(true);
-    // Read the latest history from the store so the new message is included.
-    const history = useApp.getState().coachChat;
-    const reply = await askCoach(history, buildContext());
-    addMsg({ role: "assistant", content: reply.text, source: reply.source });
-    setBusy(false);
+    try {
+      // Read the latest history from the store so the new message is included.
+      const history = useApp.getState().coachChat;
+      const reply = await askCoach(history, buildContext());
+      addMsg({ role: "assistant", content: reply.text, source: reply.source });
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <div className="animate-fade-up flex min-h-[calc(100vh-7rem)] flex-col px-5 pt-6">
-      <header className="mb-4 flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-apex-light to-apex-dark text-black">
-          <Icon name="sparkle" size={22} />
-        </span>
+    <div className="animate-fade-up pt-safe flex min-h-[calc(100dvh-6.5rem)] flex-col px-6">
+      <header className="mb-6 flex items-end gap-3">
         <div className="flex-1">
-          <h1 className="text-lg font-extrabold">Apex Coach</h1>
-          <p className="text-xs text-white/50">AI fitness coach</p>
+          <h1 className="display text-[40px]">Coach</h1>
+          <p className="eyebrow mt-1">Luna · AI guidance</p>
         </div>
         {chat.length > 0 && (
           <button onClick={() => window.confirm("Clear this conversation?") && clear()} className="text-xs text-white/40 underline">
@@ -60,32 +61,32 @@ export default function Coach() {
       <div className="flex-1 space-y-3 pb-4" aria-live="polite">
         {chat.length === 0 && (
           <div className="card p-4 text-sm text-white/70">
-            Hi {name}! I can see your workouts, meals and progress, so ask me anything: what to train, what to eat, how you're doing, or how to stay
-            consistent.
+            Good to see you, {name}. I have your sessions, meals and measurements to hand. Ask about what to train, how to eat around it, or how
+            your progress is tracking.
           </div>
         )}
 
         {chat.map((m) => {
           const suggested =
-            m.role === "assistant" ? WORKOUTS.filter((w) => m.content.toLowerCase().includes(w.name.toLowerCase())).slice(0, 2) : [];
+            m.role === "assistant" ? catalog.filter((w) => m.content.toLowerCase().includes(w.name.toLowerCase())).slice(0, 2) : [];
           return (
             <div key={m.id} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
               <div
                 className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   m.role === "user"
-                    ? "rounded-br-md bg-apex text-black"
+                    ? "rounded-br-md bg-[#f2eee8] text-[#0b0a0f]"
                     : m.source === "error"
                       ? "rounded-bl-md border border-red-500/30 bg-red-500/10 text-red-200"
-                      : "rounded-bl-md bg-ink-2"
+                      : "card rounded-bl-md"
                 }`}
               >
                 {m.content}
               </div>
-              {m.role === "assistant" && m.source === "local" && <span className="mt-1 text-[10px] text-white/30">Offline coach</span>}
+              {m.role === "assistant" && m.source === "local" && <span className="mt-1.5 text-[10px] uppercase tracking-[0.14em] text-white/30">Offline coach</span>}
               {suggested.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {suggested.map((w) => (
-                    <button key={w.id} onClick={() => startSession(w.id)} className="chip flex items-center gap-1.5 bg-apex/15 text-apex">
+                    <button key={w.id} onClick={() => startSession(w.id)} className="chip flex items-center gap-1.5 bg-ink-2 !border-white/20 text-white/85">
                       <Icon name="play" size={10} /> Start {w.name}
                     </button>
                   ))}
@@ -97,7 +98,7 @@ export default function Coach() {
 
         {busy && (
           <div className="flex items-start">
-            <div className="flex gap-1 rounded-2xl rounded-bl-md bg-ink-2 px-4 py-3" aria-label="Coach is typing">
+            <div className="card flex gap-1 rounded-2xl rounded-bl-md px-4 py-3" role="status" aria-label="Coach is typing">
               {[0, 150, 300].map((d) => (
                 <span key={d} className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50" style={{ animationDelay: `${d}ms` }} />
               ))}
@@ -107,8 +108,8 @@ export default function Coach() {
         <div ref={endRef} />
       </div>
 
-      <div className="sticky bottom-[4.75rem] -mx-5 border-t border-line bg-ink/95 px-5 pb-3 pt-3 backdrop-blur">
-        <div className="no-scrollbar -mx-5 mb-2 flex gap-2 overflow-x-auto px-5">
+      <div className="glass-bar sticky bottom-[calc(env(safe-area-inset-bottom)+4.9rem)] z-10 -mx-6 !border-x-0 !border-b-0 px-6 pb-3 pt-3">
+        <div className="no-scrollbar -mx-6 mb-2.5 flex gap-2 overflow-x-auto px-6">
           {SUGGESTIONS.map((s) => (
             <button key={s} onClick={() => send(s)} disabled={busy} className="chip shrink-0 bg-ink-2 text-white/70 disabled:opacity-40">
               {s}

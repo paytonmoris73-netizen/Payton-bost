@@ -9,8 +9,9 @@ const CATEGORIES: Category[] = ["Strength", "Cardio", "Mobility"];
 const LEVELS: Level[] = ["Beginner", "Intermediate", "Advanced"];
 const KCAL: Record<Category, number> = { Strength: 7, Cardio: 10, Mobility: 3 };
 
+const MAX_EXERCISES = 30;
 const estimateMinutes = (items: Exercise[]) =>
-  Math.max(5, Math.round(items.reduce((n, e) => n + e.sets * ((e.seconds ?? 40) + e.rest), 0) / 60));
+  Math.min(600, Math.max(5, Math.round(items.reduce((n, e) => n + e.sets * ((e.seconds ?? 40) + e.rest), 0) / 60)));
 
 interface Props {
   onClose: () => void;
@@ -21,7 +22,8 @@ export default function WorkoutBuilder({ onClose, onSave }: Props) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("Strength");
   const [level, setLevel] = useState<Level>("Intermediate");
-  const [items, setItems] = useState<Exercise[]>([]);
+  // Each row carries a stable key so removing one doesn't shuffle the others.
+  const [items, setItems] = useState<(Exercise & { key: string })[]>([]);
   const [picking, setPicking] = useState(false);
 
   const patch = (i: number, p: Partial<Exercise>) => setItems((xs) => xs.map((x, j) => (j === i ? { ...x, ...p } : x)));
@@ -37,17 +39,22 @@ export default function WorkoutBuilder({ onClose, onSave }: Props) {
       minutes: estimateMinutes(items),
       focus: "Custom workout",
       kcalPerMin: KCAL[category],
-      exercises: items,
+      exercises: items.map(({ key: _key, ...e }) => e),
       custom: true,
     });
   };
 
+  const cancel = () => {
+    if ((name.trim() || items.length > 0) && !window.confirm("Discard this workout?")) return;
+    onClose();
+  };
+
   return (
-    <div className="animate-fade-up px-5 pt-6">
-      <button onClick={onClose} className="mb-4 flex items-center gap-1 text-sm text-white/60">
+    <div className="animate-fade-up pt-safe px-5">
+      <button onClick={cancel} className="mb-4 flex items-center gap-1 text-sm text-white/60">
         <Icon name="chevL" size={18} /> Cancel
       </button>
-      <h1 className="text-2xl font-extrabold">Create workout</h1>
+      <h1 className="display text-[38px]">New workout</h1>
 
       <label className="mt-5 block text-xs font-semibold text-white/60" htmlFor="wname">
         Name
@@ -57,14 +64,14 @@ export default function WorkoutBuilder({ onClose, onSave }: Props) {
       <Pills label="Type" options={CATEGORIES} value={category} onChange={setCategory} />
       <Pills label="Level" options={LEVELS} value={level} onChange={setLevel} />
 
-      <h2 className="mb-3 mt-6 text-base font-bold">
+      <h2 className="eyebrow mb-3 mt-6">
         Exercises <span className="text-white/40">({items.length})</span>
       </h2>
       <ol className="space-y-3">
         {items.map((e, i) => (
-          <li key={i} className="card p-3">
+          <li key={e.key} className="card p-3">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-bold">{e.name}</span>
+              <span className="text-sm font-medium">{e.name}</span>
               <button onClick={() => setItems((xs) => xs.filter((_, j) => j !== i))} aria-label={`Remove ${e.name}`} className="p-1 text-white/40">
                 <Icon name="trash" size={16} />
               </button>
@@ -82,21 +89,26 @@ export default function WorkoutBuilder({ onClose, onSave }: Props) {
         ))}
       </ol>
 
-      <button onClick={() => setPicking(true)} className="btn-ghost mt-3 w-full">
-        <Icon name="plus" size={16} /> Add exercise
+      <button onClick={() => setPicking(true)} disabled={items.length >= MAX_EXERCISES} className="btn-ghost mt-3 w-full disabled:opacity-40">
+        <Icon name="plus" size={16} /> {items.length >= MAX_EXERCISES ? `Max ${MAX_EXERCISES} exercises` : "Add exercise"}
       </button>
 
-      <div className="sticky bottom-24 mt-6">
+      <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-10 mt-6">
         <button onClick={save} disabled={!valid} className="btn-primary w-full py-4 text-base shadow-lg shadow-black/50 disabled:opacity-40">
           Save workout{items.length ? ` · ~${estimateMinutes(items)} min` : ""}
         </button>
+        {!valid && (
+          <p className="mt-2 text-center text-xs text-white/50">
+            {!name.trim() ? "Give your workout a name" : "Add at least one exercise"} to save it.
+          </p>
+        )}
       </div>
 
       {picking && (
         <Picker
           onClose={() => setPicking(false)}
           onPick={(ex) => {
-            setItems((xs) => [...xs, ex]);
+            setItems((xs) => [...xs, { ...ex, key: uid() }]);
             setPicking(false);
           }}
           category={category}
@@ -112,7 +124,7 @@ function Pills<T extends string>({ label, options, value, onChange }: { label: s
       <p className="mb-1 text-xs font-semibold text-white/60">{label}</p>
       <div className="flex gap-2">
         {options.map((o) => (
-          <button key={o} onClick={() => onChange(o)} className={`chip ${value === o ? "bg-apex text-black" : "bg-ink-2 text-white/70"}`}>
+          <button key={o} onClick={() => onChange(o)} className={`chip ${value === o ? "bg-luna text-black" : "bg-ink-2 text-white/70"}`}>
             {o}
           </button>
         ))}
@@ -126,11 +138,11 @@ function Stepper({ label, value, min, max, step, onChange }: { label: string; va
   return (
     <div className="text-center">
       <div className="mb-1 text-[10px] text-white/40">{label}</div>
-      <div className="flex items-center justify-between rounded-xl bg-ink-2">
+      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/30">
         <button className="px-2.5 py-2" onClick={() => onChange(clamp(value - step))} aria-label={`Decrease ${label}`}>
           <Icon name="minus" size={14} />
         </button>
-        <span className="text-sm font-bold tabular-nums">{value}</span>
+        <span className="text-sm font-medium tabular-nums">{value}</span>
         <button className="px-2.5 py-2" onClick={() => onChange(clamp(value + step))} aria-label={`Increase ${label}`}>
           <Icon name="plus" size={14} />
         </button>
@@ -153,11 +165,11 @@ function Picker({ onClose, onPick, category }: { onClose: () => void; onPick: (e
 
   return (
     <Modal title="Add exercise" onClose={onClose}>
-      <input className="input mb-3" placeholder="Search or type your own…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus maxLength={40} />
+      <input className="input mb-3" placeholder="Search or type your own…" value={q} onChange={(e) => setQ(e.target.value)} maxLength={40} aria-label="Search exercises" />
       <ul className="max-h-72 space-y-1 overflow-y-auto">
         {query && !exact && (
           <li>
-            <button onClick={() => onPick(make(q.trim().slice(0, 40)))} className="flex w-full items-center gap-2 rounded-xl bg-apex/10 px-3 py-2.5 text-left text-sm font-semibold text-apex">
+            <button onClick={() => onPick(make(q.trim().slice(0, 40)))} className="flex w-full items-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-left text-sm font-medium text-luna-light">
               <Icon name="plus" size={14} /> Add “{q.trim()}”
             </button>
           </li>
@@ -170,7 +182,7 @@ function Picker({ onClose, onPick, category }: { onClose: () => void; onPick: (e
             </button>
           </li>
         ))}
-        {matches.length === 0 && !query && <li className="p-3 text-sm text-white/40">No exercises.</li>}
+
       </ul>
     </Modal>
   );

@@ -14,8 +14,9 @@ const RATE_LIMIT = 12; // requests per IP per minute
 const RATE_WINDOW_MS = 60_000;
 
 const SYSTEM =
-  "You are Apex Coach, the AI fitness coach inside the Apex Fitness app. " +
-  "Give practical, encouraging, specific advice on training, recovery, nutrition and habit-building, using the user's data when it helps. " +
+  "You are Luna, the AI fitness coach inside the Lunor app. " +
+  "Give practical, specific advice on training, recovery, nutrition and habit-building, using the user's data when it helps. " +
+  "Write in a calm, measured, professional tone: no emoji, no exclamation marks, no hype. " +
   "Keep replies short (under about 150 words) and in plain text: no markdown tables or headings; short lists with dashes are fine. " +
   "When you recommend a workout from the app's catalog, use its exact name. " +
   "You are not a doctor or dietitian: never diagnose; for pain, injury, dizziness, chest symptoms, eating disorders or medical conditions, advise stopping and seeing a qualified professional. " +
@@ -75,13 +76,22 @@ export async function POST(request: Request): Promise<Response> {
 
   // Same-site only, so other websites can't spend your quota.
   const origin = request.headers.get("origin");
-  if (origin && new URL(origin).host !== new URL(request.url).host) return json({ error: "Forbidden" }, 403);
+  if (origin) {
+    let sameSite = false;
+    try {
+      sameSite = new URL(origin).host === new URL(request.url).host;
+    } catch {
+      /* "null" or malformed origin */
+    }
+    if (!sameSite) return json({ error: "Forbidden" }, 403);
+  }
 
   const ip = (request.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
   if (limited(ip)) return json({ error: "Too many requests. Please wait a minute." }, 429);
 
   let payload: { messages?: unknown; context?: unknown };
   try { payload = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+  if (!payload || typeof payload !== "object") return json({ error: "Invalid JSON" }, 400);
 
   const raw = payload.messages;
   if (!Array.isArray(raw) || raw.length === 0 || raw.length > MAX_MESSAGES) return json({ error: "Invalid messages" }, 400);
@@ -93,9 +103,11 @@ export async function POST(request: Request): Promise<Response> {
     const role = (m as { role?: unknown })?.role;
     const content = (m as { content?: unknown })?.content;
     if ((role !== "user" && role !== "assistant") || typeof content !== "string" || !content.trim()) return json({ error: "Invalid message" }, 400);
-    if (content.length > MAX_CHARS_PER_MESSAGE) return json({ error: "Message too long" }, 400);
-    total += content.length;
-    messages.push({ role, content });
+    // Long earlier replies are trimmed rather than rejected; the user's own text is capped.
+    if (role === "user" && content.length > MAX_CHARS_PER_MESSAGE) return json({ error: "Message too long" }, 400);
+    const text = content.slice(0, MAX_CHARS_PER_MESSAGE);
+    total += text.length;
+    messages.push({ role, content: text });
   }
   if (total > MAX_TOTAL_CHARS || messages[0].role !== "user" || messages[messages.length - 1].role !== "user") {
     return json({ error: "Invalid conversation" }, 400);
@@ -109,7 +121,9 @@ export async function POST(request: Request): Promise<Response> {
     const res = await client.beta.messages.create(
       {
         model: MODEL,
-        max_tokens: 1500,
+        // Thinking is always on for this model and counts toward max_tokens, so leave room
+        // for it; the prompt keeps the visible reply short.
+        max_tokens: 8000,
         // If a safety classifier declines, the API re-runs the request on a fallback model.
         betas: ["server-side-fallback-2026-07-01"],
         fallbacks: "default",
@@ -124,12 +138,12 @@ export async function POST(request: Request): Promise<Response> {
     if (res.stop_reason === "refusal") {
       return json({ text: "I can't help with that one. Ask me about workouts, nutrition or recovery instead!" });
     }
-    const text = res.content
+    const reply = res.content
       .flatMap((b) => (b.type === "text" ? [b.text] : []))
       .join("\n")
       .trim();
-    if (!text) return json({ error: "The coach had nothing to say. Try again." }, 502);
-    return json({ text });
+    if (!reply) return json({ error: "The coach had nothing to say. Try again." }, 502);
+    return json({ text: res.stop_reason === "max_tokens" ? `${reply}…` : reply });
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return json({ error: "The coach is busy right now. Try again shortly." }, 429);
     console.error("coach error:", e instanceof Error ? e.message : e);

@@ -4,7 +4,9 @@ import LineChart from "../components/LineChart";
 import Modal from "../components/Modal";
 import { exportBackup, parseBackup } from "../backup";
 import { PREMIUM_FEATURES, RIVALS } from "../data";
-import { daysAgo, dayKey, fmtNum, pointsFor, topPrs } from "../lib";
+import { daysAgo, dayKey, fmtDay, fmtNum, pointsFor, topPrs, useToday } from "../lib";
+import { PLANS, fmtMoney, hasPremium, planById, type PlanId } from "../payments";
+import Checkout from "./Checkout";
 import { useApp, useNav } from "../store";
 import type { ProfileSection } from "../types";
 
@@ -19,29 +21,26 @@ export default function Profile() {
   const section = useNav((s) => s.section);
   const go = useNav((s) => s.go);
   const name = useApp((s) => s.name);
-  const premium = useApp((s) => s.premium);
+  const premium = hasPremium(useApp((s) => s.subscription), useToday());
 
   return (
-    <div className="animate-fade-up space-y-5 px-5 pt-6">
-      <header className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-apex-light to-apex-dark text-lg font-black text-black">
+    <div className="animate-fade-up pt-safe space-y-6 px-6">
+      <header className="flex items-center gap-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 font-serif text-2xl text-luna-light">
           {name.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1">
-          <h1 className="text-lg font-extrabold">{name}</h1>
-          <p className="flex items-center gap-1 text-xs text-white/50">
-            {premium && <Icon name="crown" size={12} className="text-gold" />}
-            {premium ? "Premium member" : "Free plan"}
-          </p>
+          <h1 className="display text-[34px]">{name}</h1>
+          <p className={`eyebrow mt-1 ${premium ? "!text-moon" : ""}`}>{premium ? "Premium member" : "Standard"}</p>
         </div>
       </header>
 
-      <div className="flex gap-2 rounded-full bg-ink-1 p-1">
+      <div className="flex gap-1.5">
         {SECTIONS.map((s) => (
           <button
             key={s.id}
             onClick={() => go("profile", s.id)}
-            className={`chip flex-1 px-1 ${section === s.id ? "bg-apex text-black" : "text-white/60"}`}
+            className={`chip flex-1 !px-1 ${section === s.id ? "bg-luna text-black" : "bg-ink-2 text-white/60"}`}
           >
             {s.label}
           </button>
@@ -79,8 +78,9 @@ function Progress() {
   }, [measurements, days]);
 
   const first = inRange[0];
-  const last = measurements[measurements.length - 1];
-  const delta = (k: "weight" | "bodyFat" | "muscle") => (first && last ? +(last[k] - first[k]).toFixed(1) : 0);
+  const last = measurements.length ? measurements[measurements.length - 1] : undefined;
+  const hasDelta = !!first && !!last && first.date !== last.date;
+  const delta = (k: "weight" | "bodyFat" | "muscle") => (hasDelta ? +(last![k] - first![k]).toFixed(1) : 0);
   const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
   // Minutes active per day, last 7 days.
@@ -96,21 +96,30 @@ function Progress() {
     <>
       <div className="flex gap-2">
         {RANGES.map((r) => (
-          <button key={r.id} onClick={() => setRange(r.id)} className={`chip flex-1 ${range === r.id ? "bg-apex text-black" : "bg-ink-2 text-white/60"}`}>
+          <button key={r.id} onClick={() => setRange(r.id)} className={`chip flex-1 ${range === r.id ? "bg-luna text-black" : "bg-ink-2 text-white/60"}`}>
             {r.id}
           </button>
         ))}
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <Delta value={`${sign(delta("muscle"))} lbs`} label="Muscle" good={delta("muscle") >= 0} />
-        <Delta value={`${sign(delta("bodyFat"))}%`} label="Body Fat" good={delta("bodyFat") <= 0} />
-        <Delta value={`${sign(delta("weight"))} lbs`} label="Weight" good />
+        <Delta value={hasDelta ? `${sign(delta("muscle"))} lbs` : "—"} label="Muscle" good={delta("muscle") >= 0} />
+        <Delta value={hasDelta ? `${sign(delta("bodyFat"))}%` : "—"} label="Body Fat" good={delta("bodyFat") <= 0} />
+        <Delta value={hasDelta ? `${sign(delta("weight"))} lbs` : "—"} label="Weight" good />
       </div>
 
       <div className="card p-4">
         <p className="mb-2 text-xs font-semibold text-white/50">Weight trend</p>
-        <LineChart values={inRange.map((m) => m.weight)} />
+        {measurements.length === 0 ? (
+          <div className="flex h-[120px] flex-col items-center justify-center gap-2 text-center text-xs text-white/50">
+            Log your weight to start your trend.
+            <button onClick={() => setOpen(true)} className="btn-primary px-4 py-2 text-xs">
+              <Icon name="plus" size={12} /> Log measurements
+            </button>
+          </div>
+        ) : (
+          <LineChart values={inRange.map((m) => m.weight)} />
+        )}
       </div>
 
       <div className="card p-4">
@@ -120,7 +129,7 @@ function Progress() {
             <div key={w.d} className="flex h-full flex-1 flex-col items-center gap-1">
               <div className="flex w-full flex-1 items-end">
                 <div
-                  className={`w-full rounded-t-md ${w.min ? "bg-apex" : "bg-ink-3"}`}
+                  className={`w-full rounded-t-md ${w.min ? "glow-fill" : "bg-white/10"}`}
                   style={{ height: `${Math.max(6, (w.min / maxMin) * 100)}%` }}
                   title={`${w.min} min`}
                 />
@@ -133,29 +142,29 @@ function Progress() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold">Body Measurements</h2>
-          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs font-semibold text-apex">
+          <h2 className="eyebrow">Body Measurements</h2>
+          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs font-medium text-luna-light">
             <Icon name="plus" size={14} /> Log
           </button>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Measure label="Weight" value={`${last.weight} lbs`} />
-          <Measure label="Body Fat" value={`${last.bodyFat}%`} />
-          <Measure label="Muscle Mass" value={`${last.muscle} lbs`} />
+          <Measure label="Weight" value={last ? `${last.weight} lbs` : "—"} />
+          <Measure label="Body Fat" value={last ? `${last.bodyFat}%` : "—"} />
+          <Measure label="Muscle Mass" value={last ? `${last.muscle} lbs` : "—"} />
         </div>
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-bold">Personal Records</h2>
+        <h2 className="eyebrow mb-3">Personal Records</h2>
         {prs.length === 0 ? (
           <div className="card p-4 text-sm text-white/50">Enter the weight you lift during a workout and your best lifts show up here.</div>
         ) : (
           <ul className="card divide-y divide-line overflow-hidden">
             {prs.map((p) => (
               <li key={p.exercise} className="flex items-center gap-3 px-4 py-3">
-                <Icon name="trophy" size={16} className="text-gold" />
-                <span className="flex-1 text-sm font-semibold">{p.exercise}</span>
-                <span className="text-sm font-bold">{p.weight} lbs</span>
+                <Icon name="trophy" size={15} className="text-moon" />
+                <span className="flex-1 text-sm">{p.exercise}</span>
+                <span className="text-sm font-medium tabular-nums">{p.weight} lbs</span>
                 <span className="text-xs text-white/40">× {p.reps}</span>
               </li>
             ))}
@@ -164,7 +173,7 @@ function Progress() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-bold">Workout History</h2>
+        <h2 className="eyebrow mb-3">Workout History</h2>
         {history.length === 0 ? (
           <div className="card p-4 text-sm text-white/50">No workouts logged yet.</div>
         ) : (
@@ -172,9 +181,9 @@ function Progress() {
             {history.map((l) => (
               <li key={l.id} className="card flex items-center gap-3 p-3">
                 <div className="flex-1">
-                  <p className="text-sm font-semibold">{l.name}</p>
+                  <p className="text-sm font-medium">{l.name}</p>
                   <p className="text-xs text-white/50">
-                    {l.date === dayKey() ? "Today" : l.date} · {l.minutes} min · {l.calories} kcal
+                    {fmtDay(l.date)} · {l.minutes} min · {fmtNum(l.calories)} kcal
                   </p>
                 </div>
                 <button
@@ -207,8 +216,8 @@ function Progress() {
 function Delta({ value, label, good }: { value: string; label: string; good: boolean }) {
   return (
     <div className="card py-4 text-center">
-      <div className={`text-lg font-extrabold ${good ? "text-lime-apex" : "text-apex"}`}>{value}</div>
-      <div className="text-[11px] text-white/50">{label}</div>
+      <div className={`display text-[26px] ${good ? "text-lime-luna" : "text-[#e3b5a4]"}`}>{value}</div>
+      <div className="text-[11px] text-white/45">{label}</div>
     </div>
   );
 }
@@ -217,17 +226,18 @@ function Measure({ label, value }: { label: string; value: string }) {
   return (
     <div className="card p-3">
       <div className="text-[11px] text-white/50">{label}</div>
-      <div className="mt-1 text-base font-extrabold">{value}</div>
+      <div className="display mt-1 text-[22px]">{value}</div>
     </div>
   );
 }
 
-function LogMeasurement({ initial, onClose, onSave }: { initial: { weight: number; bodyFat: number; muscle: number }; onClose: () => void; onSave: (m: { date: string; weight: number; bodyFat: number; muscle: number }) => void }) {
-  const [w, setW] = useState(String(initial.weight));
-  const [bf, setBf] = useState(String(initial.bodyFat));
-  const [mu, setMu] = useState(String(initial.muscle));
+function LogMeasurement({ initial, onClose, onSave }: { initial?: { weight: number; bodyFat: number; muscle: number }; onClose: () => void; onSave: (m: { date: string; weight: number; bodyFat: number; muscle: number }) => void }) {
+  const [w, setW] = useState(initial ? String(initial.weight) : "");
+  const [bf, setBf] = useState(initial ? String(initial.bodyFat) : "");
+  const [mu, setMu] = useState(initial ? String(initial.muscle) : "");
   const nums = [Number(w), Number(bf), Number(mu)];
-  const valid = nums.every((n) => Number.isFinite(n) && n > 0) && nums[1] < 100;
+  const filled = [w, bf, mu].every((v) => v.trim() !== "");
+  const valid = filled && nums.every((n) => Number.isFinite(n) && n > 0) && nums[0] <= 2000 && nums[1] < 100 && nums[2] <= 2000 && nums[2] < nums[0];
 
   return (
     <Modal title="Log measurements" onClose={onClose}>
@@ -241,6 +251,9 @@ function LogMeasurement({ initial, onClose, onSave }: { initial: { weight: numbe
         <Field label="Weight (lbs)" value={w} onChange={setW} />
         <Field label="Body fat (%)" value={bf} onChange={setBf} />
         <Field label="Muscle mass (lbs)" value={mu} onChange={setMu} />
+        {filled && !valid && (
+          <p className="text-xs text-red-400">Check the numbers: body fat must be under 100%, and muscle mass less than your weight.</p>
+        )}
         <button type="submit" disabled={!valid} className="btn-primary w-full disabled:opacity-40">
           Save for today
         </button>
@@ -253,7 +266,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
   return (
     <label className="block text-xs font-semibold text-white/60">
       {label}
-      <input className="input mt-1" type="number" step="0.1" inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} />
+      <input className="input mt-1" type="number" step="0.1" min={0} inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
 }
@@ -278,54 +291,41 @@ function Leaderboard() {
     <>
       <div className="flex gap-2">
         {BOARDS.map((b) => (
-          <button key={b} onClick={() => setBoard(b)} className={`chip flex-1 ${board === b ? "bg-apex text-black" : "bg-ink-2 text-white/60"}`}>
+          <button key={b} onClick={() => setBoard(b)} className={`chip flex-1 ${board === b ? "bg-luna text-black" : "bg-ink-2 text-white/60"}`}>
             {b}
           </button>
         ))}
       </div>
 
-      <div className="flex items-end justify-center gap-3 pt-2">
-        {[podium[1], podium[0], podium[2]].map((p, i) => {
-          const place = [2, 1, 3][i];
-          return (
-            <div key={p.name} className={`flex flex-col items-center ${place === 1 ? "-translate-y-2" : ""}`}>
-              {place === 1 && <Icon name="crown" size={20} className="mb-1 text-gold" />}
-              <div
-                className={`flex items-center justify-center rounded-full font-black ${
-                  place === 1 ? "h-20 w-20 border-4 border-gold bg-ink-3 text-2xl" : "h-14 w-14 border-2 border-white/20 bg-ink-2 text-lg"
-                } ${p.me ? "text-apex" : ""}`}
-              >
-                {p.name.charAt(0)}
-              </div>
-              <div className={`mt-2 text-sm font-bold ${p.me ? "text-apex" : ""}`}>{p.name}</div>
-              <div className="text-xs text-white/50">{fmtNum(p.pts)} pts</div>
-              <div className="text-[10px] font-bold text-white/30">#{place}</div>
-            </div>
-          );
-        })}
+      <div className="card grid grid-cols-3 divide-x divide-white/[0.07] py-5 text-center">
+        {podium.map((p, i) => (
+          <div key={`${i}-${p.name}`} className="px-2">
+            <div className={`eyebrow ${i === 0 ? "!text-moon" : ""}`}>{["First", "Second", "Third"][i]}</div>
+            <div className={`display mt-2 truncate text-[22px] ${p.me ? "italic text-luna-light" : ""}`}>{p.me ? "You" : p.name}</div>
+            <div className="mt-1 text-xs tabular-nums text-white/45">{fmtNum(p.pts)} pts</div>
+          </div>
+        ))}
       </div>
 
       <ul className="card divide-y divide-line overflow-hidden">
         {rows.map((r, i) => (
-          <li key={r.name} className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-apex/10" : ""}`}>
-            <span className="w-5 text-sm font-bold text-white/50">{i + 1}</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-3 text-sm font-bold">{r.name.charAt(0)}</span>
-            <span className={`flex-1 text-sm font-semibold ${r.me ? "text-apex" : ""}`}>{r.me ? `${name} (You)` : r.name}</span>
-            <span className="text-sm text-white/60">{fmtNum(r.pts)} pts</span>
+          <li key={`${i}-${r.name}`} className={`flex items-center gap-4 px-5 py-3.5 ${r.me ? "bg-white/[0.03]" : ""}`}>
+            <span className="w-5 font-serif text-lg text-white/40">{i + 1}</span>
+            <span className={`min-w-0 flex-1 truncate text-sm ${r.me ? "font-medium text-luna-light" : ""}`}>{r.me ? `${name} (you)` : r.name}</span>
+            <span className="text-sm tabular-nums text-white/55">{fmtNum(r.pts)}</span>
           </li>
         ))}
       </ul>
 
-      <div className="card flex items-center gap-3 border-apex/30 bg-apex/10 p-4">
-        <Icon name="trophy" size={26} className="text-gold" />
-        <p className="text-sm">
-          {mine === 0 ? (
-            <>Finish a workout to get on the board. <span className="text-white/50">100 pts per workout + 5 per minute.</span></>
-          ) : (
-            <>You're ranked <b>#{myRank}</b>. Keep going to climb!</>
-          )}
-        </p>
-      </div>
+      <p className="px-1 text-sm leading-relaxed text-white/60">
+        {mine === 0 ? (
+          <>Complete a session to join the standings. Each session earns 100 points, plus 5 per active minute.</>
+        ) : (
+          <>
+            You are currently ranked <span className="font-medium text-[#f2eee8]">#{myRank}</span>.
+          </>
+        )}
+      </p>
       <p className="text-center text-[11px] text-white/30">Other athletes are sample data — there's no server behind this demo.</p>
     </>
   );
@@ -334,33 +334,126 @@ function Leaderboard() {
 /* ---------------- Premium ---------------- */
 
 function Premium() {
-  const premium = useApp((s) => s.premium);
-  const setPremium = useApp((s) => s.setPremium);
+  const sub = useApp((s) => s.subscription);
+  const payments = useApp((s) => s.payments);
+  const cancel = useApp((s) => s.cancelSubscription);
+  const resume = useApp((s) => s.resumeSubscription);
+  const today = useToday();
+  const [planId, setPlanId] = useState<PlanId>("yearly");
+  const [checkout, setCheckout] = useState(false);
+  const active = hasPremium(sub, today);
+  const longDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
   return (
-    <div className="card relative overflow-hidden bg-gradient-to-br from-[#3a2606] via-[#1b1206] to-ink-1 p-6">
-      <div className="absolute -right-6 -top-6 text-gold/10">
-        <Icon name="crown" size={180} strokeWidth={1.2} />
+    <>
+      <div className="card relative overflow-hidden p-6">
+        <p className="eyebrow !text-moon">Membership</p>
+        <h2 className="display mt-2 text-[36px]">
+          Lunor <span className="italic text-moon">Premium</span>
+        </h2>
+
+        {active && sub ? (
+          <>
+            <p className="mt-1 text-sm text-white/60">
+              {planById(sub.plan).name} plan · {fmtMoney(planById(sub.plan).price)} / {planById(sub.plan).period}
+            </p>
+            <div className="mt-5 space-y-2 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm">
+              <Row2 label="Status" value={sub.status === "active" ? "Active" : "Canceled"} accent={sub.status === "active"} />
+              <Row2 label={sub.status === "active" ? "Next payment" : "Access until"} value={longDate(sub.renewsOn)} />
+              <Row2 label="Payment method" value={`${sub.brand} •••• ${sub.last4}`} />
+              <Row2 label="Member since" value={longDate(sub.startedOn)} />
+            </div>
+            {sub.status === "active" ? (
+              <button
+                onClick={() =>
+                  window.confirm(`Cancel Premium? You'll keep it until ${longDate(sub.renewsOn)} and won't be charged again.`) && cancel()
+                }
+                className="btn-ghost mt-5 w-full"
+              >
+                Cancel subscription
+              </button>
+            ) : (
+              <button onClick={resume} className="btn-primary mt-5 w-full py-3.5">
+                Resume subscription
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="mt-2 text-sm leading-relaxed text-white/55">Deeper programming, detailed nutrition and priority support.</p>
+            <ul className="my-5 space-y-3">
+              {PREMIUM_FEATURES.map((f) => (
+                <li key={f} className="flex items-center gap-3 text-sm">
+                  <Icon name="check" size={14} className="text-moon" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Choose a plan">
+              {PLANS.map((p) => {
+                const on = planId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => setPlanId(p.id)}
+                    className={`relative rounded-2xl border p-3 text-left transition ${
+                      on ? "border-moon/70 bg-white/[0.03]" : "border-white/10"
+                    }`}
+                  >
+                    {p.note && (
+                      <span className="absolute -top-2 right-2 rounded-full bg-moon px-2 py-0.5 text-[10px] font-medium text-black">{p.note}</span>
+                    )}
+                    <span className="eyebrow block">{p.name}</span>
+                    <span className="display mt-1 block text-[30px]">{fmtMoney(p.price)}</span>
+                    <span className="block text-[11px] text-white/50">
+                      per {p.period}
+                      {p.period === "year" ? ` · ${fmtMoney(p.price / 12)}/mo` : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={() => setCheckout(true)} className="btn-primary mt-5 w-full py-3.5 text-base">
+              Continue · {fmtMoney(planById(planId).price)}
+            </button>
+            <p className="mt-3 text-center text-[11px] text-white/35">Test mode — payments are simulated and no real money is charged.</p>
+          </>
+        )}
       </div>
-      <Icon name="crown" size={34} className="text-gold" />
-      <h2 className="mt-3 text-2xl font-black">Apex Fitness Premium</h2>
-      <p className="mt-1 text-sm text-white/60">Get the most out of your fitness journey.</p>
-      <ul className="my-5 space-y-3">
-        {PREMIUM_FEATURES.map((f) => (
-          <li key={f} className="flex items-center gap-3 text-sm">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gold/20 text-gold">
-              <Icon name="check" size={12} strokeWidth={3} />
-            </span>
-            {f}
-          </li>
-        ))}
-      </ul>
-      <button
-        onClick={() => setPremium(!premium)}
-        className={`w-full rounded-full py-3.5 text-base font-extrabold transition active:scale-[0.97] ${premium ? "border border-gold/40 text-gold" : "bg-gradient-to-b from-gold to-gold-dark text-black"}`}
-      >
-        {premium ? "Premium active · tap to cancel" : "Go Premium"}
-      </button>
-      <p className="mt-3 text-center text-[11px] text-white/30">Demo only — no payment is taken and these features aren't built yet.</p>
+
+      {payments.length > 0 && (
+        <section>
+          <h2 className="eyebrow mb-3">Billing history</h2>
+          <ul className="card divide-y divide-line overflow-hidden">
+            {payments.slice(0, 24).map((p) => (
+              <li key={p.id} className="flex items-center gap-3 px-4 py-3">
+                <Icon name="card" size={18} className="text-white/50" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">Premium · {planById(p.plan).name}</span>
+                  <span className="block text-xs text-white/50">
+                    {longDate(p.date)} · {p.brand} •••• {p.last4}
+                  </span>
+                </span>
+                <span className="text-sm tabular-nums">{fmtMoney(p.amount)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-center text-[11px] text-white/30">Test-mode receipts.</p>
+        </section>
+      )}
+
+      {checkout && <Checkout planId={planId} onClose={() => setCheckout(false)} />}
+    </>
+  );
+}
+
+function Row2({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-white/50">{label}</span>
+      <span className={`text-right font-semibold ${accent ? "text-lime-luna" : ""}`}>{value}</span>
     </div>
   );
 }
@@ -399,16 +492,22 @@ function Settings() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `apex-fitness-backup-${dayKey()}.json`;
+    a.download = `lunor-backup-${dayKey()}.json`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    setMsg({ ok: true, text: "Backup downloaded." });
   };
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
     try {
       const data = parseBackup(await file.text());
-      if (!window.confirm(`Replace everything on this device with the backup? (${data.logs.length} workouts, ${data.meals.length} meals)`)) return;
+      if (!window.confirm(`Replace everything on this device with the backup? (${data.logs.length} workouts, ${data.meals.length} meals)`)) {
+        if (fileRef.current) fileRef.current.value = "";
+        return;
+      }
       app.restore(data);
       setName(data.name);
       setVals(Object.fromEntries(FIELDS.map((f) => [f.key, String(data[f.key])])));
@@ -422,10 +521,10 @@ function Settings() {
   return (
     <div className="space-y-5">
       <section className="card space-y-3 p-4">
-        <h2 className="text-base font-bold">Profile & goals</h2>
+        <h2 className="eyebrow">Profile &amp; goals</h2>
         <label className="block text-xs font-semibold text-white/60">
           Name
-          <input className="input mt-1" value={name} maxLength={24} onChange={(e) => setName(e.target.value)} />
+          <input className="input mt-1" value={name} maxLength={24} onChange={(e) => { setName(e.target.value); setMsg(null); }} />
         </label>
         <div className="grid grid-cols-2 gap-3">
           {FIELDS.map((f) => (
@@ -436,7 +535,13 @@ function Settings() {
                 type="number"
                 inputMode="numeric"
                 value={vals[f.key]}
-                onChange={(e) => setVals({ ...vals, [f.key]: e.target.value })}
+                min={f.min}
+                max={f.max}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setVals((p) => ({ ...p, [f.key]: v }));
+                  setMsg(null);
+                }}
               />
             </label>
           ))}
@@ -447,7 +552,7 @@ function Settings() {
       </section>
 
       <section className="card space-y-3 p-4">
-        <h2 className="text-base font-bold">Your data</h2>
+        <h2 className="eyebrow">Your data</h2>
         <p className="text-xs text-white/50">
           Everything is stored only in this browser. Download a backup so you don't lose it if you clear your browser data or switch phones.
         </p>
@@ -469,7 +574,7 @@ function Settings() {
       </section>
 
       {msg && (
-        <p role="status" className={`text-center text-sm font-semibold ${msg.ok ? "text-lime-apex" : "text-red-400"}`}>
+        <p role="status" className={`text-center text-sm font-semibold ${msg.ok ? "text-lime-luna" : "text-red-400"}`}>
           {msg.text}
         </p>
       )}

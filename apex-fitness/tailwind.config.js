@@ -4,17 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: { DEFAULT: "#0b0b0c", 1: "#141416", 2: "#1c1c1f", 3: "#26262a" },
-        line: "#2a2a2e",
-        apex: { DEFAULT: "#ff8a1f", dark: "#e5700a", light: "#ffb15c" },
-        lime: { apex: "#6bd34a" },
-        gold: { DEFAULT: "#ffc23c", dark: "#e09a10" },
+        ink: { DEFAULT: "#0a090d", 1: "#111016", 2: "#17161d", 3: "#201e27" },
+        line: "rgba(255,255,255,0.07)",
+        luna: { DEFAULT: "#c9bbe8", dark: "#9a88c9", light: "#e2d9f5" },
+        lime: { luna: "#9fd3b4" },
+        moon: { DEFAULT: "#e6dcc8", dark: "#b9a98a" },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        serif: ["\"Cormorant Garamond\"", "Georgia", "serif"],
       },
       keyframes: {
-        fadeUp: { from: { opacity: "0", transform: "translateY(10px)" }, to: { opacity: "1", transform: "translateY(0)" } },
+        fadeUp: { from: { opacity: "0", transform: "translateY(6px)" }, to: { opacity: "1", transform: "translateY(0)" } },
         pop: { "0%": { transform: "scale(0.9)", opacity: "0" }, "100%": { transform: "scale(1)", opacity: "1" } },
       },
       animation: {

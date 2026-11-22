@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 /** Local-time YYYY-MM-DD for a Date. */
 export const dayKey = (d: Date = new Date()): string => {
   const y = d.getFullYear();
@@ -16,6 +18,28 @@ export const fmtTime = (totalSeconds: number): string => {
   const s = Math.max(0, Math.round(totalSeconds));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
+
+/** "Today", "Yesterday", or e.g. "Mon, Nov 20". */
+export const fmtDay = (iso: string): string => {
+  if (iso === dayKey()) return "Today";
+  if (iso === daysAgo(1)) return "Yesterday";
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+};
+
+/** Today's date key, kept current if the app stays open past midnight. */
+export function useToday(): string {
+  const [today, setToday] = useState(dayKey);
+  useEffect(() => {
+    const check = () => setToday(dayKey());
+    const t = setInterval(check, 60_000);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, []);
+  return today;
+}
 
 export const fmtNum = (n: number): string => n.toLocaleString("en-US");
 
