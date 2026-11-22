@@ -1,0 +1,36 @@
+import { useState } from "react";
+import { G } from "../icons";
+import { Link } from "react-router-dom";
+import { MARKET_CATEGORIES } from "../data";
+import { money } from "../engine";
+import { useCatalogue, useMe, useStore } from "../store";
+import { Empty, PageHeader, Tabs, toast } from "../ui";
+
+const TABS = ["Overview", "Reports", "Listings", "Community", "Accounts", "Disputes", "Announcements", "Categories"] as const;
+
+export default function Admin() {
+  const me = useMe(); const cat = useCatalogue();
+  const { reports, resolveReport, setStatus, toggleFeatured, featuredIds, posts, hidePost, accounts, banned, ban, purchases, announce, announcements, awarded } = useStore();
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview"); const [ann, setAnn] = useState("");
+  if (me?.role !== "admin") return <Empty emoji="🚫" title="Not authorised" />;
+  const open = reports.filter((r) => r.status === "open"); const refunds = purchases.filter((p) => p.status === "refund_requested");
+  const act = (id: string, kind: string, target: string) => { if (kind === "listing" || kind === "copyright") setStatus(target, "removed"); if (kind === "post") hidePost(target); if (kind === "creator") ban(target); resolveReport(id, "actioned"); toast("Action taken"); };
+  const name = (kind: string, id: string) => kind === "listing" || kind === "copyright" ? cat.find((r) => r.id === id)?.title : kind === "post" ? posts.find((p) => p.id === id)?.text.slice(0, 50) : accounts.find((a) => a.id === id)?.name ?? id;
+  const stat = (l: string, v: string | number) => <div className="card p-4"><div className="text-xs font-semibold uppercase tracking-wide text-brown">{l}</div><div className="mt-1 text-2xl font-bold">{v}</div></div>;
+  return (
+    <div>
+      <PageHeader title="Admin dashboard" sub="Moderation and platform management. Access is limited to administrators." />
+      <p className="mb-4 rounded-xl bg-orange-light/50 p-3 text-xs">Role checks here are client-side for this local build. In production, admin permissions must be enforced server-side (custom claims + security rules); never trust the client. See docs/BACKEND.md.</p>
+      <Tabs tabs={TABS} value={tab} onChange={setTab} />
+      {tab === "Overview" && <><div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{stat("Accounts", accounts.length)}{stat("Published listings", cat.filter((r) => r.status === "published").length)}{stat("Orders", purchases.length)}{stat("Gross sales (this device)", money(purchases.filter((p) => p.status === "paid").reduce((s, p) => s + p.total, 0)))}{stat("Open reports", open.length)}{stat("Refund requests", refunds.length)}{stat("Community posts", posts.length)}{stat("XP awards logged", Object.keys(awarded).length)}</div>
+        <h2 className="h-display mb-2 mt-6 text-xl">Suspicious activity</h2>{refunds.length + open.length === 0 ? <p className="text-sm text-brown">Nothing flagged.</p> : <ul className="list-disc space-y-1 pl-5 text-sm">{refunds.map((p) => <li key={p.id}>Refund requested on order {p.id} ({money(p.total)})</li>)}{open.length > 0 && <li>{open.length} unresolved report(s)</li>}</ul>}</>}
+      {tab === "Reports" && (open.length === 0 ? <Empty emoji="✅" title="No open reports" /> : <div className="space-y-3">{open.map((r) => <div key={r.id} className="card p-4"><div className="text-xs font-semibold uppercase text-brown">{r.kind === "copyright" ? "copyright complaint" : r.kind + " report"} · {new Date(r.at).toLocaleString()}</div><b>{name(r.kind, r.targetId)}</b><p className="mt-1 text-sm text-brown">“{r.reason}”</p><div className="mt-3 flex gap-2"><button className="btn-dark !py-1.5" onClick={() => act(r.id, r.kind, r.targetId)}>{r.kind === "copyright" ? "Take down listing" : r.kind === "creator" ? "Suspend account" : r.kind === "post" ? "Hide post" : "Remove listing"}</button><button className="btn-ghost !py-1.5" onClick={() => resolveReport(r.id, "dismissed")}>Dismiss</button></div></div>)}</div>)}
+      {tab === "Listings" && <div className="card divide-y divide-cream">{cat.filter((r) => !r.bundleOf || r.status).map((r) => <div key={r.id} className="flex flex-wrap items-center gap-3 p-3 text-sm"><span className="text-xl">{r.emoji}</span><Link to={r.price > 0 || r.bundleOf ? `/marketplace/${r.id}` : `/recipe/${r.id}`} className="min-w-0 flex-1 truncate font-semibold">{r.title}</Link><span className="chip">{r.status}</span><button className="btn-ghost !py-1" onClick={() => toggleFeatured(r.id)}>{featuredIds.includes(r.id) ? <><G g="★" /> Featured</> : <><G g="☆" /> Feature</>}</button>{r.status === "removed" ? <button className="btn-ghost !py-1" onClick={() => setStatus(r.id, "published")}>Restore</button> : <button className="btn-outline !py-1" onClick={() => setStatus(r.id, "removed")}>Remove</button>}</div>)}</div>}
+      {tab === "Community" && <div className="card divide-y divide-cream">{posts.map((p) => <div key={p.id} className="flex items-center gap-3 p-3 text-sm"><span className="min-w-0 flex-1 truncate"><b>{p.userName}</b>: {p.text}</span><button className="btn-outline !py-1" onClick={() => hidePost(p.id)}>{p.hidden ? "Unhide" : "Hide"}</button></div>)}</div>}
+      {tab === "Accounts" && <div className="card divide-y divide-cream">{accounts.map((a) => <div key={a.id} className="flex items-center gap-3 p-3 text-sm"><span className="text-xl">{a.emoji}</span><span className="flex-1"><b>{a.name}</b> <span className="text-xs text-brown">{a.email} · {a.role}</span></span>{a.id !== me.id && <button className="btn-outline !py-1" onClick={() => ban(a.id)}>{banned.includes(a.id) ? "Reinstate" : "Suspend"}</button>}</div>)}</div>}
+      {tab === "Disputes" && (refunds.length ? <div className="space-y-3">{refunds.map((p) => <div key={p.id} className="card flex flex-wrap items-center gap-3 p-4 text-sm"><span className="flex-1"><b>{p.id}</b> · {money(p.total)} · {new Date(p.at).toLocaleDateString()}</span><button className="btn-dark !py-1.5" onClick={() => { useStore.setState((s) => ({ purchases: s.purchases.map((x) => (x.id === p.id ? { ...x, status: "refunded" } : x)) })); toast("Refund approved. Access revoked."); }}>Approve refund</button><button className="btn-ghost !py-1.5" onClick={() => { useStore.setState((s) => ({ purchases: s.purchases.map((x) => (x.id === p.id ? { ...x, status: "paid" } : x)) })); toast("Request declined"); }}>Decline</button></div>)}</div> : <Empty emoji="🕊️" title="No open disputes" />)}
+      {tab === "Announcements" && <div><form className="mb-4 flex max-w-xl gap-2" onSubmit={(e) => { e.preventDefault(); if (ann.trim().length < 5) return toast("Write an announcement.", "err"); announce(ann.trim().slice(0, 200)); setAnn(""); toast("Announcement published"); }}><input className="input" value={ann} onChange={(e) => setAnn(e.target.value)} placeholder="Announcement shown at the top of the app" /><button className="btn-primary">Publish</button></form>{announcements.map((a) => <p key={a.id} className="mb-2 rounded-xl bg-cream p-3 text-sm">{a.text}</p>)}</div>}
+      {tab === "Categories" && <div><div className="mb-3 flex flex-wrap gap-1.5">{MARKET_CATEGORIES.map((c) => <span key={c} className="chip">{c}</span>)}</div><p className="text-sm text-brown">Adding, renaming and reordering categories is <b>coming soon</b> (needs a server-side categories collection).</p></div>}
+    </div>
+  );
+}
