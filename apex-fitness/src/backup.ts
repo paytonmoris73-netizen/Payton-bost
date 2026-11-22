@@ -39,7 +39,7 @@ export function exportBackup(s: BackupData): string {
 /* ---------- validation: a backup file is untrusted input ---------- */
 
 const bad = (what: string): never => {
-  throw new Error(`This doesn't look like a valid Apex Fitness backup (${what}).`);
+  throw new Error(`This doesn't look like a valid Lunor backup (${what}).`);
 };
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const str = (v: unknown, what: string, max = 80): string => (typeof v === "string" && v.length <= max ? v : bad(what));

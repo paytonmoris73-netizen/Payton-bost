@@ -68,7 +68,7 @@ export default function Workouts() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`chip shrink-0 ${filter === f ? "bg-apex text-black" : "bg-ink-2 text-white/70"}`}
+            className={`chip shrink-0 ${filter === f ? "bg-luna text-black" : "bg-ink-2 text-white/70"}`}
           >
             {f}
           </button>
@@ -93,9 +93,9 @@ export default function Workouts() {
       {featured && (
         <button
           onClick={() => openDetail(featured.id)}
-          className="card relative block w-full overflow-hidden rounded-3xl bg-gradient-to-br from-[#4a2608] via-[#1d1107] to-[#100c08] p-5 text-left"
+          className="card relative block w-full overflow-hidden rounded-3xl bg-gradient-to-br from-[#33195e] via-[#150e29] to-[#0c0916] p-5 text-left"
         >
-          <div className="absolute -right-8 -top-8 text-apex/15">
+          <div className="absolute -right-8 -top-8 text-luna/15">
             <Icon name="dumbbell" size={190} strokeWidth={1.2} />
           </div>
           <span className="gloss-tile rounded-full px-2.5 py-1 text-[10px] font-bold uppercase text-white">Featured</span>

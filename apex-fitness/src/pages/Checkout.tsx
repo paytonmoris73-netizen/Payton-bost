@@ -75,7 +75,7 @@ export default function Checkout({ planId, onClose }: { planId: PlanId; onClose:
             <Icon name="crown" size={38} />
           </div>
           <p className="mt-4 text-lg font-extrabold">
-            Welcome to <span className="shine-text">Apex Premium</span>
+            Welcome to <span className="shine-text">Lunor Premium</span>
           </p>
           <p className="mt-1 text-sm text-white/60">
             Paid {fmtMoney(plan.price)} with {brand} •••• {digits(card.number).slice(-4)}. Renews {fmtLong(addPeriod(today, plan.period))}.
@@ -93,9 +93,9 @@ export default function Checkout({ planId, onClose }: { planId: PlanId; onClose:
 
   return (
     <Modal title="Checkout" onClose={close}>
-      <div className="mb-4 flex items-center justify-between rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3">
+      <div className="mb-4 flex items-center justify-between rounded-2xl border border-moon/30 bg-moon/10 px-4 py-3">
         <div>
-          <p className="text-sm font-bold">Apex Premium · {plan.name}</p>
+          <p className="text-sm font-bold">Lunor Premium · {plan.name}</p>
           <p className="text-xs text-white/50">Renews every {plan.period} · cancel anytime</p>
         </div>
         <p className="text-lg font-black">{fmtMoney(plan.price)}</p>

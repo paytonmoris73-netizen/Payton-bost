@@ -32,15 +32,15 @@ export default function LineChart({ values, height = 120 }: Props) {
           </feMerge>
         </filter>
         <linearGradient id="chartfill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ff8a1f" stopOpacity="0.35" />
-          <stop offset="1" stopColor="#ff8a1f" stopOpacity="0" />
+          <stop offset="0" stopColor="#9b5cff" stopOpacity="0.35" />
+          <stop offset="1" stopColor="#9b5cff" stopOpacity="0" />
         </linearGradient>
       </defs>
       {values.length > 1 && <polygon points={area} fill="url(#chartfill)" />}
       {values.length > 1 && (
-        <polyline points={line} fill="none" stroke="#ffa13a" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" filter="url(#chartglow)" />
+        <polyline points={line} fill="none" stroke="#a26bff" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" filter="url(#chartglow)" />
       )}
-      <circle cx={x(last)} cy={y(values[last])} r="4.5" fill="#ff8a1f" stroke="#0b0b0c" strokeWidth="2" />
+      <circle cx={x(last)} cy={y(values[last])} r="4.5" fill="#9b5cff" stroke="#08070f" strokeWidth="2" />
     </svg>
   );
 }

@@ -1,6 +1,6 @@
-# Apex Fitness
+# Lunor
 
-**Train. Track. Improve.** A mobile-first workout app: guided workouts, nutrition tracking, progress analytics and leaderboards.
+**Train. Track. Improve.** A mobile-first workout app with a glossy violet, moonlit look: guided workouts, nutrition tracking, progress analytics and leaderboards.
 
 ## Features
 
@@ -21,7 +21,7 @@ Everything is stored locally in your browser (`localStorage`) — no account or 
 
 The coach calls Claude from `api/coach.ts` (a Vercel serverless function) so your API key never reaches the browser.
 
-1. Deploy `apex-fitness/` as a Vercel project (root directory `apex-fitness`).
+1. Deploy `apex-fitness/` as a Vercel project (root directory `apex-fitness`; the folder keeps its old name so existing deploy settings and saved data keep working).
 2. Add the environment variable `ANTHROPIC_API_KEY`. Optionally set `COACH_MODEL` (default `claude-opus-5-5`; use a cheaper model if you prefer).
 
 Without the key — or under plain `npm run dev`, where `/api` doesn't run — the app uses its offline rule-based coach (labelled "Offline coach" in the chat). The endpoint is same-site only, rate-limited per IP, validates input, and only forwards a whitelisted summary of your data. Coaching is general guidance, not medical advice.

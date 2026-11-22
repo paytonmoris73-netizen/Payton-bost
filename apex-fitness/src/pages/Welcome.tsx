@@ -15,7 +15,7 @@ export default function Welcome() {
   const [name, setName] = useState("");
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-[radial-gradient(ellipse_at_top,rgba(120,60,10,0.55)_0%,transparent_60%)] px-6 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] pt-[calc(env(safe-area-inset-top)+2.5rem)] text-center">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-[radial-gradient(ellipse_at_top,rgba(70, 36, 150,0.55)_0%,transparent_60%)] px-6 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] pt-[calc(env(safe-area-inset-top)+2.5rem)] text-center">
       <div className="animate-fade-up">
         <Logo />
         <h1 className="mt-8 text-3xl font-extrabold">

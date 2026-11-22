@@ -4,11 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: { DEFAULT: "#0b0b0c", 1: "#141416", 2: "#1c1c1f", 3: "#26262a" },
-        line: "#2a2a2e",
-        apex: { DEFAULT: "#ff8a1f", dark: "#e5700a", light: "#ffb15c" },
-        lime: { apex: "#6bd34a" },
-        gold: { DEFAULT: "#ffc23c", dark: "#e09a10" },
+        ink: { DEFAULT: "#08070f", 1: "#13111c", 2: "#1c1929", 3: "#272339" },
+        line: "#2d2842",
+        luna: { DEFAULT: "#9b5cff", dark: "#7c3aed", light: "#c9a7ff" },
+        lime: { luna: "#6bd34a" },
+        moon: { DEFAULT: "#e9e0ff", dark: "#b8a6f0" },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

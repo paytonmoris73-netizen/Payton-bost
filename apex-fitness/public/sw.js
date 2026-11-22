@@ -1,6 +1,6 @@
-// Apex Fitness service worker: makes the app installable and usable offline.
+// Lunor service worker: makes the app installable and usable offline.
 // Never touches /api/ (the AI coach), and only handles same-origin GETs.
-const CACHE = "apex-v2";
+const CACHE = "lunor-v1";
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

@@ -51,7 +51,7 @@ export default function Coach() {
           <Icon name="sparkle" size={22} />
         </span>
         <div className="flex-1">
-          <h1 className="text-lg font-extrabold">Apex Coach</h1>
+          <h1 className="text-lg font-extrabold">Luna Coach</h1>
           <p className="text-xs text-white/50">AI fitness coach</p>
         </div>
         {chat.length > 0 && (
@@ -77,7 +77,7 @@ export default function Coach() {
               <div
                 className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   m.role === "user"
-                    ? "rounded-br-md bg-gradient-to-b from-[#ffcf96] via-apex to-apex-dark font-medium text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_6px_18px_-6px_rgba(255,138,31,0.8)]"
+                    ? "rounded-br-md bg-gradient-to-b from-[#dccaff] via-luna to-luna-dark font-medium text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_6px_18px_-6px_rgba(155, 92, 255,0.8)]"
                     : m.source === "error"
                       ? "rounded-bl-md border border-red-500/30 bg-red-500/10 text-red-200"
                       : "card rounded-bl-md"
@@ -89,7 +89,7 @@ export default function Coach() {
               {suggested.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {suggested.map((w) => (
-                    <button key={w.id} onClick={() => startSession(w.id)} className="chip flex items-center gap-1.5 bg-apex text-black">
+                    <button key={w.id} onClick={() => startSession(w.id)} className="chip flex items-center gap-1.5 bg-luna text-black">
                       <Icon name="play" size={10} /> Start {w.name}
                     </button>
                   ))}

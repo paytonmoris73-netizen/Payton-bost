@@ -27,7 +27,7 @@ export default function BottomNav() {
                 onClick={() => go(it.tab)}
                 aria-current={active ? "page" : undefined}
                 className={`flex w-full flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition ${
-                  active ? "text-apex-light" : "text-white/45 hover:text-white/70"
+                  active ? "text-luna-light" : "text-white/45 hover:text-white/70"
                 }`}
               >
                 <span

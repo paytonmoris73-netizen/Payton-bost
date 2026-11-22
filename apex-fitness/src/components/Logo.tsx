@@ -1,14 +1,16 @@
+/** Lunor crescent-moon mark: a glossy violet crescent with a small star. */
 export function LogoMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
       <defs>
-        <linearGradient id="apexg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffb15c" />
-          <stop offset="1" stopColor="#e5700a" />
+        <linearGradient id="lunorg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f1e9ff" />
+          <stop offset="0.45" stopColor="#b48cff" />
+          <stop offset="1" stopColor="#6d28d9" />
         </linearGradient>
       </defs>
-      <path d="M16 3 L2 28 H9.5 L16 16.5 L22.5 28 H30 Z" fill="url(#apexg)" />
-      <path d="M16 11 L11.5 19 H20.5 Z" fill="#0b0b0c" opacity="0.9" />
+      <path d="M20.5 3.5A12.5 12.5 0 1 0 28.5 22 10 10 0 0 1 20.5 3.5Z" fill="url(#lunorg)" />
+      <path d="M24 6.2l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="#f1e9ff" />
     </svg>
   );
 }
@@ -16,9 +18,11 @@ export function LogoMark({ size = 28 }: { size?: number }) {
 export default function Logo() {
   return (
     <div className="flex flex-col items-center leading-none">
-      <LogoMark size={64} />
-      <div className="mt-2 text-5xl font-black italic tracking-tight">APEX</div>
-      <div className="mt-1 text-2xl font-extrabold italic tracking-[0.2em] text-apex">FITNESS</div>
+      <div className="drop-shadow-[0_0_24px_rgba(155,92,255,0.7)]">
+        <LogoMark size={72} />
+      </div>
+      <div className="shine-text mt-3 text-5xl font-black tracking-[0.12em]">LUNOR</div>
+      <div className="mt-2 text-sm font-bold tracking-[0.55em] text-white/60">FITNESS</div>
     </div>
   );
 }

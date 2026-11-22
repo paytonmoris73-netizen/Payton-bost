@@ -32,7 +32,7 @@ export default function Profile() {
         <div className="flex-1">
           <h1 className="shine-text text-lg font-extrabold">{name}</h1>
           <p className="flex items-center gap-1 text-xs text-white/50">
-            {premium && <Icon name="crown" size={12} className="text-gold" />}
+            {premium && <Icon name="crown" size={12} className="text-moon" />}
             {premium ? "Premium member" : "Free plan"}
           </p>
         </div>
@@ -43,7 +43,7 @@ export default function Profile() {
           <button
             key={s.id}
             onClick={() => go("profile", s.id)}
-            className={`chip flex-1 px-1 ${section === s.id ? "bg-apex text-black" : "text-white/60"}`}
+            className={`chip flex-1 px-1 ${section === s.id ? "bg-luna text-black" : "text-white/60"}`}
           >
             {s.label}
           </button>
@@ -99,7 +99,7 @@ function Progress() {
     <>
       <div className="flex gap-2">
         {RANGES.map((r) => (
-          <button key={r.id} onClick={() => setRange(r.id)} className={`chip flex-1 ${range === r.id ? "bg-apex text-black" : "bg-ink-2 text-white/60"}`}>
+          <button key={r.id} onClick={() => setRange(r.id)} className={`chip flex-1 ${range === r.id ? "bg-luna text-black" : "bg-ink-2 text-white/60"}`}>
             {r.id}
           </button>
         ))}
@@ -146,7 +146,7 @@ function Progress() {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-bold">Body Measurements</h2>
-          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs font-semibold text-apex">
+          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs font-semibold text-luna">
             <Icon name="plus" size={14} /> Log
           </button>
         </div>
@@ -165,7 +165,7 @@ function Progress() {
           <ul className="card divide-y divide-line overflow-hidden">
             {prs.map((p) => (
               <li key={p.exercise} className="flex items-center gap-3 px-4 py-3">
-                <Icon name="trophy" size={16} className="text-gold" />
+                <Icon name="trophy" size={16} className="text-moon" />
                 <span className="flex-1 text-sm font-semibold">{p.exercise}</span>
                 <span className="text-sm font-bold">{p.weight} lbs</span>
                 <span className="text-xs text-white/40">× {p.reps}</span>
@@ -219,7 +219,7 @@ function Progress() {
 function Delta({ value, label, good }: { value: string; label: string; good: boolean }) {
   return (
     <div className="card py-4 text-center">
-      <div className={`text-lg font-extrabold ${good ? "text-lime-apex" : "text-apex"}`}>{value}</div>
+      <div className={`text-lg font-extrabold ${good ? "text-lime-luna" : "text-luna"}`}>{value}</div>
       <div className="text-[11px] text-white/50">{label}</div>
     </div>
   );
@@ -294,7 +294,7 @@ function Leaderboard() {
     <>
       <div className="flex gap-2">
         {BOARDS.map((b) => (
-          <button key={b} onClick={() => setBoard(b)} className={`chip flex-1 ${board === b ? "bg-apex text-black" : "bg-ink-2 text-white/60"}`}>
+          <button key={b} onClick={() => setBoard(b)} className={`chip flex-1 ${board === b ? "bg-luna text-black" : "bg-ink-2 text-white/60"}`}>
             {b}
           </button>
         ))}
@@ -305,15 +305,15 @@ function Leaderboard() {
           const place = [2, 1, 3][i];
           return (
             <div key={`${place}-${p.name}`} className={`flex flex-col items-center ${place === 1 ? "-translate-y-2" : ""}`}>
-              {place === 1 && <Icon name="crown" size={20} className="mb-1 text-gold" />}
+              {place === 1 && <Icon name="crown" size={20} className="mb-1 text-moon" />}
               <div
                 className={`gloss-tile flex items-center justify-center rounded-full font-black ${
-                  place === 1 ? "h-20 w-20 !border-4 !border-gold text-2xl" : "h-14 w-14 text-lg"
+                  place === 1 ? "h-20 w-20 !border-4 !border-moon text-2xl" : "h-14 w-14 text-lg"
                 } ${p.me ? "text-black" : "text-white"}`}
               >
                 {p.me ? name.charAt(0).toUpperCase() : p.name.charAt(0)}
               </div>
-              <div className={`mt-2 max-w-[6rem] truncate text-sm font-bold ${p.me ? "text-apex" : ""}`}>{p.me ? "You" : p.name}</div>
+              <div className={`mt-2 max-w-[6rem] truncate text-sm font-bold ${p.me ? "text-luna" : ""}`}>{p.me ? "You" : p.name}</div>
               <div className="text-xs text-white/50">{fmtNum(p.pts)} pts</div>
               <div className="text-[10px] font-bold text-white/30">#{place}</div>
             </div>
@@ -323,17 +323,17 @@ function Leaderboard() {
 
       <ul className="card divide-y divide-line overflow-hidden">
         {rows.map((r, i) => (
-          <li key={`${i}-${r.name}`} className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-apex/10" : ""}`}>
+          <li key={`${i}-${r.name}`} className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-luna/10" : ""}`}>
             <span className="w-5 text-sm font-bold text-white/50">{i + 1}</span>
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold">{r.me ? name.charAt(0).toUpperCase() : r.name.charAt(0)}</span>
-            <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${r.me ? "text-apex" : ""}`}>{r.me ? `${name} (You)` : r.name}</span>
+            <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${r.me ? "text-luna" : ""}`}>{r.me ? `${name} (You)` : r.name}</span>
             <span className="text-sm text-white/60">{fmtNum(r.pts)} pts</span>
           </li>
         ))}
       </ul>
 
-      <div className="card flex items-center gap-3 border-apex/30 bg-apex/10 p-4">
-        <Icon name="trophy" size={26} className="text-gold" />
+      <div className="card flex items-center gap-3 border-luna/30 bg-luna/10 p-4">
+        <Icon name="trophy" size={26} className="text-moon" />
         <p className="text-sm">
           {mine === 0 ? (
             <>Finish a workout to get on the board. <span className="text-white/50">100 pts per workout + 5 per minute.</span></>
@@ -362,13 +362,13 @@ function Premium() {
 
   return (
     <>
-      <div className="card relative overflow-hidden bg-gradient-to-br from-[#4a3006] via-[#1d1306] to-[#100c08] p-6">
-        <div className="absolute -right-6 -top-6 text-gold/10">
+      <div className="card relative overflow-hidden bg-gradient-to-br from-[#2c1a52] via-[#160f2a] to-[#0c0916] p-6">
+        <div className="absolute -right-6 -top-6 text-moon/10">
           <Icon name="crown" size={180} strokeWidth={1.2} />
         </div>
-        <Icon name="crown" size={34} className="text-gold" />
+        <Icon name="crown" size={34} className="text-moon" />
         <h2 className="mt-3 text-2xl font-black">
-          Apex Fitness <span className="shine-text">Premium</span>
+          Lunor <span className="shine-text">Premium</span>
         </h2>
 
         {active && sub ? (
@@ -403,7 +403,7 @@ function Premium() {
             <ul className="my-5 space-y-3">
               {PREMIUM_FEATURES.map((f) => (
                 <li key={f} className="flex items-center gap-3 text-sm">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gold/20 text-gold">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-moon/20 text-moon">
                     <Icon name="check" size={12} strokeWidth={3} />
                   </span>
                   {f}
@@ -420,11 +420,11 @@ function Premium() {
                     aria-checked={on}
                     onClick={() => setPlanId(p.id)}
                     className={`relative rounded-2xl border p-3 text-left transition ${
-                      on ? "border-gold bg-gold/15 shadow-[0_0_20px_-4px_rgba(255,194,60,0.6),inset_0_1px_0_rgba(255,240,200,0.4)]" : "border-white/15 bg-black/25"
+                      on ? "border-moon bg-moon/15 shadow-[0_0_20px_-4px_rgba(225, 210, 255,0.6),inset_0_1px_0_rgba(240, 234, 255,0.4)]" : "border-white/15 bg-black/25"
                     }`}
                   >
                     {p.note && (
-                      <span className="absolute -top-2 right-2 rounded-full bg-gold px-2 py-0.5 text-[10px] font-extrabold text-black">{p.note}</span>
+                      <span className="absolute -top-2 right-2 rounded-full bg-moon px-2 py-0.5 text-[10px] font-extrabold text-black">{p.note}</span>
                     )}
                     <span className="block text-xs font-semibold text-white/60">{p.name}</span>
                     <span className="block text-xl font-black">{fmtMoney(p.price)}</span>
@@ -474,7 +474,7 @@ function Row2({ label, value, accent }: { label: string; value: string; accent?:
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-white/50">{label}</span>
-      <span className={`text-right font-semibold ${accent ? "text-lime-apex" : ""}`}>{value}</span>
+      <span className={`text-right font-semibold ${accent ? "text-lime-luna" : ""}`}>{value}</span>
     </div>
   );
 }
@@ -513,7 +513,7 @@ function Settings() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `apex-fitness-backup-${dayKey()}.json`;
+    a.download = `lunor-backup-${dayKey()}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -595,7 +595,7 @@ function Settings() {
       </section>
 
       {msg && (
-        <p role="status" className={`text-center text-sm font-semibold ${msg.ok ? "text-lime-apex" : "text-red-400"}`}>
+        <p role="status" className={`text-center text-sm font-semibold ${msg.ok ? "text-lime-luna" : "text-red-400"}`}>
           {msg.text}
         </p>
       )}

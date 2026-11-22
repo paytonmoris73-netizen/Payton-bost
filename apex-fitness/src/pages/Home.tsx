@@ -31,16 +31,16 @@ export default function Home() {
           <h1 className="text-2xl font-extrabold"><span className="shine-text">{name}</span> 👋</h1>
         </div>
         <div className="card flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold" title="Day streak" aria-label={`${streak} day streak`}>
-          <Icon name="flame" size={16} className="text-apex" />
+          <Icon name="flame" size={16} className="text-luna" />
           {streak} day{streak === 1 ? "" : "s"}
         </div>
       </header>
 
-      <section className="card relative overflow-hidden bg-gradient-to-br from-[#3d2008] via-[#1d1208] to-[#100c08] p-5">
-        <div className="absolute -right-6 -top-6 text-apex/10">
+      <section className="card relative overflow-hidden bg-gradient-to-br from-[#2d1858] via-[#150e28] to-[#0c0916] p-5">
+        <div className="absolute -right-6 -top-6 text-luna/10">
           <Icon name="dumbbell" size={150} strokeWidth={1.2} />
         </div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-apex">Today's workout</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-luna">Today's workout</p>
         <h2 className="mt-1 text-xl font-extrabold">{planned.name}</h2>
         <p className="mt-1 text-sm text-white/60">
           {planned.minutes} min · {planned.level} · {planned.exercises.length} exercises
@@ -50,7 +50,7 @@ export default function Home() {
           <Icon name="play" size={14} />
         </button>
         {doneToday && (
-          <span className="absolute right-4 bottom-4 flex items-center gap-1 text-xs font-semibold text-lime-apex">
+          <span className="absolute right-4 bottom-4 flex items-center gap-1 text-xs font-semibold text-lime-luna">
             <Icon name="check" size={14} /> Done today
           </span>
         )}
@@ -105,7 +105,7 @@ export default function Home() {
                     {fmtDay(l.date)} · {l.minutes} min
                   </p>
                 </div>
-                <span className="text-sm font-bold text-apex">{l.calories} kcal</span>
+                <span className="text-sm font-bold text-luna">{l.calories} kcal</span>
               </li>
             ))}
           </ul>
@@ -118,7 +118,7 @@ export default function Home() {
 function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
   return (
     <div className="card flex flex-col items-center gap-1 py-4">
-      <Icon name={icon} size={20} className="text-apex" />
+      <Icon name={icon} size={20} className="text-luna" />
       <span className="text-lg font-extrabold">{value}</span>
       <span className="text-[11px] text-white/50">{label}</span>
     </div>

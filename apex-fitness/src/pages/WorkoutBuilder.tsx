@@ -124,7 +124,7 @@ function Pills<T extends string>({ label, options, value, onChange }: { label: s
       <p className="mb-1 text-xs font-semibold text-white/60">{label}</p>
       <div className="flex gap-2">
         {options.map((o) => (
-          <button key={o} onClick={() => onChange(o)} className={`chip ${value === o ? "bg-apex text-black" : "bg-ink-2 text-white/70"}`}>
+          <button key={o} onClick={() => onChange(o)} className={`chip ${value === o ? "bg-luna text-black" : "bg-ink-2 text-white/70"}`}>
             {o}
           </button>
         ))}
@@ -169,7 +169,7 @@ function Picker({ onClose, onPick, category }: { onClose: () => void; onPick: (e
       <ul className="max-h-72 space-y-1 overflow-y-auto">
         {query && !exact && (
           <li>
-            <button onClick={() => onPick(make(q.trim().slice(0, 40)))} className="flex w-full items-center gap-2 rounded-xl bg-apex/10 px-3 py-2.5 text-left text-sm font-semibold text-apex">
+            <button onClick={() => onPick(make(q.trim().slice(0, 40)))} className="flex w-full items-center gap-2 rounded-xl bg-luna/10 px-3 py-2.5 text-left text-sm font-semibold text-luna">
               <Icon name="plus" size={14} /> Add “{q.trim()}”
             </button>
           </li>

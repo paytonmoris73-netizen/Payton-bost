@@ -17,7 +17,7 @@ export default function Ring({ value, max, size = 200, stroke = 14, color, child
   const c = 2 * Math.PI * r;
   const pct = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
   const over = max > 0 && value > max;
-  const base = color ?? (over ? "#ff8a1f" : "#6bd34a");
+  const base = color ?? (over ? "#9b5cff" : "#6bd34a");
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90" aria-hidden="true">

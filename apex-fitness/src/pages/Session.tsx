@@ -181,7 +181,7 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
     return (
       <Shell>
         <div className="animate-pop flex flex-1 flex-col items-center justify-center text-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-lime-apex/15 text-lime-apex">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-lime-luna/15 text-lime-luna">
             <Icon name="check" size={48} strokeWidth={3} />
           </div>
           <h1 className="mt-6 text-3xl font-extrabold">Workout complete!</h1>
@@ -192,8 +192,8 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
             <Summary label="Sets" value={String(s.setsDone)} />
           </div>
           {prs.length > 0 && (
-            <div className="mt-5 w-full max-w-xs rounded-2xl border border-gold/40 bg-gold/10 p-4 text-left">
-              <p className="flex items-center gap-2 text-sm font-bold text-gold">
+            <div className="mt-5 w-full max-w-xs rounded-2xl border border-moon/40 bg-moon/10 p-4 text-left">
+              <p className="flex items-center gap-2 text-sm font-bold text-moon">
                 <Icon name="trophy" size={16} /> New personal record{prs.length > 1 ? "s" : ""}!
               </p>
               <ul className="mt-2 space-y-1 text-sm">
@@ -261,9 +261,9 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
 
       {s.phase === "rest" ? (
         <div className="flex flex-1 flex-col items-center justify-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-lime-apex">Rest</p>
+          <p className="text-sm font-semibold uppercase tracking-widest text-luna-light">Rest</p>
           <div className="my-6">
-            <Ring value={s.rest} max={Math.max(e.rest, s.rest)} size={220} stroke={12}>
+            <Ring value={s.rest} max={Math.max(e.rest, s.rest)} size={220} stroke={12} color="#c9a7ff">
               <span className="shine-text text-6xl font-black tabular-nums">{s.rest}</span>
               <span className="text-xs text-white/50">seconds</span>
             </Ring>
@@ -282,17 +282,17 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
               <Icon name="skip" size={14} /> Skip rest
             </button>
           </div>
-          {s.paused && <p className="mt-4 text-xs font-semibold text-gold">Paused</p>}
+          {s.paused && <p className="mt-4 text-xs font-semibold text-moon">Paused</p>}
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-apex">
+          <p className="text-sm font-semibold uppercase tracking-widest text-luna">
             Set {s.set} of {e.sets}
           </p>
           <h1 className="mt-3 break-words text-4xl font-black leading-tight">{e.name}</h1>
           {timed && s.workLeft !== null ? (
             <div className="mt-6">
-              <Ring value={s.workLeft} max={Math.max(e.seconds ?? 0, s.workLeft)} size={200} stroke={12} color="#ff8a1f">
+              <Ring value={s.workLeft} max={Math.max(e.seconds ?? 0, s.workLeft)} size={200} stroke={12} color="#9b5cff">
                 <span className="shine-text text-6xl font-black tabular-nums">{s.workLeft}</span>
                 <span className="text-xs text-white/50">seconds left</span>
               </Ring>
@@ -351,7 +351,7 @@ function Running({ w, s, setS, weights, setWeights, logged, setLogged, prior, en
               Mark set done without the timer
             </button>
           )}
-          {s.paused && <p className="mt-4 text-xs font-semibold text-gold">Paused</p>}
+          {s.paused && <p className="mt-4 text-xs font-semibold text-moon">Paused</p>}
         </div>
       )}
     </Shell>
@@ -364,7 +364,7 @@ function Shell({ children }: { children: ReactNode }) {
       role="dialog"
       aria-modal="true"
       aria-label="Workout in progress"
-      className="fixed inset-0 z-[60] flex justify-center bg-[#070605] bg-[radial-gradient(ellipse_at_top,rgba(120,60,10,0.45)_0%,transparent_60%)]"
+      className="fixed inset-0 z-[60] flex justify-center bg-[#06050c] bg-[radial-gradient(ellipse_at_top,rgba(70, 36, 150,0.45)_0%,transparent_60%)]"
     >
       <div className="flex w-full max-w-[430px] flex-col overflow-y-auto px-5 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[calc(env(safe-area-inset-top)+1.5rem)]">
         {children}

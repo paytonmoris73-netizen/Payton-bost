@@ -26,7 +26,7 @@ export default function Nutrition() {
 
       <section className="flex flex-col items-center">
         <Ring value={cals} max={calorieGoal} size={210} stroke={14}>
-          <Icon name="flame" size={22} className="text-apex" />
+          <Icon name="flame" size={22} className="text-luna" />
           <span className="shine-text text-4xl font-black tabular-nums">{cals.toLocaleString()}</span>
           <span className="text-xs text-white/50">/ {calorieGoal.toLocaleString()} Calories</span>
         </Ring>
@@ -134,7 +134,7 @@ function AddMeal({ onClose, onAdd }: { onClose: () => void; onAdd: (m: { name: s
       <p className="mb-2 text-xs font-semibold text-white/50">Quick add</p>
       <div className="no-scrollbar -mx-5 mb-4 flex gap-2 overflow-x-auto px-5">
         {MEAL_PRESETS.map((p) => (
-          <button key={p.name} onClick={() => onAdd(p)} className="chip shrink-0 bg-ink-3 text-white/80 hover:bg-apex hover:text-black">
+          <button key={p.name} onClick={() => onAdd(p)} className="chip shrink-0 bg-ink-3 text-white/80 hover:bg-luna hover:text-black">
             {p.name} · {p.calories}
           </button>
         ))}
