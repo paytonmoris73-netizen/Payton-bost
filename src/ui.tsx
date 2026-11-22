@@ -105,7 +105,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
 
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
   return (
-    <span className="inline-flex items-center gap-0.5 text-orange" style={{ fontSize: size }} aria-label={`${value.toFixed(1)} out of 5`}>
+    <span role="img" className="inline-flex items-center gap-0.5 text-orange" style={{ fontSize: size }} aria-label={`${value.toFixed(1)} out of 5`}>
       {"★★★★★".split("").map((_, i) => <span key={i} className={i + 0.5 <= value ? "" : "opacity-25"}><G g="★" /></span>)}
     </span>
   );
@@ -133,7 +133,7 @@ export function Skeleton({ className = "" }: { className?: string }) { return <d
 export function Empty({ emoji = "🍽️", title, text, action }: { emoji?: string; title: string; text?: string; action?: ReactNode }) {
   return (
     <div className="card rise-in flex flex-col items-center gap-2 px-6 py-12 text-center">
-      <div className="mb-1 grid h-20 w-20 place-items-center rounded-[1.6rem] text-5xl text-orange tile"><G g={emoji} size={40} /></div><h3 className="h-display text-xl">{title}</h3>
+      <div className="mb-1 grid h-20 w-20 place-items-center rounded-[1.6rem] text-5xl text-orange tile"><G g={emoji} size={40} /></div><h2 className="h-display text-xl">{title}</h2>
       {text && <p className="max-w-sm text-sm text-brown">{text}</p>}{action && <div className="mt-2">{action}</div>}
     </div>
   );
@@ -187,7 +187,7 @@ export function RecipeCard({ r, compact, owned }: { r: Recipe; compact?: boolean
         <span className={`absolute left-4 top-4 rounded-full px-2.5 py-1 text-xs font-bold shadow-sm ${owned ? "bg-sage on-sage" : r.price === 0 ? "glass" : "bg-orange on-accent"}`}>{owned ? "Owned" : bundle ? `Bundle · ${money(r.price)}` : money(r.price)}</span>
       </div>
       <div className="px-3.5 pb-4 pt-2 sm:px-4">
-        <h3 className="line-clamp-1 font-semibold">{r.title}</h3>
+        <div className="line-clamp-1 font-semibold">{r.title}</div>
         <p className="mt-0.5 truncate text-xs text-brown">by {c.name}</p>
         <div className="mt-2 flex items-center gap-1.5 whitespace-nowrap text-xs text-brown">
           <Stars value={r.rating} size={12} /> <span>{r.rating.toFixed(1)} <span className="hidden sm:inline">({r.reviews})</span></span>
@@ -204,7 +204,7 @@ export function NutritionPanel({ n, servings, partial }: { n: Nutrition; serving
   const rows: [string, number, string][] = [["Calories", n.calories, "kcal"], ["Protein", n.protein, "g"], ["Carbs", n.carbs, "g"], ["Fat", n.fat, "g"], ["Fibre", n.fiber, "g"], ["Sugar", n.sugar, "g"], ["Sodium", n.sodium, "mg"]];
   return (
     <div>
-      <div className="mb-2 flex items-baseline justify-between"><h4 className="font-semibold">Estimated nutrition</h4><span className="text-xs text-brown">per serving · {servings} servings</span></div>
+      <div className="mb-2 flex items-baseline justify-between"><h3 className="font-semibold">Estimated nutrition</h3><span className="text-xs text-brown">per serving · {servings} servings</span></div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{rows.map(([l, v, u]) => <div key={l} className="tile px-3 py-2"><div className="text-lg font-bold">{Math.round(v * 10) / 10}<span className="text-xs font-medium text-brown"> {u}</span></div><div className="text-xs text-brown">{l}</div></div>)}</div>
       <p className="mt-2 text-xs text-brown">{DISCLAIMER_NUTRITION}{partial ? " Some ingredients had no nutrition data, so totals are partial." : ""}</p>
     </div>

@@ -33,6 +33,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Plus = lazy(() => import("./pages/Plus"));
 const Safety = lazy(() => import("./pages/Safety"));
 const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 /** Warm every page's code in the background after start-up, so tapping around is instant (no loading flash). */
 const PRELOAD = [
@@ -61,6 +62,7 @@ const PRELOAD = [
   () => import("./pages/Plus"),
   () => import("./pages/Safety"),
   () => import("./pages/Terms"),
+  () => import("./pages/Privacy"),
 ];
 if (typeof window !== "undefined") {
   const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
@@ -95,6 +97,7 @@ export function App() {
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route element={<Gate><Layout /></Gate>}>
               <Route index element={<Home />} />
               <Route path="combiner" element={<Combiner />} />

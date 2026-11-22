@@ -8,7 +8,7 @@ export default function Terms() {
   const me = useMe(); const { hash } = useLocation(); const nav = useNavigate();
   useEffect(() => { if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: "start" }); else window.scrollTo(0, 0); }, [hash]);
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 md:px-6">
+    <main className="mx-auto max-w-3xl px-4 py-8 md:px-6">
       <button className="btn-ghost mb-4" onClick={() => (history.length > 1 ? nav(-1) : nav("/"))}>← Back</button>
       <h1 className="h-display text-4xl">Terms of Service</h1>
       <p className="mt-1 text-sm text-brown">Version {TERMS_VERSION} · Please read this. It explains what's allowed, what isn't, who's responsible for your food, and when you can get a refund.</p>
@@ -22,6 +22,6 @@ export default function Terms() {
           {s.groups?.map((g) => (<div key={g.title} className="mt-4"><h3 className="text-sm font-bold">{g.title}</h3><ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-sm">{g.items.map((i) => <li key={i}>{i}</li>)}</ul></div>))}
         </section>))}
       {me && <p className="mt-6 text-center text-xs text-brown">See also the <Link to="/safety" className="underline">Safety Center</Link>.</p>}
-    </div>
+    </main>
   );
 }

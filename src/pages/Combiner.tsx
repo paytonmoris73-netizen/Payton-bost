@@ -111,7 +111,7 @@ export default function Combiner() {
                     <button onClick={() => { add(i); toast(`${i.name} added`); }} className={`press flex w-full flex-col items-center gap-1 rounded-[1.1rem] p-2.5 text-center transition-[background,box-shadow] duration-300 ${on ? "sel-fill" : "tile hover:bg-white/80"}`} aria-label={`Add ${i.name}`} aria-pressed={on}>
                       <span className={`text-3xl transition-transform duration-500 [transition-timing-function:var(--ease-pop)] ${on ? "scale-110" : ""}`}>{i.emoji}</span><span className="line-clamp-1 text-[11px] font-semibold">{i.name}</span>
                     </button>
-                    <button onClick={() => toggleFrequent(i.id)} className={`absolute right-1 top-1 text-xs ${frequent.includes(i.id) ? "text-orange" : "text-brown-light"}`} aria-label={frequent.includes(i.id) ? "Remove from frequent" : "Mark as frequent"}><G g={frequent.includes(i.id) ? "★" : "☆"} /></button>
+                    <button onClick={() => toggleFrequent(i.id)} className={`absolute right-0 top-0 grid h-9 w-9 place-items-center text-xs ${frequent.includes(i.id) ? "text-orange" : "text-brown"}`} aria-label={frequent.includes(i.id) ? "Remove from frequent" : "Mark as frequent"}><G g={frequent.includes(i.id) ? "★" : "☆"} /></button>
                   </div>
                 );
               })}

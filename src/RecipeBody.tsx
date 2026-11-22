@@ -87,8 +87,8 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
         <div className="card space-y-4 p-5">
           <NutritionPanel n={r.nutrition} servings={r.servings} />
           <AllergenNote allergens={r.allergens} diet={r.diet} />
-          {r.substitutions.length > 0 && <div><h4 className="mb-1 font-semibold">Substitutions</h4><ul className="list-disc pl-5 text-sm text-brown">{r.substitutions.map((s) => <li key={s}>{s}</li>)}</ul></div>}
-          <div><h4 className="mb-1 font-semibold">Storage</h4><p className="text-sm text-brown">{r.storage}</p></div>
+          {r.substitutions.length > 0 && <div><h3 className="mb-1 font-semibold">Substitutions</h3><ul className="list-disc pl-5 text-sm text-brown">{r.substitutions.map((s) => <li key={s}>{s}</li>)}</ul></div>}
+          <div><h3 className="mb-1 font-semibold">Storage</h3><p className="text-sm text-brown">{r.storage}</p></div>
         </div>
 
         {!preview && (

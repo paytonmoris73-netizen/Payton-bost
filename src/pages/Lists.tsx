@@ -22,7 +22,7 @@ export default function Lists() {
       <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
         <div className="space-y-2">
           {lists.map((l) => <button key={l.id} onClick={() => setSel(l.id)} className={`press flex w-full items-center justify-between rounded-[1.1rem] px-4 py-3 text-left text-sm font-semibold transition-colors duration-300 ${list?.id === l.id ? "ink-fill text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_8px_18px_-10px_rgba(37,35,31,.6)]" : "tile"}`}>{l.name}<span className="text-xs opacity-70">{l.items.filter((i) => !i.checked).length}</span></button>)}
-          <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim().length < 2) return toast("Name your list.", "err"); setSel(createList(name.trim().slice(0, 40))); setName(""); }}><input className="input" placeholder="New list…" value={name} onChange={(e) => setName(e.target.value)} aria-label="New list name" /><button className="btn-dark"><G g="＋" /></button></form>
+          <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim().length < 2) return toast("Name your list.", "err"); setSel(createList(name.trim().slice(0, 40))); setName(""); }}><input className="input" placeholder="New list…" value={name} onChange={(e) => setName(e.target.value)} aria-label="New list name" /><button className="btn-dark" aria-label="Create list"><G g="＋" /></button></form>
         </div>
         {!list ? <Empty emoji="🛒" title="No lists yet" text="Create your first list." /> : (
           <div className="card p-5">

@@ -49,5 +49,8 @@ export default defineConfig({
       }),
   ],
   server: { port: 5173 },
-  build: { outDir: "dist", emptyOutDir: true },
+  build: {
+    outDir: "dist", emptyOutDir: true, target: "es2020", cssCodeSplit: true,
+    rollupOptions: { output: { manualChunks: { vendor: ["react", "react-dom", "react-router-dom", "zustand"] } } }, // stable vendor chunk: stays cached across deploys
+  },
 });

@@ -103,7 +103,7 @@ export default function Settings() {
           </div>
         )}
       </div>
-      <p className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm"><Link to="/terms" className="underline">Terms of Service</Link><Link to="/terms#refunds" className="underline">Refund policy</Link><Link to="/safety" className="underline">Safety Center</Link></p>
+      <p className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm"><Link to="/terms" className="underline">Terms of Service</Link><Link to="/privacy" className="underline">Privacy Policy</Link><Link to="/terms#refunds" className="underline">Refund policy</Link><Link to="/safety" className="underline">Safety Center</Link></p>
     </div>
   );
 }

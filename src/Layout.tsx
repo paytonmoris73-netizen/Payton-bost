@@ -119,7 +119,7 @@ export function Layout() {
   const tabIdx = TAB_BAR.findIndex((t) => t && (t.to === "/" ? loc.pathname === "/" : loc.pathname.startsWith(t.to)));
   return (
     <div className="min-h-screen md:pl-[84px] lg:pl-[17rem]">
-      <aside className="safe-inset-top fixed bottom-3 left-3 z-40 hidden w-[68px] flex-col rounded-[1.75rem] py-4 card md:flex lg:w-60 lg:px-3">
+      <aside aria-label="Main navigation" className="safe-inset-top fixed bottom-3 left-3 z-40 hidden w-[68px] flex-col rounded-[1.75rem] py-4 card md:flex lg:w-60 lg:px-3">
         <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="CRUNCH home" className="grid h-10 w-10 place-items-center rounded-[0.85rem] ink-fill font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18)]">C</Link></span><span className="hidden lg:block"><Logo /></span></div>
         <nav ref={side.ref} className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar px-2 lg:px-0" aria-label="Main">
           <span aria-hidden className="pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] ink-fill transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />

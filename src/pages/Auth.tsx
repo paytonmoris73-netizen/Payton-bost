@@ -41,7 +41,7 @@ export default function Auth() {
           {mode === "signup" && (
             <>
               <div className="mb-3"><label className="label" htmlFor="y">Birth year</label><input id="y" inputMode="numeric" maxLength={4} className="input" value={f.year} onChange={(e) => set("year", e.target.value.replace(/\D/g, ""))} placeholder="e.g. 1995" /><p className="mt-1 text-xs text-brown">Used for age protections. Buying and selling recipes requires 18+.</p></div>
-              <label className="mb-3 flex items-start gap-2 text-xs text-brown"><input type="checkbox" checked={f.agree} onChange={(e) => set("agree", e.target.checked)} className="mt-0.5" />I agree to the <Link to="/terms" target="_blank" className="underline">Terms of Service</Link> (including that I cook at my own risk, scamming means a permanent ban, and the refund rules).</label>
+              <label className="mb-3 flex items-start gap-2 text-xs text-brown"><input type="checkbox" checked={f.agree} onChange={(e) => set("agree", e.target.checked)} className="mt-0.5" />I agree to the <Link to="/terms" target="_blank" className="underline">Terms of Service</Link> (including that I cook at my own risk, scamming means a permanent ban, and the refund rules) and the <Link to="/privacy" target="_blank" className="underline">Privacy Policy</Link>.</label>
             </>
           )}
           {err && <p role="alert" className="pop-in mb-3 rounded-2xl bg-red-50/90 px-3 py-2 text-sm text-red-700">{err}</p>}

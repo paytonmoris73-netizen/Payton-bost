@@ -26,16 +26,16 @@ export default function CookMode() {
   }, [running]);
   useEffect(() => { let lock: { release: () => void } | undefined; (navigator as unknown as { wakeLock?: { request: (t: string) => Promise<{ release: () => void }> } }).wakeLock?.request("screen").then((l) => (lock = l)).catch(() => {}); return () => lock?.release(); }, []);
 
-  if (!r || r.steps.length === 0) return <div className="p-6"><Empty title="Nothing to cook" action={<Link to="/" className="btn-primary">Home</Link>} /></div>;
-  if (!canAccess(r, owned, me?.id ?? null)) return <div className="p-6"><Empty emoji="🔒" title="Purchase required" text="Buy this recipe to cook it." action={<Link to={`/marketplace/${r.id}`} className="btn-primary">View listing</Link>} /></div>;
+  if (!r || r.steps.length === 0) return <main className="p-6"><h1 className="sr-only">Cook mode</h1><Empty title="Nothing to cook" action={<Link to="/" className="btn-primary">Home</Link>} /></main>;
+  if (!canAccess(r, owned, me?.id ?? null)) return <main className="p-6"><h1 className="sr-only">Cook mode</h1><Empty emoji="🔒" title="Purchase required" text="Buy this recipe to cook it." action={<Link to={`/marketplace/${r.id}`} className="btn-primary">View listing</Link>} /></main>;
   const step = r.steps[i]; const last = i === r.steps.length - 1; const factor = servings / Math.max(1, r.servings);
   const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   return (
-    <div className="flex min-h-screen flex-col">
+    <main className="flex min-h-screen flex-col">
       <div className="h-1.5 bg-charcoal/[0.06]"><div className="h-full w-full origin-left accent-fill transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `scaleX(${(i + 1) / r.steps.length})` }} /></div>
       <header className="glass-bar safe-top sticky top-0 z-10 flex items-center justify-between gap-2 px-4 pb-3 md:px-8">
         <button onClick={() => nav(-1)} className="btn-ghost"><G g="✕" /> Exit</button>
-        <div className="text-center"><div className="line-clamp-1 font-semibold">{r.title}</div><div className="text-xs text-brown">Step {i + 1} of {r.steps.length}</div></div>
+        <div className="text-center"><h1 className="line-clamp-1 font-semibold">{r.title}</h1><div className="text-xs text-brown">Step {i + 1} of {r.steps.length}</div></div>
         <div className="flex gap-2"><button className={`btn-ghost ${voice ? "!bg-orange" : ""}`} onClick={() => { const v = !voice; setVoice(v); if (!v && "speechSynthesis" in window) window.speechSynthesis.cancel(); if (v && !("speechSynthesis" in window)) toast("Voice isn't supported in this browser.", "err"); }} aria-pressed={voice} aria-label="Read steps aloud">🔊</button><button className="btn-ghost" onClick={() => setShowIng(true)}>🧺</button></div>
       </header>
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-6 py-6">
@@ -64,6 +64,6 @@ export default function CookMode() {
           </aside>
         </div>
       )}
-    </div>
+    </main>
   );
 }

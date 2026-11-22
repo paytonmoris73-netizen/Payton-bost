@@ -25,7 +25,7 @@
   --cream-dark: 237 224 204;
   --charcoal: 37 35 31;           /* ink */
   --ink-hi: 62 58 52;             /* top of ink-gradient buttons */
-  --brown: 138 114 94;
+  --brown: 116 93 74;             /* AA on cream (was 4.2:1, now 5.6:1) */
   --brown-light: 176 152 138;
   --white: 255 255 255;           /* glass surface tint */
   --surface: 255 248 236;         /* warm translucent tiles */
@@ -401,13 +401,13 @@ html.fx-lite {
   .seg-thumb.dark { background: linear-gradient(180deg, rgb(var(--ink-hi)), rgb(var(--charcoal))); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 6px 14px -6px rgb(var(--shade) / 0.6); }
   .seg-item {
     position: relative; z-index: 1; white-space: nowrap; border-radius: 999px; padding: 0.45rem 1rem;
-    font-size: 0.875rem; font-weight: 600; color: rgb(var(--charcoal) / 0.6);
+    font-size: 0.875rem; font-weight: 600; color: rgb(var(--charcoal) / 0.74);
     transition: color var(--dur-2) ease, transform var(--dur-1) var(--ease-out);
   }
   .seg-item:active { transform: scale(0.95); }
   .seg-item[data-active="true"] { color: rgb(var(--charcoal)); }
   .seg-thumb.dark ~ .seg-item[data-active="true"] { color: rgb(var(--ivory)); }
-  .seg.sm .seg-item { padding: 0.32rem 0.8rem; font-size: 0.75rem; }
+  .seg.sm .seg-item { padding: 0.42rem 0.8rem; font-size: 0.75rem; min-height: 32px; }
 
   /* selectable chip */
   .pick {
@@ -447,7 +447,7 @@ html.fx-lite {
   }
   html.dark .stepper button { background: linear-gradient(180deg, rgb(84 78 71), rgb(64 60 54)); }
   .stepper button:active { transform: scale(0.88); }
-  .stepper input { @apply w-full min-w-0 bg-transparent text-center text-base font-bold tabular-nums focus:outline-none; }
+  .stepper input { @apply min-h-[2.25rem] w-full min-w-0 bg-transparent text-center text-base font-bold tabular-nums focus:outline-none; }
 
   /* switch */
   .switch { position: relative; width: 51px; height: 31px; flex-shrink: 0; border-radius: 999px; background: rgb(var(--charcoal) / 0.16); transition: background-color var(--dur-2) ease; }
@@ -502,7 +502,10 @@ html[data-crunch-theme] .on-sage { color: #fff; }
 html.fx-lite .bg-cream { background-color: rgb(var(--cream)); }
 html.fx-lite .bg-white { background-color: rgb(var(--white)); }
 html.dark .bg-red-50, html.dark .bg-red-50\/90 { background-color: rgb(127 29 29 / 0.35); }
-html.dark .text-red-700, html.dark .text-red-800 { color: rgb(254 202 202); }
+html.dark .text-red-700, html.dark .text-red-800, html.dark .text-red-900 { color: rgb(254 202 202); }
+html.dark .bg-red-100 { background-color: rgb(127 29 29 / 0.5); }
+html.dark .border-red-200, html.dark .border-red-300 { border-color: rgb(248 113 113 / 0.35); }
+html.dark .text-orange-700 { color: rgb(var(--orange)); }
 
 /* ---------- installed-app polish ----------
    Full-screen on iPhone/iPad (status bar overlays the app): keep bars clear of the notch / clock.
@@ -673,4 +676,13 @@ html.fx-lite { --swirl-a: 0.6; }
   }
   .seg-thumb { background: linear-gradient(180deg, rgb(255 255 255 / 0.95), rgb(var(--white) / 0.7)); box-shadow: inset 0 1px 0 rgb(255 255 255), 0 2px 4px rgb(var(--shade) / 0.12), 0 6px 14px -4px rgb(var(--shade) / 0.28); }
   .stepper button { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(var(--shade) / 0.12), 0 4px 10px -4px rgb(var(--shade) / 0.3); }
+}
+
+/* ---------- touch: bigger invisible hit areas for small text links / icon buttons (no layout change) ---------- */
+@media (pointer: coarse) {
+  a.underline, button.underline, a.text-sm.font-semibold, a.font-semibold, button.text-xs, button.font-semibold.text-brown, button.text-orange,
+  button[class*="text-brown"].underline { position: relative; }
+  a.underline::after, button.underline::after, a.text-sm.font-semibold::after, a.font-semibold::after, button.text-xs::after, button.font-semibold.text-brown::after, button.text-orange::after {
+    content: ""; position: absolute; inset: -10px -5px;
+  }
 }
