@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ALL_RECIPES, CREATORS } from "./data";
 import { matchScore } from "./engine";
@@ -109,7 +109,8 @@ export function Layout() {
   const me = useMe(); const loc = useLocation(); const [create, setCreate] = useState(false); const [drawer, setDrawer] = useState(false);
   const ann = useStore((s) => s.announcements[0]); const cartN = useStore((s) => s.cart.length);
   const drawerP = usePresence(drawer, 280);
-  useEffect(() => { window.scrollTo(0, 0); setDrawer(false); }, [loc.pathname]);
+  useLayoutEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]); // before paint: no visible jump
+  useEffect(() => { setDrawer(false); }, [loc.pathname]);
   const side = useNavIndicator(loc.pathname);
   const cooking = loc.pathname.startsWith("/cook/");
   if (cooking) return <Outlet />;
@@ -151,7 +152,7 @@ export function Layout() {
           {tabIdx >= 0 && <span aria-hidden className="absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/5)] rounded-[1.5rem] bg-charcoal/[0.07] transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `translate3d(${tabIdx * 100}%,0,0)` }} />}
           {TAB_BAR.map((n, idx) =>
             n === null ? (
-              <button key="c" onClick={() => setCreate(true)} className="press relative mx-auto grid h-12 w-12 place-items-center rounded-full accent-fill" aria-label="Create"><Icon n="plus" size={24} /></button>
+              <button key="c" onClick={() => setCreate(true)} className="press accent-sheen relative mx-auto grid h-12 w-12 place-items-center overflow-hidden rounded-full accent-fill" aria-label="Create" aria-expanded={create}><span className={`grid place-items-center transition-transform duration-500 [transition-timing-function:var(--ease-spring)] ${create ? "rotate-[135deg] scale-90" : ""}`}><Icon n="plus" size={24} /></span></button>
             ) : (
               <NavLink key={n.to + idx} to={n.to} end={"end" in n} className={({ isActive }) => `press relative flex flex-col items-center gap-0.5 rounded-[1.5rem] py-1.5 text-[10.5px] font-semibold transition-colors duration-300 ${isActive ? "text-charcoal" : "text-charcoal/45"}`}><Icon n={n.i} size={22} />{n.l}</NavLink>
             ),
@@ -162,8 +163,8 @@ export function Layout() {
       <CreateSheet open={create} onClose={() => setCreate(false)} />
       {drawerP.mounted && (
         <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className={`absolute inset-0 scrim ${drawerP.leaving ? "backdrop-out" : "backdrop-in"}`} onClick={() => setDrawer(false)} />
-          <div className={`glass-thick absolute inset-y-2 left-2 w-72 overflow-y-auto rounded-[1.75rem] p-4 ${drawerP.leaving ? "[animation:drawerIn_260ms_var(--ease-spring)_reverse_both]" : "drawer-in"}`}>
+          <div className={`scrim-blur absolute inset-0 ${drawerP.leaving ? "backdrop-out" : "backdrop-in"}`} onClick={() => setDrawer(false)} />
+          <div className={`sheet absolute inset-y-2 left-2 w-72 overflow-y-auto rounded-[1.75rem] p-4 ${drawerP.leaving ? "[animation:drawerIn_260ms_var(--ease-spring)_reverse_both]" : "drawer-in"}`}>
             <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="press grid h-9 w-9 place-items-center rounded-full bg-charcoal/[0.07]"><G g="✕" size={15} /></button></div>
             <div className="stagger space-y-0.5">{[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `press flex items-center gap-3 rounded-[0.95rem] px-3 py-3 text-sm font-medium ${isActive ? "bg-charcoal text-ivory" : "hover:bg-white/60"}`}><Icon n={n.icon} />{n.label}</NavLink>)}</div>
           </div>

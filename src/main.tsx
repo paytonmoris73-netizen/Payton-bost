@@ -9,6 +9,8 @@ initAppearance();
 applyFx();
 probeFrameRate();
 installSpecular();
+// iOS Safari only shows :active (our press/squish feedback) once a touch listener exists.
+document.addEventListener("touchstart", () => {}, { passive: true });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

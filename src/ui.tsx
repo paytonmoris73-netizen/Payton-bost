@@ -37,37 +37,64 @@ export function Toaster() {
 /* ---------- primitives ---------- */
 /** Keeps a component mounted for its exit animation. */
 export function usePresence(open: boolean, ms = 300) {
-  const [mounted, setMounted] = useState(open); const [leaving, setLeaving] = useState(false);
+  // Derived during render (not in an effect) so a sheet mounts on the same frame as the tap.
+  const [st, setSt] = useState({ open, leaving: false });
+  if (st.open !== open) setSt({ open, leaving: !open });
   useEffect(() => {
-    if (open) { setMounted(true); setLeaving(false); return; }
-    if (!mounted) return;
-    setLeaving(true); const t = setTimeout(() => { setMounted(false); setLeaving(false); }, ms); return () => clearTimeout(t);
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
-  return { mounted, leaving };
+    if (!st.leaving) return;
+    const t = setTimeout(() => setSt((s) => (s.open ? s : { ...s, leaving: false })), ms); return () => clearTimeout(t);
+  }, [st.leaving, ms]);
+  return { mounted: open || st.leaving, leaving: !open && st.leaving };
 }
 
-/** Bottom sheet on phones, floating glass dialog on larger screens. */
+/** Bottom sheet on phones (swipe down to close), floating glass dialog on larger screens. */
 export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
   const { mounted, leaving } = usePresence(open);
-  const panel = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null); const scrim = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ y: number; t: number; dy: number } | null>(null);
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
     const html = document.documentElement; const was = html.style.overflow; html.style.overflow = "hidden";
-    requestAnimationFrame(() => panel.current?.focus({ preventScroll: true }));
-    return () => { window.removeEventListener("keydown", k); html.style.overflow = was; prev?.focus?.({ preventScroll: true }); };
+    const id = requestAnimationFrame(() => panel.current?.focus({ preventScroll: true }));
+    return () => { cancelAnimationFrame(id); window.removeEventListener("keydown", k); html.style.overflow = was; prev?.focus?.({ preventScroll: true }); };
   }, [open, onClose]);
+
+  // Swipe-to-dismiss: writes transforms straight to the DOM (no React renders while dragging).
+  const onDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse" || window.innerWidth >= 768 || (panel.current?.scrollTop ?? 0) > 0) return;
+    drag.current = { y: e.clientY, t: performance.now(), dy: 0 };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    if (panel.current) { panel.current.style.animation = "none"; panel.current.style.transition = "none"; }
+  };
+  const onMove = (e: React.PointerEvent) => {
+    const d = drag.current; if (!d || !panel.current) return;
+    const dy = e.clientY - d.y; d.dy = dy > 0 ? dy : dy / 6; // rubber-band upwards
+    panel.current.style.transform = `translate3d(0,${d.dy}px,0)`;
+    if (scrim.current) scrim.current.style.opacity = String(Math.max(0, 1 - Math.max(0, d.dy) / 500));
+  };
+  const onUp = () => {
+    const d = drag.current; drag.current = null; const el = panel.current; if (!d || !el) return;
+    const v = d.dy / Math.max(1, performance.now() - d.t);
+    el.style.transition = "transform 420ms var(--ease-spring)";
+    if (d.dy > 110 || (v > 0.6 && d.dy > 30)) { el.style.transform = "translate3d(0,110%,0)"; onClose(); }
+    else { el.style.transform = ""; if (scrim.current) { scrim.current.style.transition = "opacity 300ms ease"; scrim.current.style.opacity = ""; } }
+  };
+
   if (!mounted) return null;
+  const dragged = !!panel.current?.style.transform && leaving;
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-end justify-center md:items-center md:p-6" role="dialog" aria-modal="true" aria-label={title}>
-      <div className={`absolute inset-0 scrim ${leaving ? "backdrop-out" : "backdrop-in"}`} onMouseDown={onClose} aria-hidden />
-      <div ref={panel} tabIndex={-1} className={`glass-thick relative max-h-[92vh] w-full overflow-y-auto overscroll-contain rounded-t-[2rem] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2 outline-none md:rounded-[2rem] md:p-7 ${wide ? "md:max-w-3xl" : "md:max-w-lg"} ${leaving ? "sheet-out" : "sheet-in"}`}>
-        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-charcoal/15 md:hidden" aria-hidden />
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="h-display text-2xl">{title}</h2>
-          <button onClick={onClose} className="press grid h-9 w-9 shrink-0 place-items-center rounded-full bg-charcoal/[0.07] text-charcoal/70 hover:bg-charcoal/10" aria-label="Close"><G g="✕" size={15} /></button>
+      <div ref={scrim} className={`scrim-blur absolute inset-0 ${leaving ? "backdrop-out" : "backdrop-in"}`} onMouseDown={onClose} aria-hidden />
+      <div ref={panel} tabIndex={-1} className={`sheet relative max-h-[92vh] w-full overflow-y-auto overscroll-contain rounded-t-[2rem] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2 outline-none md:rounded-[2rem] md:p-7 ${wide ? "md:max-w-3xl" : "md:max-w-lg"} ${dragged ? "" : leaving ? "sheet-out" : "sheet-in"}`}>
+        <div className="-mx-5 -mt-2 touch-none px-5 pt-2 md:mx-0 md:mt-0 md:touch-auto md:p-0" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+          <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-charcoal/20 md:hidden" aria-hidden />
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="h-display text-2xl">{title}</h2>
+            <button onClick={onClose} onPointerDown={(e) => e.stopPropagation()} className="press grid h-9 w-9 shrink-0 place-items-center rounded-full bg-charcoal/[0.07] text-charcoal/70 hover:bg-charcoal/10" aria-label="Close"><G g="✕" size={15} /></button>
+          </div>
         </div>
         {children}
       </div>

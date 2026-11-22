@@ -32,6 +32,40 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Plus = lazy(() => import("./pages/Plus"));
 
+/** Warm every page's code in the background after start-up, so tapping around is instant (no loading flash). */
+const PRELOAD = [
+  () => import("./pages/Auth"),
+  () => import("./pages/Home"),
+  () => import("./pages/Combiner"),
+  () => import("./pages/Chef"),
+  () => import("./pages/Discover"),
+  () => import("./pages/Search"),
+  () => import("./pages/Marketplace"),
+  () => import("./pages/Product"),
+  () => import("./pages/Cart"),
+  () => import("./pages/RecipePage"),
+  () => import("./pages/CookMode"),
+  () => import("./pages/Shop"),
+  () => import("./pages/Community"),
+  () => import("./pages/Cookbook"),
+  () => import("./pages/Lists"),
+  () => import("./pages/Messages"),
+  () => import("./pages/Profile"),
+  () => import("./pages/CreatorPage"),
+  () => import("./pages/Studio"),
+  () => import("./pages/RecipeEditor"),
+  () => import("./pages/Settings"),
+  () => import("./pages/Admin"),
+  () => import("./pages/Plus"),
+];
+if (typeof window !== "undefined") {
+  const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+  // One page per idle slot, so preloading never competes with a tap or an animation.
+  const idle = (cb: () => void) => (w.requestIdleCallback ? w.requestIdleCallback(cb) : setTimeout(cb, 200));
+  const next = (i: number) => { if (i < PRELOAD.length) idle(() => { PRELOAD[i]().catch(() => undefined).finally(() => setTimeout(() => next(i + 1), 120)); }); };
+  setTimeout(() => next(0), 3000);
+}
+
 class Boundary extends Component<{ children: ReactNode }, { err: Error | null }> {
   state = { err: null as Error | null };
   static getDerivedStateFromError(err: Error) { return { err }; }

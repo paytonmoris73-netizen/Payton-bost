@@ -152,15 +152,13 @@ html.fx-lite {
     background:
       radial-gradient(28vmax 28vmax at 30% 40%, rgb(var(--glow-4) / var(--glow-4a)), transparent 70%),
       radial-gradient(22vmax 22vmax at 70% 65%, rgb(var(--glow-1) / calc(var(--glow-1a) * 0.6)), transparent 70%);
-    animation: drift 38s ease-in-out infinite alternate;
-    will-change: transform;
+    transform: translate3d(2%, 1%, 0) rotate(4deg);
   }
-  @keyframes drift { from { transform: translate3d(-4%, -3%, 0) rotate(0deg); } to { transform: translate3d(5%, 4%, 0) rotate(8deg); } }
-  html.fx-lite body::after { animation: none; will-change: auto; }
 
   ::selection { background: rgb(var(--orange-light)); }
   :focus-visible { outline: 2px solid rgb(var(--orange)); outline-offset: 2px; border-radius: 10px; }
-  button, a, [role="button"], label { -webkit-touch-callout: none; }
+  button, a, [role="button"], label, summary { -webkit-touch-callout: none; touch-action: manipulation; }
+  html { scrollbar-gutter: stable; }
   img { -webkit-user-drag: none; }
 
   /* iOS-style checkbox */
@@ -209,8 +207,8 @@ html.fx-lite {
 
 @layer components {
   /* ---------- crystal rim: a 1px light-catching edge, brighter top-left, faint bottom-right ---------- */
-  .card, .glass, .glass-thick, .tile, .btn-ghost, .seg-thumb, .menu { position: relative; }
-  .card::before, .glass::before, .glass-thick::before, .menu::before, .tile::before, .btn-ghost::before {
+  .card, .glass, .glass-thick, .sheet, .tile, .btn-ghost, .seg-thumb, .menu { position: relative; }
+  .card::before, .glass::before, .glass-thick::before, .sheet::before, .menu::before, .tile::before, .btn-ghost::before {
     content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
     background: linear-gradient(145deg, rgb(var(--rim) / var(--rim-a)) 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.25)) 32%, rgb(var(--rim) / 0) 55%, rgb(var(--rim) / calc(var(--rim-a) * 0.55)) 100%);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
@@ -251,6 +249,21 @@ html.fx-lite {
   html.fx-lite.dark .glass-dark { background: rgb(250 246 240 / 0.97); }
   .scrim { background: rgb(12 10 8 / 0.38); }
   html.dark .scrim { background: rgb(0 0 0 / 0.55); }
+  /* Sheets move, so they carry NO backdrop-filter (re-blurring every frame of a slide is what makes
+     sheets stutter on phones). */
+  /* Measured: a full-screen backdrop blur that fades in costs 6-11 dropped frames per sheet on a slow phone,
+     so the scrim is a plain dim. The sheet keeps its glass look from its own gradient + crystal rim. */
+  .scrim-blur { background: rgb(12 10 8 / 0.4); }
+  html.dark .scrim-blur { background: rgb(0 0 0 / 0.55); }
+  .sheet {
+    background:
+      radial-gradient(120% 50% at 0% 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.45)), transparent 55%),
+      linear-gradient(180deg, rgb(var(--surface)), color-mix(in srgb, rgb(var(--surface)) 94%, rgb(var(--bg))));
+    border: 1px solid rgb(var(--rim) / calc(var(--rim-a) * 0.35));
+    box-shadow: var(--spec), var(--lift-2);
+    will-change: transform;
+  }
+  html.fx-lite .sheet { background: rgb(var(--surface)); }
 
   /* Faux glass: no blur, so it can be used for hundreds of cards at no cost. */
   .card {
@@ -299,9 +312,9 @@ html.fx-lite {
   .text-shine {
     background: linear-gradient(100deg, rgb(var(--charcoal)) 0%, rgb(var(--charcoal)) 40%, rgb(var(--orange-dark)) 50%, rgb(var(--charcoal)) 60%, rgb(var(--charcoal)) 100%);
     background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: textShine 7s ease-in-out infinite;
+    animation: textShine 2.4s var(--ease-out) 0.5s 1 both;
   }
-  @keyframes textShine { 0%, 60% { background-position: 100% 0; } 100% { background-position: -50% 0; } }
+  @keyframes textShine { from { background-position: 100% 0; } to { background-position: -50% 0; } }
   html.fx-lite .text-shine { animation: none; }
 
   /* ---------- controls ---------- */
@@ -541,7 +554,7 @@ html.dark .text-red-700, html.dark .text-red-800 { color: rgb(254 202 202); }
 .pop { animation: pop 0.42s var(--ease-pop); }
 
 /* ---------- seasonal decorations (pure transform/opacity; hidden on weak devices & reduced motion) ---------- */
-.decor { position: fixed; inset: 0; z-index: 25; pointer-events: none; overflow: hidden; contain: strict; }
+.decor { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; contain: strict; }
 .decor span { position: absolute; top: 0; left: 0; will-change: transform; user-select: none; }
 @keyframes snowfall {
   from { transform: translate3d(var(--x), -8vh, 0) rotate(0deg); }

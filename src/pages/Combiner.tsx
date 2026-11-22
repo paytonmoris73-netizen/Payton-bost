@@ -11,7 +11,7 @@ import type { Category, Combo, Ingredient } from "../types";
 
 interface Item { id: string; qty: number; unit: string; x: number; y: number }
 const defaultUnit = (i: Ingredient): { qty: number; unit: string } => i.category === "Spices" ? { qty: 1, unit: "tsp" } : i.category === "Sauces" ? { qty: 1, unit: "tbsp" } : i.category === "Baking" ? { qty: 100, unit: "g" } : { qty: 1, unit: "piece" };
-const CARD_W = 148, CARD_H = 124;
+const CARD_W = 140, CARD_H = 124;
 
 async function shrink(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
@@ -30,28 +30,30 @@ export default function Combiner() {
   const [items, setItems] = useState<Item[]>([]); const [q, setQ] = useState(""); const [cat, setCat] = useState<"All" | "Frequent" | Category>("All"); const [tab, setTab] = useState<"Ingredients" | "Workspace" | "Analysis">("Ingredients");
   const [name, setName] = useState("My combination"); const [notes, setNotes] = useState(""); const [photo, setPhoto] = useState<string | undefined>(); const [comboId, setComboId] = useState<string | null>(null);
   const [saveOpen, setSaveOpen] = useState(false); const [customOpen, setCustomOpen] = useState(false); const [scanOpen, setScanOpen] = useState(false); const [genOpen, setGenOpen] = useState(false); const [listOpen, setListOpen] = useState(false);
-  const wsRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<HTMLDivElement>(null); const lastW = useRef(0);
+  /** Workspace width; when the Workspace tab is hidden (phones) use the last real width or an estimate from the screen. */
+  const wsWidth = () => { const w = wsRef.current?.clientWidth ?? 0; if (w > 0) { lastW.current = w; return w; } return lastW.current || (window.innerWidth >= 1024 ? 600 : Math.max(280, window.innerWidth - 72)); };
 
-  const place = (n: number, w: number) => { const cols = Math.max(1, Math.floor((w || 600) / (CARD_W + 12))); return { x: 8 + (n % cols) * (CARD_W + 12), y: 8 + Math.floor(n / cols) * (CARD_H + 12) }; };
+  const place = (n: number, w: number) => { const cols = Math.max(1, Math.floor(((w || 600) + 4) / (CARD_W + 12))); return { x: 8 + (n % cols) * (CARD_W + 12), y: 8 + Math.floor(n / cols) * (CARD_H + 12) }; };
   const add = (i: Ingredient) => {
     setItems((p) => {
       const ex = p.find((x) => x.id === i.id);
       if (ex) { return p.map((x) => (x.id === i.id ? { ...x, qty: x.qty + (x.unit === "g" || x.unit === "ml" ? 50 : 1) } : x)); }
-      return [...p, { id: i.id, ...defaultUnit(i), ...place(p.length, wsRef.current?.clientWidth || 600) }];
+      return [...p, { id: i.id, ...defaultUnit(i), ...place(p.length, wsWidth()) }];
     });
   };
   // load from ?ing= and ?combo=
   useEffect(() => {
     const raw = params.get("ing"); const cid = params.get("combo");
-    if (raw) { const ids = raw.split(",").filter((id) => ings.some((i) => i.id === id)).slice(0, 12); setItems(ids.map((id, n) => ({ id, ...defaultUnit(ings.find((i) => i.id === id)!), ...place(n, 600) }))); setTab("Workspace"); setParams({}, { replace: true }); }
+    if (raw) { const ids = raw.split(",").filter((id) => ings.some((i) => i.id === id)).slice(0, 12); setItems(ids.map((id, n) => ({ id, ...defaultUnit(ings.find((i) => i.id === id)!), ...place(n, wsWidth()) }))); setTab("Workspace"); setParams({}, { replace: true }); }
     if (cid) { const c = combos.find((x) => x.id === cid); if (c) loadCombo(c); setParams({}, { replace: true }); }
     if (params.get("scan")) { setScanOpen(true); setParams({}, { replace: true }); }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const loadCombo = (c: Combo) => { setItems(c.items.filter((i) => ings.some((x) => x.id === i.id)).map((i, n) => ({ ...i, ...place(n, wsRef.current?.clientWidth || 600) }))); setName(c.name); setNotes(c.notes); setPhoto(c.photo); setComboId(c.id); setTab("Workspace"); toast(`Loaded “${c.name}”`); };
-  const organize = () => setItems((p) => p.map((x, n) => ({ ...x, ...place(n, wsRef.current?.clientWidth || 600) })));
+  const loadCombo = (c: Combo) => { setItems(c.items.filter((i) => ings.some((x) => x.id === i.id)).map((i, n) => ({ ...i, ...place(n, wsWidth()) }))); setName(c.name); setNotes(c.notes); setPhoto(c.photo); setComboId(c.id); setTab("Workspace"); toast(`Loaded “${c.name}”`); };
+  const organize = () => setItems((p) => p.map((x, n) => ({ ...x, ...place(n, wsWidth()) })));
   useEffect(() => {
     const el = wsRef.current; if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => { const w = el.clientWidth; if (w > 0) setItems((p) => p.some((x) => x.x + CARD_W > w + 2) ? p.map((x, n) => (x.x + CARD_W > w + 2 ? { ...x, ...place(n, w) } : x)) : p); });
+    const ro = new ResizeObserver(() => { const w = el.clientWidth; if (w <= 0) return; const changed = Math.abs(w - lastW.current) > 4; lastW.current = w; setItems((p) => (changed || p.some((x) => x.x + CARD_W > w + 2)) ? p.map((x, n) => ({ ...x, ...place(n, w) })) : p); });
     ro.observe(el); return () => ro.disconnect();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const clear = () => { setItems([]); setName("My combination"); setNotes(""); setPhoto(undefined); setComboId(null); };
@@ -73,7 +75,7 @@ export default function Combiner() {
     const d = drag.current; if (!d || !wsRef.current) return; const w = wsRef.current.clientWidth, h = wsRef.current.clientHeight;
     setItems((p) => p.map((x) => (x.id === d.id ? { ...x, x: Math.max(0, Math.min(w - CARD_W, e.clientX - d.dx)), y: Math.max(0, Math.min(h - CARD_H, e.clientY - d.dy)) } : x)));
   };
-  const rows = Math.max(1, Math.ceil(items.length / Math.max(1, Math.floor((wsRef.current?.clientWidth || 600) / (CARD_W + 12))))); const wsH = Math.max(300, rows * (CARD_H + 12) + 20);
+  const rows = Math.max(1, Math.ceil(items.length / Math.max(1, Math.floor((wsWidth() + 4) / (CARD_W + 12))))); const wsH = Math.max(300, rows * (CARD_H + 12) + 20);
 
   const save = () => {
     if (!items.length) return toast("Add some ingredients first.", "err");
