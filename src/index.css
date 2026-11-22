@@ -50,7 +50,7 @@
   --glow-4: 210 180 230;  --glow-4a: 0.22;
 
   --glass: rgb(var(--white) / 0.56);
-  --glass-strong: rgb(var(--surface) / 0.76);
+  --glass-strong: rgb(var(--surface) / 0.97);
   --spec: inset 0 1px 0 rgb(var(--rim) / var(--rim-a)), inset 0 -1px 0 rgb(var(--rim) / 0.2);
   --lift: 0 1px 1px rgb(var(--shade) / 0.03), 0 10px 30px -12px rgb(var(--shade) / 0.18);
   --lift-2: 0 2px 4px rgb(var(--shade) / 0.05), 0 24px 60px -18px rgb(var(--shade) / 0.3);
@@ -78,7 +78,7 @@ html.dark {
   --sage-light: 52 64 48;
   --glow-1a: 0.22; --glow-2a: 0.16; --glow-3a: 0.2; --glow-4a: 0.14;
   --glass: rgb(var(--white) / 0.55);
-  --glass-strong: rgb(var(--surface) / 0.78);
+  --glass-strong: rgb(var(--surface) / 0.97);
   --lift: 0 1px 1px rgb(0 0 0 / 0.2), 0 12px 32px -12px rgb(0 0 0 / 0.6);
   --lift-2: 0 2px 4px rgb(0 0 0 / 0.25), 0 28px 64px -18px rgb(0 0 0 / 0.75);
   color-scheme: dark;
@@ -225,7 +225,7 @@ html.fx-lite {
     box-shadow: var(--spec), var(--lift-2);
   }
   .glass-bar {
-    background: rgb(var(--bg) / 0.6);
+    background: rgb(var(--bg) / 0.97);
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   }
   html.fx-lite .glass, html.fx-lite .glass-thick, html.fx-lite .menu { background: linear-gradient(var(--glass-strong), var(--glass-strong)) padding-box, var(--rim-grad) border-box; }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { create } from "zustand";
 
 export type Mode = "auto" | "light" | "dark";
@@ -61,35 +61,11 @@ export function initAppearance() {
 export const useResolvedTheme = () => resolveTheme(useAppearance((s) => s.theme));
 
 /* ---------- seasonal decorations ---------- */
-const rand = (seed: number) => { const x = Math.sin(seed * 9301 + 49297) * 233280; return x - Math.floor(x); };
-
-function Snow() {
-  const flakes = useMemo(() => Array.from({ length: 26 }, (_, i) => ({
-    x: `${(rand(i) * 100).toFixed(1)}vw`, sway: `${((rand(i + 50) - 0.5) * 12).toFixed(1)}vw`,
-    d: `${(9 + rand(i + 99) * 10).toFixed(1)}s`, delay: `${(-rand(i + 7) * 18).toFixed(1)}s`,
-    size: 8 + Math.round(rand(i + 3) * 12), o: (0.45 + rand(i + 11) * 0.5).toFixed(2), ch: i % 3 === 0 ? "❄" : "•",
-  })), []);
-  return <>{flakes.map((f, i) => <span key={i} className="flake" style={{ ["--x" as string]: f.x, ["--sway" as string]: f.sway, ["--d" as string]: f.d, ["--delay" as string]: f.delay, ["--o" as string]: f.o, fontSize: f.ch === "•" ? f.size * 1.4 : f.size }}>{f.ch}</span>)}</>;
-}
-function Bats() {
-  const bats = useMemo(() => Array.from({ length: 5 }, (_, i) => ({
-    y: `${(8 + rand(i + 20) * 55).toFixed(0)}vh`, d: `${(16 + rand(i + 31) * 14).toFixed(1)}s`, delay: `${(-rand(i + 5) * 26).toFixed(1)}s`, s: (0.6 + rand(i + 77) * 0.7).toFixed(2),
-  })), []);
-  return <>{bats.map((b, i) => <span key={i} className="bat" style={{ ["--y" as string]: b.y, ["--d" as string]: b.d, ["--delay" as string]: b.delay, ["--s" as string]: b.s }}><i>🦇</i></span>)}</>;
-}
-
-/** Full-screen, click-through festive layer. Renders nothing for Classic. */
+/** Applies the chosen theme colours. Falling snow / bats / string lights are intentionally gone: nothing may float over the app. */
 export function ThemeDecor() {
   const t = useResolvedTheme();
   useEffect(() => { const s = useAppearance.getState(); applyAppearance(s.mode, s.theme); }, [t]);
-  if (t === "classic") return null;
-  return <div className="decor" aria-hidden>{t === "christmas" ? <Snow /> : <Bats />}</div>;
+  return null;
 }
 
-/** Twinkling string of lights for the top bar (Christmas only). */
-export function HeaderLights() {
-  const t = useResolvedTheme();
-  if (t !== "christmas") return null;
-  const colors = ["#FF4D5A", "#FFD166", "#3EDC8A", "#5AB0FF", "#FF8BD1"];
-  return <div className="lights" aria-hidden>{Array.from({ length: 18 }, (_, i) => <i key={i} style={{ color: colors[i % colors.length], animationDelay: `${(i * 0.23) % 1.8}s` }} />)}</div>;
-}
+export function HeaderLights() { return null; }
