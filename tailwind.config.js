@@ -20,7 +20,7 @@ export default {
         'brown-light': 'rgb(var(--brown-light) / <alpha-value>)',
       },
       fontFamily: {
-        display: ['DM Serif Display', 'Georgia', 'serif'],
+        display: ['Nunito', 'ui-rounded', 'SF Pro Rounded', 'system-ui', 'sans-serif'],
         sans: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {

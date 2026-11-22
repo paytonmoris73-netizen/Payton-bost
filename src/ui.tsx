@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Segmented } from "./glass";
 import { photoFor } from "./photos";
@@ -118,10 +118,9 @@ export function Cover({ emoji, hue, className = "", size = "text-6xl", id, photo
   const src = photoFor(id, photo);
   if (src) return <div className={`relative overflow-hidden bg-cream ${className}`}><img src={src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /></div>;
   return (
-    <div className={`relative grid place-items-center overflow-hidden ${className}`} style={{ background: `linear-gradient(135deg, hsl(${hue} 70% 90%), hsl(${(hue + 25) % 360} 60% 82%))` }}>
-      <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full opacity-40" style={{ background: `hsl(${hue} 80% 96%)` }} />
-      <div className="absolute -bottom-8 -left-4 h-24 w-24 rounded-full opacity-30" style={{ background: `hsl(${(hue + 40) % 360} 60% 70%)` }} />
-      <span className={`relative drop-shadow-sm ${size}`} role="img" aria-hidden>{emoji}</span>
+    <div className={`cover-gloss relative grid place-items-center overflow-hidden ${className}`} style={{ "--h": hue } as CSSProperties}>
+      <span className="cover-plate" aria-hidden />
+      <span className={`cover-food relative ${size}`} role="img" aria-hidden>{emoji}</span>
     </div>
   );
 }

@@ -20,7 +20,7 @@ export default function Marketplace() {
     <div>
       <PageHeader title="Recipe Marketplace" sub="Original recipes from independent creators. Buy once, keep in your cookbook." action={<div className="flex gap-2"><Link to="/creator/studio" className="btn-ghost">Creator studio</Link><Link to="/creator/new" className="btn-primary">Sell a recipe</Link></div>} />
       <div className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
-        <button className="chip shrink-0 !bg-charcoal !px-4 !py-2 !text-ivory" onClick={() => { setBrowse(!browse); setF(defaultFilters); }}>{browse ? "← Highlights" : "Browse all & filter"}</button>
+        <button className="chip nav-pill nav-on shrink-0 !px-4 !py-2" onClick={() => { setBrowse(!browse); setF(defaultFilters); }}>{browse ? "← Highlights" : "Browse all & filter"}</button>
         {MARKET_CATEGORIES.map((c) => <button key={c} onClick={() => { setF({ ...defaultFilters, category: c }); setBrowse(true); }} className="chip shrink-0 !px-4 !py-2 hover:bg-orange-light">{c}</button>)}
       </div>
       {browse ? (

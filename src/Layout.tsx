@@ -8,6 +8,7 @@ import { HeaderLights } from "./theme";
 import { SafetyBanner } from "./safetyUi";
 
 import { G, Icon } from "./icons";
+import { BrandMark, Wordmark } from "./brand";
 export { Icon };
 const NAV = [
   { to: "/", label: "Home", icon: "home", end: true }, { to: "/combiner", label: "Food Combiner", icon: "combine" }, { to: "/chef", label: "AI Chef", icon: "chef" },
@@ -17,7 +18,7 @@ const NAV = [
 ];
 
 export function Logo({ dark }: { dark?: boolean }) {
-  return <Link to="/" className="flex items-center gap-2.5" aria-label="CRUNCH home"><span className="grid h-9 w-9 place-items-center rounded-[0.8rem] ink-fill font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_6px_14px_-6px_rgba(37,35,31,.6)]">C</span><span className={`h-display text-2xl tracking-wide ${dark ? "text-ivory" : ""}`}>CRUNCH</span></Link>;
+  return <Link to="/" className="press flex items-center gap-2" aria-label="Crunch home"><BrandMark size={38} /><Wordmark dark={dark} className="text-[1.6rem]" /></Link>;
 }
 
 function GlobalSearch() {
@@ -104,7 +105,7 @@ function useNavIndicator(dep: string) {
   return { ref, style: box ? { height: box.h, transform: `translate3d(0,${box.y}px,0)`, transition: anim ? undefined : "none" } : { opacity: 0 } };
 }
 
-const TAB_BAR = [{ to: "/", l: "Home", i: "home", end: true }, null, { to: "/discover", l: "Discover", i: "compass" }, { to: "/marketplace", l: "Market", i: "store" }, { to: "/profile", l: "Profile", i: "user" }] as const;
+const TAB_BAR = [{ to: "/", l: "Home", i: "home", end: true }, { to: "/marketplace", l: "Market", i: "store" }, null, { to: "/community", l: "Community", i: "people" }, { to: "/profile", l: "Profile", i: "user" }] as const;
 
 export function Layout() {
   const me = useMe(); const loc = useLocation(); const [create, setCreate] = useState(false); const [drawer, setDrawer] = useState(false);
@@ -120,19 +121,19 @@ export function Layout() {
   return (
     <div className="min-h-screen md:pl-[84px] lg:pl-[17rem]">
       <aside aria-label="Main navigation" className="safe-inset-top fixed bottom-3 left-3 z-40 hidden w-[68px] flex-col rounded-[1.75rem] py-4 card md:flex lg:w-60 lg:px-3">
-        <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="CRUNCH home" className="grid h-10 w-10 place-items-center rounded-[0.85rem] ink-fill font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18)]">C</Link></span><span className="hidden lg:block"><Logo /></span></div>
+        <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="Crunch home" className="press block"><BrandMark size={42} /></Link></span><span className="hidden lg:block"><Logo /></span></div>
         <nav ref={side.ref} className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar px-2 lg:px-0" aria-label="Main">
-          <span aria-hidden className="pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] ink-fill transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />
+          <span aria-hidden className="nav-pill pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />
           {nav.map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} title={n.label} className={({ isActive }) => `press relative z-[1] flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium transition-colors duration-300 lg:justify-start ${isActive ? "text-ivory" : "text-charcoal/80 hover:bg-white/60"}`}>
+            <NavLink key={n.to} to={n.to} end={n.end} title={n.label} className={({ isActive }) => `press relative z-[1] flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium transition-colors duration-300 lg:justify-start ${isActive ? "nav-on" : "text-charcoal/80 hover:bg-white/60"}`}>
               <Icon n={n.icon} /><span className="hidden lg:inline">{n.label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="px-2 pt-3 lg:px-0"><NavLink to="/settings" title="Settings" className={({ isActive }) => `press flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium lg:justify-start ${isActive ? "bg-charcoal text-ivory" : "text-charcoal/80 hover:bg-white/60"}`}><Icon n="settings" /><span className="hidden lg:inline">Settings</span></NavLink></div>
+        <div className="px-2 pt-3 lg:px-0"><NavLink to="/settings" title="Settings" className={({ isActive }) => `press flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium lg:justify-start ${isActive ? "nav-pill nav-on" : "text-charcoal/80 hover:bg-white/60"}`}><Icon n="settings" /><span className="hidden lg:inline">Settings</span></NavLink></div>
       </aside>
 
-      <header className="glass-bar safe-top sticky top-0 z-30 flex items-center gap-3 border-b border-white/50 px-4 pb-2.5 shadow-[0_1px_0_rgba(37,35,31,.05)] md:px-8 md:pb-3">
+      <header className="glass-bar safe-top sticky top-0 z-30 flex items-center gap-2 border-b border-white/50 px-3 pb-2.5 shadow-[0_1px_0_rgba(104,64,30,.06)] sm:gap-3 sm:px-4 md:px-8 md:pb-3">
         <button onClick={() => setDrawer(true)} className="glass press grid h-10 w-10 place-items-center rounded-full md:hidden" aria-label="Open menu"><Icon n="menu" size={18} /></button>
         <div className="md:hidden"><Logo /></div>
         <div className="hidden flex-1 md:block"><GlobalSearch /></div>
@@ -150,12 +151,12 @@ export function Layout() {
 
       <nav className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 md:hidden" aria-label="Primary">
         <div className="glass-thick relative grid grid-cols-5 items-center rounded-[1.9rem] p-1.5">
-          {tabIdx >= 0 && <span aria-hidden className="absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/5)] rounded-[1.5rem] bg-charcoal/[0.07] transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `translate3d(${tabIdx * 100}%,0,0)` }} />}
+          {tabIdx >= 0 && <span aria-hidden className="absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/5)] rounded-[1.5rem] tab-pill transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `translate3d(${tabIdx * 100}%,0,0)` }} />}
           {TAB_BAR.map((n, idx) =>
             n === null ? (
               <button key="c" onClick={() => setCreate(true)} className="press accent-sheen relative mx-auto grid h-12 w-12 place-items-center overflow-hidden rounded-full accent-fill" aria-label="Create" aria-expanded={create}><span className={`grid place-items-center transition-transform duration-500 [transition-timing-function:var(--ease-spring)] ${create ? "rotate-[135deg] scale-90" : ""}`}><Icon n="plus" size={24} /></span></button>
             ) : (
-              <NavLink key={n.to + idx} to={n.to} end={"end" in n} className={({ isActive }) => `press relative flex flex-col items-center gap-0.5 rounded-[1.5rem] py-1.5 text-[10.5px] font-semibold transition-colors duration-300 ${isActive ? "text-charcoal" : "text-charcoal/45"}`}><Icon n={n.i} size={22} />{n.l}</NavLink>
+              <NavLink key={n.to + idx} to={n.to} end={"end" in n} className={({ isActive }) => `press relative flex flex-col items-center gap-0.5 rounded-[1.5rem] py-1.5 text-[10.5px] font-semibold transition-colors duration-300 ${isActive ? "tab-on" : "text-charcoal/50"}`}><Icon n={n.i} size={22} />{n.l}</NavLink>
             ),
           )}
         </div>
@@ -167,7 +168,7 @@ export function Layout() {
           <div className={`scrim-blur absolute inset-0 ${drawerP.leaving ? "backdrop-out" : "backdrop-in"}`} onClick={() => setDrawer(false)} />
           <div className={`sheet safe-inset-top absolute bottom-2 left-2 w-72 overflow-y-auto rounded-[1.75rem] p-4 ${drawerP.leaving ? "[animation:drawerIn_260ms_var(--ease-spring)_reverse_both]" : "drawer-in"}`}>
             <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="press grid h-9 w-9 place-items-center rounded-full bg-charcoal/[0.07]"><G g="✕" size={15} /></button></div>
-            <div className="stagger space-y-0.5">{[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `press flex items-center gap-3 rounded-[0.95rem] px-3 py-3 text-sm font-medium ${isActive ? "bg-charcoal text-ivory" : "hover:bg-white/60"}`}><Icon n={n.icon} />{n.label}</NavLink>)}</div>
+            <div className="stagger space-y-0.5">{[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `press flex items-center gap-3 rounded-[0.95rem] px-3 py-3 text-sm font-medium ${isActive ? "nav-pill nav-on" : "hover:bg-white/60"}`}><Icon n={n.icon} />{n.label}</NavLink>)}</div>
           </div>
         </div>
       )}
