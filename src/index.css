@@ -7,7 +7,7 @@
    - Colours are RGB-triplet tokens; html.dark and html[data-crunch-theme] swap them.
    - Real blur (backdrop-filter) only on floating chrome: bars, sheets, menus, toasts.
    - Content surfaces use "faux glass" (translucent gradients + crystal rim light): ~free to paint.
-   - html.fx-lite (weak devices / user choice) drops blur, rim pseudo-elements and ambient motion.
+   - html.fx-lite (weak devices / user choice) drops live blur and decorative motion.
    - Motion animates transform + opacity only (GPU-composited), on Apple-style spring curves.
    ========================================================================== */
 
@@ -16,7 +16,7 @@
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-1: 160ms; --dur-2: 280ms; --dur-3: 460ms;
+  --dur-1: 140ms; --dur-2: 240ms; --dur-3: 340ms;
 
   /* neutrals */
   --bg: 251 245 234;
@@ -140,19 +140,13 @@ html.fx-lite {
   }
   /* Ambient light behind the glass: static base + a slowly drifting layer (transform only). */
   body::before {
-    content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
     background:
       radial-gradient(60vmax 48vmax at -5% -10%, rgb(var(--glow-1) / var(--glow-1a)), transparent 62%),
       radial-gradient(52vmax 44vmax at 105% 0%, rgb(var(--glow-2) / var(--glow-2a)), transparent 60%),
       radial-gradient(58vmax 50vmax at 80% 105%, rgb(var(--glow-3) / var(--glow-3a)), transparent 62%),
+      radial-gradient(28vmax 28vmax at 32% 42%, rgb(var(--glow-4) / var(--glow-4a)), transparent 70%),
       rgb(var(--bg));
-  }
-  body::after {
-    content: ""; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(28vmax 28vmax at 30% 40%, rgb(var(--glow-4) / var(--glow-4a)), transparent 70%),
-      radial-gradient(22vmax 22vmax at 70% 65%, rgb(var(--glow-1) / calc(var(--glow-1a) * 0.6)), transparent 70%);
-    transform: translate3d(2%, 1%, 0) rotate(4deg);
   }
 
   ::selection { background: rgb(var(--orange-light)); }
@@ -206,36 +200,35 @@ html.fx-lite {
 }
 
 @layer components {
-  /* ---------- crystal rim: a 1px light-catching edge, brighter top-left, faint bottom-right ---------- */
-  .card, .glass, .glass-thick, .sheet, .tile, .btn-ghost, .seg-thumb, .menu { position: relative; }
-  .card::before, .glass::before, .glass-thick::before, .sheet::before, .menu::before, .tile::before, .btn-ghost::before {
-    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-    background: linear-gradient(145deg, rgb(var(--rim) / var(--rim-a)) 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.25)) 32%, rgb(var(--rim) / 0) 55%, rgb(var(--rim) / calc(var(--rim-a) * 0.55)) 100%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  }
-  html.fx-lite .card::before, html.fx-lite .glass::before, html.fx-lite .glass-thick::before, html.fx-lite .menu::before, html.fx-lite .tile::before, html.fx-lite .btn-ghost::before { display: none; }
+  /* ---------- crystal rim ----------
+     A 1px light-catching edge (bright top-left, faint bottom-right) painted as a border-box gradient layer.
+     No masks or pseudo-elements: WebKit (Safari, iPad) renders every CSS mask off-screen, which made
+     pages with dozens of cards stutter. This costs nothing extra to paint. */
+  :root { --rim-grad: linear-gradient(145deg, rgb(var(--rim) / var(--rim-a)) 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.25)) 32%, rgb(var(--rim) / 0) 55%, rgb(var(--rim) / calc(var(--rim-a) * 0.55)) 100%); }
+  .card, .glass, .glass-thick, .sheet, .tile, .btn-ghost, .seg-thumb, .menu, .lift { position: relative; }
 
   /* ---------- glass materials ---------- */
+  /* Small glass widgets (buttons, badges, save hearts): frosted look without a live blur.
+     Live blur is reserved for the few floating bars/menus (.glass-thick, .glass-bar, .glass-dark). */
   .glass {
-    background: linear-gradient(160deg, rgb(var(--white) / 0.72), rgb(var(--white) / 0.42));
-    -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
-    border: 1px solid rgb(var(--rim) / calc(var(--rim-a) * 0.35));
+    background: linear-gradient(160deg, rgb(var(--white) / 0.92), rgb(var(--white) / 0.72)) padding-box, var(--rim-grad) border-box;
+    border: 1px solid transparent;
     box-shadow: var(--spec), var(--lift);
   }
   .glass-thick, .menu {
     background:
-      radial-gradient(120% 60% at 0% 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.35)), transparent 55%),
-      var(--glass-strong);
+      radial-gradient(120% 60% at 0% 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.35)), transparent 55%) padding-box,
+      linear-gradient(var(--glass-strong), var(--glass-strong)) padding-box,
+      var(--rim-grad) border-box;
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
-    border: 1px solid rgb(var(--rim) / calc(var(--rim-a) * 0.3));
+    border: 1px solid transparent;
     box-shadow: var(--spec), var(--lift-2);
   }
   .glass-bar {
     background: rgb(var(--bg) / 0.6);
     -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   }
-  html.fx-lite .glass, html.fx-lite .glass-thick, html.fx-lite .menu { background: var(--glass-strong); }
+  html.fx-lite .glass, html.fx-lite .glass-thick, html.fx-lite .menu { background: linear-gradient(var(--glass-strong), var(--glass-strong)) padding-box, var(--rim-grad) border-box; }
   html.fx-lite .glass-bar { background: rgb(var(--bg) / 0.97); }
   .glass-dark {
     background: rgb(28 26 23 / 0.78);
@@ -257,9 +250,10 @@ html.fx-lite {
   html.dark .scrim-blur { background: rgb(0 0 0 / 0.55); }
   .sheet {
     background:
-      radial-gradient(120% 50% at 0% 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.45)), transparent 55%),
-      linear-gradient(180deg, rgb(var(--surface)), color-mix(in srgb, rgb(var(--surface)) 94%, rgb(var(--bg))));
-    border: 1px solid rgb(var(--rim) / calc(var(--rim-a) * 0.35));
+      radial-gradient(120% 50% at 0% 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.45)), transparent 55%) padding-box,
+      linear-gradient(180deg, rgb(var(--surface)), color-mix(in srgb, rgb(var(--surface)) 94%, rgb(var(--bg)))) padding-box,
+      var(--rim-grad) border-box;
+    border: 1px solid transparent;
     box-shadow: var(--spec), var(--lift-2);
     will-change: transform;
   }
@@ -268,15 +262,18 @@ html.fx-lite {
   /* Faux glass: no blur, so it can be used for hundreds of cards at no cost. */
   .card {
     border-radius: 1.5rem;
+    border: 1px solid transparent;
     background:
-      radial-gradient(140% 70% at 0% 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.4)), transparent 50%),
-      linear-gradient(180deg, rgb(var(--white) / 0.88), rgb(var(--white) / 0.64));
+      radial-gradient(140% 70% at 0% 0%, rgb(var(--rim) / calc(var(--rim-a) * 0.4)), transparent 50%) padding-box,
+      linear-gradient(180deg, rgb(var(--white) / 0.88), rgb(var(--white) / 0.64)) padding-box,
+      var(--rim-grad) border-box;
     box-shadow: var(--spec), var(--lift);
   }
   html.fx-lite .card { background: rgb(var(--white) / 0.98); }
   .tile {
     border-radius: 1.1rem;
-    background: linear-gradient(180deg, rgb(var(--white) / 0.8), rgb(var(--surface) / 0.55));
+    border: 1px solid transparent;
+    background: linear-gradient(180deg, rgb(var(--white) / 0.8), rgb(var(--surface) / 0.55)) padding-box, var(--rim-grad) border-box;
     box-shadow: var(--spec), 0 1px 2px rgb(var(--shade) / 0.05), inset 0 0 0 1px rgb(var(--charcoal) / 0.05);
   }
 
@@ -353,13 +350,14 @@ html.fx-lite {
     @apply btn;
     overflow: visible;
     color: rgb(var(--charcoal));
-    background: linear-gradient(180deg, rgb(var(--white) / 0.85), rgb(var(--white) / 0.5));
+    border: 1px solid transparent;
+    background: linear-gradient(180deg, rgb(var(--white) / 0.85), rgb(var(--white) / 0.5)) padding-box, var(--rim-grad) border-box;
     box-shadow: var(--spec), 0 1px 2px rgb(var(--shade) / 0.05), 0 4px 12px -6px rgb(var(--shade) / 0.14);
   }
   .btn-outline { @apply btn; color: rgb(var(--charcoal)); background: transparent; border: 1px solid rgb(var(--charcoal) / 0.15); }
   @media (hover: hover) {
     .btn-primary:hover, .btn-dark:hover { filter: brightness(1.06) saturate(1.05); }
-    .btn-ghost:hover { background: rgb(var(--white) / 0.95); }
+    .btn-ghost:hover { background: rgb(var(--white) / 0.95) padding-box, var(--rim-grad) border-box; }
     .btn-outline:hover { background: rgb(var(--white) / 0.5); }
   }
 
@@ -399,7 +397,7 @@ html.fx-lite {
     box-shadow: inset 0 1px 0 rgb(var(--rim) / var(--rim-a)), 0 1px 2px rgb(var(--shade) / 0.1), 0 4px 12px -4px rgb(var(--shade) / 0.22);
     transition: transform var(--dur-3) var(--ease-spring), width var(--dur-3) var(--ease-spring);
   }
-  html.dark .seg-thumb { background: linear-gradient(180deg, rgb(80 75 68), rgb(62 58 52)); }
+  html.dark .seg-thumb:not(.dark) { background: linear-gradient(180deg, rgb(80 75 68), rgb(62 58 52)); }
   .seg-thumb.dark { background: linear-gradient(180deg, rgb(var(--ink-hi)), rgb(var(--charcoal))); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 6px 14px -6px rgb(var(--shade) / 0.6); }
   .seg-item {
     position: relative; z-index: 1; white-space: nowrap; border-radius: 999px; padding: 0.45rem 1rem;
@@ -516,8 +514,8 @@ html.dark .text-red-700, html.dark .text-red-800 { color: rgb(254 202 202); }
 .no-scrollbar { scrollbar-width: none; }
 .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
 
-@keyframes pageIn { from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.995); } to { opacity: 1; transform: none; } }
-.page-enter { animation: pageIn var(--dur-3) var(--ease-spring) both; }
+@keyframes pageIn { from { opacity: 0; transform: translate3d(0, 6px, 0); } to { opacity: 1; transform: none; } }
+.page-enter { animation: pageIn 240ms var(--ease-out) both; }
 
 @keyframes sheetUp { from { transform: translate3d(0, 100%, 0); } to { transform: none; } }
 @keyframes sheetDown { from { transform: none; } to { transform: translate3d(0, 100%, 0); } }
@@ -526,29 +524,28 @@ html.dark .text-red-700, html.dark .text-red-800 { color: rgb(254 202 202); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
-@keyframes riseIn { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: none; } }
+@keyframes riseIn { from { opacity: 0; transform: translate3d(0, 8px, 0); } to { opacity: 1; transform: none; } }
 @keyframes drawerIn { from { transform: translate3d(-100%, 0, 0); } to { transform: none; } }
 @keyframes toastIn { from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.9); } to { opacity: 1; transform: none; } }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
 .backdrop-in { animation: fadeIn var(--dur-2) ease both; }
 .backdrop-out { animation: fadeOut var(--dur-2) ease both; }
-.sheet-in { animation: sheetUp 520ms var(--ease-spring) both; }
-.sheet-out { animation: sheetDown 300ms var(--ease-spring) both; }
+.sheet-in { animation: sheetUp 440ms var(--ease-spring) both; }
+.sheet-out { animation: sheetDown 260ms var(--ease-spring) both; }
 @media (min-width: 768px) {
-  .sheet-in { animation: dialogIn 420ms var(--ease-spring) both; }
+  .sheet-in { animation: dialogIn 340ms var(--ease-spring) both; }
   .sheet-out { animation: dialogOut 200ms ease both; }
 }
 .pop-in { animation: popIn var(--dur-2) var(--ease-spring) both; }
 .rise-in { animation: riseIn var(--dur-3) var(--ease-spring) both; }
 .drawer-in { animation: drawerIn 440ms var(--ease-spring) both; }
-.toast-in { animation: toastIn 480ms var(--ease-spring) both; }
+.toast-in { animation: toastIn 380ms var(--ease-spring) both; }
 
 .stagger > * { animation: riseIn var(--dur-3) var(--ease-spring) both; }
-.stagger > *:nth-child(2) { animation-delay: 30ms; } .stagger > *:nth-child(3) { animation-delay: 60ms; }
-.stagger > *:nth-child(4) { animation-delay: 90ms; } .stagger > *:nth-child(5) { animation-delay: 120ms; }
-.stagger > *:nth-child(6) { animation-delay: 150ms; } .stagger > *:nth-child(7) { animation-delay: 180ms; }
-.stagger > *:nth-child(n+8) { animation-delay: 210ms; }
+.stagger > *:nth-child(2) { animation-delay: 20ms; } .stagger > *:nth-child(3) { animation-delay: 40ms; }
+.stagger > *:nth-child(4) { animation-delay: 60ms; } .stagger > *:nth-child(n+5) { animation-delay: 80ms; }
+.stagger > *:nth-child(n+13) { animation: none; } /* far-down cards: no entrance work at all */
 
 @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
 .pop { animation: pop 0.42s var(--ease-pop); }
