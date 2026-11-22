@@ -26,7 +26,7 @@ export function ReportDialog({ open, onClose, kind, targetId, title, allowCopyri
         </div></fieldset>
       {allowCopyright && <label className="mb-2 flex items-center gap-2 text-sm"><input type="checkbox" className="accent-orange" checked={copyright} onChange={(e) => setCopyright(e.target.checked)} />This is a copyright complaint (I own, or represent the owner of, this content)</label>}
       <textarea className="input" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Details" placeholder={copyright ? "Identify the original work and explain why this copies it…" : "Tell moderators what you saw…"} />
-      <p className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs">Only report real problems. A person reviews every report, and people whose reports are repeatedly rejected lose the ability to report. <Link to="/safety" className="underline" onClick={onClose}>How reports work</Link></p>
+      <p className="mt-2 rounded-lg bg-orange-light/50 p-2 text-xs">Only report real problems. A person reviews every report. Knowingly false reports are punished: a warning the first time, a permanent ban the second. <Link to="/safety" className="underline" onClick={onClose}>How reports work</Link></p>
       <button className="btn-dark mt-3" onClick={send}>Send report</button>
     </Modal>
   );
@@ -38,7 +38,7 @@ export function ScamWarning() {
     <div role="note" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
       <b>⚠️ Before you post</b>
       <p className="mt-1">{SCAM_WARNING}</p>
-      <p className="mt-1 text-xs">1st strike: warning · 2nd: 7-day suspension · 3rd: permanent ban. <Link to="/safety" className="underline">Read the rules</Link></p>
+      <p className="mt-1 text-xs"><b>Scam = permanent ban on the first strike.</b> Other violations: warning, then 7-day suspension, then ban. <Link to="/safety" className="underline">Read the rules</Link> · <Link to="/terms" className="underline">Terms</Link></p>
     </div>
   );
 }
@@ -47,14 +47,15 @@ export function ScamWarning() {
 export function SafetyBanner() {
   const me = useMe(); const { strikes, suspensions, holds, customRecipes, appeals } = useStore();
   if (!me) return null;
-  const mine = activeStrikes(strikes, me.id); const until = suspensions[me.id]; const suspended = until && new Date(until).getTime() > Date.now();
+  const mine = activeStrikes(strikes, me.id); const abuse = activeStrikes(strikes, me.id, "false-report"); const until = suspensions[me.id]; const suspended = until && new Date(until).getTime() > Date.now();
   const heldRecipes = customRecipes.filter((r) => r.creatorId === me.id && r.status === "review" && holds[r.id]).length;
   const removed = customRecipes.filter((r) => r.creatorId === me.id && r.status === "removed" && !appeals.some((a) => a.targetId === r.id)).length;
-  if (!mine.length && !suspended && !heldRecipes && !removed) return null;
+  if (!mine.length && !abuse.length && !suspended && !heldRecipes && !removed) return null;
   return (
     <div role="status" className={`mx-auto mb-4 max-w-7xl rounded-2xl p-3 text-sm ${suspended ? "bg-red-100 text-red-900" : "bg-orange-light/60"}`}>
       {suspended && <p><b>Your account is suspended until {new Date(until!).toLocaleDateString()}.</b> You can browse and cook, but not post, publish, sell, review or message. </p>}
       {mine.length > 0 && <p><b>{mine.length} active strike{mine.length > 1 ? "s" : ""}.</b> {mine.length >= 2 ? "One more is a permanent ban. " : "Your next recipes are checked by a person before going live. "}</p>}
+      {abuse.length > 0 && <p><b>False-report warning.</b> One more false report and your account is permanently banned.</p>}
       {heldRecipes > 0 && <p>{heldRecipes} of your recipes {heldRecipes > 1 ? "are" : "is"} waiting for a safety review.</p>}
       {removed > 0 && <p>{removed} of your recipes {removed > 1 ? "were" : "was"} removed. You can appeal from your Studio.</p>}
       <Link to="/safety" className="underline">Safety Center</Link>

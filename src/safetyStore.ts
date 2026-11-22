@@ -1,8 +1,9 @@
 /* Store actions for the safety system. Kept out of store.ts so the rules are easy to read in one place. */
 import { ALL_RECIPES } from "./data";
 import type { State } from "./store";
+import { autoRefundRecipe } from "./refundStore";
 import {
-  REPORT_HOURLY_LIMIT, REPORT_CATEGORIES, activeStrikes, daysSince, looksLikePileOn, pauseUntil, penaltyFor, penaltyText, publishDecision, reportScore,
+  FALSE_REPORT_BAN_AT, REPORT_HOURLY_LIMIT, REPORT_CATEGORIES, SCAM_BANS_INSTANTLY, activeStrikes, falseReportPenalty, daysSince, looksLikePileOn, pauseUntil, penaltyFor, penaltyText, publishDecision, reportScore,
   reporterWeight, reportingPaused, scanRecipe, scanText, shouldPause, suspensionEnd, thresholdFor, type Flag, type Penalty,
 } from "./safety";
 import type { Appeal, Hold, Recipe, Removal, Report, ReportCategory, ReporterStats, Strike } from "./types";
@@ -58,6 +59,14 @@ export function createSafety(set: Set, get: Get) {
     if (penalty === "suspension") set((s) => ({ suspensions: { ...s.suspensions, [accountId]: suspensionEnd() } }));
     if (penalty === "ban") set((s) => ({ banned: s.banned.includes(accountId) ? s.banned : [...s.banned, accountId] }));
     return penalty;
+  };
+
+  /** Scam = one strike. Permanent ban immediately; admins can't be banned. */
+  const banNow = (accountId: string, reason: string, targetId?: string): Penalty | null => {
+    const acct = get().accounts.find((a) => a.id === accountId);
+    if (!acct || acct.role === "admin") return null;
+    set((s) => ({ strikes: [{ id: uid(), accountId, reason, at: new Date().toISOString(), targetId, kind: "scam" as const }, ...s.strikes], banned: s.banned.includes(accountId) ? s.banned : [...s.banned, accountId] }));
+    return "ban";
   };
 
   const creditReporters = (rs: Report[], upheld: boolean) => {
@@ -179,7 +188,9 @@ export function createSafety(set: Set, get: Get) {
     if (r.kind === "listing" || r.kind === "copyright") setRecipeStatus(r.targetId, "removed");
     if (r.kind === "post") set((st) => ({ posts: st.posts.map((p) => (p.id === r.targetId ? { ...p, hidden: true } : p)) }));
     dropHold(r.targetId);
-    const penalty = owner ? addStrike(owner, label, r.targetId) : null;
+    const isScam = SCAM_BANS_INSTANTLY && group.some((g) => g.category === "scam");
+    const penalty = owner ? (isScam ? banNow(owner, "Scam: " + label, r.targetId) : addStrike(owner, label, r.targetId)) : null;
+    if (r.kind === "listing" || r.kind === "copyright") autoRefundRecipe(set, get, r.targetId, "Refunded automatically: the recipe was removed by moderators.");
     creditReporters(group, true);
     set((st) => ({ reports: st.reports.map((x) => (group.some((g) => g.id === x.id) ? { ...x, status: "actioned" } : x)) }));
     addRemoval(r.kind === "post" ? "Community post" : r.kind === "creator" ? "Creator account" : "Recipe listing", r.category ?? "other", "Removed" + (penalty ? " · " + penaltyText(penalty) : ""));
@@ -192,6 +203,23 @@ export function createSafety(set: Set, get: Get) {
     restoreIfReportHold(r.kind, r.targetId);
   };
 
+  /** Admin: this report was made in bad faith. Warning + reporting paused the first time; permanent ban on the second. */
+  const markFalseReport = (id: string) => {
+    const r = get().reports.find((x) => x.id === id); if (!r || r.status !== "open") return;
+    set((st) => ({ reports: st.reports.map((x) => (x.id === id ? { ...x, status: "dismissed" } : x)) }));
+    restoreIfReportHold(r.kind, r.targetId);
+    const who = r.reporterId; const acct = get().accounts.find((a) => a.id === who);
+    if (!who || !acct) return;
+    const cur: ReporterStats = { ...(get().reporterStats[who] ?? { upheld: 0, dismissed: 0 }) };
+    cur.dismissed += 1; cur.falseReports = (cur.falseReports ?? 0) + 1;
+    const penalty = falseReportPenalty(cur.falseReports);
+    if (penalty === "warning") cur.pausedUntil = pauseUntil();
+    set((st) => ({ reporterStats: { ...st.reporterStats, [who]: cur } }));
+    if (acct.role === "admin") return;
+    set((st) => ({ strikes: [{ id: uid(), accountId: who, reason: `False report (offence ${cur.falseReports} of ${FALSE_REPORT_BAN_AT})`, at: new Date().toISOString(), targetId: r.targetId, kind: "false-report" as const }, ...st.strikes] }));
+    if (penalty === "ban") set((st) => ({ banned: st.banned.includes(who) ? st.banned : [...st.banned, who] }));
+  };
+
   /* ---------- held items ---------- */
   const approveHold = (id: string) => {
     const h = get().holds[id]; if (!h) return;
@@ -201,11 +229,13 @@ export function createSafety(set: Set, get: Get) {
     open.forEach((x) => dismissReport(x.id));
     dropHold(id);
   };
-  const rejectHold = (id: string, withStrike: boolean) => {
+  const rejectHold = (id: string, mode: "none" | "strike" | "ban") => {
     const h = get().holds[id]; if (!h) return;
     const owner = h.kind === "recipe" ? ownerOf("listing", id) : ownerOf("post", id);
     if (h.kind === "recipe") setRecipeStatus(id, "removed"); else set((st) => ({ posts: st.posts.map((p) => (p.id === id ? { ...p, hidden: true } : p)) }));
-    const penalty = withStrike && owner ? addStrike(owner, "Failed safety review: " + (h.flags[0] ?? "policy violation"), id) : null;
+    const why = h.flags[0] ?? "policy violation";
+    const penalty = !owner ? null : mode === "ban" ? banNow(owner, "Scam: " + why, id) : mode === "strike" ? addStrike(owner, "Failed safety review: " + why, id) : null;
+    if (h.kind === "recipe") autoRefundRecipe(set, get, id, "Refunded automatically: the recipe was removed by moderators.");
     const group = get().reports.filter((x) => x.targetId === id && x.status === "open");
     creditReporters(group, true);
     set((st) => ({ reports: st.reports.map((x) => (group.some((g) => g.id === x.id) ? { ...x, status: "actioned" } : x)) }));
@@ -232,8 +262,10 @@ export function createSafety(set: Set, get: Get) {
     set((s) => ({ strikes: s.strikes.map((k) => (k.accountId === ap.accountId && k.targetId === ap.targetId ? { ...k, revoked: true } : k)) }));
     const left = activeStrikes(get().strikes, ap.accountId).length;
     if (left < 2) set((s) => { const sp = { ...s.suspensions }; delete sp[ap.accountId]; return { suspensions: sp }; });
-    if (left < 3) set((s) => ({ banned: s.banned.filter((x) => x !== ap.accountId) }));
+    const scamLeft = activeStrikes(get().strikes, ap.accountId, "scam").length;
+    const abuseLeft = activeStrikes(get().strikes, ap.accountId, "false-report").length;
+    if (left < 3 && scamLeft === 0 && abuseLeft < FALSE_REPORT_BAN_AT) set((s) => ({ banned: s.banned.filter((x) => x !== ap.accountId) }));
   };
 
-  return { upsertRecipe, addPost, report, actionReport, dismissReport, approveHold, rejectHold, appeal, decideAppeal, addStrike };
+  return { upsertRecipe, addPost, report, actionReport, dismissReport, markFalseReport, approveHold, rejectHold, appeal, decideAppeal, addStrike };
 }

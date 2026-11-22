@@ -55,20 +55,25 @@ export interface Thread { id: string; withId: string; withName: string; emoji: s
 
 export interface Notif { id: string; type: "follow" | "like" | "comment" | "purchase" | "post" | "review" | "challenge" | "update"; text: string; at: string; read: boolean }
 
-export interface Purchase { id: string; recipeIds: string[]; total: number; at: string; status: "paid" | "refund_requested" | "refunded"; method: "demo" | "stripe" }
+export type RefundReason = "misleading" | "incomplete" | "unsafe" | "allergen" | "duplicate" | "other" | "changed-mind" | "taste" | "my-mistake" | "found-free";
+export interface RefundRecord { reason: RefundReason | "removed"; details: string; ids: string[]; at: string; state: "requested" | "approved" | "denied" | "auto"; decidedAt?: string; note?: string; amount?: number }
+export interface Purchase {
+  id: string; recipeIds: string[]; total: number; at: string; status: "paid" | "refund_requested" | "refunded"; method: "demo" | "stripe";
+  unitPrices?: Record<string, number>; refundedIds?: string[]; refund?: RefundRecord;
+}
 
-export type ReportCategory = "unsafe" | "scam" | "misleading" | "stolen" | "spam" | "harassment" | "other";
+export type ReportCategory = "unsafe" | "illness" | "scam" | "misleading" | "stolen" | "spam" | "harassment" | "other";
 export interface Report {
   id: string; kind: "listing" | "creator" | "post" | "copyright"; targetId: string; reason: string; at: string; status: "open" | "actioned" | "dismissed";
   reporterId?: string; category?: ReportCategory; weight?: number; suspicious?: boolean;
 }
 
 /** Safety system records (all local for now; see docs/BACKEND.md for the server-side version). */
-export interface Strike { id: string; accountId: string; reason: string; at: string; targetId?: string; revoked?: boolean }
+export interface Strike { id: string; accountId: string; reason: string; at: string; targetId?: string; revoked?: boolean; kind?: "content" | "scam" | "false-report" }
 export interface Hold { targetId: string; kind: "recipe" | "post"; reason: "scan" | "reports" | "new-account"; flags: string[]; at: string }
 export interface Appeal { id: string; accountId: string; targetId: string; text: string; at: string; status: "open" | "approved" | "denied" }
 export interface Removal { id: string; what: string; category: ReportCategory | "scan"; outcome: string; at: string; example?: boolean }
-export interface ReporterStats { upheld: number; dismissed: number; pausedUntil?: string }
+export interface ReporterStats { upheld: number; dismissed: number; pausedUntil?: string; falseReports?: number }
 
 export interface Account {
   id: string; name: string; email: string; handle: string; bio: string; emoji: string;

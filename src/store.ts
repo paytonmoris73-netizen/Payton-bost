@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ALL_RECIPES, CREATORS, INGREDIENTS, REVIEWS, SEED_POSTS } from "./data";
-import type { CookStatus, AIConfig, Account, Appeal, Combo, Creator, Folder, Hold, Ingredient, Msg, Notif, Post, Purchase, Recipe, Removal, Report, ReportCategory, ReporterStats, Review, ShoppingItem, ShoppingList, Strike, Thread } from "./types";
+import type { CookStatus, AIConfig, Account, Appeal, Combo, Creator, Folder, Hold, Ingredient, Msg, Notif, Post, Purchase, Recipe, Removal, Report, ReportCategory, ReporterStats, RefundReason, Review, ShoppingItem, ShoppingList, Strike, Thread } from "./types";
+import { createRefunds } from "./refundStore";
 import { blockReason, createSafety, type PostOutcome, type PublishOutcome } from "./safetyStore";
 import type { Penalty } from "./safety";
 
@@ -53,10 +54,11 @@ export interface State {
   toggleFollow: (id: string) => void;
   openThread: (c: Creator) => string; send: (threadId: string, text: string) => void; readThread: (id: string) => void;
   readAll: () => void; readNotif: (id: string) => void;
-  addCart: (id: string) => void; removeCart: (id: string) => void; checkout: () => { ok: boolean; error?: string }; requestRefund: (id: string) => void;
+  addCart: (id: string) => void; removeCart: (id: string) => void; checkout: () => { ok: boolean; error?: string };
+  requestRefund: (orderId: string, reason: RefundReason, ids: string[], details: string) => string | null; decideRefund: (orderId: string, approve: boolean, note: string) => void;
   addReview: (recipeId: string, rating: number, text: string) => string | null;
   report: (kind: Report["kind"], targetId: string, reason: string, category?: ReportCategory) => string | null; resolveReport: (id: string, status: Report["status"]) => void;
-  actionReport: (id: string) => void; dismissReport: (id: string) => void; approveHold: (id: string) => void; rejectHold: (id: string, withStrike: boolean) => void;
+  actionReport: (id: string) => void; dismissReport: (id: string) => void; markFalseReport: (id: string) => void; approveHold: (id: string) => void; rejectHold: (id: string, mode: "none" | "strike" | "ban") => void;
   appeal: (targetId: string, text: string) => string | null; decideAppeal: (id: string, approve: boolean) => void; addStrike: (accountId: string, reason: string, targetId?: string) => Penalty | null;
   recordSearch: (q: string) => void; clearSearches: () => void;
   setAI: (c: AIConfig) => void; announce: (text: string) => void; toggleFeatured: (id: string) => void; ban: (id: string) => void;
@@ -76,6 +78,7 @@ export const useStore = create<State>()(
       const notify = (n: Omit<Notif, "id" | "at" | "read">) => set((s) => ({ notifs: [{ id: uid(), at: "now", read: false, ...n }, ...s.notifs] }));
       const me = () => get().accounts.find((a) => a.id === get().session) ?? null;
       const safety = createSafety(set, get);
+      const refunds = createRefunds(set, get);
       return {
         accounts: [], creds: [], session: null,
         customRecipes: [], saved: ["r3", "r4"], favorites: [], recent: [], cooked: [], folders: [{ id: "f1", name: "Recipes to Try", recipeIds: [] }, { id: "f2", name: "Family Favorites", recipeIds: [] }],
@@ -146,6 +149,7 @@ export const useStore = create<State>()(
         deleteFolder(id) { set((s) => ({ folders: s.folders.filter((f) => f.id !== id) })); },
         toggleInFolder(fid, rid) { set((s) => ({ folders: s.folders.map((f) => (f.id === fid ? { ...f, recipeIds: f.recipeIds.includes(rid) ? f.recipeIds.filter((x) => x !== rid) : [...f.recipeIds, rid] } : f)) })); },
         ...safety,
+        requestRefund: refunds.requestRefund, decideRefund: refunds.decideRefund,
         publishRecipe(id) { const r = get().customRecipes.find((x) => x.id === id); return r ? safety.upsertRecipe({ ...r, status: "published" }) : { result: "blocked", flags: [], message: "Recipe not found." }; },
         setStatus(id, status) {
           const isCustom = get().customRecipes.some((r) => r.id === id);
@@ -225,17 +229,16 @@ export const useStore = create<State>()(
           const total = items.reduce((t, r) => t + r.price, 0);
           if (!ids.length) { set({ cart: [] }); return { ok: false, error: "You already own these recipes." }; }
           // Without a configured payment provider no money moves; the record is clearly marked as a demo purchase.
-          const p: Purchase = { id: "ord_" + uid(), recipeIds: ids, total: Math.round(total * 100) / 100, at: new Date().toISOString(), status: "paid", method: "demo" };
+          const p: Purchase = { id: "ord_" + uid(), recipeIds: ids, total: Math.round(total * 100) / 100, at: new Date().toISOString(), status: "paid", method: "demo", unitPrices: Object.fromEntries(items.filter((r) => ids.includes(r.id)).map((r) => [r.id, r.price])) };
           set((st) => ({ purchases: [p, ...st.purchases], cart: [], saved: [...new Set([...ids, ...st.saved])] }));
           notify({ type: "purchase", text: `Order ${p.id} complete — recipes unlocked in My Cookbook.` });
           get().award("buy:" + p.id, 15);
           return { ok: true };
         },
-        requestRefund(id) { set((s) => ({ purchases: s.purchases.map((p) => (p.id === id && p.status === "paid" ? { ...p, status: "refund_requested" } : p)) })); notify({ type: "update", text: "Refund request submitted. We review requests within 5 business days." }); },
         addReview(recipeId, rating, text) {
           const s = get(); const a = me(); if (!a) return "Sign in to review.";
           const blocked = blockReason(s, a.id); if (blocked) return blocked;
-          const owns = s.purchases.some((p) => p.status !== "refunded" && p.recipeIds.includes(recipeId));
+          const owns = s.purchases.some((p) => p.status !== "refunded" && p.recipeIds.includes(recipeId) && !p.refundedIds?.includes(recipeId));
           const recipe = [...ALL_RECIPES, ...s.customRecipes].find((r) => r.id === recipeId);
           if (recipe && recipe.price > 0 && !owns) return "Only buyers can review paid recipes.";
           if (recipe?.creatorId === a.id) return "You can't review your own recipe.";
@@ -273,7 +276,7 @@ export function creatorOf(id: string, accounts: Account[]): Creator {
 }
 export function useOwnedIds(): Set<string> {
   const p = useStore((s) => s.purchases);
-  return new Set(p.filter((x) => x.status !== "refunded").flatMap((x) => x.recipeIds));
+  return new Set(p.filter((x) => x.status !== "refunded").flatMap((x) => x.recipeIds.filter((id) => !x.refundedIds?.includes(id))));
 }
 /** Single source of truth for whether full recipe content may be shown. Server must enforce the same rule. */
 export function canAccess(r: Recipe, owned: Set<string>, meId: string | null): boolean {

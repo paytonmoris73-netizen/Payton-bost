@@ -1,3 +1,4 @@
+import { RefundButton, RefundStatus } from "../RefundDialog";
 import { Link, useNavigate } from "react-router-dom";
 import { G } from "../icons";
 import { money } from "../engine";
@@ -5,7 +6,7 @@ import { MIN_AGE_COMMERCE, ageOf, useCatalogue, useMe, useStore } from "../store
 import { Cover, Empty, PageHeader, toast } from "../ui";
 
 export default function Cart() {
-  const nav = useNavigate(); const me = useMe()!; const cat = useCatalogue(); const { cart, removeCart, checkout, purchases, requestRefund, stripeConfigured } = useStore();
+  const nav = useNavigate(); const me = useMe()!; const cat = useCatalogue(); const { cart, removeCart, checkout, purchases, stripeConfigured } = useStore();
   const items = cart.map((id) => cat.find((r) => r.id === id)).filter((r): r is NonNullable<typeof r> => !!r);
   const total = items.reduce((s, r) => s + r.price, 0); const adult = ageOf(me) >= MIN_AGE_COMMERCE;
   const pay = () => { const r = checkout(); if (!r.ok) return toast(r.error!, "err"); toast("Purchase complete. Recipes unlocked."); nav("/cookbook"); };
@@ -20,8 +21,8 @@ export default function Cart() {
           <h2 className="h-display mb-3 mt-8 text-2xl">Purchase history</h2>
           {purchases.length === 0 ? <p className="text-sm text-brown">No purchases yet.</p> : (
             <div className="space-y-3">{purchases.map((p) => (
-              <div key={p.id} className="card p-4"><div className="flex flex-wrap items-center justify-between gap-2"><div><b className="text-sm">{p.id}</b><div className="text-xs text-brown">{new Date(p.at).toLocaleString()} · {p.recipeIds.length} recipe(s) · {p.method === "demo" ? "demo checkout (no charge)" : "card"}</div></div><div className="flex items-center gap-3"><b>{money(p.total)}</b><span className={`chip ${p.status === "paid" ? "bg-sage-light" : "bg-orange-light"}`}>{p.status.replace("_", " ")}</span>{p.status === "paid" && <button className="btn-outline !py-1.5" onClick={() => { if (confirm("Request a refund for this order?")) requestRefund(p.id); }}>Request refund</button>}</div></div>
-                <p className="mt-2 text-xs text-brown">{p.recipeIds.map((id) => cat.find((r) => r.id === id)?.title).filter(Boolean).join(", ")}</p></div>))}</div>
+              <div key={p.id} className="card p-4"><div className="flex flex-wrap items-center justify-between gap-2"><div><b className="text-sm">{p.id}</b><div className="text-xs text-brown">{new Date(p.at).toLocaleString()} · {p.recipeIds.length} recipe(s) · {p.method === "demo" ? "demo checkout (no charge)" : "card"}</div></div><div className="flex items-center gap-3"><b>{money(p.total)}</b><span className={`chip ${p.status === "paid" ? "bg-sage-light" : "bg-orange-light"}`}>{p.status.replace("_", " ")}</span><RefundButton p={p} /></div></div>
+                <p className="mt-2 text-xs text-brown">{p.recipeIds.map((id) => cat.find((r) => r.id === id)?.title).filter(Boolean).join(", ")}</p><RefundStatus p={p} /></div>))}</div>
           )}
         </div>
         <aside className="card h-fit p-5 lg:sticky lg:top-20">

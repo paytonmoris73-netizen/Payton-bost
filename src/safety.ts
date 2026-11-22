@@ -79,6 +79,7 @@ export const NEW_ACCOUNT_APPROVALS = 2;
 
 /* ---------- 3. reports that can't be weaponised ---------- */
 export const REPORT_CATEGORIES: { id: ReportCategory; label: string; hint: string; severe?: boolean }[] = [
+  { id: "illness", label: "I (or someone) got sick", hint: "Food poisoning or a reaction after cooking this", severe: true },
   { id: "unsafe", label: "Unsafe or harmful", hint: "Could make someone sick or hurt", severe: true },
   { id: "scam", label: "Scam or bait-and-switch", hint: "Doesn't deliver what it promises, or asks for money/contact outside CRUNCH", severe: true },
   { id: "misleading", label: "Fake or misleading", hint: "Photo, description or reviews don't match the recipe" },
@@ -121,27 +122,33 @@ export function looksLikePileOn(reports: { weight?: number }[]): boolean {
 }
 export function thresholdFor(category: ReportCategory | undefined) { return REPORT_CATEGORIES.find((c) => c.id === category)?.severe ? REPORT_THRESHOLD_SEVERE : REPORT_THRESHOLD; }
 
-/* ---------- 4. strikes ---------- */
+/* ---------- 4. strikes & bans ---------- */
 export type Penalty = "warning" | "suspension" | "ban";
 export const SUSPENSION_DAYS = 7;
+/** Policy knobs. Scamming is one strike. Reporting someone you know is innocent is banned on the 2nd offence. */
+export const SCAM_BANS_INSTANTLY = true;
+export const FALSE_REPORT_BAN_AT = 2;
 export const LADDER: { strike: string; penalty: Penalty; text: string }[] = [
   { strike: "Strike 1", penalty: "warning", text: "Content removed and a formal warning. Your future recipes are checked by a person before they go live." },
   { strike: "Strike 2", penalty: "suspension", text: `${SUSPENSION_DAYS}-day suspension: you can't post, publish, sell, review or message.` },
   { strike: "Strike 3", penalty: "ban", text: "Permanent ban. You can no longer log in." },
 ];
-export const activeStrikes = (strikes: Strike[], accountId: string) => strikes.filter((s) => s.accountId === accountId && !s.revoked);
+export const activeStrikes = (strikes: Strike[], accountId: string, kind: "content" | "scam" | "false-report" = "content") =>
+  strikes.filter((s) => s.accountId === accountId && !s.revoked && (s.kind ?? "content") === kind);
 export function penaltyFor(activeCount: number): Penalty { return activeCount <= 1 ? "warning" : activeCount === 2 ? "suspension" : "ban"; }
 export const penaltyText = (p: Penalty) => (p === "warning" ? "account warned" : p === "suspension" ? `account suspended ${SUSPENSION_DAYS} days` : "account permanently banned");
 export function suspensionEnd(now = Date.now()) { return new Date(now + SUSPENSION_DAYS * DAY).toISOString(); }
+/** 1st false report: warning + reporting paused. 2nd: permanent ban. */
+export const falseReportPenalty = (offences: number): Penalty => (offences >= FALSE_REPORT_BAN_AT ? "ban" : "warning");
 
 /* ---------- 6. rules shown to everyone ---------- */
 export const RULES: { icon: string; title: string; text: string }[] = [
   { icon: "🧪", title: "Safe food only", text: "No recipes that could poison or injure someone: toxic substances, raw-meat advice, unsafe canning, dangerous challenges." },
   { icon: "🎯", title: "Deliver what you promise", text: "The photo, title and description must match the recipe. Paid recipes need real amounts and real steps." },
-  { icon: "🚫", title: "No scams", text: "No fake reviews, off-platform payment, outside links, fake urgency or unproven health claims." },
+  { icon: "🚫", title: "No scams. Ever.", text: "Fake recipes, bait-and-switch, fake reviews, off-platform payment, outside links, fake urgency. A confirmed scam is an instant, permanent ban. No warning, no second chance." },
   { icon: "✍️", title: "Original work only", text: "Don't copy other cooks' recipes, photos or text." },
-  { icon: "🤝", title: "Be decent", text: "No harassment. And no false reports: reporting someone you know is innocent costs you your reporting rights." },
+  { icon: "🤝", title: "Be decent, report honestly", text: "No harassment. Reporting someone you know is innocent is abuse: the first time you lose reporting and get a warning, the second time you're permanently banned." },
 ];
-export const SCAM_WARNING = "Every recipe and post on CRUNCH is scanned, logged and tied to your account. Scams, fake recipes and harmful food advice are removed, cost you strikes, and repeat offenders are permanently banned.";
+export const SCAM_WARNING = "Scamming is not allowed on CRUNCH, period. Every recipe and post is scanned, logged and tied to your account. If a moderator confirms a scam, a fake recipe or a bait-and-switch, you are PERMANENTLY BANNED the first time. No warnings. Other rule-breaking earns strikes, and false-reporting other people gets you banned on the second offence.";
 
 export const daysSince = (iso: string, now = Date.now()) => Math.max(0, (now - new Date(iso).getTime()) / DAY);

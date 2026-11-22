@@ -96,3 +96,10 @@ Tests: `npx tsx tests/safety.test.ts`, `npx tsx tests/safety-store.test.ts`, and
 - Run the same `scanRecipe` / `publishDecision` / `reporterWeight` / `reportScore` code in the server function that writes recipes, posts and reports (the modules have no React or browser dependencies), and make `status`, `strikes`, `holds`, `suspensions` and `banned` writable by the server/admin role only.
 - Store `reporterId` server-side from the auth token, never from the client, and rate-limit `report` there.
 - The keyword scan is a first filter, not a guarantee of safe food. Keep a human in the loop (the held-for-review queue) for anything that reaches the public.
+
+### Refunds, scam bans and Terms (added with the safety system)
+
+- Policy constants live in `src/refunds.ts` (window, covered / not-covered reasons) and `src/safety.ts` (`SCAM_BANS_INSTANTLY`, `FALSE_REPORT_BAN_AT`). The Terms of Service page (`src/terms.ts`) reads the same constants, so the text can't drift from the rules.
+- **Money:** the app currently marks refunds in local data only. In production, `decideRefund` and `autoRefundRecipe` must call your payment provider's refund API (e.g. Stripe `refunds.create`) from a server function, and the same server must revoke access and reverse the creator's payout.
+- **Legal:** the Terms are a working draft written for a food-recipe marketplace. Have a lawyer review them (jurisdiction, consumer-law refund rights, liability limits, privacy policy) before launch.
+- Tests: `npx tsx tests/policy-store.test.ts` (scam ban, false-report ban, every refund path) and `node tests/perf-scroll.cjs` (scroll-smoothness probe).

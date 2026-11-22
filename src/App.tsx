@@ -1,10 +1,10 @@
-import { Component, Suspense, lazy, type ReactNode } from "react";
+import { Component, Suspense, lazy, useEffect, type ReactNode } from "react";
 import { BrowserRouter, HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 /** Hash routing for single-file hosting (e.g. a shared preview link); normal paths everywhere else. */
 const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter;
 import { Layout } from "./Layout";
-import { useMe } from "./store";
+import { useMe, useStore } from "./store";
 import { Toaster, CardSkeletons } from "./ui";
 import { ThemeDecor } from "./theme";
 
@@ -32,6 +32,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Plus = lazy(() => import("./pages/Plus"));
 const Safety = lazy(() => import("./pages/Safety"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 /** Warm every page's code in the background after start-up, so tapping around is instant (no loading flash). */
 const PRELOAD = [
@@ -59,6 +60,7 @@ const PRELOAD = [
   () => import("./pages/Admin"),
   () => import("./pages/Plus"),
   () => import("./pages/Safety"),
+  () => import("./pages/Terms"),
 ];
 if (typeof window !== "undefined") {
   const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
@@ -78,7 +80,11 @@ class Boundary extends Component<{ children: ReactNode }, { err: Error | null }>
   }
 }
 
-function Gate({ children }: { children: ReactNode }) { const me = useMe(); return me ? <>{children}</> : <Navigate to="/auth" replace />; }
+function Gate({ children }: { children: ReactNode }) {
+  const me = useMe(); const banned = useStore((s) => !!me && s.banned.includes(me.id)); const logOut = useStore((s) => s.logOut);
+  useEffect(() => { if (banned) logOut(); }, [banned, logOut]); // a banned account is signed out immediately, even mid-session
+  return me && !banned ? <>{children}</> : <Navigate to="/auth" replace />;
+}
 function AdminGate({ children }: { children: ReactNode }) { const me = useMe(); return me?.role === "admin" ? <>{children}</> : <Navigate to="/" replace />; }
 
 export function App() {
@@ -88,6 +94,7 @@ export function App() {
         <Suspense fallback={<div className="mx-auto max-w-7xl p-8"><CardSkeletons /></div>}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/terms" element={<Terms />} />
             <Route element={<Gate><Layout /></Gate>}>
               <Route index element={<Home />} />
               <Route path="combiner" element={<Combiner />} />

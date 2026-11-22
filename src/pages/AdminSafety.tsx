@@ -24,8 +24,9 @@ export function AdminSafety() {
           {h.kind === "recipe" && <Link className="mt-1 inline-block text-xs underline" to={`/recipe/${h.targetId}`}>Open to inspect</Link>}
           <div className="mt-3 flex flex-wrap gap-2">
             <button className="btn-dark !py-1.5" onClick={() => { approveHold(h.targetId); toast("Approved and live"); }}>Approve</button>
-            <button className="btn-outline !py-1.5" onClick={() => { rejectHold(h.targetId, false); toast("Removed"); }}>Remove</button>
-            <button className="btn-outline !py-1.5" onClick={() => { rejectHold(h.targetId, true); toast("Removed + strike"); }}>Remove + strike</button>
+            <button className="btn-outline !py-1.5" onClick={() => { rejectHold(h.targetId, "none"); toast("Removed"); }}>Remove</button>
+            <button className="btn-outline !py-1.5" onClick={() => { rejectHold(h.targetId, "strike"); toast("Removed + strike"); }}>Remove + strike</button>
+            <button className="btn-dark !py-1.5" onClick={() => { if (confirm("Confirm this is a scam? The account will be PERMANENTLY banned.")) { rejectHold(h.targetId, "ban"); toast("Removed. Account permanently banned."); } }}>Scam: remove + permanent ban</button>
           </div></div>))}</div>}
 
       {H("Appeals", openAppeals.length)}
@@ -34,9 +35,9 @@ export function AdminSafety() {
           <p className="mt-1 text-brown">“{a.text}”</p>
           <div className="mt-3 flex gap-2"><button className="btn-dark !py-1.5" onClick={() => { decideAppeal(a.id, true); toast("Restored and strike removed"); }}>Approve (restore + remove strike)</button><button className="btn-ghost !py-1.5" onClick={() => { decideAppeal(a.id, false); toast("Appeal denied"); }}>Deny</button></div></div>))}</div>}
 
-      {H("Strikes", strikes.length)}
+      {H("Strikes & bans", strikes.length)}
       {strikes.length === 0 ? <p className="text-sm text-brown">No strikes issued.</p> : <div className="card divide-y divide-cream">{strikes.slice(0, 30).map((k) => (
-        <div key={k.id} className="flex flex-wrap items-center gap-x-3 p-3 text-sm"><b>{who(k.accountId)}</b><span className="flex-1 text-brown">{k.reason} · {new Date(k.at).toLocaleDateString()}</span>{k.revoked && <span className="chip">revoked</span>}</div>))}</div>}
+        <div key={k.id} className="flex flex-wrap items-center gap-x-3 p-3 text-sm"><b>{who(k.accountId)}</b><span className="flex-1 text-brown">{k.reason} · {new Date(k.at).toLocaleDateString()}</span>{k.kind === "scam" && <span className="chip bg-red-100">scam ban</span>}{k.kind === "false-report" && <span className="chip bg-orange-light">false report</span>}{k.revoked && <span className="chip">revoked</span>}</div>))}</div>}
       <p className="mt-2 text-xs text-brown">Suspended now: {Object.entries(suspensions).filter(([, u]) => new Date(u).getTime() > Date.now()).map(([id]) => who(id)).join(", ") || "none"} · Banned: {banned.map(who).join(", ") || "none"}</p>
 
       {H("Reporter reliability", reporters.length)}
