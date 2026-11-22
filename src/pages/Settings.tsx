@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ALLERGENS, DIETS } from "../data";
 import { useMe, useStore } from "../store";
@@ -12,18 +12,46 @@ import type { Account } from "../types";
 const TABS = ["Profile", "Food preferences", "Appearance", "Notifications", "Privacy", "AI & Integrations", "Account"] as const;
 const NOTIFY: [string, string][] = [["follows", "New followers"], ["likes", "Likes on your creations"], ["comments", "Comments"], ["purchases", "Purchases of your recipes"], ["creators", "Posts from creators you follow"], ["reviews", "Reviews on your recipes"], ["challenges", "Challenges starting"], ["updates", "Updates to saved recipes & platform news"]];
 
+/** Saves form edits automatically (debounced), and again when you switch tabs or leave the page. */
+function useAutosave<T>(value: T, ok: (v: T) => boolean, same: (v: T) => boolean, commit: (v: T) => void): { state: "saved" | "pending" | "invalid"; flush: () => void } {
+  const [state, setState] = useState<"saved" | "pending" | "invalid">("saved");
+  const fns = useRef({ ok, same, commit }); fns.current = { ok, same, commit };
+  const latest = useRef(value); latest.current = value;
+  useEffect(() => {
+    if (fns.current.same(value)) { setState("saved"); return; }
+    if (!fns.current.ok(value)) { setState("invalid"); return; }
+    setState("pending");
+    const t = setTimeout(() => { fns.current.commit(value); setState("saved"); }, 600);
+    return () => clearTimeout(t);
+  }, [value]);
+  const flush = () => { const v = latest.current; if (!fns.current.same(v) && fns.current.ok(v)) { fns.current.commit(v); setState("saved"); } };
+  useEffect(() => { // also flush when the browser tab is hidden / closed / reloaded, and when this page unmounts
+    const hide = () => { if (document.visibilityState === "hidden") flush(); };
+    document.addEventListener("visibilitychange", hide); window.addEventListener("pagehide", flush);
+    return () => { document.removeEventListener("visibilitychange", hide); window.removeEventListener("pagehide", flush); const v = latest.current; if (!fns.current.same(v) && fns.current.ok(v)) fns.current.commit(v); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return { state, flush };
+}
+const SaveState = ({ s, bad }: { s: "saved" | "pending" | "invalid"; bad?: string }) => (
+  <p role="status" aria-live="polite" className={`text-xs ${s === "invalid" ? "text-red-700" : "text-brown"}`}>{s === "saved" ? "✓ All changes saved" : s === "pending" ? "Saving…" : bad ?? "Fix the highlighted field to save."}</p>
+);
+const profileOk = (p: { name: string; handle: string }) => p.name.trim().length >= 2 && /^@[a-z0-9_]{3,20}$/i.test(p.handle);
+const sameProfile = (p: { name: string; handle: string; bio: string; emoji: string }) => { const m = useStore.getState().accounts.find((a) => a.id === useStore.getState().session); return !m || (m.name === p.name.trim() && m.handle === p.handle && m.bio === p.bio.slice(0, 280) && m.emoji === p.emoji); };
+
 export default function Settings() {
   const me = useMe()!; const nav = useNavigate(); const { updateAccount, ai, setAI, logOut, stripeConfigured } = useStore();
   const [tab, setTab] = useState<(typeof TABS)[number]>("Profile");
   const [p, setP] = useState({ name: me.name, handle: me.handle, bio: me.bio, emoji: me.emoji }); const [aiF, setAiF] = useState(ai);
   const tog = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const Switch = ({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) => <div className="flex items-center justify-between gap-4 py-3 text-sm"><span>{label}</span><GSwitch on={on} onChange={set} label={label} /></div>;
+  const { state: profileState, flush: flushProfile } = useAutosave(p, profileOk, sameProfile, (v) => updateAccount({ name: v.name.trim(), handle: v.handle, bio: v.bio.slice(0, 280), emoji: v.emoji }));
+  const { state: aiState, flush: flushAi } = useAutosave(aiF, (v) => !v.endpoint || /^https:\/\//.test(v.endpoint), (v) => { const c = useStore.getState().ai; return c.endpoint === v.endpoint && c.model === v.model && c.key === v.key; }, (v) => setAI(v));
   const [fx, setFx] = useState<FxMode>(getFxMode()); const [, rerender] = useState(0);
   const appearance = useAppearance(); const resolved = useResolvedTheme();
   return (
     <div>
       <PageHeader title="Settings" />
-      <Tabs tabs={TABS} value={tab} onChange={setTab} />
+      <Tabs tabs={TABS} value={tab} onChange={(t) => { flushProfile(); flushAi(); setTab(t); }} />
       <div className="card max-w-2xl p-6">
         {tab === "Profile" && (
           <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (p.name.trim().length < 2) return toast("Enter a name.", "err"); if (!/^@[a-z0-9_]{3,20}$/i.test(p.handle)) return toast("Handle must look like @name (3–20 letters, numbers or _).", "err"); updateAccount({ name: p.name.trim(), handle: p.handle, bio: p.bio.slice(0, 280), emoji: p.emoji }); toast("Profile saved"); }}>
@@ -31,7 +59,7 @@ export default function Settings() {
             <div><label className="label" htmlFor="sn">Name</label><input id="sn" className="input" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })} maxLength={60} /></div>
             <div><label className="label" htmlFor="sh">Handle</label><input id="sh" className="input" value={p.handle} onChange={(e) => setP({ ...p, handle: e.target.value })} /></div>
             <div><label className="label" htmlFor="sb">Bio</label><textarea id="sb" className="input" rows={3} value={p.bio} onChange={(e) => setP({ ...p, bio: e.target.value })} maxLength={280} /></div>
-            <button className="btn-primary">Save profile</button>
+            <div className="flex items-center gap-3"><button className="btn-primary">Save profile</button><SaveState s={profileState} bad="Name needs 2+ characters and the handle must look like @name." /></div>
           </form>
         )}
         {tab === "Food preferences" && (
@@ -86,6 +114,7 @@ export default function Settings() {
               <div className="grid grid-cols-2 gap-3"><div><label className="label" htmlFor="am">Model</label><input id="am" className="input" value={aiF.model} onChange={(e) => setAiF({ ...aiF, model: e.target.value.trim() })} /></div><div><label className="label" htmlFor="ak">API key (optional)</label><input id="ak" type="password" className="input" autoComplete="off" value={aiF.key} onChange={(e) => setAiF({ ...aiF, key: e.target.value })} /></div></div>
               <div className="flex gap-2"><button className="btn-primary">Save</button><button type="button" className="btn-ghost" onClick={() => { setAiF({ endpoint: "", model: "", key: "" }); setAI({ endpoint: "", model: "", key: "" }); }}>Use CRUNCH AI (default)</button></div>
               <p className="text-xs text-brown">Status: {ai.endpoint ? "custom provider connected for AI Chef chat" : "CRUNCH AI via the secure server proxy (falls back to the built-in engine if unavailable)"}. Recipe generation and combination analysis currently always use the built-in engine.</p>
+              <SaveState s={aiState} bad="The endpoint must start with https://" />
             </form>
             <div className="space-y-2 text-sm"><h2 className="h-display text-xl">Other services</h2>
               <Row name="Payments (Stripe)" status={stripeConfigured ? "Connected" : "Not configured — demo checkout, no money moves"} />

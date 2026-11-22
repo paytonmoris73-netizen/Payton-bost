@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { G } from "../icons";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ALLERGENS, DIETS, INGREDIENTS, MARKET_CATEGORIES, CUISINES, MEALS } from "../data";
@@ -25,8 +25,24 @@ function amountToGrams(a: string, id: string): number {
 export default function RecipeEditor() {
   const { id } = useParams(); const nav = useNavigate(); const me = useMe()!; const cat = useCatalogue(); const upsert = useStore((s) => s.upsertRecipe);
   const existing = id ? cat.find((r) => r.id === id && r.creatorId === me.id) : undefined;
-  const [r, setR] = useState<Recipe>(() => existing ?? { id: "my_" + uid(), title: "", description: "", emoji: "🍽️", hue: 30, creatorId: me.id, ingredients: [{ name: "", amount: "" }, { name: "", amount: "" }], steps: [{ text: "" }, { text: "" }], prepMin: 10, cookMin: 20, servings: 2, difficulty: "Easy", cuisine: "Global", meal: "Dinner", categories: [], diet: [], price: 0, rating: 0, reviews: 0, sales: 0, views: 0, nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 0 }, allergens: [], equipment: [], substitutions: [], storage: "Refrigerate in an airtight container for up to 3 days.", status: "draft", createdAt: new Date().toISOString() });
-  const [preview, setPreview] = useState(false); const [original, setOriginal] = useState(false); const [errs, setErrs] = useState<string[]>([]);
+  // Unsaved work is kept on this device so switching tabs, a phone discarding the page, or an accidental back-swipe doesn't lose it.
+  const draftKey = `crunch-recipe-draft:${me.id}:${id ?? "new"}`;
+  const [draft] = useState<{ r: Recipe; original: boolean } | null>(() => { try { const v = JSON.parse(localStorage.getItem(draftKey) ?? "null"); return v?.r ? v : null; } catch { return null; } });
+  const [restored, setRestored] = useState(!!draft); const finished = useRef(false);
+  const [r, setR] = useState<Recipe>(() => draft?.r ?? existing ?? { id: "my_" + uid(), title: "", description: "", emoji: "🍽️", hue: 30, creatorId: me.id, ingredients: [{ name: "", amount: "" }, { name: "", amount: "" }], steps: [{ text: "" }, { text: "" }], prepMin: 10, cookMin: 20, servings: 2, difficulty: "Easy", cuisine: "Global", meal: "Dinner", categories: [], diet: [], price: 0, rating: 0, reviews: 0, sales: 0, views: 0, nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 0 }, allergens: [], equipment: [], substitutions: [], storage: "Refrigerate in an airtight container for up to 3 days.", status: "draft", createdAt: new Date().toISOString() });
+  const [preview, setPreview] = useState(false); const [original, setOriginal] = useState(draft?.original ?? false); const [errs, setErrs] = useState<string[]>([]);
+  const latest = useRef({ r, original }); latest.current = { r, original };
+  const writeDraft = () => {
+    if (finished.current) return; const { r: x, original: o } = latest.current;
+    const dirty = x.title.trim() || x.description.trim() || x.ingredients.some((i) => i.name.trim()) || x.steps.some((s) => s.text.trim());
+    try { if (dirty) localStorage.setItem(draftKey, JSON.stringify({ r: x, original: o, at: Date.now() })); } catch { /* storage full (e.g. big photo): the in-page copy still works */ }
+  };
+  useEffect(() => { const t = setTimeout(writeDraft, 500); return () => clearTimeout(t); }, [r, original]); // debounced while typing
+  useEffect(() => { // flush immediately when the tab is hidden, the page is closed, or you navigate away
+    const hide = () => { if (document.visibilityState === "hidden") writeDraft(); };
+    document.addEventListener("visibilitychange", hide); window.addEventListener("pagehide", writeDraft);
+    return () => { document.removeEventListener("visibilitychange", hide); window.removeEventListener("pagehide", writeDraft); writeDraft(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (id && !existing) toast("Recipe not found", "err"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const u = (p: Partial<Recipe>) => setR((x) => ({ ...x, ...p }));
   const clean = useMemo<Recipe>(() => ({ ...r, hue: (r.emoji.codePointAt(0) ?? 30) % 360, ingredients: r.ingredients.filter((i) => i.name.trim()), steps: r.steps.filter((s) => s.text.trim()) }), [r]);
@@ -59,6 +75,7 @@ export default function RecipeEditor() {
   };
   const save = (status: Recipe["status"]) => { if (!validate(status === "published")) { window.scrollTo({ top: 0, behavior: "smooth" }); return; } const out = upsert({ ...clean, status });
     if (out.result === "blocked") { setErrs([out.message]); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    finished.current = true; try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
     toast(status === "published" ? out.message : "Draft saved", out.result === "review" ? "ok" : "ok"); nav(status === "published" ? "/creator/studio" : "/cookbook"); };
 
   if (id && !existing) return <Empty emoji="🔍" title="Recipe not found" action={<Link to="/creator/studio" className="btn-primary">Studio</Link>} />;
@@ -67,6 +84,7 @@ export default function RecipeEditor() {
   return (
     <div>
       <PageHeader title={existing ? "Edit recipe" : "Upload a recipe"} sub="Write it up, preview it, then save as a draft or publish." action={<div className="flex gap-2"><button className="btn-ghost" onClick={() => setPreview(!preview)}>{preview ? "← Edit" : "Preview"}</button></div>} />
+      {restored && <div role="status" className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-sage-light/70 p-3 text-sm"><span className="flex-1">✓ Restored your unsaved work from where you left off.</span><button className="btn-ghost !py-1.5" onClick={() => { finished.current = true; try { localStorage.removeItem(draftKey); } catch { /* ignore */ } location.reload(); }}>Discard &amp; start over</button><button className="btn-ghost !py-1.5" aria-label="Dismiss" onClick={() => setRestored(false)}>OK</button></div>}
       {errs.length > 0 && <div role="alert" className="mb-4 rounded-2xl bg-red-50 p-4 text-sm text-red-800"><b>Fix the following:</b><ul className="mt-1 list-disc pl-5">{errs.map((e) => <li key={e}>{e}</li>)}</ul></div>}
       {preview ? <><p className="mb-3 rounded-xl bg-sage-light/60 p-3 text-sm">This is how buyers will see it after purchase. Before purchase they only see the cover, description and first four ingredient names.</p><RecipeBody r={clean} preview /></> : (
         <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
