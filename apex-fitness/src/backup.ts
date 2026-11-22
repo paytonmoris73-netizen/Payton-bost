@@ -1,8 +1,10 @@
+import { PLANS, type CardBrand, type Payment, type PlanId, type Subscription } from "./payments";
 import type { Category, Level, Lift, Meal, Measurement, Workout, WorkoutLog } from "./types";
 
 export interface BackupData {
   name: string;
-  premium: boolean;
+  subscription: Subscription | null;
+  payments: Payment[];
   calorieGoal: number;
   proteinGoal: number;
   carbGoal: number;
@@ -18,7 +20,8 @@ export interface BackupData {
 export function exportBackup(s: BackupData): string {
   const data: BackupData = {
     name: s.name,
-    premium: s.premium,
+    subscription: s.subscription,
+    payments: s.payments,
     calorieGoal: s.calorieGoal,
     proteinGoal: s.proteinGoal,
     carbGoal: s.carbGoal,
@@ -115,6 +118,23 @@ function workout(v: unknown): Workout {
   };
 }
 
+const BRANDS: CardBrand[] = ["Visa", "Mastercard", "Amex", "Discover", "Card"];
+const plan = (v: unknown): PlanId => PLANS.find((p) => p.id === v)?.id ?? bad("plan");
+const brand = (v: unknown): CardBrand => BRANDS.find((b) => b === v) ?? bad("card brand");
+const last4 = (v: unknown): string => (typeof v === "string" && /^\d{4}$/.test(v) ? v : bad("card"));
+
+function subscription(v: unknown): Subscription | null {
+  if (v === undefined || v === null) return null;
+  if (!isObj(v)) return bad("subscription");
+  const status = v.status === "active" || v.status === "canceled" ? v.status : bad("subscription status");
+  return { plan: plan(v.plan), status, startedOn: date(v.startedOn, "subscription start"), renewsOn: date(v.renewsOn, "renewal date"), brand: brand(v.brand), last4: last4(v.last4) };
+}
+
+function payment(v: unknown): Payment {
+  if (!isObj(v)) return bad("payment");
+  return { id: str(v.id, "payment id"), date: date(v.date, "payment date"), amount: num(v.amount, "payment amount", 0, 10000), plan: plan(v.plan), brand: brand(v.brand), last4: last4(v.last4) };
+}
+
 export function parseBackup(text: string): BackupData {
   if (text.length > 50_000_000) bad("file too large");
   let raw: unknown;
@@ -131,7 +151,9 @@ export function parseBackup(text: string): BackupData {
 
   return {
     name: str(d.name, "name", 24).trim() || "Athlete",
-    premium: d.premium === true,
+    // Older backups (before payments) have neither field.
+    subscription: subscription(d.subscription),
+    payments: d.payments === undefined ? [] : list(d.payments, "payments", 5000).map(payment),
     calorieGoal: num(d.calorieGoal, "calorie goal", 500, 10000),
     proteinGoal: num(d.proteinGoal, "protein goal", 0, 1000),
     carbGoal: num(d.carbGoal, "carb goal", 0, 2000),

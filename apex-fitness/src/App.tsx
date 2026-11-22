@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useToday } from "./lib";
 import BottomNav from "./components/BottomNav";
 import Coach from "./pages/Coach";
 import Home from "./pages/Home";
@@ -15,6 +16,14 @@ export default function App() {
   const section = useNav((s) => s.section);
   const detailId = useNav((s) => s.detailId);
   const sessionId = useNav((s) => s.sessionId);
+
+  // Simulated billing: charge renewals that came due, and end canceled plans at period end.
+  const today = useToday();
+  const renewsOn = useApp((s) => s.subscription?.renewsOn);
+  const renewIfDue = useApp((s) => s.renewIfDue);
+  useEffect(() => {
+    if (renewsOn && today >= renewsOn) renewIfDue(today);
+  }, [today, renewsOn, renewIfDue]);
 
   // Each new screen starts at the top instead of keeping the previous screen's scroll.
   useEffect(() => {

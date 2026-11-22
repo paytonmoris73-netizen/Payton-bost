@@ -13,7 +13,7 @@
 - **AI Coach** — chat with a coach that sees your workouts, meals and progress; it can suggest a workout and start it in one tap. Uses Claude via a server function, with a built-in offline coach as fallback
 - **Settings** — edit your name and calorie / macro / active-minute goals, **export and import a JSON backup** (imports are validated), reset
 - **Installable (PWA)** — add to your home screen and use it offline (production builds)
-- **Premium** — demo screen only; no payments, and the listed features aren't built
+- **Premium (simulated payments, test mode)** — monthly ($9.99) or yearly ($79.99) plans, a full checkout with card validation (number checksum, expiry, CVC, ZIP), processing, declines, a billing history, cancel / resume, and automatic renewals when a billing date passes. **No real payment provider is connected and no money moves**; only the card brand and last 4 digits are stored. Test cards: `4242 4242 4242 4242` succeeds, `4000 0000 0000 0002` is declined, `4000 0000 0000 9995` has insufficient funds. The listed Premium perks themselves aren't built yet
 
 Everything is stored locally in your browser (`localStorage`) — no account or server.
 

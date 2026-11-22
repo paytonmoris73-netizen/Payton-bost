@@ -4,7 +4,9 @@ import LineChart from "../components/LineChart";
 import Modal from "../components/Modal";
 import { exportBackup, parseBackup } from "../backup";
 import { PREMIUM_FEATURES, RIVALS } from "../data";
-import { daysAgo, dayKey, fmtDay, fmtNum, pointsFor, topPrs } from "../lib";
+import { daysAgo, dayKey, fmtDay, fmtNum, pointsFor, topPrs, useToday } from "../lib";
+import { PLANS, fmtMoney, hasPremium, planById, type PlanId } from "../payments";
+import Checkout from "./Checkout";
 import { useApp, useNav } from "../store";
 import type { ProfileSection } from "../types";
 
@@ -19,7 +21,7 @@ export default function Profile() {
   const section = useNav((s) => s.section);
   const go = useNav((s) => s.go);
   const name = useApp((s) => s.name);
-  const premium = useApp((s) => s.premium);
+  const premium = hasPremium(useApp((s) => s.subscription), useToday());
 
   return (
     <div className="animate-fade-up pt-safe space-y-5 px-5">
@@ -348,33 +350,131 @@ function Leaderboard() {
 /* ---------------- Premium ---------------- */
 
 function Premium() {
-  const premium = useApp((s) => s.premium);
-  const setPremium = useApp((s) => s.setPremium);
+  const sub = useApp((s) => s.subscription);
+  const payments = useApp((s) => s.payments);
+  const cancel = useApp((s) => s.cancelSubscription);
+  const resume = useApp((s) => s.resumeSubscription);
+  const today = useToday();
+  const [planId, setPlanId] = useState<PlanId>("yearly");
+  const [checkout, setCheckout] = useState(false);
+  const active = hasPremium(sub, today);
+  const longDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
   return (
-    <div className="card relative overflow-hidden bg-gradient-to-br from-[#4a3006] via-[#1d1306] to-[#100c08] p-6">
-      <div className="absolute -right-6 -top-6 text-gold/10">
-        <Icon name="crown" size={180} strokeWidth={1.2} />
+    <>
+      <div className="card relative overflow-hidden bg-gradient-to-br from-[#4a3006] via-[#1d1306] to-[#100c08] p-6">
+        <div className="absolute -right-6 -top-6 text-gold/10">
+          <Icon name="crown" size={180} strokeWidth={1.2} />
+        </div>
+        <Icon name="crown" size={34} className="text-gold" />
+        <h2 className="mt-3 text-2xl font-black">
+          Apex Fitness <span className="shine-text">Premium</span>
+        </h2>
+
+        {active && sub ? (
+          <>
+            <p className="mt-1 text-sm text-white/60">
+              {planById(sub.plan).name} plan · {fmtMoney(planById(sub.plan).price)} / {planById(sub.plan).period}
+            </p>
+            <div className="mt-5 space-y-2 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm">
+              <Row2 label="Status" value={sub.status === "active" ? "Active" : "Canceled"} accent={sub.status === "active"} />
+              <Row2 label={sub.status === "active" ? "Next payment" : "Access until"} value={longDate(sub.renewsOn)} />
+              <Row2 label="Payment method" value={`${sub.brand} •••• ${sub.last4}`} />
+              <Row2 label="Member since" value={longDate(sub.startedOn)} />
+            </div>
+            {sub.status === "active" ? (
+              <button
+                onClick={() =>
+                  window.confirm(`Cancel Premium? You'll keep it until ${longDate(sub.renewsOn)} and won't be charged again.`) && cancel()
+                }
+                className="btn-ghost mt-5 w-full"
+              >
+                Cancel subscription
+              </button>
+            ) : (
+              <button onClick={resume} className="btn-primary mt-5 w-full py-3.5">
+                Resume subscription
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="mt-1 text-sm text-white/60">Get the most out of your fitness journey.</p>
+            <ul className="my-5 space-y-3">
+              {PREMIUM_FEATURES.map((f) => (
+                <li key={f} className="flex items-center gap-3 text-sm">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gold/20 text-gold">
+                    <Icon name="check" size={12} strokeWidth={3} />
+                  </span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Choose a plan">
+              {PLANS.map((p) => {
+                const on = planId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => setPlanId(p.id)}
+                    className={`relative rounded-2xl border p-3 text-left transition ${
+                      on ? "border-gold bg-gold/15 shadow-[0_0_20px_-4px_rgba(255,194,60,0.6),inset_0_1px_0_rgba(255,240,200,0.4)]" : "border-white/15 bg-black/25"
+                    }`}
+                  >
+                    {p.note && (
+                      <span className="absolute -top-2 right-2 rounded-full bg-gold px-2 py-0.5 text-[10px] font-extrabold text-black">{p.note}</span>
+                    )}
+                    <span className="block text-xs font-semibold text-white/60">{p.name}</span>
+                    <span className="block text-xl font-black">{fmtMoney(p.price)}</span>
+                    <span className="block text-[11px] text-white/50">
+                      per {p.period}
+                      {p.period === "year" ? ` · ${fmtMoney(p.price / 12)}/mo` : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={() => setCheckout(true)} className="btn-primary mt-5 w-full py-3.5 text-base">
+              Go Premium · {fmtMoney(planById(planId).price)}
+            </button>
+            <p className="mt-3 text-center text-[11px] text-white/35">Test mode — payments are simulated and no real money is charged.</p>
+          </>
+        )}
       </div>
-      <Icon name="crown" size={34} className="text-gold" />
-      <h2 className="mt-3 text-2xl font-black">Apex Fitness Premium</h2>
-      <p className="mt-1 text-sm text-white/60">Get the most out of your fitness journey.</p>
-      <ul className="my-5 space-y-3">
-        {PREMIUM_FEATURES.map((f) => (
-          <li key={f} className="flex items-center gap-3 text-sm">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gold/20 text-gold">
-              <Icon name="check" size={12} strokeWidth={3} />
-            </span>
-            {f}
-          </li>
-        ))}
-      </ul>
-      <button
-        onClick={() => setPremium(!premium)}
-        className={`w-full rounded-full py-3.5 text-base font-extrabold transition active:scale-[0.97] ${premium ? "btn-ghost !w-full !py-3.5 !text-gold" : "btn-primary !w-full !py-3.5"}`}
-      >
-        {premium ? "Premium active · tap to cancel" : "Go Premium"}
-      </button>
-      <p className="mt-3 text-center text-[11px] text-white/30">Demo only — no payment is taken and these features aren't built yet.</p>
+
+      {payments.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-base font-bold">Billing history</h2>
+          <ul className="card divide-y divide-line overflow-hidden">
+            {payments.slice(0, 24).map((p) => (
+              <li key={p.id} className="flex items-center gap-3 px-4 py-3">
+                <Icon name="card" size={18} className="text-white/50" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">Premium · {planById(p.plan).name}</span>
+                  <span className="block text-xs text-white/50">
+                    {longDate(p.date)} · {p.brand} •••• {p.last4}
+                  </span>
+                </span>
+                <span className="text-sm font-bold">{fmtMoney(p.amount)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-center text-[11px] text-white/30">Test-mode receipts.</p>
+        </section>
+      )}
+
+      {checkout && <Checkout planId={planId} onClose={() => setCheckout(false)} />}
+    </>
+  );
+}
+
+function Row2({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-white/50">{label}</span>
+      <span className={`text-right font-semibold ${accent ? "text-lime-apex" : ""}`}>{value}</span>
     </div>
   );
 }
