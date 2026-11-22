@@ -14,7 +14,12 @@ body,
 
 body {
   margin: 0;
-  background: #000;
+  background-color: #070605;
+  background-image:
+    radial-gradient(520px 320px at 90% -5%, rgba(255, 138, 31, 0.22), transparent 62%),
+    radial-gradient(480px 380px at -10% 30%, rgba(255, 170, 70, 0.13), transparent 60%),
+    radial-gradient(600px 360px at 50% 110%, rgba(224, 120, 10, 0.2), transparent 60%);
+  background-attachment: fixed;
   color: #fff;
   font-family: Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -34,19 +39,71 @@ button {
 }
 
 @layer components {
+  /* Glossy glass panel: dark gradient body, amber hairline rim, specular sheen. */
   .card {
-    @apply rounded-2xl border border-line bg-ink-1;
+    @apply relative rounded-2xl;
+    background:
+      linear-gradient(180deg, rgba(255, 200, 120, 0.10) 0%, rgba(255, 200, 120, 0.02) 24%, transparent 48%),
+      linear-gradient(160deg, #1f1a14, #0f0d0a);
+    border: 1px solid rgba(255, 170, 70, 0.24);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 226, 180, 0.30),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.65),
+      inset 0 0 26px rgba(255, 138, 31, 0.05),
+      0 10px 28px -12px rgba(0, 0, 0, 0.85),
+      0 0 22px -10px rgba(255, 138, 31, 0.4);
   }
+  /* Diagonal glass glare across the upper-left of every panel. */
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(115deg, rgba(255, 244, 224, 0.11) 0%, rgba(255, 244, 224, 0.02) 28%, transparent 42%);
+  }
+  /* Polished amber-gold: bright top half, deeper bottom half, inner highlights, outer glow. */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-apex-light to-apex px-5 py-3 text-sm font-bold text-black transition active:scale-[0.97];
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-5 py-3 text-sm font-bold text-black transition active:scale-[0.97];
+    background-image:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 46%, rgba(0, 0, 0, 0) 50%, rgba(130, 50, 0, 0.2) 100%),
+      linear-gradient(135deg, #ffd08a 0%, #ff9a2e 48%, #d86a00 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -2px 4px rgba(130, 50, 0, 0.5),
+      0 6px 20px -4px rgba(255, 138, 31, 0.6);
   }
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: -60%;
+    width: 40%;
+    transform: skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    transition: left 0.7s ease;
+    pointer-events: none;
+  }
+  .btn-primary:hover::after { left: 130%; }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-ink-2 px-5 py-3 text-sm font-semibold text-white transition active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition active:scale-[0.97];
+    background: linear-gradient(180deg, rgba(255, 200, 120, 0.12), rgba(255, 200, 120, 0.02) 50%, rgba(0, 0, 0, 0.3));
+    border: 1px solid rgba(255, 170, 70, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.25);
   }
   .chip {
     @apply rounded-full px-4 py-2 text-xs font-semibold transition;
+    box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.2);
   }
   .input {
-    @apply w-full rounded-xl border border-line bg-ink-2 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-apex;
+    @apply w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-apex;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(255, 200, 120, 0.04));
+    border: 1px solid rgba(255, 170, 70, 0.22);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+  .glass-bar {
+    background: linear-gradient(180deg, rgba(255, 200, 120, 0.10), rgba(12, 10, 8, 0.96) 45%);
+    border: 1px solid rgba(255, 170, 70, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.32), 0 -8px 30px -10px rgba(0, 0, 0, 0.9), 0 0 26px -8px rgba(255, 138, 31, 0.45);
+    backdrop-filter: blur(18px) saturate(150%);
   }
 }
