@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 // Sign-up screen as a brand-new visitor: errors, reset, Terms/Privacy sheets (contents links must not change the
 // address), 'I agree', age + password rules, then sign-up. Phone and desktop.
-const BASE = process.env.BASE || 'http://127.0.0.1:5199'; const URL0 = BASE + '/auth'; const tag = 'site';
+const BASE = process.env.BASE || 'http://127.0.0.1:5199'; const URL0 = process.env.URL0 || BASE + '/auth'; const tag = 'site';
 (async()=>{const b=await chromium.launch();
 for (const [vw,vh] of [[390,844],[1280,860]]) {
 const ctx=await b.newContext({viewport:{width:vw,height:vh}}); const p=await ctx.newPage(); const errs=[]; const res=[];
