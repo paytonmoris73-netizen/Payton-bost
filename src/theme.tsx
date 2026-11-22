@@ -32,7 +32,7 @@ export function applyAppearance(mode: Mode, theme: Theme) {
   const dark = mode === "dark" || (mode === "auto" && systemDark());
   const r = resolveTheme(theme);
   root.classList.toggle("dark", dark);
-  if (r === "classic") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", r);
+  if (r === "classic") root.removeAttribute("data-crunch-theme"); else root.setAttribute("data-crunch-theme", r);
   const bg = getComputedStyle(root).getPropertyValue("--bg").trim().split(/\s+/).join(",");
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", bg ? `rgb(${bg})` : "#FBF5EA");
 }

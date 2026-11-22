@@ -14,7 +14,7 @@
           var s = JSON.parse(localStorage.getItem("crunch-appearance") || "{}"), m = s.mode || "auto", t = s.theme || "seasonal", r = document.documentElement;
           if (m === "dark" || (m === "auto" && matchMedia("(prefers-color-scheme: dark)").matches)) r.classList.add("dark");
           if (t === "seasonal") { var mo = new Date().getMonth(); t = mo === 9 ? "halloween" : mo === 11 ? "christmas" : "classic"; }
-          if (t !== "classic") r.setAttribute("data-theme", t);
+          if (t !== "classic") r.setAttribute("data-crunch-theme", t);
         } catch (e) {}
       })();
     </script>

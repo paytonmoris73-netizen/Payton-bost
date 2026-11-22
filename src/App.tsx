@@ -1,5 +1,8 @@
 import { Component, Suspense, lazy, type ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, HashRouter, Navigate, Route, Routes } from "react-router-dom";
+
+/** Hash routing for single-file hosting (e.g. a shared preview link); normal paths everywhere else. */
+const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter;
 import { Layout } from "./Layout";
 import { useMe } from "./store";
 import { Toaster, CardSkeletons } from "./ui";
@@ -45,7 +48,7 @@ function AdminGate({ children }: { children: ReactNode }) { const me = useMe(); 
 export function App() {
   return (
     <Boundary>
-      <BrowserRouter>
+      <Router>
         <Suspense fallback={<div className="mx-auto max-w-7xl p-8"><CardSkeletons /></div>}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
@@ -81,7 +84,7 @@ export function App() {
         </Suspense>
         <Toaster />
         <ThemeDecor />
-      </BrowserRouter>
+      </Router>
     </Boundary>
   );
 }
