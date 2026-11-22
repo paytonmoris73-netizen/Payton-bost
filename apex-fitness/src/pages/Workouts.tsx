@@ -1,0 +1,115 @@
+import { useState } from "react";
+import Icon from "../components/Icon";
+import { WORKOUTS, workoutById } from "../data";
+import { useNav } from "../store";
+import type { Category, Exercise, Workout } from "../types";
+
+const FILTERS: ("For You" | Category)[] = ["For You", "Strength", "Cardio", "Mobility"];
+
+const target = (e: Exercise) => (e.reps ? `${e.sets} × ${e.reps}` : `${e.sets} × ${e.seconds}s`);
+
+export default function Workouts() {
+  const detailId = useNav((s) => s.detailId);
+  const openDetail = useNav((s) => s.openDetail);
+  const startSession = useNav((s) => s.startSession);
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("For You");
+
+  const detail = detailId ? workoutById(detailId) : undefined;
+  if (detail) return <Detail w={detail} onBack={() => openDetail(null)} onStart={() => startSession(detail.id)} />;
+
+  const list = filter === "For You" ? WORKOUTS : WORKOUTS.filter((w) => w.category === filter);
+  const [featured, ...rest] = list;
+
+  return (
+    <div className="animate-fade-up space-y-5 px-5 pt-6">
+      <h1 className="text-center text-xl font-extrabold">Workout</h1>
+
+      <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5">
+        {FILTERS.map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`chip shrink-0 ${filter === f ? "bg-apex text-black" : "bg-ink-2 text-white/70"}`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {featured && (
+        <button
+          onClick={() => openDetail(featured.id)}
+          className="relative block w-full overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-[#3a1f08] via-[#1b1006] to-ink-1 p-5 text-left"
+        >
+          <div className="absolute -right-8 -top-8 text-apex/15">
+            <Icon name="dumbbell" size={190} strokeWidth={1.2} />
+          </div>
+          <span className="rounded-full bg-apex/20 px-2.5 py-1 text-[10px] font-bold uppercase text-apex">Featured</span>
+          <h2 className="mt-14 text-2xl font-extrabold">{featured.name}</h2>
+          <p className="text-sm text-white/60">
+            {featured.minutes} min · {featured.level}
+          </p>
+          <span className="btn-primary mt-4 w-full">
+            <Icon name="play" size={14} /> View Workout
+          </span>
+        </button>
+      )}
+
+      <section>
+        <h2 className="mb-3 text-base font-bold">{filter === "For You" ? "Popular Workouts" : `${filter} Workouts`}</h2>
+        <ul className="space-y-2.5">
+          {rest.map((w) => (
+            <li key={w.id}>
+              <button onClick={() => openDetail(w.id)} className="card flex w-full items-center gap-3 p-3 text-left transition active:scale-[0.98]">
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-apex/30 to-ink-3 text-apex">
+                  <Icon name={w.category === "Cardio" ? "flame" : w.category === "Mobility" ? "target" : "dumbbell"} size={24} />
+                </span>
+                <span className="flex-1">
+                  <span className="block text-sm font-bold">{w.name}</span>
+                  <span className="block text-xs text-white/50">
+                    {w.minutes} min · {w.level}
+                  </span>
+                </span>
+                <Icon name="chevR" size={18} className="text-white/40" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+function Detail({ w, onBack, onStart }: { w: Workout; onBack: () => void; onStart: () => void }) {
+  return (
+    <div className="animate-fade-up px-5 pt-6">
+      <button onClick={onBack} className="mb-4 flex items-center gap-1 text-sm text-white/60">
+        <Icon name="chevL" size={18} /> Back
+      </button>
+      <h1 className="text-2xl font-extrabold">{w.name}</h1>
+      <p className="mt-1 text-sm text-white/60">{w.focus}</p>
+      <div className="mt-4 flex gap-2 text-xs font-semibold">
+        <span className="rounded-full bg-ink-2 px-3 py-1.5">{w.minutes} min</span>
+        <span className="rounded-full bg-ink-2 px-3 py-1.5">{w.level}</span>
+        <span className="rounded-full bg-ink-2 px-3 py-1.5">~{w.minutes * w.kcalPerMin} kcal</span>
+      </div>
+
+      <h2 className="mb-3 mt-6 text-base font-bold">Exercises ({w.exercises.length})</h2>
+      <ol className="space-y-2">
+        {w.exercises.map((e, i) => (
+          <li key={e.name + i} className="card flex items-center gap-3 p-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-apex/15 text-sm font-bold text-apex">{i + 1}</span>
+            <span className="flex-1 text-sm font-semibold">{e.name}</span>
+            <span className="text-sm text-white/60">{target(e)}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="sticky bottom-24 mt-6">
+        <button onClick={onStart} className="btn-primary w-full py-4 text-base shadow-lg shadow-black/50">
+          <Icon name="play" size={16} /> Start Workout
+        </button>
+      </div>
+    </div>
+  );
+}
