@@ -15,19 +15,39 @@ body,
 body {
   margin: 0;
   background-color: #070605;
-  background-image:
-    radial-gradient(520px 320px at 90% -5%, rgba(255, 138, 31, 0.22), transparent 62%),
-    radial-gradient(480px 380px at -10% 30%, rgba(255, 170, 70, 0.13), transparent 60%),
-    radial-gradient(600px 360px at 50% 110%, rgba(224, 120, 10, 0.2), transparent 60%);
-  background-attachment: fixed;
+  min-height: 100dvh;
   color: #fff;
   font-family: Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Warm amber light behind everything (a fixed layer: background-attachment: fixed is broken on iOS). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(520px 320px at 90% -5%, rgba(255, 138, 31, 0.26), transparent 62%),
+    radial-gradient(480px 380px at -10% 30%, rgba(255, 170, 70, 0.14), transparent 60%),
+    radial-gradient(600px 360px at 50% 110%, rgba(224, 120, 10, 0.22), transparent 60%);
+}
+
 button {
   font-family: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+:focus-visible {
+  outline: 2px solid #ffb15c;
+  outline-offset: 2px;
+}
+.pt-safe {
+  padding-top: calc(env(safe-area-inset-top) + 1.5rem);
 }
 
 ::-webkit-scrollbar {
@@ -39,71 +59,163 @@ button {
 }
 
 @layer components {
-  /* Glossy glass panel: dark gradient body, amber hairline rim, specular sheen. */
+  /* ---------- Glossy glass panel ---------- */
   .card {
     @apply relative rounded-2xl;
-    background:
-      linear-gradient(180deg, rgba(255, 200, 120, 0.10) 0%, rgba(255, 200, 120, 0.02) 24%, transparent 48%),
-      linear-gradient(160deg, #1f1a14, #0f0d0a);
-    border: 1px solid rgba(255, 170, 70, 0.24);
+    background-color: #120f0b;
+    background-image:
+      linear-gradient(180deg, rgba(255, 214, 150, 0.16) 0%, rgba(255, 214, 150, 0.04) 18%, transparent 46%),
+      linear-gradient(160deg, #231c14 0%, #110e0a 70%);
+    border: 1px solid rgba(255, 176, 80, 0.3);
     box-shadow:
-      inset 0 1px 0 rgba(255, 226, 180, 0.30),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.65),
-      inset 0 0 26px rgba(255, 138, 31, 0.05),
-      0 10px 28px -12px rgba(0, 0, 0, 0.85),
-      0 0 22px -10px rgba(255, 138, 31, 0.4);
+      inset 0 1px 0 rgba(255, 236, 200, 0.42),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.7),
+      inset 0 0 30px rgba(255, 138, 31, 0.06),
+      0 12px 30px -12px rgba(0, 0, 0, 0.9),
+      0 0 26px -10px rgba(255, 138, 31, 0.5);
   }
-  /* Diagonal glass glare across the upper-left of every panel. */
+  /* Glass glare: a bright diagonal reflection in the upper-left. */
   .card::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     pointer-events: none;
-    background: linear-gradient(115deg, rgba(255, 244, 224, 0.11) 0%, rgba(255, 244, 224, 0.02) 28%, transparent 42%);
+    background:
+      radial-gradient(120% 60% at 0% 0%, rgba(255, 246, 228, 0.16), transparent 55%),
+      linear-gradient(115deg, rgba(255, 246, 228, 0.12) 0%, rgba(255, 246, 228, 0.03) 26%, transparent 40%);
   }
-  /* Polished amber-gold: bright top half, deeper bottom half, inner highlights, outer glow. */
+  /* Light sweep across tappable cards. */
+  button.card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 240, 210, 0.16) 50%, transparent 65%);
+    background-size: 250% 100%;
+    background-position: 130% 0;
+    transition: background-position 0.8s ease;
+  }
+  button.card:hover::after,
+  button.card:active::after {
+    background-position: -30% 0;
+  }
+
+  /* ---------- Polished amber-gold button ---------- */
   .btn-primary {
     @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-5 py-3 text-sm font-bold text-black transition active:scale-[0.97];
     background-image:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 46%, rgba(0, 0, 0, 0) 50%, rgba(130, 50, 0, 0.2) 100%),
-      linear-gradient(135deg, #ffd08a 0%, #ff9a2e 48%, #d86a00 100%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.22) 44%, rgba(255, 255, 255, 0) 52%, rgba(120, 45, 0, 0.25) 100%),
+      linear-gradient(135deg, #ffdca0 0%, #ffa13a 45%, #e06e00 100%);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      inset 0 -2px 4px rgba(130, 50, 0, 0.5),
-      0 6px 20px -4px rgba(255, 138, 31, 0.6);
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 0 -3px 6px rgba(120, 45, 0, 0.5),
+      0 0 0 1px rgba(255, 190, 110, 0.55),
+      0 8px 24px -4px rgba(255, 138, 31, 0.75),
+      0 0 40px -10px rgba(255, 160, 60, 0.8);
   }
   .btn-primary::after {
     content: "";
     position: absolute;
-    top: 0; bottom: 0; left: -60%;
+    top: 0;
+    bottom: 0;
+    left: -60%;
     width: 40%;
     transform: skewX(-20deg);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-    transition: left 0.7s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    animation: sheen 4.5s ease-in-out infinite;
     pointer-events: none;
   }
-  .btn-primary:hover::after { left: 130%; }
+  .btn-primary:disabled::after {
+    animation: none;
+  }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition active:scale-[0.97];
-    background: linear-gradient(180deg, rgba(255, 200, 120, 0.12), rgba(255, 200, 120, 0.02) 50%, rgba(0, 0, 0, 0.3));
-    border: 1px solid rgba(255, 170, 70, 0.3);
-    box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.25);
+    background-image: linear-gradient(180deg, rgba(255, 214, 150, 0.18), rgba(255, 214, 150, 0.04) 50%, rgba(0, 0, 0, 0.35));
+    background-color: rgba(28, 22, 16, 0.9);
+    border: 1px solid rgba(255, 176, 80, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 236, 200, 0.35), 0 4px 14px -6px rgba(0, 0, 0, 0.8);
   }
+
+  /* ---------- Chips: utilities set the colour, this adds the gloss on top ---------- */
   .chip {
     @apply rounded-full px-4 py-2 text-xs font-semibold transition;
-    box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.2);
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 48%, rgba(0, 0, 0, 0.18) 100%);
+    border: 1px solid rgba(255, 176, 80, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 240, 215, 0.3);
   }
+  .chip.bg-apex {
+    border-color: rgba(255, 200, 130, 0.8);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 18px -4px rgba(255, 138, 31, 0.8);
+  }
+
   .input {
-    @apply w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-apex;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(255, 200, 120, 0.04));
-    border: 1px solid rgba(255, 170, 70, 0.22);
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+    @apply w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(255, 200, 120, 0.05));
+    border: 1px solid rgba(255, 176, 80, 0.25);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 236, 200, 0.08);
   }
+  .input:focus {
+    border-color: #ff8a1f;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55), 0 0 0 3px rgba(255, 138, 31, 0.25), 0 0 18px -4px rgba(255, 138, 31, 0.6);
+  }
+
+  /* Glossy icon tile (the round/square icon backgrounds). */
+  .gloss-tile {
+    background-image:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 48%, rgba(0, 0, 0, 0) 52%),
+      linear-gradient(145deg, rgba(255, 150, 50, 0.4), rgba(80, 40, 10, 0.5));
+    border: 1px solid rgba(255, 190, 110, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 245, 225, 0.55), 0 0 16px -4px rgba(255, 138, 31, 0.6);
+  }
+
+  /* Metallic shine for highlighted words. */
+  .shine-text {
+    background-image: linear-gradient(100deg, #ffb15c 0%, #ffe2b8 22%, #ff8a1f 45%, #ffd08a 62%, #ff8a1f 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 12px rgba(255, 138, 31, 0.45));
+    animation: textShine 6s linear infinite;
+  }
+
+  /* Glass bars (bottom nav, composer, sheets). */
   .glass-bar {
-    background: linear-gradient(180deg, rgba(255, 200, 120, 0.10), rgba(12, 10, 8, 0.96) 45%);
-    border: 1px solid rgba(255, 170, 70, 0.28);
-    box-shadow: inset 0 1px 0 rgba(255, 226, 180, 0.32), 0 -8px 30px -10px rgba(0, 0, 0, 0.9), 0 0 26px -8px rgba(255, 138, 31, 0.45);
-    backdrop-filter: blur(18px) saturate(150%);
+    background:
+      linear-gradient(180deg, rgba(255, 214, 150, 0.14), rgba(255, 214, 150, 0.02) 40%),
+      rgba(14, 11, 8, 0.94);
+    border: 1px solid rgba(255, 176, 80, 0.34);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 236, 200, 0.45),
+      0 -8px 30px -10px rgba(0, 0, 0, 0.9),
+      0 0 30px -8px rgba(255, 138, 31, 0.5);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+
+  /* Glowing progress fill. */
+  .glow-fill {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%), linear-gradient(90deg, #ffb15c, #ff8a1f);
+    box-shadow: 0 0 12px rgba(255, 138, 31, 0.8);
+  }
+}
+
+@keyframes sheen {
+  0%, 60% { left: -60%; }
+  85%, 100% { left: 130%; }
+}
+@keyframes textShine {
+  from { background-position: 220% 0; }
+  to { background-position: 0% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

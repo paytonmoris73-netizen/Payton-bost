@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import type { ChatMessage, Measurement, Meal, ProfileSection, Tab, Workout, WorkoutLog } from "./types";
 import type { BackupData } from "./backup";
 import { WORKOUTS } from "./data";
-import { daysAgo, uid } from "./lib";
+import { uid } from "./lib";
 
 /* ---------- persisted app data ---------- */
 
@@ -42,18 +42,6 @@ interface DataState {
   reset: () => void;
 }
 
-/** Sample history so the Progress chart isn't empty on first launch. */
-const seedMeasurements = (): Measurement[] =>
-  [
-    { d: 84, weight: 172, bodyFat: 16, muscle: 55 },
-    { d: 70, weight: 171, bodyFat: 15.5, muscle: 56 },
-    { d: 56, weight: 169.5, bodyFat: 14.8, muscle: 57 },
-    { d: 42, weight: 168.5, bodyFat: 14, muscle: 58 },
-    { d: 28, weight: 167.5, bodyFat: 13.3, muscle: 58.5 },
-    { d: 14, weight: 166.5, bodyFat: 12.6, muscle: 59.2 },
-    { d: 0, weight: 165, bodyFat: 12, muscle: 60 },
-  ].map(({ d, ...m }) => ({ date: daysAgo(d), ...m }));
-
 const initialData = () => ({
   name: "",
   onboarded: false,
@@ -65,7 +53,7 @@ const initialData = () => ({
   dailyActiveGoal: 45,
   logs: [] as WorkoutLog[],
   meals: [] as Meal[],
-  measurements: seedMeasurements(),
+  measurements: [] as Measurement[],
   coachChat: [] as ChatMessage[],
   customWorkouts: [] as Workout[],
   water: {} as Record<string, number>,
@@ -97,9 +85,24 @@ export const useApp = create<DataState>()(
       clearCoach: () => set({ coachChat: [] }),
       setPremium: (v) => set({ premium: v }),
       setCalorieGoal: (n) => set({ calorieGoal: n }),
-      reset: () => set(initialData()),
+      reset: () => {
+        set(initialData());
+        useNav.setState({ tab: "home", section: "progress", sessionId: null, detailId: null });
+      },
     }),
-    { name: "apex-fitness-v1" },
+    {
+      name: "apex-fitness-v1",
+      version: 1,
+      // v0 shipped made-up sample measurements; drop exactly those so only real entries remain.
+      migrate: (persisted, version) => {
+        const s = (persisted ?? {}) as Partial<DataState>;
+        if (version < 1 && Array.isArray(s.measurements)) {
+          const sample = new Set(["172|16|55", "171|15.5|56", "169.5|14.8|57", "168.5|14|58", "167.5|13.3|58.5", "166.5|12.6|59.2", "165|12|60"]);
+          s.measurements = s.measurements.filter((m) => !sample.has(`${m.weight}|${m.bodyFat}|${m.muscle}`));
+        }
+        return s as DataState;
+      },
+    },
   ),
 );
 

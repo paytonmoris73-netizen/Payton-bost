@@ -5,7 +5,7 @@
 ## Features
 
 - **Workouts** — 8 built-in workouts (Strength / Cardio / Mobility), plus a **workout builder** to create, save and delete your own from a 30+ exercise library (or type your own)
-- **Guided sessions** — set-by-set flow, rest timers (+15s / skip), pause, live progress, screen stays awake, timers stay accurate when the phone throttles the page. Log the weight per set (prefilled from last time); beating a previous best shows a **personal record** banner
+- **Guided sessions** — set-by-set flow, countdown timers for timed exercises, rest timers (+15s / skip), pause, live progress, screen stays awake, timers stay accurate when the phone throttles the page. Log the weight per set (prefilled from last time); beating a previous best shows a **personal record** banner
 - **Home** — today's planned workout (weekly rotation), calories burned, active minutes, daily goal, streak, recent activity
 - **Nutrition** — calorie ring, protein/carb/fat tracking, quick-add presets and custom meals, plus a daily **water tracker**
 - **Progress** — range filters (1W–All), weight trend chart, muscle / body-fat deltas, 7-day activity bars, log measurements, personal records, and workout history (with delete)
@@ -16,7 +16,6 @@
 - **Premium** — demo screen only; no payments, and the listed features aren't built
 
 Everything is stored locally in your browser (`localStorage`) — no account or server.
-The Progress chart starts with sample measurement history so it isn't empty; log your own to replace it.
 
 ## AI Coach setup
 

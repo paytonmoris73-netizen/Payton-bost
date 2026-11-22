@@ -4,7 +4,7 @@ import LineChart from "../components/LineChart";
 import Modal from "../components/Modal";
 import { exportBackup, parseBackup } from "../backup";
 import { PREMIUM_FEATURES, RIVALS } from "../data";
-import { daysAgo, dayKey, fmtNum, pointsFor, topPrs } from "../lib";
+import { daysAgo, dayKey, fmtDay, fmtNum, pointsFor, topPrs } from "../lib";
 import { useApp, useNav } from "../store";
 import type { ProfileSection } from "../types";
 
@@ -22,13 +22,13 @@ export default function Profile() {
   const premium = useApp((s) => s.premium);
 
   return (
-    <div className="animate-fade-up space-y-5 px-5 pt-6">
+    <div className="animate-fade-up pt-safe space-y-5 px-5">
       <header className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-apex-light to-apex-dark text-lg font-black text-black">
+        <div className="gloss-tile flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white">
           {name.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1">
-          <h1 className="text-lg font-extrabold">{name}</h1>
+          <h1 className="shine-text text-lg font-extrabold">{name}</h1>
           <p className="flex items-center gap-1 text-xs text-white/50">
             {premium && <Icon name="crown" size={12} className="text-gold" />}
             {premium ? "Premium member" : "Free plan"}
@@ -36,7 +36,7 @@ export default function Profile() {
         </div>
       </header>
 
-      <div className="flex gap-2 rounded-full bg-ink-1 p-1">
+      <div className="card flex gap-1 rounded-full p-1">
         {SECTIONS.map((s) => (
           <button
             key={s.id}
@@ -79,8 +79,9 @@ function Progress() {
   }, [measurements, days]);
 
   const first = inRange[0];
-  const last = measurements[measurements.length - 1];
-  const delta = (k: "weight" | "bodyFat" | "muscle") => (first && last ? +(last[k] - first[k]).toFixed(1) : 0);
+  const last = measurements.length ? measurements[measurements.length - 1] : undefined;
+  const hasDelta = !!first && !!last && first.date !== last.date;
+  const delta = (k: "weight" | "bodyFat" | "muscle") => (hasDelta ? +(last![k] - first![k]).toFixed(1) : 0);
   const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
   // Minutes active per day, last 7 days.
@@ -103,14 +104,23 @@ function Progress() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <Delta value={`${sign(delta("muscle"))} lbs`} label="Muscle" good={delta("muscle") >= 0} />
-        <Delta value={`${sign(delta("bodyFat"))}%`} label="Body Fat" good={delta("bodyFat") <= 0} />
-        <Delta value={`${sign(delta("weight"))} lbs`} label="Weight" good />
+        <Delta value={hasDelta ? `${sign(delta("muscle"))} lbs` : "—"} label="Muscle" good={delta("muscle") >= 0} />
+        <Delta value={hasDelta ? `${sign(delta("bodyFat"))}%` : "—"} label="Body Fat" good={delta("bodyFat") <= 0} />
+        <Delta value={hasDelta ? `${sign(delta("weight"))} lbs` : "—"} label="Weight" good />
       </div>
 
       <div className="card p-4">
         <p className="mb-2 text-xs font-semibold text-white/50">Weight trend</p>
-        <LineChart values={inRange.map((m) => m.weight)} />
+        {measurements.length === 0 ? (
+          <div className="flex h-[120px] flex-col items-center justify-center gap-2 text-center text-xs text-white/50">
+            Log your weight to start your trend.
+            <button onClick={() => setOpen(true)} className="btn-primary px-4 py-2 text-xs">
+              <Icon name="plus" size={12} /> Log measurements
+            </button>
+          </div>
+        ) : (
+          <LineChart values={inRange.map((m) => m.weight)} />
+        )}
       </div>
 
       <div className="card p-4">
@@ -120,7 +130,7 @@ function Progress() {
             <div key={w.d} className="flex h-full flex-1 flex-col items-center gap-1">
               <div className="flex w-full flex-1 items-end">
                 <div
-                  className={`w-full rounded-t-md ${w.min ? "bg-apex" : "bg-ink-3"}`}
+                  className={`w-full rounded-t-md ${w.min ? "glow-fill" : "bg-white/10"}`}
                   style={{ height: `${Math.max(6, (w.min / maxMin) * 100)}%` }}
                   title={`${w.min} min`}
                 />
@@ -139,9 +149,9 @@ function Progress() {
           </button>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Measure label="Weight" value={`${last.weight} lbs`} />
-          <Measure label="Body Fat" value={`${last.bodyFat}%`} />
-          <Measure label="Muscle Mass" value={`${last.muscle} lbs`} />
+          <Measure label="Weight" value={last ? `${last.weight} lbs` : "—"} />
+          <Measure label="Body Fat" value={last ? `${last.bodyFat}%` : "—"} />
+          <Measure label="Muscle Mass" value={last ? `${last.muscle} lbs` : "—"} />
         </div>
       </section>
 
@@ -174,7 +184,7 @@ function Progress() {
                 <div className="flex-1">
                   <p className="text-sm font-semibold">{l.name}</p>
                   <p className="text-xs text-white/50">
-                    {l.date === dayKey() ? "Today" : l.date} · {l.minutes} min · {l.calories} kcal
+                    {fmtDay(l.date)} · {l.minutes} min · {fmtNum(l.calories)} kcal
                   </p>
                 </div>
                 <button
@@ -222,12 +232,13 @@ function Measure({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LogMeasurement({ initial, onClose, onSave }: { initial: { weight: number; bodyFat: number; muscle: number }; onClose: () => void; onSave: (m: { date: string; weight: number; bodyFat: number; muscle: number }) => void }) {
-  const [w, setW] = useState(String(initial.weight));
-  const [bf, setBf] = useState(String(initial.bodyFat));
-  const [mu, setMu] = useState(String(initial.muscle));
+function LogMeasurement({ initial, onClose, onSave }: { initial?: { weight: number; bodyFat: number; muscle: number }; onClose: () => void; onSave: (m: { date: string; weight: number; bodyFat: number; muscle: number }) => void }) {
+  const [w, setW] = useState(initial ? String(initial.weight) : "");
+  const [bf, setBf] = useState(initial ? String(initial.bodyFat) : "");
+  const [mu, setMu] = useState(initial ? String(initial.muscle) : "");
   const nums = [Number(w), Number(bf), Number(mu)];
-  const valid = nums.every((n) => Number.isFinite(n) && n > 0) && nums[1] < 100;
+  const filled = [w, bf, mu].every((v) => v.trim() !== "");
+  const valid = filled && nums.every((n) => Number.isFinite(n) && n > 0) && nums[0] <= 2000 && nums[1] < 100 && nums[2] <= 2000 && nums[2] < nums[0];
 
   return (
     <Modal title="Log measurements" onClose={onClose}>
@@ -241,6 +252,9 @@ function LogMeasurement({ initial, onClose, onSave }: { initial: { weight: numbe
         <Field label="Weight (lbs)" value={w} onChange={setW} />
         <Field label="Body fat (%)" value={bf} onChange={setBf} />
         <Field label="Muscle mass (lbs)" value={mu} onChange={setMu} />
+        {filled && !valid && (
+          <p className="text-xs text-red-400">Check the numbers: body fat must be under 100%, and muscle mass less than your weight.</p>
+        )}
         <button type="submit" disabled={!valid} className="btn-primary w-full disabled:opacity-40">
           Save for today
         </button>
@@ -253,7 +267,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
   return (
     <label className="block text-xs font-semibold text-white/60">
       {label}
-      <input className="input mt-1" type="number" step="0.1" inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} />
+      <input className="input mt-1" type="number" step="0.1" min={0} inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
 }
@@ -288,16 +302,16 @@ function Leaderboard() {
         {[podium[1], podium[0], podium[2]].map((p, i) => {
           const place = [2, 1, 3][i];
           return (
-            <div key={p.name} className={`flex flex-col items-center ${place === 1 ? "-translate-y-2" : ""}`}>
+            <div key={`${place}-${p.name}`} className={`flex flex-col items-center ${place === 1 ? "-translate-y-2" : ""}`}>
               {place === 1 && <Icon name="crown" size={20} className="mb-1 text-gold" />}
               <div
-                className={`flex items-center justify-center rounded-full font-black ${
-                  place === 1 ? "h-20 w-20 border-4 border-gold bg-ink-3 text-2xl" : "h-14 w-14 border-2 border-white/20 bg-ink-2 text-lg"
-                } ${p.me ? "text-apex" : ""}`}
+                className={`gloss-tile flex items-center justify-center rounded-full font-black ${
+                  place === 1 ? "h-20 w-20 !border-4 !border-gold text-2xl" : "h-14 w-14 text-lg"
+                } ${p.me ? "text-black" : "text-white"}`}
               >
-                {p.name.charAt(0)}
+                {p.me ? name.charAt(0).toUpperCase() : p.name.charAt(0)}
               </div>
-              <div className={`mt-2 text-sm font-bold ${p.me ? "text-apex" : ""}`}>{p.name}</div>
+              <div className={`mt-2 max-w-[6rem] truncate text-sm font-bold ${p.me ? "text-apex" : ""}`}>{p.me ? "You" : p.name}</div>
               <div className="text-xs text-white/50">{fmtNum(p.pts)} pts</div>
               <div className="text-[10px] font-bold text-white/30">#{place}</div>
             </div>
@@ -307,10 +321,10 @@ function Leaderboard() {
 
       <ul className="card divide-y divide-line overflow-hidden">
         {rows.map((r, i) => (
-          <li key={r.name} className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-apex/10" : ""}`}>
+          <li key={`${i}-${r.name}`} className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-apex/10" : ""}`}>
             <span className="w-5 text-sm font-bold text-white/50">{i + 1}</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-3 text-sm font-bold">{r.name.charAt(0)}</span>
-            <span className={`flex-1 text-sm font-semibold ${r.me ? "text-apex" : ""}`}>{r.me ? `${name} (You)` : r.name}</span>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold">{r.me ? name.charAt(0).toUpperCase() : r.name.charAt(0)}</span>
+            <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${r.me ? "text-apex" : ""}`}>{r.me ? `${name} (You)` : r.name}</span>
             <span className="text-sm text-white/60">{fmtNum(r.pts)} pts</span>
           </li>
         ))}
@@ -337,7 +351,7 @@ function Premium() {
   const premium = useApp((s) => s.premium);
   const setPremium = useApp((s) => s.setPremium);
   return (
-    <div className="card relative overflow-hidden bg-gradient-to-br from-[#3a2606] via-[#1b1206] to-ink-1 p-6">
+    <div className="card relative overflow-hidden bg-gradient-to-br from-[#4a3006] via-[#1d1306] to-[#100c08] p-6">
       <div className="absolute -right-6 -top-6 text-gold/10">
         <Icon name="crown" size={180} strokeWidth={1.2} />
       </div>
@@ -356,7 +370,7 @@ function Premium() {
       </ul>
       <button
         onClick={() => setPremium(!premium)}
-        className={`w-full rounded-full py-3.5 text-base font-extrabold transition active:scale-[0.97] ${premium ? "border border-gold/40 text-gold" : "bg-gradient-to-b from-gold to-gold-dark text-black"}`}
+        className={`w-full rounded-full py-3.5 text-base font-extrabold transition active:scale-[0.97] ${premium ? "btn-ghost !w-full !py-3.5 !text-gold" : "btn-primary !w-full !py-3.5"}`}
       >
         {premium ? "Premium active · tap to cancel" : "Go Premium"}
       </button>
@@ -400,15 +414,21 @@ function Settings() {
     const a = document.createElement("a");
     a.href = url;
     a.download = `apex-fitness-backup-${dayKey()}.json`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    setMsg({ ok: true, text: "Backup downloaded." });
   };
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
     try {
       const data = parseBackup(await file.text());
-      if (!window.confirm(`Replace everything on this device with the backup? (${data.logs.length} workouts, ${data.meals.length} meals)`)) return;
+      if (!window.confirm(`Replace everything on this device with the backup? (${data.logs.length} workouts, ${data.meals.length} meals)`)) {
+        if (fileRef.current) fileRef.current.value = "";
+        return;
+      }
       app.restore(data);
       setName(data.name);
       setVals(Object.fromEntries(FIELDS.map((f) => [f.key, String(data[f.key])])));
@@ -425,7 +445,7 @@ function Settings() {
         <h2 className="text-base font-bold">Profile & goals</h2>
         <label className="block text-xs font-semibold text-white/60">
           Name
-          <input className="input mt-1" value={name} maxLength={24} onChange={(e) => setName(e.target.value)} />
+          <input className="input mt-1" value={name} maxLength={24} onChange={(e) => { setName(e.target.value); setMsg(null); }} />
         </label>
         <div className="grid grid-cols-2 gap-3">
           {FIELDS.map((f) => (
@@ -436,7 +456,13 @@ function Settings() {
                 type="number"
                 inputMode="numeric"
                 value={vals[f.key]}
-                onChange={(e) => setVals({ ...vals, [f.key]: e.target.value })}
+                min={f.min}
+                max={f.max}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setVals((p) => ({ ...p, [f.key]: v }));
+                  setMsg(null);
+                }}
               />
             </label>
           ))}

@@ -24,6 +24,13 @@ export default function LineChart({ values, height = 120 }: Props) {
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height }} role="img" aria-label="Trend chart">
       <defs>
+        <filter id="chartglow" x="-10%" y="-30%" width="120%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
         <linearGradient id="chartfill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ff8a1f" stopOpacity="0.35" />
           <stop offset="1" stopColor="#ff8a1f" stopOpacity="0" />
@@ -31,7 +38,7 @@ export default function LineChart({ values, height = 120 }: Props) {
       </defs>
       {values.length > 1 && <polygon points={area} fill="url(#chartfill)" />}
       {values.length > 1 && (
-        <polyline points={line} fill="none" stroke="#ff8a1f" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={line} fill="none" stroke="#ffa13a" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" filter="url(#chartglow)" />
       )}
       <circle cx={x(last)} cy={y(values[last])} r="4.5" fill="#ff8a1f" stroke="#0b0b0c" strokeWidth="2" />
     </svg>

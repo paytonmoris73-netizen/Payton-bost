@@ -1,6 +1,6 @@
 // Apex Fitness service worker: makes the app installable and usable offline.
 // Never touches /api/ (the AI coach), and only handles same-origin GETs.
-const CACHE = "apex-v1";
+const CACHE = "apex-v2";
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
@@ -30,11 +30,14 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put("./", copy));
+          // Only cache a good page, so an error page never becomes the offline copy.
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put("./", copy));
+          }
           return res;
         })
-        .catch(() => caches.match("./")),
+        .catch(() => caches.match("./").then((hit) => hit || Response.error())),
     );
     return;
   }

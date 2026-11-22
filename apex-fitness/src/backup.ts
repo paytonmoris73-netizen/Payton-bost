@@ -50,7 +50,7 @@ const LEVELS: Level[] = ["Beginner", "Intermediate", "Advanced"];
 
 function lift(v: unknown): Lift {
   if (!isObj(v)) return bad("lift");
-  return { exercise: str(v.exercise, "lift name"), weight: num(v.weight, "lift weight", 0, 5000), reps: num(v.reps, "lift reps", 0, 1000) };
+  return { exercise: str(v.exercise, "lift name", 200), weight: num(v.weight, "lift weight", 0, 5000), reps: num(v.reps, "lift reps", 0, 1000) };
 }
 
 function log(v: unknown): WorkoutLog {
@@ -58,10 +58,10 @@ function log(v: unknown): WorkoutLog {
   return {
     id: str(v.id, "log id"),
     workoutId: str(v.workoutId, "log workout"),
-    name: str(v.name, "log name"),
+    name: str(v.name, "log name", 200),
     date: date(v.date, "log date"),
-    minutes: num(v.minutes, "log minutes", 0, 1000),
-    calories: num(v.calories, "log calories", 0, 20000),
+    minutes: num(v.minutes, "log minutes", 0, 100000),
+    calories: num(v.calories, "log calories", 0, 1000000),
     ...(v.lifts === undefined ? {} : { lifts: list(v.lifts, "lifts", 500).map(lift) }),
   };
 }
@@ -98,7 +98,7 @@ function workout(v: unknown): Workout {
     name: str(v.name, "workout name", 40),
     category,
     level,
-    minutes: num(v.minutes, "workout minutes", 1, 1000),
+    minutes: num(v.minutes, "workout minutes", 1, 100000),
     focus: str(v.focus, "workout focus", 80),
     kcalPerMin: num(v.kcalPerMin, "workout kcal", 0, 50),
     custom: true,
@@ -116,7 +116,7 @@ function workout(v: unknown): Workout {
 }
 
 export function parseBackup(text: string): BackupData {
-  if (text.length > 5_000_000) bad("file too large");
+  if (text.length > 50_000_000) bad("file too large");
   let raw: unknown;
   try {
     raw = JSON.parse(text);
@@ -130,17 +130,17 @@ export function parseBackup(text: string): BackupData {
   for (const [k, v] of Object.entries(water)) waterOut[date(k, "water date")] = num(v, "water", 0, 100);
 
   return {
-    name: str(d.name, "name", 24),
+    name: str(d.name, "name", 24).trim() || "Athlete",
     premium: d.premium === true,
     calorieGoal: num(d.calorieGoal, "calorie goal", 500, 10000),
     proteinGoal: num(d.proteinGoal, "protein goal", 0, 1000),
     carbGoal: num(d.carbGoal, "carb goal", 0, 2000),
     fatGoal: num(d.fatGoal, "fat goal", 0, 1000),
     dailyActiveGoal: num(d.dailyActiveGoal, "active goal", 1, 1000),
-    logs: list(d.logs, "logs", 10000).map(log),
-    meals: list(d.meals, "meals", 20000).map(meal),
+    logs: list(d.logs, "logs", 200000).map(log),
+    meals: list(d.meals, "meals", 500000).map(meal),
     measurements: list(d.measurements, "measurements", 5000).map(measurement),
     water: waterOut,
-    customWorkouts: list(d.customWorkouts, "custom workouts", 200).map(workout),
+    customWorkouts: list(d.customWorkouts, "custom workouts", 5000).map(workout),
   };
 }

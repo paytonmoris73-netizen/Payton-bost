@@ -1,7 +1,7 @@
 import Icon from "../components/Icon";
 import { LogoMark } from "../components/Logo";
 import { WEEK_PLAN, workoutById } from "../data";
-import { computeStreak, dayKey, greeting } from "../lib";
+import { computeStreak, fmtDay, greeting, useToday } from "../lib";
 import { useApp, useNav } from "../store";
 
 export default function Home() {
@@ -9,33 +9,34 @@ export default function Home() {
   const go = useNav((s) => s.go);
   const startSession = useNav((s) => s.startSession);
 
-  const today = dayKey();
+  const today = useToday();
   const todayLogs = logs.filter((l) => l.date === today);
   const burned = todayLogs.reduce((s, l) => s + l.calories, 0);
   const active = todayLogs.reduce((s, l) => s + l.minutes, 0);
-  const goalPct = Math.min(100, Math.round((active / dailyActiveGoal) * 100));
+  const goalPct = dailyActiveGoal > 0 ? Math.min(100, Math.round((active / dailyActiveGoal) * 100)) : 0;
   const eaten = meals.filter((m) => m.date === today).reduce((s, m) => s + m.calories, 0);
   const streak = computeStreak(logs.map((l) => l.date));
 
-  const planned = workoutById(WEEK_PLAN[new Date().getDay()])!;
+  // Weekday of the (midnight-aware) "today" key, so the plan rolls over with it.
+  const planned = workoutById(WEEK_PLAN[new Date(`${today}T00:00:00`).getDay()])!;
   const doneToday = todayLogs.some((l) => l.workoutId === planned.id);
   const recent = [...logs].reverse().slice(0, 3);
 
   return (
-    <div className="animate-fade-up space-y-6 px-5 pt-6">
+    <div className="animate-fade-up pt-safe space-y-6 px-5">
       <header className="flex items-start justify-between">
         <div>
           <LogoMark size={26} />
           <p className="mt-2 text-sm text-white/60">{greeting()},</p>
-          <h1 className="text-2xl font-extrabold">{name} 👋</h1>
+          <h1 className="text-2xl font-extrabold"><span className="shine-text">{name}</span> 👋</h1>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-ink-2 px-3 py-1.5 text-sm font-bold" title="Day streak">
+        <div className="card flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold" title="Day streak" aria-label={`${streak} day streak`}>
           <Icon name="flame" size={16} className="text-apex" />
           {streak} day{streak === 1 ? "" : "s"}
         </div>
       </header>
 
-      <section className="card relative overflow-hidden bg-gradient-to-br from-[#2a1706] to-ink-1 p-5">
+      <section className="card relative overflow-hidden bg-gradient-to-br from-[#3d2008] via-[#1d1208] to-[#100c08] p-5">
         <div className="absolute -right-6 -top-6 text-apex/10">
           <Icon name="dumbbell" size={150} strokeWidth={1.2} />
         </div>
@@ -59,7 +60,7 @@ export default function Home() {
         onClick={() => go("coach")}
         className="card flex w-full items-center gap-3 p-4 text-left transition active:scale-[0.98]"
       >
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-apex/15 text-apex">
+        <span className="gloss-tile flex h-10 w-10 items-center justify-center rounded-full text-white">
           <Icon name="sparkle" size={20} />
         </span>
         <span className="flex-1">
@@ -101,7 +102,7 @@ export default function Home() {
                 <div>
                   <p className="text-sm font-semibold">{l.name}</p>
                   <p className="text-xs text-white/50">
-                    {l.date === dayKey() ? "Today" : l.date} · {l.minutes} min
+                    {fmtDay(l.date)} · {l.minutes} min
                   </p>
                 </div>
                 <span className="text-sm font-bold text-apex">{l.calories} kcal</span>
@@ -127,7 +128,9 @@ function Stat({ icon, value, label }: { icon: string; value: string; label: stri
 function Action({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="card flex flex-col items-center gap-2 py-4 text-xs font-semibold transition active:scale-95">
-      <Icon name={icon} size={22} className="text-apex" />
+      <span className="gloss-tile flex h-10 w-10 items-center justify-center rounded-xl text-white">
+        <Icon name={icon} size={20} />
+      </span>
       {label}
     </button>
   );

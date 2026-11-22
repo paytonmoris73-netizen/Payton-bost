@@ -57,10 +57,17 @@ export interface CoachReply {
 
 /** Ask the server-side AI coach; fall back to the offline coach if it isn't available. */
 export async function askCoach(history: ChatMessage[], ctx: CoachContext): Promise<CoachReply> {
-  const messages = history
-    .filter((m) => m.source !== "error")
-    .slice(-12)
-    .map((m) => ({ role: m.role, content: m.content }));
+  // Fit the server's limits (16 messages, 1,500 chars each, 9,000 total): keep the newest
+  // turns, trimming long replies, so one long answer can't break the rest of the chat.
+  const messages: { role: ChatMessage["role"]; content: string }[] = [];
+  let total = 0;
+  for (const m of [...history].reverse()) {
+    if (m.source === "error" || !m.content.trim()) continue;
+    const content = m.content.slice(0, 1400);
+    if (messages.length >= 12 || total + content.length > 8500) break;
+    total += content.length;
+    messages.unshift({ role: m.role, content });
+  }
   while (messages.length && messages[0].role !== "user") messages.shift();
 
   try {
@@ -91,7 +98,7 @@ const has = (q: string, re: RegExp) => re.test(q.toLowerCase());
 export function localCoach(q: string, c: CoachContext): string {
   const first = c.name || "there";
 
-  if (has(q, /sore|pain|hurt|injur|dizzy|chest|faint/)) {
+  if (has(q, /\bsore|\bpain|hurt|injur|dizz|chest pain|chest tight|faint|can't breathe/)) {
     return "If something hurts sharply, feels wrong, or you feel dizzy, stop and rest. Pain that lingers or any chest symptoms deserve a doctor or physio, not another set. For normal muscle soreness, easy walking, Mobility Flow and good sleep help.";
   }
 
