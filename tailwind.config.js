@@ -4,18 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        ivory: '#FFF9F0',
-        cream: '#F6EEDF',
-        charcoal: '#25231F',
-        sage: '#A8B59A',
-        orange: '#F2A66B',
-        brown: '#8A725E',
-        'orange-dark': '#E8914A',
-        'orange-light': '#FBD5B2',
-        'cream-dark': '#EDE0CC',
-        'sage-dark': '#7A9068',
-        'sage-light': '#D4DFD0',
-        'brown-light': '#C4A99A',
+        // Every colour is a CSS variable (see index.css) so light/dark mode and seasonal themes repaint instantly.
+        ivory: 'rgb(var(--ivory) / <alpha-value>)',
+        cream: 'rgb(var(--cream) / <alpha-value>)',
+        charcoal: 'rgb(var(--charcoal) / <alpha-value>)',
+        sage: 'rgb(var(--sage) / <alpha-value>)',
+        orange: 'rgb(var(--orange) / <alpha-value>)',
+        brown: 'rgb(var(--brown) / <alpha-value>)',
+        white: 'rgb(var(--white) / <alpha-value>)',
+        'orange-dark': 'rgb(var(--orange-dark) / <alpha-value>)',
+        'orange-light': 'rgb(var(--orange-light) / <alpha-value>)',
+        'cream-dark': 'rgb(var(--cream-dark) / <alpha-value>)',
+        'sage-dark': 'rgb(var(--sage-dark) / <alpha-value>)',
+        'sage-light': 'rgb(var(--sage-light) / <alpha-value>)',
+        'brown-light': 'rgb(var(--brown-light) / <alpha-value>)',
       },
       fontFamily: {
         display: ['DM Serif Display', 'Georgia', 'serif'],
@@ -76,7 +78,7 @@ export default {
         },
       },
       backgroundImage: {
-        'shimmer-gradient': 'linear-gradient(90deg, #F6EEDF 25%, #FFF9F0 50%, #F6EEDF 75%)',
+        
       },
     },
   },

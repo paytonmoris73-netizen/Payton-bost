@@ -20,10 +20,10 @@ export default function Auth() {
   };
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative isolate m-3 hidden overflow-hidden rounded-[2.25rem] bg-gradient-to-br from-[#36332D] via-[#2A2824] to-[#1C1A17] p-12 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_30px_60px_-30px_rgba(37,35,31,.7)] lg:flex lg:flex-col lg:justify-between">
+      <div className="relative isolate m-3 hidden overflow-hidden rounded-[2.25rem] hero-fill p-12 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_30px_60px_-30px_rgba(37,35,31,.7)] lg:flex lg:flex-col lg:justify-between">
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 -z-10 h-96 w-96 rounded-full bg-orange/30 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-16 -z-10 h-80 w-80 rounded-full bg-sage/25 blur-3xl" />
-        <div className="flex items-center gap-2.5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-orange font-display text-xl text-charcoal">C</span><span className="h-display text-2xl tracking-wide">CRUNCH</span></div>
+        <div className="flex items-center gap-2.5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-orange font-display text-xl on-accent">C</span><span className="h-display text-2xl tracking-wide">CRUNCH</span></div>
         <div>
           <h1 className="h-display text-5xl leading-tight">Three random ingredients.<br />One new recipe.</h1>
           <p className="mt-4 max-w-md text-lg text-ivory/70">Combine foods, cook with an AI chef, and buy or sell original recipes in one place.</p>

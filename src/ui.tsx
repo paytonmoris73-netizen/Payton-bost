@@ -26,7 +26,7 @@ export function Toaster() {
     <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[80] flex flex-col items-center gap-2 px-4 md:bottom-8" aria-live="polite">
       {items.map((t) => (
         <div key={t.id} role={t.tone === "err" ? "alert" : "status"} className={`toast-in glass-dark pointer-events-auto flex items-center gap-2 rounded-full py-2.5 pl-3 pr-5 text-sm font-semibold ${t.tone === "err" ? "!bg-red-600/90" : ""}`}>
-          <span className={`grid h-6 w-6 place-items-center rounded-full ${t.tone === "err" ? "bg-white/20" : "bg-orange text-charcoal"}`} aria-hidden>{t.tone === "err" ? "!" : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}</span>
+          <span className={`grid h-6 w-6 place-items-center rounded-full ${t.tone === "err" ? "bg-white/20" : "bg-orange on-accent"}`} aria-hidden>{t.tone === "err" ? "!" : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}</span>
           {t.text}
         </div>
       ))}
@@ -62,7 +62,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
   if (!mounted) return null;
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-end justify-center md:items-center md:p-6" role="dialog" aria-modal="true" aria-label={title}>
-      <div className={`absolute inset-0 bg-charcoal/35 ${leaving ? "backdrop-out" : "backdrop-in"}`} onMouseDown={onClose} aria-hidden />
+      <div className={`absolute inset-0 scrim ${leaving ? "backdrop-out" : "backdrop-in"}`} onMouseDown={onClose} aria-hidden />
       <div ref={panel} tabIndex={-1} className={`glass-thick relative max-h-[92vh] w-full overflow-y-auto overscroll-contain rounded-t-[2rem] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2 outline-none md:rounded-[2rem] md:p-7 ${wide ? "md:max-w-3xl" : "md:max-w-lg"} ${leaving ? "sheet-out" : "sheet-in"}`}>
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-charcoal/15 md:hidden" aria-hidden />
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -129,11 +129,11 @@ export function Section({ title, sub, to, children }: { title: string; sub?: str
 export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: readonly T[]; value: T; onChange: (t: T) => void }) {
   return <Segmented role="tablist" options={tabs} value={value} onChange={onChange} className="mb-5" />;
 }
-export function Meter({ label, value, color = "#F2A66B" }: { label: string; value: number; color?: string }) {
+export function Meter({ label, value, color = "rgb(var(--orange))" }: { label: string; value: number; color?: string }) {
   return (
     <div>
       <div className="mb-1 flex justify-between text-xs font-semibold"><span>{label}</span><span className="text-brown">{Math.round(value)}</span></div>
-      <div className="h-2 overflow-hidden rounded-full bg-charcoal/[0.07]"><div className="h-full w-full origin-left rounded-full transition-transform duration-700 [transition-timing-function:var(--ease-spring)]" style={{ transform: `scaleX(${Math.max(2, Math.min(100, value)) / 100})`, background: `linear-gradient(90deg, ${color}cc, ${color})` }} /></div>
+      <div className="h-2 overflow-hidden rounded-full bg-charcoal/[0.07]"><div className="h-full w-full origin-left rounded-full transition-transform duration-700 [transition-timing-function:var(--ease-spring)]" style={{ transform: `scaleX(${Math.max(2, Math.min(100, value)) / 100})`, background: color }} /></div>
     </div>
   );
 }
@@ -157,7 +157,7 @@ export function RecipeCard({ r, compact, owned }: { r: Recipe; compact?: boolean
       <div className="relative">
         <Cover id={r.id} photo={r.photo} emoji={r.emoji} hue={r.hue} className={`m-1.5 rounded-[1.15rem] ${compact ? "h-36" : "aspect-[4/3]"}`} size="text-6xl sm:text-7xl transition-transform duration-500 [transition-timing-function:var(--ease-spring)] group-hover:scale-110" />
         <SaveButton id={r.id} className="absolute right-4 top-4" />
-        <span className={`absolute left-4 top-4 rounded-full px-2.5 py-1 text-xs font-bold shadow-sm ${owned ? "bg-sage text-charcoal" : r.price === 0 ? "glass" : "bg-orange text-charcoal"}`}>{owned ? "Owned" : bundle ? `Bundle · ${money(r.price)}` : money(r.price)}</span>
+        <span className={`absolute left-4 top-4 rounded-full px-2.5 py-1 text-xs font-bold shadow-sm ${owned ? "bg-sage on-sage" : r.price === 0 ? "glass" : "bg-orange on-accent"}`}>{owned ? "Owned" : bundle ? `Bundle · ${money(r.price)}` : money(r.price)}</span>
       </div>
       <div className="px-3.5 pb-4 pt-2 sm:px-4">
         <h3 className="line-clamp-1 font-semibold">{r.title}</h3>

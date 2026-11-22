@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./Layout";
 import { useMe } from "./store";
 import { Toaster, CardSkeletons } from "./ui";
+import { ThemeDecor } from "./theme";
 
 const Auth = lazy(() => import("./pages/Auth"));
 const Home = lazy(() => import("./pages/Home"));
@@ -79,6 +80,7 @@ export function App() {
           </Routes>
         </Suspense>
         <Toaster />
+        <ThemeDecor />
       </BrowserRouter>
     </Boundary>
   );

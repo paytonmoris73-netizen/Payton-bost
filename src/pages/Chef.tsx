@@ -62,7 +62,7 @@ function Chat() {
     <div className="card flex h-[70vh] flex-col overflow-hidden">
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {msgs.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : ""}`}><div className={`rise-in max-w-[88%] ${m.role === "user" ? "rounded-[1.35rem] rounded-br-md bg-gradient-to-b from-[#3A3731] to-charcoal px-4 py-2.5 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_8px_18px_-10px_rgba(37,35,31,.6)]" : ""}`}>
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : ""}`}><div className={`rise-in max-w-[88%] ${m.role === "user" ? "rounded-[1.35rem] rounded-br-md ink-fill px-4 py-2.5 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_8px_18px_-10px_rgba(37,35,31,.6)]" : ""}`}>
             {m.role === "assistant" && <div className="mb-1 text-xs font-semibold text-brown">👨‍🍳 AI Chef</div>}
             <div className={`whitespace-pre-wrap text-sm leading-relaxed ${m.role === "assistant" ? "tile rounded-[1.35rem] rounded-tl-md px-4 py-3" : ""}`}>{m.text.replace(/\*\*(.+?)\*\*/g, "$1")}</div>
             {m.recipes && <div className="mt-3 space-y-3">{m.recipes.map((g, k) => <GenCard key={k} g={g} />)}</div>}

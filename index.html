@@ -5,7 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>CRUNCH — Create, cook and share food</title>
     <meta name="description" content="CRUNCH is a food creation platform: combine ingredients, generate recipes with an AI chef, and buy or sell original recipes." />
-    <meta name="theme-color" content="#FFF9F0" />
+    <meta name="theme-color" content="#FBF5EA" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      /* Apply saved light/dark mode + theme before first paint (no flash). Mirrors src/theme.tsx. */
+      (function () {
+        try {
+          var s = JSON.parse(localStorage.getItem("crunch-appearance") || "{}"), m = s.mode || "auto", t = s.theme || "seasonal", r = document.documentElement;
+          if (m === "dark" || (m === "auto" && matchMedia("(prefers-color-scheme: dark)").matches)) r.classList.add("dark");
+          if (t === "seasonal") { var mo = new Date().getMonth(); t = mo === 9 ? "halloween" : mo === 11 ? "christmas" : "classic"; }
+          if (t !== "classic") r.setAttribute("data-theme", t);
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2325231F'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' font-family='Georgia' fill='%23F2A66B'%3EC%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

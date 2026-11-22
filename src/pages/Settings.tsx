@@ -5,6 +5,7 @@ import { useMe, useStore } from "../store";
 import { PageHeader, Tabs, toast } from "../ui";
 import { Segmented, Switch as GSwitch } from "../glass";
 import { getFxMode, isLite, setFxMode, type FxMode } from "../fx";
+import { THEMES, useAppearance, useResolvedTheme } from "../theme";
 import type { Account } from "../types";
 
 const TABS = ["Profile", "Food preferences", "Appearance", "Notifications", "Privacy", "AI & Integrations", "Account"] as const;
@@ -17,6 +18,7 @@ export default function Settings() {
   const tog = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const Switch = ({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) => <div className="flex items-center justify-between gap-4 py-3 text-sm"><span>{label}</span><GSwitch on={on} onChange={set} label={label} /></div>;
   const [fx, setFx] = useState<FxMode>(getFxMode()); const [, rerender] = useState(0);
+  const appearance = useAppearance(); const resolved = useResolvedTheme();
   return (
     <div>
       <PageHeader title="Settings" />
@@ -24,7 +26,7 @@ export default function Settings() {
       <div className="card max-w-2xl p-6">
         {tab === "Profile" && (
           <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (p.name.trim().length < 2) return toast("Enter a name.", "err"); if (!/^@[a-z0-9_]{3,20}$/i.test(p.handle)) return toast("Handle must look like @name (3–20 letters, numbers or _).", "err"); updateAccount({ name: p.name.trim(), handle: p.handle, bio: p.bio.slice(0, 280), emoji: p.emoji }); toast("Profile saved"); }}>
-            <div><span className="label">Avatar</span><div className="flex flex-wrap gap-1.5">{["🍳", "👩‍🍳", "👨‍🍳", "🥑", "🍕", "🌶️", "🧁", "🍜", "🥕", "🍋"].map((e) => <button type="button" key={e} onClick={() => setP({ ...p, emoji: e })} aria-pressed={p.emoji === e} aria-label={`Avatar ${e}`} className={`press grid h-12 w-12 place-items-center rounded-full text-2xl transition-[background,box-shadow] duration-300 ${p.emoji === e ? "bg-gradient-to-b from-[#FCE3CB] to-[#F8C9A0] shadow-[inset_0_1px_0_#fff,0_0_0_2px_#F2A66B]" : "tile"}`}>{e}</button>)}</div></div>
+            <div><span className="label">Avatar</span><div className="flex flex-wrap gap-1.5">{["🍳", "👩‍🍳", "👨‍🍳", "🥑", "🍕", "🌶️", "🧁", "🍜", "🥕", "🍋"].map((e) => <button type="button" key={e} onClick={() => setP({ ...p, emoji: e })} aria-pressed={p.emoji === e} aria-label={`Avatar ${e}`} className={`press grid h-12 w-12 place-items-center rounded-full text-2xl transition-[background,box-shadow] duration-300 ${p.emoji === e ? "sel-fill" : "tile"}`}>{e}</button>)}</div></div>
             <div><label className="label" htmlFor="sn">Name</label><input id="sn" className="input" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })} maxLength={60} /></div>
             <div><label className="label" htmlFor="sh">Handle</label><input id="sh" className="input" value={p.handle} onChange={(e) => setP({ ...p, handle: e.target.value })} /></div>
             <div><label className="label" htmlFor="sb">Bio</label><textarea id="sb" className="input" rows={3} value={p.bio} onChange={(e) => setP({ ...p, bio: e.target.value })} maxLength={280} /></div>
@@ -40,10 +42,35 @@ export default function Settings() {
           </div>
         )}
         {tab === "Appearance" && (
-          <div className="space-y-4">
+          <div className="space-y-8">
+            <section className="space-y-3">
+              <div><h2 className="h-display text-xl">Light or dark</h2><p className="mt-1 text-sm text-brown">Automatic follows your phone or computer, switching to dark at night if your system does.</p></div>
+              <Segmented label="Light or dark mode" options={[{ value: "auto", label: "Automatic" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }] as const} value={appearance.mode} onChange={appearance.setMode} />
+            </section>
+            <section className="space-y-3">
+              <div><h2 className="h-display text-xl">Theme</h2><p className="mt-1 text-sm text-brown">Change the look of the whole app. Festive themes add gentle decorations.</p></div>
+              <div className="stagger grid grid-cols-2 gap-3" role="radiogroup" aria-label="Theme">
+                {THEMES.map((t) => {
+                  const on = appearance.theme === t.id;
+                  return (
+                    <button key={t.id} type="button" role="radio" aria-checked={on} onClick={() => { appearance.setTheme(t.id); toast(`${t.name} theme on`); }}
+                      className={`lift press tile flex flex-col items-stretch justify-start overflow-hidden p-0 text-left transition-shadow ${on ? "!shadow-[0_0_0_2.5px_rgb(var(--orange)),var(--lift-2)]" : ""}`}>
+                      <span className="relative block h-20 overflow-hidden rounded-t-[1.1rem]" style={{ background: `linear-gradient(135deg, ${t.swatch[0]}, ${t.swatch[1]} 55%, ${t.swatch[2]})` }}>
+                        <span className="absolute inset-x-3 bottom-2 flex gap-1.5">{t.swatch.map((c) => <i key={c} className="h-4 w-4 rounded-full border-2 border-[#fff]/80 shadow" style={{ background: c }} />)}</span>
+                        <span className="absolute right-3 top-2 text-3xl drop-shadow">{t.emoji}</span>
+                        {on && <span className="pop-in absolute left-3 top-2 grid h-6 w-6 place-items-center rounded-full bg-[#fff] text-[#25231F] shadow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span>}
+                      </span>
+                      <span className="block p-3"><b className="block text-sm">{t.name}{t.id === "seasonal" ? <span className="font-normal text-brown"> · now {resolved}</span> : ""}</b><span className="text-xs text-brown">{t.desc}</span></span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+            <section className="space-y-3">
             <div><h2 className="h-display text-xl">Visual effects</h2><p className="mt-1 text-sm text-brown">CRUNCH uses frosted Liquid Glass. On older or slower devices it automatically switches to a lighter look with the same design but no live blur, so everything stays smooth.</p></div>
             <Segmented label="Visual effects" options={[{ value: "auto", label: "Automatic" }, { value: "full", label: "Full glass" }, { value: "lite", label: "Reduced" }] as const} value={fx} onChange={(m) => { setFx(m); setFxMode(m); rerender((n) => n + 1); toast(m === "auto" ? "Effects set to automatic" : m === "full" ? "Full glass effects on" : "Reduced effects on"); }} />
             <p className="text-xs text-brown">Currently using: <b>{isLite() ? "reduced effects" : "full glass"}</b>{fx === "auto" ? " (chosen automatically for this device)" : ""}. Your system's Reduce Motion and Reduce Transparency settings are always respected.</p>
+            </section>
           </div>
         )}
         {tab === "Notifications" && <div className="divide-y divide-cream">{NOTIFY.map(([k, l]) => <Switch key={k} label={l} on={me.notify[k] !== false} set={(v) => updateAccount({ notify: { ...me.notify, [k]: v } as Account["notify"] })} />)}</div>}

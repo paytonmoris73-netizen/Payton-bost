@@ -4,6 +4,7 @@ import { ALL_RECIPES, CREATORS } from "./data";
 import { matchScore } from "./engine";
 import { useIngredients, useMe, useStore } from "./store";
 import { Avatar, Modal, usePresence } from "./ui";
+import { HeaderLights } from "./theme";
 
 import { G, Icon } from "./icons";
 export { Icon };
@@ -15,7 +16,7 @@ const NAV = [
 ];
 
 export function Logo({ dark }: { dark?: boolean }) {
-  return <Link to="/" className="flex items-center gap-2.5" aria-label="CRUNCH home"><span className="grid h-9 w-9 place-items-center rounded-[0.8rem] bg-gradient-to-b from-[#3A3731] to-charcoal font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_6px_14px_-6px_rgba(37,35,31,.6)]">C</span><span className={`h-display text-2xl tracking-wide ${dark ? "text-ivory" : ""}`}>CRUNCH</span></Link>;
+  return <Link to="/" className="flex items-center gap-2.5" aria-label="CRUNCH home"><span className="grid h-9 w-9 place-items-center rounded-[0.8rem] ink-fill font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_6px_14px_-6px_rgba(37,35,31,.6)]">C</span><span className={`h-display text-2xl tracking-wide ${dark ? "text-ivory" : ""}`}>CRUNCH</span></Link>;
 }
 
 function GlobalSearch() {
@@ -59,7 +60,7 @@ function Bell() {
   return (
     <div ref={ref} className="relative">
       <button onClick={() => setOpen(!open)} className="glass press relative grid h-10 w-10 place-items-center rounded-full" aria-label={`Notifications, ${unread} unread`}>
-        <Icon n="bell" size={18} />{unread > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold">{unread}</span>}
+        <Icon n="bell" size={18} />{unread > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-orange px-1 text-[10px] font-bold on-accent">{unread}</span>}
       </button>
       {open && (
         <div className="menu pop-in absolute right-0 top-full z-50 mt-2 w-80 max-w-[90vw] [--origin:top_right]">
@@ -85,7 +86,7 @@ function CreateSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
   return (
     <Modal open={open} onClose={onClose} title="Create">
       <div className="stagger grid gap-3 sm:grid-cols-2">
-        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className="tile lift flex items-center gap-4 p-4"><span className="grid h-12 w-12 place-items-center rounded-[0.95rem] bg-gradient-to-b from-[#F7B582] to-[#EF9C59] text-charcoal shadow-[inset_0_1px_0_rgba(255,255,255,.55)]"><G g={i.icon} size={24} /></span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
+        {items.map((i) => <Link key={i.t} to={i.to} onClick={onClose} className="tile lift flex items-center gap-4 p-4"><span className="grid h-12 w-12 place-items-center rounded-[0.95rem] accent-fill"><G g={i.icon} size={24} /></span><span><span className="block font-semibold">{i.t}</span><span className="text-xs text-brown">{i.d}</span></span></Link>)}
       </div>
     </Modal>
   );
@@ -117,9 +118,9 @@ export function Layout() {
   return (
     <div className="min-h-screen md:pl-[84px] lg:pl-[17rem]">
       <aside className="fixed inset-y-3 left-3 z-40 hidden w-[68px] flex-col rounded-[1.75rem] py-4 card md:flex lg:w-60 lg:px-3">
-        <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="CRUNCH home" className="grid h-10 w-10 place-items-center rounded-[0.85rem] bg-gradient-to-b from-[#3A3731] to-charcoal font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18)]">C</Link></span><span className="hidden lg:block"><Logo /></span></div>
+        <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="CRUNCH home" className="grid h-10 w-10 place-items-center rounded-[0.85rem] ink-fill font-display text-xl text-orange shadow-[inset_0_1px_0_rgba(255,255,255,.18)]">C</Link></span><span className="hidden lg:block"><Logo /></span></div>
         <nav ref={side.ref} className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar px-2 lg:px-0" aria-label="Main">
-          <span aria-hidden className="pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] bg-gradient-to-b from-[#3A3731] to-charcoal shadow-[inset_0_1px_0_rgba(255,255,255,.16),0_8px_18px_-8px_rgba(37,35,31,.55)] transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />
+          <span aria-hidden className="pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] ink-fill transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />
           {nav.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} title={n.label} className={({ isActive }) => `press relative z-[1] flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium transition-colors duration-300 lg:justify-start ${isActive ? "text-ivory" : "text-charcoal/80 hover:bg-white/60"}`}>
               <Icon n={n.icon} /><span className="hidden lg:inline">{n.label}</span>
@@ -134,10 +135,11 @@ export function Layout() {
         <div className="md:hidden"><Logo /></div>
         <div className="hidden flex-1 md:block"><GlobalSearch /></div>
         <div className="ml-auto flex items-center gap-2">
-          <Link to="/marketplace/cart" className="glass press relative grid h-10 w-10 place-items-center rounded-full" aria-label={`Cart, ${cartN} items`}><Icon n="bag" size={18} />{cartN > 0 && <span key={cartN} className="pop absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-orange px-1 text-[10px] font-bold shadow">{cartN}</span>}</Link>
+          <Link to="/marketplace/cart" className="glass press relative grid h-10 w-10 place-items-center rounded-full" aria-label={`Cart, ${cartN} items`}><Icon n="bag" size={18} />{cartN > 0 && <span key={cartN} className="pop absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-orange px-1 text-[10px] font-bold on-accent shadow">{cartN}</span>}</Link>
           <Bell />
-          <Link to="/profile" aria-label="Your profile" className="press rounded-full shadow-[0_0_0_2px_rgba(255,255,255,.9),0_4px_10px_-4px_rgba(37,35,31,.3)]"><Avatar emoji={me?.emoji ?? "🍳"} size={40} /></Link>
+          <Link to="/profile" aria-label="Your profile" className="press rounded-full shadow-[0_0_0_2px_rgb(var(--white)/.9),0_4px_10px_-4px_rgba(37,35,31,.3)]"><Avatar emoji={me?.emoji ?? "🍳"} size={40} /></Link>
         </div>
+        <HeaderLights />
       </header>
       <div className="px-4 pb-1 pt-3 md:hidden"><GlobalSearch /></div>
       {ann && <div className="mx-4 mt-3 rounded-full px-4 py-2 text-center text-sm font-medium glass md:mx-8"><G g="📣" /> {ann.text}</div>}
@@ -149,7 +151,7 @@ export function Layout() {
           {tabIdx >= 0 && <span aria-hidden className="absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/5)] rounded-[1.5rem] bg-charcoal/[0.07] transition-transform duration-500 [transition-timing-function:var(--ease-spring)]" style={{ transform: `translate3d(${tabIdx * 100}%,0,0)` }} />}
           {TAB_BAR.map((n, idx) =>
             n === null ? (
-              <button key="c" onClick={() => setCreate(true)} className="press relative mx-auto grid h-12 w-12 place-items-center rounded-full bg-gradient-to-b from-[#F7B582] to-[#EF9C59] text-charcoal shadow-[inset_0_1px_0_rgba(255,255,255,.55),0_8px_18px_-6px_rgba(232,145,74,.75)]" aria-label="Create"><Icon n="plus" size={24} /></button>
+              <button key="c" onClick={() => setCreate(true)} className="press relative mx-auto grid h-12 w-12 place-items-center rounded-full accent-fill" aria-label="Create"><Icon n="plus" size={24} /></button>
             ) : (
               <NavLink key={n.to + idx} to={n.to} end={"end" in n} className={({ isActive }) => `press relative flex flex-col items-center gap-0.5 rounded-[1.5rem] py-1.5 text-[10.5px] font-semibold transition-colors duration-300 ${isActive ? "text-charcoal" : "text-charcoal/45"}`}><Icon n={n.i} size={22} />{n.l}</NavLink>
             ),
@@ -160,7 +162,7 @@ export function Layout() {
       <CreateSheet open={create} onClose={() => setCreate(false)} />
       {drawerP.mounted && (
         <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className={`absolute inset-0 bg-charcoal/35 ${drawerP.leaving ? "backdrop-out" : "backdrop-in"}`} onClick={() => setDrawer(false)} />
+          <div className={`absolute inset-0 scrim ${drawerP.leaving ? "backdrop-out" : "backdrop-in"}`} onClick={() => setDrawer(false)} />
           <div className={`glass-thick absolute inset-y-2 left-2 w-72 overflow-y-auto rounded-[1.75rem] p-4 ${drawerP.leaving ? "[animation:drawerIn_260ms_var(--ease-spring)_reverse_both]" : "drawer-in"}`}>
             <div className="mb-4 flex items-center justify-between"><Logo /><button onClick={() => setDrawer(false)} aria-label="Close menu" className="press grid h-9 w-9 place-items-center rounded-full bg-charcoal/[0.07]"><G g="✕" size={15} /></button></div>
             <div className="stagger space-y-0.5">{[...nav, { to: "/settings", label: "Settings", icon: "settings" }].map((n) => <NavLink key={n.to} to={n.to} className={({ isActive }) => `press flex items-center gap-3 rounded-[0.95rem] px-3 py-3 text-sm font-medium ${isActive ? "bg-charcoal text-ivory" : "hover:bg-white/60"}`}><Icon n={n.icon} />{n.label}</NavLink>)}</div>

@@ -28,11 +28,11 @@ export default function Home() {
     <div>
       <div className="mb-8 flex items-center gap-4">
         <span className="rounded-full shadow-[0_0_0_3px_rgba(255,255,255,.9),0_10px_24px_-10px_rgba(37,35,31,.35)]"><Avatar emoji={me.emoji} size={56} /></span>
-        <div className="flex-1"><h1 className="h-display text-3xl md:text-4xl">{greet}, {me.name.split(" ")[0]}</h1><p className="text-sm text-brown">💡 {fact}</p></div>
+        <div className="flex-1"><h1 className="h-display text-shine text-3xl md:text-4xl">{greet}, {me.name.split(" ")[0]}</h1><p className="text-sm text-brown">💡 {fact}</p></div>
       </div>
 
       <div className="mb-10 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Link to="/combiner" className="lift group relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#36332D] via-[#2A2824] to-[#1C1A17] p-7 pt-24 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_24px_50px_-24px_rgba(37,35,31,.7)] md:p-9 md:pt-28">
+        <Link to="/combiner" className="lift group relative isolate overflow-hidden rounded-[2rem] hero-fill p-7 pt-24 text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_24px_50px_-24px_rgba(37,35,31,.7)] md:p-9 md:pt-28">
           <div aria-hidden className="pointer-events-none absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full bg-orange/30 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 -z-10 h-56 w-56 rounded-full bg-sage/25 blur-3xl" />
           <div className="absolute right-5 top-5 flex gap-2 text-5xl transition-transform duration-700 [transition-timing-function:var(--ease-spring)] group-hover:-translate-y-1 group-hover:rotate-3 md:right-7 md:top-6 md:text-6xl" aria-hidden>{["🍅", "🧀", "🌿"].map((e, i) => <span key={e} className="animate-float" style={{ animationDelay: `${i * 0.5}s` }}>{e}</span>)}</div>
@@ -51,7 +51,7 @@ export default function Home() {
         <div className="no-scrollbar stagger -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 pt-1 md:mx-0 md:px-0 [&>*]:snap-start">
           {TRENDING_COMBOS.map((c) => (
             <Link key={c.name} to={`/combiner?ing=${c.ids.join(",")}`} className="card w-56 shrink-0 p-4 lift">
-              <div className="mb-3 flex text-3xl">{c.ids.map((id) => <span key={id} className="-mr-2 grid h-12 w-12 place-items-center rounded-full border-2 border-white bg-gradient-to-b from-white to-[#FFF3E4] shadow-[0_4px_10px_-4px_rgba(37,35,31,.25)]">{ING(id)?.emoji}</span>)}</div>
+              <div className="mb-3 flex text-3xl">{c.ids.map((id) => <span key={id} className="-mr-2 grid h-12 w-12 place-items-center rounded-full border-2 border-white orb-fill shadow-[0_4px_10px_-4px_rgba(37,35,31,.25)]">{ING(id)?.emoji}</span>)}</div>
               <b className="block">{c.name}</b><span className="text-xs text-brown">{c.ids.map((id) => ING(id)?.name).join(" + ")}</span><p className="mt-1 text-xs text-brown">{c.note}</p>
             </Link>
           ))}

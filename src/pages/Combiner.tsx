@@ -11,7 +11,7 @@ import type { Category, Combo, Ingredient } from "../types";
 
 interface Item { id: string; qty: number; unit: string; x: number; y: number }
 const defaultUnit = (i: Ingredient): { qty: number; unit: string } => i.category === "Spices" ? { qty: 1, unit: "tsp" } : i.category === "Sauces" ? { qty: 1, unit: "tbsp" } : i.category === "Baking" ? { qty: 100, unit: "g" } : { qty: 1, unit: "piece" };
-const CARD_W = 168, CARD_H = 124;
+const CARD_W = 148, CARD_H = 124;
 
 async function shrink(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
@@ -106,7 +106,7 @@ export default function Combiner() {
                 const on = items.some((x) => x.id === i.id);
                 return (
                   <div key={i.id} className="relative">
-                    <button onClick={() => { add(i); toast(`${i.name} added`); }} className={`press flex w-full flex-col items-center gap-1 rounded-[1.1rem] p-2.5 text-center transition-[background,box-shadow] duration-300 ${on ? "bg-gradient-to-b from-[#FCE3CB] to-[#F8C9A0] shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_0_0_2px_#F2A66B,0_8px_16px_-8px_rgba(232,145,74,.7)]" : "tile hover:bg-white/80"}`} aria-label={`Add ${i.name}`} aria-pressed={on}>
+                    <button onClick={() => { add(i); toast(`${i.name} added`); }} className={`press flex w-full flex-col items-center gap-1 rounded-[1.1rem] p-2.5 text-center transition-[background,box-shadow] duration-300 ${on ? "sel-fill" : "tile hover:bg-white/80"}`} aria-label={`Add ${i.name}`} aria-pressed={on}>
                       <span className={`text-3xl transition-transform duration-500 [transition-timing-function:var(--ease-pop)] ${on ? "scale-110" : ""}`}>{i.emoji}</span><span className="line-clamp-1 text-[11px] font-semibold">{i.name}</span>
                     </button>
                     <button onClick={() => toggleFrequent(i.id)} className={`absolute right-1 top-1 text-xs ${frequent.includes(i.id) ? "text-orange" : "text-brown-light"}`} aria-label={frequent.includes(i.id) ? "Remove from frequent" : "Mark as frequent"}><G g={frequent.includes(i.id) ? "★" : "☆"} /></button>
@@ -138,8 +138,8 @@ export default function Combiner() {
                       <button onPointerDown={(e) => e.stopPropagation()} onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))} className="press grid h-6 w-6 shrink-0 place-items-center rounded-full bg-charcoal/[0.07] text-charcoal/60 hover:text-red-600" aria-label={`Remove ${ing.name}`}><G g="✕" size={12} /></button>
                     </div>
                     <div className="mt-2 flex gap-1">
-                      <input type="number" min={0.1} step={it.unit === "g" || it.unit === "ml" ? 10 : 0.5} value={it.qty} onChange={(e) => setItems((p) => p.map((x) => (x.id === it.id ? { ...x, qty: Math.max(0.1, Number(e.target.value) || 0.1) } : x)))} className="w-12 shrink-0 rounded-full border border-charcoal/10 bg-white/70 px-1.5 py-1 text-center text-xs font-semibold focus:border-orange focus:outline-none" aria-label={`${ing.name} quantity`} />
-                      <span className="min-w-0 flex-1" onPointerDown={(e) => e.stopPropagation()}><Select label={`${ing.name} unit`} value={it.unit} onChange={(v) => setItems((p) => p.map((x) => (x.id === it.id ? { ...x, unit: v } : x)))} options={UNITS} className="!gap-1 !rounded-full !bg-white/70 !px-2.5 !py-1 !text-xs" /></span>
+                      <input type="number" min={0.1} step={it.unit === "g" || it.unit === "ml" ? 10 : 0.5} value={it.qty} onChange={(e) => setItems((p) => p.map((x) => (x.id === it.id ? { ...x, qty: Math.max(0.1, Number(e.target.value) || 0.1) } : x)))} className="w-10 shrink-0 rounded-full border border-charcoal/10 bg-white/70 px-1.5 py-1 text-center text-xs font-semibold focus:border-orange focus:outline-none" aria-label={`${ing.name} quantity`} />
+                      <span className="min-w-0 flex-1" onPointerDown={(e) => e.stopPropagation()}><Select label={`${ing.name} unit`} value={it.unit} onChange={(v) => setItems((p) => p.map((x) => (x.id === it.id ? { ...x, unit: v } : x)))} options={UNITS} className="!gap-1 !rounded-full !bg-white/70 !px-2 !py-1 !text-xs" /></span>
                     </div>
                   </div>
                   </div>
@@ -162,10 +162,10 @@ export default function Combiner() {
             {!a ? <Empty emoji="🔬" title="Add ingredients to analyse" text="You'll see compatibility, flavour balance, suggestions and nutrition estimates." /> : (
               <div className="space-y-5">
                 <div className="flex items-center gap-4">
-                  <div className="pop-in relative grid h-24 w-24 shrink-0 place-items-center rounded-full shadow-[0_10px_24px_-10px_rgba(232,145,74,.6)]" style={{ background: `conic-gradient(#F2A66B ${a.score * 3.6}deg, rgb(37 35 31 / .07) 0)` }}><div className="grid h-[78px] w-[78px] place-items-center rounded-full bg-gradient-to-b from-white to-[#FFF6EC] shadow-[inset_0_1px_0_#fff]"><span className="text-3xl font-bold tabular-nums">{a.score}</span></div></div>
+                  <div className="pop-in relative grid h-24 w-24 shrink-0 place-items-center rounded-full shadow-[0_10px_24px_-10px_rgb(var(--orange-dark)/.6)]" style={{ background: `conic-gradient(rgb(var(--orange)) ${a.score * 3.6}deg, rgb(var(--charcoal) / .08) 0)` }}><div className="grid h-[78px] w-[78px] place-items-center rounded-full orb-fill"><span className="text-3xl font-bold tabular-nums">{a.score}</span></div></div>
                   <div><div className="font-semibold">Compatibility score</div><p className="text-xs text-brown">Out of 100. A rough guide to how conventional and balanced this combination is, not a taste guarantee.</p></div>
                 </div>
-                <div className="grid gap-3"><Meter label="Flavour balance" value={a.flavor} /><Meter label="Texture" value={a.texture} color="#A8B59A" /><Meter label="Versatility" value={a.versatility} color="#8A725E" /><Meter label="Recipe potential" value={a.potential} /></div>
+                <div className="grid gap-3"><Meter label="Flavour balance" value={a.flavor} /><Meter label="Texture" value={a.texture} color="rgb(var(--sage))" /><Meter label="Versatility" value={a.versatility} color="rgb(var(--brown))" /><Meter label="Recipe potential" value={a.potential} /></div>
                 <div><h3 className="mb-2 text-sm font-semibold">Why this score</h3><ul className="space-y-1 text-sm text-brown">{a.reasons.map((r) => <li key={r}><G g="✓" /> {r}</li>)}</ul></div>
                 <div className="grid grid-cols-3 gap-2 text-center">{([["Sweetness", a.profile.sweet], ["Saltiness", a.profile.salty], ["Sourness", a.profile.sour]] as const).map(([l, v]) => <div key={l} className="tile p-2"><div className="text-lg font-bold">{v}%</div><div className="text-[11px] text-brown">{l}</div></div>)}</div>
                 {a.conflicts.length > 0 && <div className="rounded-xl bg-orange-light/40 p-3"><h3 className="mb-1 text-sm font-semibold">Possible flavour conflicts</h3><ul className="space-y-1 text-sm">{a.conflicts.map((c) => <li key={c}><G g="⚠" /> {c}</li>)}</ul></div>}

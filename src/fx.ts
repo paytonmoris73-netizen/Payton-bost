@@ -57,3 +57,20 @@ export function probeFrameRate() {
   const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
   setTimeout(() => (w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 2000 }) : start()), 1200);
 }
+
+/** Crystal highlight that follows the mouse across `.lift` cards. One listener, rAF-throttled, mouse only. */
+export function installSpecular() {
+  if (typeof window === "undefined" || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  let pending: { el: HTMLElement; x: number; y: number } | null = null; let raf = 0;
+  document.addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse" || isLite()) return;
+    const el = (e.target as Element | null)?.closest?.<HTMLElement>(".lift"); if (!el) return;
+    pending = { el, x: e.clientX, y: e.clientY };
+    if (!raf) raf = requestAnimationFrame(() => {
+      raf = 0; if (!pending) return;
+      const r = pending.el.getBoundingClientRect();
+      pending.el.style.setProperty("--mx", `${pending.x - r.left}px`);
+      pending.el.style.setProperty("--my", `${pending.y - r.top}px`);
+    });
+  }, { passive: true });
+}

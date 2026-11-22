@@ -148,7 +148,7 @@ export function Select<T extends string>({ value, onChange, options, id, label, 
         onClick={() => (open ? close() : show())} onKeyDown={keys}
         className={`input press flex items-center justify-between gap-2 text-left ${className}`}>
         <span className="truncate">{current ? lab(current) : <span className="text-brown-light">{placeholder}</span>}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8A725E" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 transition-transform duration-300 ${open ? "rotate-180" : ""}`} aria-hidden><path d="M6 9l6 6 6-6" /></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-brown transition-transform duration-300 ${open ? "rotate-180" : ""}`} aria-hidden><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {open && createPortal(
         <div ref={list} id={uid} role="listbox" tabIndex={-1} aria-label={label} aria-activedescendant={`${uid}-${hl}`} onKeyDown={keys}
