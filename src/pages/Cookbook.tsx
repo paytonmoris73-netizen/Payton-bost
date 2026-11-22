@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { matchScore } from "../engine";
 import { comboToItems } from "../engine";
 import { useCatalogue, useIngredients, useMe, useOwnedIds, useStore } from "../store";
-import { Empty, PageHeader, RecipeCard, Tabs, toast } from "../ui";
+import { Empty, PageHeader, RecipeCard, Tabs, toast, ask } from "../ui";
 import { Select } from "../glass";
 
 const TABS = ["Purchased", "Saved", "Created", "Favourites", "Combinations", "Folders", "Recently cooked", "Shopping lists"] as const;
@@ -33,7 +33,7 @@ export default function Cookbook({ saved: onlySaved }: { saved?: boolean }) {
       {tab === "Saved" && grid(savedR, "Nothing saved yet", "/discover")}
       {tab === "Created" && <>{grid(created, "You haven't created any recipes")}<div className="mt-4 flex gap-2"><Link to="/creator/new" className="btn-primary">Write a recipe</Link><Link to="/chef?tab=generate" className="btn-ghost">Generate with AI</Link></div></>}
       {tab === "Favourites" && grid(favs, "No favourites yet. Star a recipe to see it here.")}
-      {tab === "Combinations" && (combos.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{combos.filter((c) => !q.trim() || matchScore(q, c.name) > 0).map((c) => <div key={c.id} className="card overflow-hidden">{c.photo && <img src={c.photo} alt="" className="h-36 w-full object-cover" />}<div className="p-4"><b>{c.name}</b><p className="text-xs text-brown">{comboToItems(c, ings).map((i) => `${i.ing.emoji} ${i.ing.name}`).join(" · ")}</p>{c.notes && <p className="mt-1 text-xs">{c.notes}</p>}<div className="mt-3 flex gap-2"><Link className="btn-dark !py-1.5" to={`/combiner?combo=${c.id}`}>Open</Link><button className="btn-ghost !py-1.5" onClick={() => { if (confirm("Delete this combination?")) deleteCombo(c.id); }}>Delete</button></div></div></div>)}</div> : <Empty emoji="🥕" title="No saved combinations" action={<Link to="/combiner" className="btn-primary">Open Food Combiner</Link>} />)}
+      {tab === "Combinations" && (combos.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{combos.filter((c) => !q.trim() || matchScore(q, c.name) > 0).map((c) => <div key={c.id} className="card overflow-hidden">{c.photo && <img src={c.photo} alt="" className="h-36 w-full object-cover" />}<div className="p-4"><b>{c.name}</b><p className="text-xs text-brown">{comboToItems(c, ings).map((i) => `${i.ing.emoji} ${i.ing.name}`).join(" · ")}</p>{c.notes && <p className="mt-1 text-xs">{c.notes}</p>}<div className="mt-3 flex gap-2"><Link className="btn-dark !py-1.5" to={`/combiner?combo=${c.id}`}>Open</Link><button className="btn-ghost !py-1.5" onClick={async () => { if (await ask(`Delete "${c.name}"?`, "Delete", true)) deleteCombo(c.id); }}>Delete</button></div></div></div>)}</div> : <Empty emoji="🥕" title="No saved combinations" action={<Link to="/combiner" className="btn-primary">Open Food Combiner</Link>} />)}
       {tab === "Folders" && (
         <div>
           <form className="mb-4 flex max-w-md gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim().length < 2) return toast("Name your folder.", "err"); addFolder(name.trim().slice(0, 40)); setName(""); }}><input className="input" placeholder="New folder (e.g. Weekend Cooking)" value={name} onChange={(e) => setName(e.target.value)} aria-label="New folder name" /><button className="btn-dark">Create</button></form>

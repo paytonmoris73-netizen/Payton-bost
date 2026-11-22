@@ -5,7 +5,7 @@ import { BrowserRouter, HashRouter, Navigate, Route, Routes } from "react-router
 const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter;
 import { Layout } from "./Layout";
 import { useMe, useStore } from "./store";
-import { Toaster, CardSkeletons } from "./ui";
+import { Toaster, CardSkeletons, AskHost, reloadAt } from "./ui";
 import { ThemeDecor } from "./theme";
 
 const Auth = lazy(() => import("./pages/Auth"));
@@ -78,7 +78,7 @@ class Boundary extends Component<{ children: ReactNode }, { err: Error | null }>
   componentDidCatch(err: Error) { console.error("[crunch] render error", err); }
   render() {
     if (!this.state.err) return this.props.children;
-    return <div className="grid min-h-screen place-items-center p-6 text-center"><div><div className="text-5xl">🫠</div><h1 className="h-display mt-2 text-2xl">Something went wrong</h1><p className="mt-1 text-sm text-brown">{this.state.err.message}</p><button className="btn-primary mt-4" onClick={() => location.assign("/")}>Back home</button></div></div>;
+    return <div className="grid min-h-screen place-items-center p-6 text-center"><div><div className="text-5xl">🫠</div><h1 className="h-display mt-2 text-2xl">Something went wrong</h1><p className="mt-1 text-sm text-brown">{this.state.err.message}</p><button className="btn-primary mt-4" onClick={() => reloadAt("/")}>Back home</button></div></div>;
   }
 }
 
@@ -130,6 +130,7 @@ export function App() {
           </Routes>
         </Suspense>
         <Toaster />
+        <AskHost />
         <ThemeDecor />
       </Router>
     </Boundary>

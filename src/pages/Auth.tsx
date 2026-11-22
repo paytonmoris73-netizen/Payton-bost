@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useMe, useStore } from "../store";
-import { toast } from "../ui";
+import { Modal, toast } from "../ui";
+import { TermsBody } from "./Terms";
+import { PrivacyBody } from "./Privacy";
 
 export default function Auth() {
   const me = useMe(); const { signUp, logIn, resetPassword } = useStore();
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [f, setF] = useState({ name: "", email: "", password: "", year: "", agree: false });
+  const [doc, setDoc] = useState<"terms" | "privacy" | null>(null);
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
   if (me) return <Navigate to="/" replace />;
   const set = (k: string, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
@@ -41,7 +44,7 @@ export default function Auth() {
           {mode === "signup" && (
             <>
               <div className="mb-3"><label className="label" htmlFor="y">Birth year</label><input id="y" inputMode="numeric" maxLength={4} className="input" value={f.year} onChange={(e) => set("year", e.target.value.replace(/\D/g, ""))} placeholder="e.g. 1995" /><p className="mt-1 text-xs text-brown">Used for age protections. Buying and selling recipes requires 18+.</p></div>
-              <label className="mb-3 flex items-start gap-2 text-xs text-brown"><input type="checkbox" checked={f.agree} onChange={(e) => set("agree", e.target.checked)} className="mt-0.5" />I agree to the <Link to="/terms" target="_blank" className="underline">Terms of Service</Link> (including that I cook at my own risk, scamming means a permanent ban, and the refund rules) and the <Link to="/privacy" target="_blank" className="underline">Privacy Policy</Link>.</label>
+              <label className="mb-3 flex items-start gap-2 text-xs text-brown"><input type="checkbox" checked={f.agree} onChange={(e) => set("agree", e.target.checked)} className="mt-0.5" />I agree to the <button type="button" className="font-semibold text-charcoal underline" onClick={(e) => { e.preventDefault(); setDoc("terms"); }}>Terms of Service</button> (including that I cook at my own risk, scamming means a permanent ban, and the refund rules) and the <button type="button" className="font-semibold text-charcoal underline" onClick={(e) => { e.preventDefault(); setDoc("privacy"); }}>Privacy Policy</button>.</label>
             </>
           )}
           {err && <p role="alert" className="pop-in mb-3 rounded-2xl bg-red-50/90 px-3 py-2 text-sm text-red-700">{err}</p>}
@@ -54,6 +57,13 @@ export default function Auth() {
           </div>
         </form>
       </div>
+      <Modal open={doc !== null} onClose={() => setDoc(null)} title={doc === "privacy" ? "Privacy Policy" : "Terms of Service"} wide>
+        {doc === "privacy" ? <PrivacyBody /> : <TermsBody />}
+        <div className="sticky bottom-0 mt-5 flex flex-wrap justify-end gap-2 pt-2">
+          <button type="button" className="btn-ghost" onClick={() => setDoc(null)}>Close</button>
+          <button type="button" className="btn-primary" onClick={() => { set("agree", true); setDoc(null); }}>I agree</button>
+        </div>
+      </Modal>
     </div>
   );
 }

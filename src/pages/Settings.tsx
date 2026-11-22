@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ALLERGENS, DIETS } from "../data";
 import { useMe, useStore } from "../store";
-import { PageHeader, Tabs, toast } from "../ui";
+import { PageHeader, Tabs, toast, ask, reloadAt, saveText } from "../ui";
 import { Segmented, Switch as GSwitch } from "../glass";
 import { getFxMode, isLite, setFxMode, type FxMode } from "../fx";
 import { ACCENTS, THEMES, useAppearance, useResolvedTheme } from "../theme";
@@ -155,8 +155,8 @@ export default function Settings() {
           <div className="space-y-4 text-sm">
             <p><b>Email:</b> {me.email}</p><p><b>Member since:</b> {new Date(me.createdAt).toLocaleDateString()}</p><p><b>Plan:</b> {me.plus ? "CRUNCH Plus" : "Free"} · <Link to="/plus" className="font-semibold underline">See CRUNCH Plus</Link></p>
             <div className="flex flex-wrap gap-2"><button className="btn-dark" onClick={() => { logOut(); nav("/auth"); }}>Log out</button>
-              <button className="btn-outline" onClick={() => { const blob = new Blob([localStorage.getItem("crunch-v1") ?? "{}"], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "crunch-data.json"; a.click(); URL.revokeObjectURL(a.href); }}>Export my data</button>
-              <button className="btn-outline !border-red-300 !text-red-700" onClick={() => { if (confirm("Erase ALL CRUNCH data stored on this device, including accounts? This can't be undone.")) { localStorage.removeItem("crunch-v1"); location.assign("/auth"); } }}>Erase local data</button></div>
+              <button className="btn-outline" onClick={() => { let data = "{}"; try { data = localStorage.getItem("crunch-v1") ?? "{}"; } catch { /* storage blocked */ } saveText("crunch-data.json", data, "application/json"); }}>Export my data</button>
+              <button className="btn-outline !border-red-300 !text-red-700" onClick={async () => { if (await ask("This erases ALL Crunch data stored on this device, including accounts. It can't be undone.", "Erase everything", true)) { try { localStorage.removeItem("crunch-v1"); } catch { /* storage blocked */ } reloadAt("/auth"); } }}>Erase local data</button></div>
             {me.role === "admin" && <p className="text-xs text-brown">You're the administrator of this local install. <Link to="/admin" className="font-semibold underline">Open admin dashboard</Link></p>}
           </div>
         )}

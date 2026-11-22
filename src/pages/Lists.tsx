@@ -4,7 +4,7 @@ import { INGREDIENTS } from "../data";
 import { matchScore } from "../engine";
 import { scaleAmount } from "../RecipeBody";
 import { canAccess, useCatalogue, useMe, useOwnedIds, useStore } from "../store";
-import { Empty, Modal, PageHeader, toast } from "../ui";
+import { Empty, Modal, PageHeader, toast, saveText } from "../ui";
 
 export default function Lists() {
   const me = useMe()!; const { lists, createList, deleteList, addToList, toggleItem, removeItem, setItemQty, clearChecked } = useStore(); const cat = useCatalogue(); const owned = useOwnedIds();
@@ -14,7 +14,7 @@ export default function Lists() {
   const sugg = item.trim() ? INGREDIENTS.filter((i) => matchScore(item, i.name) > 0).slice(0, 5) : [];
   const text = () => list ? `${list.name}\n` + list.items.map((i) => `${i.checked ? "[x]" : "[ ]"} ${i.qty} ${i.name}`).join("\n") : "";
   const share = async () => { try { if (navigator.share) await navigator.share({ title: list.name, text: text() }); else { await navigator.clipboard.writeText(text()); toast("List copied to clipboard"); } } catch { /* cancelled */ } };
-  const exportCsv = () => { const csv = "Item,Quantity,Category,Done\n" + list.items.map((i) => [i.name, i.qty, i.category, i.checked].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n"); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = `${list.name}.csv`; a.click(); URL.revokeObjectURL(a.href); };
+  const exportCsv = () => { const csv = "Item,Quantity,Category,Done\n" + list.items.map((i) => [i.name, i.qty, i.category, i.checked].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n"); saveText(`${list.name}.csv`, csv, "text/csv"); };
   const importable = cat.filter((r) => r.status === "published" && !r.bundleOf && canAccess(r, owned, me.id));
   return (
     <div>

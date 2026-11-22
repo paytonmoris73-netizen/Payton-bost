@@ -21,6 +21,12 @@ const SECTIONS: { title: string; items: string[] }[] = [
   { title: "Children", items: [ "CRUNCH isn't for children under 13 and we don't knowingly collect their information." ] },
   { title: "Changes", items: [ "If we change how we handle data we'll update this page. Continuing to use CRUNCH after a change means you accept it." ] },
 ];
+/** The policy itself: used by the Privacy page and by the sign-up sheet. */
+export function PrivacyBody() {
+  return <>{SECTIONS.map((s) => (
+    <section key={s.title} className="card mt-5 p-5"><h2 className="h-display text-2xl">{s.title}</h2><ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">{s.items.map((i) => <li key={i}>{i}</li>)}</ul></section>))}</>;
+}
+
 export default function Privacy() {
   const nav = useNavigate();
   useEffect(() => window.scrollTo(0, 0), []);
@@ -29,8 +35,7 @@ export default function Privacy() {
       <button className="btn-ghost mb-4" onClick={() => (history.length > 1 ? nav(-1) : nav("/"))}>← Back</button>
       <h1 className="h-display text-4xl">Privacy Policy</h1>
       <p className="mt-1 text-sm text-brown">Plain-English summary of how CRUNCH handles your information. See also the <Link to="/terms" className="underline">Terms of Service</Link>.</p>
-      {SECTIONS.map((s) => (
-        <section key={s.title} className="card mt-5 p-5"><h2 className="h-display text-2xl">{s.title}</h2><ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">{s.items.map((i) => <li key={i}>{i}</li>)}</ul></section>))}
+      <PrivacyBody />
     </main>
   );
 }

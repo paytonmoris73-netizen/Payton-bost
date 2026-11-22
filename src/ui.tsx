@@ -35,6 +35,46 @@ export function Toaster() {
   );
 }
 
+/* ---------- app-wide helpers that work in every build (site, installed app, shared single-file link) ---------- */
+const HASH_BUILD = !!import.meta.env.VITE_HASH_ROUTER;
+
+/** Reload the app at a route. Works with normal and hash routing (a plain "/" would leave a shared link). */
+export function reloadAt(path: string) {
+  if (HASH_BUILD) { location.hash = "#" + path; location.reload(); } else location.assign(path);
+}
+
+/** Save a text file. Where downloads aren't allowed (the shared link), copy it to the clipboard instead and say so. */
+export async function saveText(name: string, text: string, mime: string) {
+  if (!HASH_BUILD) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: mime })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast(`Saved ${name}`); return;
+  }
+  try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into a note or spreadsheet to keep it."); }
+  catch { toast("Downloads aren't available here. Open Crunch on its website to save files.", "err"); }
+}
+
+/** In-app "Are you sure?" dialog (browser confirm() is blocked in some places and looks off-brand everywhere). */
+const useAsk = create<{ q: { text: string; yes: string; danger?: boolean; done: (ok: boolean) => void } | null }>(() => ({ q: null }));
+export function ask(text: string, yes = "OK", danger = false): Promise<boolean> {
+  return new Promise((done) => {
+    useAsk.getState().q?.done(false);
+    useAsk.setState({ q: { text, yes, danger, done: (ok) => { useAsk.setState({ q: null }); done(ok); } } });
+  });
+}
+export function AskHost() {
+  const q = useAsk((s) => s.q);
+  return (
+    <Modal open={!!q} onClose={() => q?.done(false)} title="Are you sure?">
+      <p className="text-sm text-brown">{q?.text}</p>
+      <div className="mt-5 flex flex-wrap justify-end gap-2">
+        <button type="button" className="btn-ghost" onClick={() => q?.done(false)}>Cancel</button>
+        <button type="button" className={q?.danger ? "btn !bg-red-600 !text-white" : "btn-primary"} onClick={() => q?.done(true)}>{q?.yes ?? "OK"}</button>
+      </div>
+    </Modal>
+  );
+}
+
 /* ---------- primitives ---------- */
 /** Keeps a component mounted for its exit animation. */
 export function usePresence(open: boolean, ms = 300) {
