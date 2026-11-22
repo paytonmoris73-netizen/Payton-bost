@@ -6,6 +6,7 @@ import { G } from "./icons";
 import { Link } from "react-router-dom";
 import { create } from "zustand";
 import { creatorOf, useStore } from "./store";
+import { CREATORS } from "./data";
 import { money, totalMin, DISCLAIMER_ALLERGEN, DISCLAIMER_NUTRITION } from "./engine";
 import type { Nutrition, Recipe } from "./types";
 
@@ -128,6 +129,16 @@ export function Avatar({ emoji, size = 40, hue = 30 }: { emoji: string; size?: n
   return <span className="grid shrink-0 place-items-center rounded-full" style={{ width: size, height: size, fontSize: size * 0.5, background: `hsl(${hue} 60% 88%)` }}>{emoji}</span>;
 }
 
+/** Profile icon for anyone who comments or reviews. Looked up live (accounts, then creators by id or name),
+ *  so changing your icon in Settings updates every comment you've ever written. */
+export function UserFace({ userId, name, size = 32 }: { userId?: string; name: string; size?: number }) {
+  const accounts = useStore((s) => s.accounts);
+  const acct = (userId && accounts.find((a) => a.id === userId)) || accounts.find((a) => a.name === name);
+  const creator = CREATORS.find((c) => c.id === userId) || CREATORS.find((c) => c.name === name);
+  const emoji = acct?.emoji ?? creator?.emoji ?? "🧑‍🍳";
+  const hue = creator?.hue ?? [...name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 360, 20);
+  return <Avatar emoji={emoji} size={size} hue={hue} />;
+}
 export function Skeleton({ className = "" }: { className?: string }) { return <div className={`skeleton ${className}`} />; }
 export function Empty({ emoji = "🍽️", title, text, action }: { emoji?: string; title: string; text?: string; action?: ReactNode }) {
   return (

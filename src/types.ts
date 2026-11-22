@@ -37,7 +37,7 @@ export interface Review { id: string; recipeId: string; userId: string; userName
 
 export interface Post {
   id: string; userId: string; userName: string; userEmoji: string; text: string; emoji: string; hue: number;
-  ingredients: string[]; recipeId?: string; likes: number; comments: { id: string; userName: string; text: string }[];
+  ingredients: string[]; recipeId?: string; likes: number; comments: { id: string; userName: string; text: string; userId?: string }[];
   saves: number; reposts: number; createdAt: string; challengeId?: string; hidden?: boolean;
 }
 

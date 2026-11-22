@@ -26,7 +26,9 @@
       /* Apply saved light/dark mode + theme before first paint (no flash). Mirrors src/theme.tsx. */
       (function () {
         try {
-          var s = JSON.parse(localStorage.getItem("crunch-appearance") || "{}"), m = s.mode || "auto", t = s.theme || "seasonal", r = document.documentElement;
+          var s = JSON.parse(localStorage.getItem("crunch-appearance") || "{}"), m = s.mode || "auto", t = s.theme || "classic", r = document.documentElement;
+          r.setAttribute("data-glass", s.glass || "clear");
+          var fs = { sm: "15px", lg: "17px", xl: "18.5px" }[s.text]; if (fs) r.style.fontSize = fs;
           if (m === "dark" || (m === "auto" && matchMedia("(prefers-color-scheme: dark)").matches)) r.classList.add("dark");
           if (t === "seasonal") { var mo = new Date().getMonth(); t = mo === 9 ? "halloween" : mo === 11 ? "christmas" : "classic"; }
           if (t !== "classic") r.setAttribute("data-crunch-theme", t);

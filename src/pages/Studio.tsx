@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MARKET_FEE, money } from "../engine";
 import { ageOf, MIN_AGE_COMMERCE, uid, useCatalogue, useMe, useStore } from "../store";
-import { Cover, Empty, Modal, PageHeader, Stars, toast } from "../ui";
+import { Cover, Empty, Modal, PageHeader, Stars, toast, UserFace } from "../ui";
 import type { Recipe } from "../types";
 
 export default function Studio() {
@@ -45,7 +45,7 @@ export default function Studio() {
           ))}
         </div>
       )}
-      {myReviews.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Recent reviews</h2><div className="card divide-y divide-cream">{myReviews.slice(0, 6).map((v) => <div key={v.id} className="p-4 text-sm"><b>{v.userName}</b> <Stars value={v.rating} /> {v.verified && <span className="chip bg-sage-light">Verified</span>}<p className="text-brown">{v.text}</p></div>)}</div></section>}
+      {myReviews.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Recent reviews</h2><div className="card divide-y divide-cream">{myReviews.slice(0, 6).map((v) => <div key={v.id} className="p-4 text-sm"><div className="flex flex-wrap items-center gap-2"><UserFace userId={v.userId} name={v.userName} size={30} /><b>{v.userName}</b> <Stars value={v.rating} /> {v.verified && <span className="chip bg-sage-light">Verified</span>}</div><p className="mt-1 text-brown">{v.text}</p></div>)}</div></section>}
       <Modal open={bundleOpen} onClose={() => setBundleOpen(false)} title="Create a collection">
         <label className="label" htmlFor="bt">Title</label><input id="bt" className="input mb-3" placeholder="e.g. 10 Easy Desserts" value={bt} onChange={(e) => setBt(e.target.value)} />
         <span className="label">Choose recipes</span><div className="mb-3 max-h-48 space-y-1 overflow-y-auto">{single.map((r) => <label key={r.id} className="flex items-center gap-2 rounded-lg bg-cream p-2 text-sm"><input type="checkbox" className="accent-orange" checked={sel.includes(r.id)} onChange={() => setSel(sel.includes(r.id) ? sel.filter((x) => x !== r.id) : [...sel, r.id])} />{r.emoji} {r.title}</label>)}</div>

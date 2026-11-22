@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { RecipeBody } from "../RecipeBody";
 import { money, totalMin } from "../engine";
 import { canAccess, creatorOf, useCatalogue, useMe, useOwnedIds, useStore } from "../store";
-import { Avatar, Cover, Empty, RecipeCard, SaveButton, Stars, toast } from "../ui";
+import { Avatar, Cover, Empty, RecipeCard, SaveButton, Stars, toast, UserFace } from "../ui";
 
 export default function Product() {
   const { id } = useParams(); const nav = useNavigate(); const cat = useCatalogue(); const owned = useOwnedIds(); const me = useMe();
@@ -54,7 +54,7 @@ export default function Product() {
       )}
       {bundle.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Included recipes</h2><div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{bundle.map((b) => <RecipeCard key={b.id} r={b} owned={owned.has(b.id)} />)}</div><p className="mt-2 text-xs text-brown">Individually worth {money(bundle.reduce((s, b) => s + b.price, 0))}.</p></section>}
 
-      <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Reviews</h2>{rs.length === 0 ? <p className="text-sm text-brown">No reviews yet. Only verified buyers can review paid recipes.</p> : <div className="card divide-y divide-cream">{rs.map((v) => <div key={v.id} className="p-4"><div className="flex items-center gap-2 text-sm"><b>{v.userName}</b><Stars value={v.rating} />{v.verified && <span className="chip bg-sage-light">Verified purchase</span>}</div><p className="mt-1 text-sm text-brown">{v.text}</p></div>)}</div>}</section>
+      <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Reviews</h2>{rs.length === 0 ? <p className="text-sm text-brown">No reviews yet. Only verified buyers can review paid recipes.</p> : <div className="card divide-y divide-cream">{rs.map((v) => <div key={v.id} className="p-4"><div className="flex flex-wrap items-center gap-2 text-sm"><UserFace userId={v.userId} name={v.userName} size={30} /><b>{v.userName}</b><Stars value={v.rating} />{v.verified && <span className="chip bg-sage-light">Verified purchase</span>}</div><p className="mt-1 text-sm text-brown">{v.text}</p></div>)}</div>}</section>
       {others.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">More from {c.name}</h2><div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{others.map((o) => <RecipeCard key={o.id} r={o} owned={owned.has(o.id)} />)}</div></section>}
       {similar.length > 0 && <section className="mt-8"><h2 className="h-display mb-3 text-2xl">Similar recipes</h2><div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{similar.map((o) => <RecipeCard key={o.id} r={o} owned={owned.has(o.id)} />)}</div></section>}
 

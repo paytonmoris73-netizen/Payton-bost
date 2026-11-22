@@ -6,7 +6,7 @@ import { DISCLAIMER_TASTE, totalMin } from "./engine";
 import type { GenRecipe } from "./engine";
 import { creditFor } from "./photos";
 import { creatorOf, useMe, useStore, uid } from "./store";
-import { AllergenNote, Cover, Modal, NutritionPanel, SaveButton, StarPicker, Stars, toast } from "./ui";
+import { AllergenNote, Cover, Modal, NutritionPanel, SaveButton, StarPicker, Stars, toast, UserFace } from "./ui";
 import type { CookStatus, Recipe } from "./types";
 import { Select } from "./glass";
 
@@ -95,7 +95,7 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
           <div className="card p-5">
             <h2 className="h-display mb-3 text-2xl">Reviews</h2>
             {rs.length === 0 && <p className="text-sm text-brown">No reviews yet.</p>}
-            {rs.map((v) => <div key={v.id} className="border-b border-cream py-3 last:border-0"><div className="flex items-center gap-2 text-sm"><b>{v.userName}</b><Stars value={v.rating} />{v.verified && <span className="chip bg-sage-light">Verified purchase</span>}</div><p className="mt-1 text-sm text-brown">{v.text}</p></div>)}
+            {rs.map((v) => <div key={v.id} className="border-b border-cream py-3 last:border-0"><div className="flex flex-wrap items-center gap-2 text-sm"><UserFace userId={v.userId} name={v.userName} size={30} /><b>{v.userName}</b><Stars value={v.rating} />{v.verified && <span className="chip bg-sage-light">Verified purchase</span>}</div><p className="mt-1 text-sm text-brown">{v.text}</p></div>)}
             {!mine && (
               <form className="mt-4 space-y-2" onSubmit={(e) => { e.preventDefault(); const err = addReview(r.id, rating, text); if (err) toast(err, "err"); else { toast("Review posted"); setText(""); } }}>
                 <StarPicker value={rating} onChange={setRating} />

@@ -193,7 +193,7 @@ export const useStore = create<State>()(
         },
         addComment(id, text) {
           const a = me(); if (!a || !text.trim()) return;
-          set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, comments: [...p.comments, { id: uid(), userName: a.name, text: text.trim().slice(0, 500) }] } : p)) }));
+          set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, comments: [...p.comments, { id: uid(), userId: a.id, userName: a.name, text: text.trim().slice(0, 500) }] } : p)) }));
           get().award("comment:" + id, 2);
         },
         vote(id) { if (get().votes.includes(id)) set((s) => ({ votes: s.votes.filter((x) => x !== id) })); else set((s) => ({ votes: [...s.votes, id] })); },

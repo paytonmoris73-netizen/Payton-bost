@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { CHALLENGES, CREATORS } from "../data";
 import { matchScore } from "../engine";
 import { useCatalogue, useIngredients, useMe, useStore } from "../store";
-import { Avatar, Cover, Empty, Modal, PageHeader, Tabs, toast } from "../ui";
+import { Avatar, Cover, Empty, Modal, PageHeader, Tabs, toast, UserFace } from "../ui";
 import type { Post } from "../types";
 import { Select } from "../glass";
 
@@ -16,7 +16,7 @@ function PostCard({ p }: { p: Post }) {
   const [open, setOpen] = useState(false); const [c, setC] = useState(""); const [rep, setRep] = useState(false);
   const r = p.recipeId ? cat.find((x) => x.id === p.recipeId) : undefined; const ch = CHALLENGES.find((x) => x.id === p.challengeId);
   const share = async () => { const t = `${p.userName} on CRUNCH: ${p.text}`; try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); toast("Copied to clipboard"); } } catch { /* cancelled */ } };
-  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} className="pick" aria-pressed={on}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <G g={label} size={16} /> : label}{count !== undefined ? count : ""}</span></button>;
+  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} className="pick" aria-pressed={on} aria-label={label.length <= 2 ? `${({ "♥": "Liked", "♡": "Like", "💬": "Comments", "🔖": "Save", "🔁": "Repost" } as Record<string, string>)[label] ?? "Action"}${count !== undefined ? `, ${count}` : ""}` : undefined}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <G g={label} size={16} /> : label}{count !== undefined ? count : ""}</span></button>;
   return (
     <article className="card overflow-hidden">
       <div className="flex items-center gap-3 p-4"><Link to={`/creator/${p.userId}`}><Avatar emoji={p.userEmoji} size={40} /></Link><div className="flex-1"><Link to={`/creator/${p.userId}`} className="font-semibold">{p.userName}</Link><div className="text-xs text-brown">{p.createdAt}{ch && ` · Challenge: ${ch.title}`}</div></div><button className="text-xs text-brown underline" onClick={() => setRep(true)}>Report</button></div>
@@ -26,7 +26,7 @@ function PostCard({ p }: { p: Post }) {
         {p.ingredients.length > 0 && <div className="flex flex-wrap gap-1.5">{p.ingredients.map((i) => <span key={i} className="chip">{i}</span>)}</div>}
         {r && <Link to={r.price > 0 ? `/marketplace/${r.id}` : `/recipe/${r.id}`} className="flex items-center gap-3 rounded-xl bg-cream p-3 text-sm"><span className="text-2xl">{r.emoji}</span><span className="flex-1"><b>{r.title}</b><span className="block text-xs text-brown">View recipe</span></span>→</Link>}
         <div className="flex flex-wrap gap-2"><Btn on={likedPosts.includes(p.id)} onClick={() => toggleLike(p.id)} label={likedPosts.includes(p.id) ? "♥" : "♡"} count={p.likes} /><Btn onClick={() => setOpen(!open)} label="💬" count={p.comments.length} /><Btn on={savedPosts.includes(p.id)} onClick={() => { toggleSavePost(p.id); }} label="🔖" count={p.saves} /><Btn on={repostedPosts.includes(p.id)} onClick={() => { repost(p.id); toast("Reposted"); }} label="🔁" count={p.reposts} /><Btn onClick={share} label="Share" />{ch && <Btn on={votes.includes(p.id)} onClick={() => { vote(p.id); }} label="🗳 Vote" />}</div>
-        {open && <div className="space-y-2 border-t border-cream pt-3">{p.comments.map((k) => <p key={k.id} className="text-sm"><b>{k.userName}</b> {k.text}</p>)}<form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); addComment(p.id, c); setC(""); }}><input className="input" placeholder="Add a comment…" value={c} onChange={(e) => setC(e.target.value)} maxLength={500} aria-label="Comment" /><button className="btn-dark">Post</button></form></div>}
+        {open && <div className="space-y-2 border-t border-cream pt-3">{p.comments.map((k) => <div key={k.id} className="flex items-start gap-2.5 text-sm"><UserFace userId={k.userId} name={k.userName} size={30} /><p className="min-w-0 flex-1 break-words pt-1"><b>{k.userName}</b> {k.text}</p></div>)}<form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); addComment(p.id, c); setC(""); }}><input className="input" placeholder="Add a comment…" value={c} onChange={(e) => setC(e.target.value)} maxLength={500} aria-label="Comment" /><button className="btn-dark">Post</button></form></div>}
       </div>
       <ReportDialog open={rep} onClose={() => setRep(false)} kind="post" targetId={p.id} title="Report post" />
     </article>
