@@ -67,7 +67,32 @@ export default function Community() {
     <div>
       <PageHeader title="Community" sub="Share creations, join weekly challenges and follow cooks you like." action={<button className="btn-primary" onClick={() => setCompose(null)}><G g="＋" /> Share something</button>} />
       <Tabs tabs={TABS} value={tab} onChange={setTab} />
-      {(tab === "Feed" || tab === "Following") && (feed.length ? <div className="mx-auto grid max-w-2xl gap-5">{feed.map((p) => <PostCard key={p.id} p={p} />)}</div> : <Empty emoji="👥" title="Nothing here yet" text={tab === "Following" ? "Follow creators to see their posts here." : "Be the first to post."} />)}
+      {(tab === "Feed" || tab === "Following") && (
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,1fr)_21rem]">
+          {feed.length ? <div className="mx-auto grid w-full max-w-2xl gap-5">{feed.map((p) => <PostCard key={p.id} p={p} />)}</div> : <Empty emoji="👥" title="Nothing here yet" text={tab === "Following" ? "Follow creators to see their posts here." : "Be the first to post."} />}
+          {/* PC only: side rail so the wide screen isn't empty space */}
+          <aside className="sticky top-24 hidden space-y-4 lg:block" aria-label="Community highlights">
+            <div className="hero-fill rounded-[1.6rem] p-5 text-ivory">
+              <p className="text-xs font-semibold uppercase tracking-wide text-orange">Weekly challenge · {CHALLENGES[0].endsIn} left</p>
+              <h2 className="h-display mt-1 text-xl">{CHALLENGES[0].title}</h2>
+              <p className="mt-1 text-sm text-ivory/75">{CHALLENGES[0].description}</p>
+              <button className="btn-primary mt-4 !py-2" onClick={() => setTab("Challenges")}>{challengeJoined.includes(CHALLENGES[0].id) ? "See entries →" : "Join the challenge →"}</button>
+            </div>
+            <div className="card p-5">
+              <h2 className="h-display mb-3 text-lg">Cooks to follow</h2>
+              <ul className="space-y-3">{CREATORS.filter((c) => !following.includes(c.id)).slice(0, 4).map((c) => (
+                <li key={c.id} className="flex items-center gap-3">
+                  <Link to={`/creator/${c.id}`}><Avatar emoji={c.emoji} hue={c.hue} size={40} /></Link>
+                  <Link to={`/creator/${c.id}`} className="min-w-0 flex-1"><b className="block truncate text-sm">{c.name}</b><span className="text-xs text-brown">{(c.followers / 1000).toFixed(1)}k followers</span></Link>
+                  <button className="btn-dark !px-3 !py-1.5 !text-xs" onClick={() => toggleFollow(c.id)}>Follow</button>
+                </li>))}
+                {CREATORS.every((c) => following.includes(c.id)) && <li className="text-sm text-brown">You follow everyone. Nice.</li>}
+              </ul>
+            </div>
+            <Board title="Top recipes this week" rows={top.map((r) => ({ k: r.id, l: `${r.emoji} ${r.title}`, v: `${r.sales + Math.round(r.views / 10)} pts`, to: r.price > 0 ? `/marketplace/${r.id}` : `/recipe/${r.id}` }))} />
+          </aside>
+        </div>
+      )}
       {tab === "Challenges" && (
         <div className="grid gap-4 md:grid-cols-3">{CHALLENGES.map((c) => { const entries = visible.filter((p) => p.challengeId === c.id).sort((a, b) => (b.likes + (votes.includes(b.id) ? 1 : 0)) - (a.likes + (votes.includes(a.id) ? 1 : 0))); const started = !c.endsIn.startsWith("Starts"); return (
           <div key={c.id} className="card p-5"><div className="text-4xl">{c.emoji}</div><h3 className="h-display mt-2 text-xl">{c.title}</h3><p className="mt-1 text-sm text-brown">{c.description}</p><p className="mt-2 text-xs font-semibold">{started ? `Ends in ${c.endsIn}` : c.endsIn} · {entries.length} entries</p><p className="mt-2 text-xs text-brown">{c.rule}</p>
@@ -90,5 +115,5 @@ export default function Community() {
   );
 }
 function Board({ title, rows }: { title: string; rows: { k: string; l: string; v: string; to: string }[] }) {
-  return <div className="card p-5"><h3 className="h-display mb-3 text-xl">{title}</h3>{rows.length ? <ol className="space-y-2">{rows.map((r, i) => <li key={r.k}><Link to={r.to} className="flex items-center gap-3 text-sm"><span className="grid h-6 w-6 place-items-center rounded-full bg-cream text-xs font-bold">{i + 1}</span><span className="flex-1 truncate">{r.l}</span><span className="text-xs text-brown">{r.v}</span></Link></li>)}</ol> : <p className="text-sm text-brown">No entries yet.</p>}</div>;
+  return <div className="card p-5"><h2 className="h-display mb-3 text-xl">{title}</h2>{rows.length ? <ol className="space-y-2">{rows.map((r, i) => <li key={r.k}><Link to={r.to} className="flex items-center gap-3 text-sm"><span className="grid h-6 w-6 place-items-center rounded-full bg-cream text-xs font-bold">{i + 1}</span><span className="flex-1 truncate">{r.l}</span><span className="text-xs text-brown">{r.v}</span></Link></li>)}</ol> : <p className="text-sm text-brown">No entries yet.</p>}</div>;
 }

@@ -27,7 +27,7 @@ export default function Profile() {
         <div className="flex flex-col gap-2"><Link to="/settings" className="btn-dark">Edit profile</Link><Link to="/creator/studio" className="btn-ghost">Creator studio</Link></div>
       </div>
 
-      <div className="mt-5 grid gap-5 md:grid-cols-2">
+      <div className="mt-5 grid gap-5 md:grid-cols-2 md:items-start">
         <div className="card p-5"><div className="flex items-baseline justify-between"><h2 className="h-display text-xl">Cooking &amp; creator XP</h2><b>Level {level}</b></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-cream"><div className="h-full rounded-full bg-orange transition-all duration-700" style={{ width: `${(into / 200) * 100}%` }} /></div><p className="mt-2 text-xs text-brown">{me.xp} XP · {200 - into} to next level. XP comes from publishing, cooking, reviewing and challenges, with daily caps to prevent farming.</p></div>
         <div className="card p-5"><h2 className="h-display text-xl">Badges</h2><div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">{BADGES.map((b) => { const on = b.earned(stats); return <div key={b.name} className={`rounded-[1.1rem] p-3 ${on ? "sel-fill" : "tile opacity-60"}`}><b className="text-sm"><G g={on ? "🏅" : "🔒"} /> {b.name}</b><div className="text-xs text-brown">{b.desc}</div></div>; })}</div></div>
       </div>

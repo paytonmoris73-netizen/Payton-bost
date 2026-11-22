@@ -105,4 +105,12 @@ await t("posts: dangerous blocked, scammy held, normal posted", () => {
   assert.equal(p("Message me on telegram for the secret recipe").result, "review");
   assert.equal(p("Made a lovely tomato soup tonight").result, "posted");
 });
+await t("inappropriate photo: severe report hides it, upheld = instant permanent ban (no strike ladder)", async () => {
+  const poster = await mkUser("PhotoPoster", 60);
+  as(poster); useStore.setState((s) => ({ customRecipes: [recipe("pic1", poster, { photo: "data:image/png;base64,x" }), ...s.customRecipes] }));
+  for (const r of [reporters[0], reporters[2]]) { as(r); assert.equal(S().report("listing", "pic1", "nude photo on this recipe", "inappropriate"), null); }
+  assert.equal(status("pic1"), "review", "two credible reports hide it (severe threshold)");
+  as(admin); S().actionReport(S().reports.find((r) => r.targetId === "pic1" && r.status === "open")!.id);
+  assert.equal(status("pic1"), "removed"); assert.ok(S().banned.includes(poster), "banned on the first confirmed offence");
+});
 console.log(`\n${n} passed`);

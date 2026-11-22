@@ -99,7 +99,7 @@ export default function Combiner() {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">
         {/* picker */}
-        <section className={`${tab === "Ingredients" ? "block" : "hidden"} min-w-0 lg:block`} aria-label="Ingredient picker">
+        <section className={`${tab === "Ingredients" ? "block" : "hidden"} min-w-0 lg:row-span-2 lg:block`} aria-label="Ingredient picker">
           <div className="card p-3 sm:p-4 lg:sticky lg:top-24">
             <input className="input mb-3" placeholder="Search ingredients (typos are fine)…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search ingredients" />
             <Segmented size="sm" dark label="Ingredient category" options={["All", "Frequent", ...CATEGORIES] as const} value={cat} onChange={setCat} className="mb-3" />

@@ -123,7 +123,15 @@ export const TERMS: Section[] = [
       "Recipes marketed with unlicensed medical claims such as “treats diabetes”.",
       "Selling or promoting prescription drugs, steroids or unapproved supplements.",
       "Fake food licenses, certifications or health-inspection claims." ] },
-    { title: "G. Platform abuse", items: [
+    { title: "G. Photos and images", items: [
+      "Photos must show food, ingredients or cooking. Nothing else.",
+      "No nudity, sexual or suggestive images, or anything sexualizing minors (zero tolerance, and reported to authorities).",
+      "No violent, gory, cruel or shocking images, including injured people or animals.",
+      "No hateful symbols, offensive gestures or text in photos.",
+      "No drugs, weapons or illegal activity in photos.",
+      "No photos of other people without their permission, and no photos showing private information (addresses, faces of children, documents).",
+      "A confirmed inappropriate photo is an instant, permanent ban: no warning, no strikes. The photo and the recipe are removed." ] },
+    { title: "H. Platform abuse", items: [
       "False reports. Reporting content or people you know are not breaking the rules, or organizing others to do the same, to get them removed or banned.",
       "Report brigading: groups of accounts reporting the same target.",
       "Bots, scripts, scraping, automated posting, or collecting data from CRUNCH.",

@@ -3,7 +3,7 @@ import { ALL_RECIPES } from "./data";
 import type { State } from "./store";
 import { autoRefundRecipe } from "./refundStore";
 import {
-  FALSE_REPORT_BAN_AT, REPORT_HOURLY_LIMIT, REPORT_CATEGORIES, SCAM_BANS_INSTANTLY, activeStrikes, falseReportPenalty, daysSince, looksLikePileOn, pauseUntil, penaltyFor, penaltyText, publishDecision, reportScore,
+  FALSE_REPORT_BAN_AT, REPORT_HOURLY_LIMIT, REPORT_CATEGORIES, SCAM_BANS_INSTANTLY, INAPPROPRIATE_PHOTO_BANS_INSTANTLY, activeStrikes, falseReportPenalty, daysSince, looksLikePileOn, pauseUntil, penaltyFor, penaltyText, publishDecision, reportScore,
   reporterWeight, reportingPaused, scanRecipe, scanText, shouldPause, suspensionEnd, thresholdFor, type Flag, type Penalty,
 } from "./safety";
 import type { Appeal, Hold, Recipe, Removal, Report, ReportCategory, ReporterStats, Strike } from "./types";
@@ -189,7 +189,8 @@ export function createSafety(set: Set, get: Get) {
     if (r.kind === "post") set((st) => ({ posts: st.posts.map((p) => (p.id === r.targetId ? { ...p, hidden: true } : p)) }));
     dropHold(r.targetId);
     const isScam = SCAM_BANS_INSTANTLY && group.some((g) => g.category === "scam");
-    const penalty = owner ? (isScam ? banNow(owner, "Scam: " + label, r.targetId) : addStrike(owner, label, r.targetId)) : null;
+    const isBadPhoto = INAPPROPRIATE_PHOTO_BANS_INSTANTLY && group.some((g) => g.category === "inappropriate");
+    const penalty = owner ? (isScam ? banNow(owner, "Scam: " + label, r.targetId) : isBadPhoto ? banNow(owner, "Inappropriate photo", r.targetId) : addStrike(owner, label, r.targetId)) : null;
     if (r.kind === "listing" || r.kind === "copyright") autoRefundRecipe(set, get, r.targetId, "Refunded automatically: the recipe was removed by moderators.");
     creditReporters(group, true);
     set((st) => ({ reports: st.reports.map((x) => (group.some((g) => g.id === x.id) ? { ...x, status: "actioned" } : x)) }));

@@ -1,7 +1,7 @@
 import { InstallBanner } from "../InstallApp";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CREATORS, FOOD_FACTS, ING, TRENDING_COMBOS } from "../data";
+import { CHALLENGES, CREATORS, FOOD_FACTS, ING, TRENDING_COMBOS } from "../data";
 import { useCatalogue, useMe, useOwnedIds, useStore } from "../store";
 import { Avatar, CardSkeletons, RecipeCard, Section, useLoading } from "../ui";
 
@@ -44,15 +44,21 @@ export default function Home() {
           <span className="btn-primary mt-5">Open the Food Combiner →</span>
         </Link>
         <div className="grid gap-4">
-          <Link to="/chef" className="card flex items-center gap-4 p-5 lift"><span className="tile grid h-14 w-14 shrink-0 place-items-center text-3xl">👨‍🍳</span><span><b className="block">Ask the AI Chef</b><span className="text-sm text-brown">"What can I make with what's in my fridge?"</span></span></Link>
-          <Link to="/community" className="card flex items-center gap-4 p-5 lift"><span className="tile grid h-14 w-14 shrink-0 place-items-center text-3xl">🏆</span><span><b className="block">Weekly challenge</b><span className="text-sm text-brown">Three-Ingredient Wonders · 5 days left</span></span></Link>
+          <Link to="/chef" className="card flex items-center gap-4 p-5 lift lg:flex-col lg:items-stretch lg:justify-between">
+            <span className="flex items-center gap-4"><span className="tile grid h-14 w-14 shrink-0 place-items-center text-3xl">👨‍🍳</span><span><b className="block">Ask the AI Chef</b><span className="text-sm text-brown">"What can I make with what's in my fridge?"</span></span></span>
+            <span className="hidden flex-wrap gap-1.5 lg:flex" aria-hidden>{["Swap for butter?", "Dinner in 20 min", "Use up spinach"].map((q) => <span key={q} className="chip">{q}</span>)}<span className="chip nav-pill nav-on ml-auto">Ask →</span></span>
+          </Link>
+          <Link to="/community" className="card flex items-center gap-4 p-5 lift lg:flex-col lg:items-stretch lg:justify-between">
+            <span className="flex items-center gap-4"><span className="tile grid h-14 w-14 shrink-0 place-items-center text-3xl">🏆</span><span><b className="block">Weekly challenge</b><span className="text-sm text-brown">{CHALLENGES[0].title} · {CHALLENGES[0].endsIn} left</span></span></span>
+            <span className="hidden items-end justify-between gap-3 lg:flex"><span className="line-clamp-2 text-xs text-brown">{CHALLENGES[0].description}</span><span className="btn-primary shrink-0 !px-4 !py-2">Join →</span></span>
+          </Link>
         </div>
       </div>
 
       <Section title="Trending combinations" sub="Tap one to open it in the Combiner">
-        <div className="no-scrollbar stagger -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 pt-1 md:mx-0 md:px-0 [&>*]:snap-start">
+        <div className="no-scrollbar stagger -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 pt-1 md:mx-0 md:px-0 xl:grid xl:grid-cols-5 xl:gap-4 xl:overflow-visible [&>*]:snap-start">
           {TRENDING_COMBOS.map((c) => (
-            <Link key={c.name} to={`/combiner?ing=${c.ids.join(",")}`} className="card w-56 shrink-0 p-4 lift">
+            <Link key={c.name} to={`/combiner?ing=${c.ids.join(",")}`} className="card w-56 shrink-0 p-4 lift xl:w-auto">
               <div className="mb-3 flex text-3xl">{c.ids.map((id) => <span key={id} className="-mr-2 grid h-12 w-12 place-items-center rounded-full border-2 border-white orb-fill shadow-[0_4px_10px_-4px_rgba(37,35,31,.25)]">{ING(id)?.emoji}</span>)}</div>
               <b className="block">{c.name}</b><span className="text-xs text-brown">{c.ids.map((id) => ING(id)?.name).join(" + ")}</span><p className="mt-1 text-xs text-brown">{c.note}</p>
             </Link>

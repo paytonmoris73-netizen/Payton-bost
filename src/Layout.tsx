@@ -17,6 +17,9 @@ const NAV = [
   { to: "/lists", label: "Shopping Lists", icon: "list" }, { to: "/messages", label: "Messages", icon: "msg" }, { to: "/safety", label: "Safety Center", icon: "shield" }, { to: "/profile", label: "Profile", icon: "user" },
 ];
 
+/** PC sidebar group headings, shown before the link they introduce (wide sidebar only). */
+const GROUP_BEFORE: Record<string, string> = { "/": "Create", "/discover": "Explore", "/cookbook": "My kitchen", "/safety": "You" };
+
 export function Logo({ dark }: { dark?: boolean }) {
   return <Link to="/" className="press flex items-center gap-2" aria-label="Crunch home"><BrandMark size={38} /><Wordmark dark={dark} className="text-[1.6rem]" /></Link>;
 }
@@ -124,11 +127,12 @@ export function Layout() {
         <div className="mb-5 flex justify-center lg:justify-start lg:px-2"><span className="lg:hidden"><Link to="/" aria-label="Crunch home" className="press block"><BrandMark size={42} /></Link></span><span className="hidden lg:block"><Logo /></span></div>
         <nav ref={side.ref} className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar px-2 lg:px-0" aria-label="Main">
           <span aria-hidden className="nav-pill pointer-events-none absolute inset-x-2 top-0 rounded-[0.95rem] transition-transform duration-500 [transition-timing-function:var(--ease-spring)] lg:inset-x-0" style={side.style} />
-          {nav.map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} title={n.label} className={({ isActive }) => `press relative z-[1] flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium transition-colors duration-300 lg:justify-start ${isActive ? "nav-on" : "text-charcoal/80 hover:bg-white/60"}`}>
+          {nav.map((n) => (<div key={n.to} className="contents">
+            {GROUP_BEFORE[n.to] && <span className={`hidden px-3 pb-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-brown/80 lg:block ${n.to === "/" ? "" : "pt-3"}`}>{GROUP_BEFORE[n.to]}</span>}
+            <NavLink to={n.to} end={n.end} title={n.label} className={({ isActive }) => `press relative z-[1] flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 lg:py-2 text-sm font-medium transition-colors duration-300 lg:justify-start ${isActive ? "nav-on" : "text-charcoal/80 hover:bg-white/60"}`}>
               <Icon n={n.icon} /><span className="hidden lg:inline">{n.label}</span>
             </NavLink>
-          ))}
+          </div>))}
         </nav>
         <div className="px-2 pt-3 lg:px-0"><NavLink to="/settings" title="Settings" className={({ isActive }) => `press flex items-center justify-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium lg:justify-start ${isActive ? "nav-pill nav-on" : "text-charcoal/80 hover:bg-white/60"}`}><Icon n="settings" /><span className="hidden lg:inline">Settings</span></NavLink></div>
       </aside>

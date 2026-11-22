@@ -82,6 +82,7 @@ export const REPORT_CATEGORIES: { id: ReportCategory; label: string; hint: strin
   { id: "illness", label: "I (or someone) got sick", hint: "Food poisoning or a reaction after cooking this", severe: true },
   { id: "unsafe", label: "Unsafe or harmful", hint: "Could make someone sick or hurt", severe: true },
   { id: "scam", label: "Scam or bait-and-switch", hint: "Doesn't deliver what it promises, or asks for money/contact outside CRUNCH", severe: true },
+  { id: "inappropriate", label: "Inappropriate photo", hint: "Nudity, sexual, violent, gory or hateful image, or anything that isn't food", severe: true },
   { id: "misleading", label: "Fake or misleading", hint: "Photo, description or reviews don't match the recipe" },
   { id: "stolen", label: "Stolen content", hint: "Copied from someone else" },
   { id: "spam", label: "Spam", hint: "Ads, links or repeated posts" },
@@ -127,6 +128,8 @@ export type Penalty = "warning" | "suspension" | "ban";
 export const SUSPENSION_DAYS = 7;
 /** Policy knobs. Scamming is one strike. Reporting someone you know is innocent is banned on the 2nd offence. */
 export const SCAM_BANS_INSTANTLY = true;
+/** Zero tolerance: a confirmed inappropriate photo is an instant permanent ban, like a scam. */
+export const INAPPROPRIATE_PHOTO_BANS_INSTANTLY = true;
 export const FALSE_REPORT_BAN_AT = 2;
 export const LADDER: { strike: string; penalty: Penalty; text: string }[] = [
   { strike: "Strike 1", penalty: "warning", text: "Content removed and a formal warning. Your future recipes are checked by a person before they go live." },
@@ -146,6 +149,7 @@ export const RULES: { icon: string; title: string; text: string }[] = [
   { icon: "🧪", title: "Safe food only", text: "No recipes that could poison or injure someone: toxic substances, raw-meat advice, unsafe canning, dangerous challenges." },
   { icon: "🎯", title: "Deliver what you promise", text: "The photo, title and description must match the recipe. Paid recipes need real amounts and real steps." },
   { icon: "🚫", title: "No scams. Ever.", text: "Fake recipes, bait-and-switch, fake reviews, off-platform payment, outside links, fake urgency. A confirmed scam is an instant, permanent ban. No warning, no second chance." },
+  { icon: "📷", title: "Food photos only", text: "Photos must show food or cooking. No nudity, sexual, violent, gory, hateful or shocking images, and no photos of people without their permission. A confirmed inappropriate photo is an instant, permanent ban." },
   { icon: "✍️", title: "Original work only", text: "Don't copy other cooks' recipes, photos or text." },
   { icon: "🤝", title: "Be decent, report honestly", text: "No harassment. Reporting someone you know is innocent is abuse: the first time you lose reporting and get a warning, the second time you're permanently banned." },
 ];

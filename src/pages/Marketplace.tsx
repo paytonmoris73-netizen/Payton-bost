@@ -13,7 +13,10 @@ export default function Marketplace() {
   const [f, setF] = useState({ ...defaultFilters, maxPrice: 20 }); const [browse, setBrowse] = useState(false);
   const res = useFiltered(vis, f);
   const solo = vis.filter((r) => !r.bundleOf);
-  const grid = (l: Recipe[]) => <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{l.slice(0, 4).map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>;
+  // Phones: always 2 columns. PC: as many columns as there are cards (min `min`), so rows never have holes.
+  const LG = ["", "lg:grid-cols-1", "lg:grid-cols-2", "lg:grid-cols-3", "lg:grid-cols-4"];
+  const grid = (l: Recipe[], max = 4, min = 3) => { const shown = l.slice(0, max); return <div className={`stagger grid grid-cols-2 gap-3 sm:gap-4 ${LG[Math.max(min, Math.min(shown.length, max))]}`}>{shown.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div>; };
+  const pair = "lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-6";
   const interest = new Set([...saved, ...recent].map((id) => cat.find((r) => r.id === id)?.cuisine));
   const personal = solo.filter((r) => interest.has(r.cuisine) && !owned.has(r.id));
   return (
@@ -36,13 +39,20 @@ export default function Marketplace() {
           <Section title="Best sellers">{grid([...solo].sort((a, b) => b.sales - a.sales))}</Section>
           <Section title="New releases">{grid([...solo].sort((a, b) => b.createdAt.localeCompare(a.createdAt)))}</Section>
           <Section title="Editor's picks" sub="Hand-picked by the CRUNCH team">{grid(solo.filter((r) => featuredIds.includes(r.id)).reverse())}</Section>
-          <Section title="Premium collections" sub="Bundles save you money">{(() => { const b = vis.filter((r) => r.bundleOf); return b.length ? <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{b.map((r) => <RecipeCard key={r.id} r={r} owned={owned.has(r.id)} />)}</div> : <p className="text-sm text-brown">No collections yet.</p>; })()}</Section>
-          <Section title="Recipes under $5">{grid(solo.filter((r) => r.price < 5))}</Section>
-          {solo.some((r) => r.seasonal) && <Section title="Seasonal">{grid(solo.filter((r) => r.seasonal))}</Section>}
-          {personal.length > 0 && <Section title="Recommended for you" sub="Based on cuisines you've saved or viewed">{grid(personal)}</Section>}
+          {(() => { const b = vis.filter((r) => r.bundleOf); const seasonal = solo.filter((r) => r.seasonal); return (
+            // Same order as always on phones (collections, under $5, seasonal). On PC "under $5" moves up a row
+            // so collections and seasonal can share one row instead of leaving gaps.
+            <div className={seasonal.length ? pair : ""}>
+              <div className={seasonal.length ? "lg:order-2" : ""}><Section title="Premium collections" sub="Bundles save you money">{b.length ? grid(b, seasonal.length ? 2 : 4, seasonal.length ? 2 : 3) : <p className="text-sm text-brown">No collections yet.</p>}</Section></div>
+              <div className={seasonal.length ? "lg:order-1 lg:col-span-2" : ""}><Section title="Recipes under $5">{grid(solo.filter((r) => r.price < 5))}</Section></div>
+              {seasonal.length > 0 && <div className="lg:order-3"><Section title="Seasonal">{grid(seasonal, 1, 1)}</Section></div>}
+            </div>); })()}
+          <div className={personal.length ? pair : ""}>
+          {personal.length > 0 && <Section title="Recommended for you" sub="Based on cuisines you've saved or viewed">{grid(personal, 2, 2)}</Section>}
           <Section title="Top-rated creators">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...CREATORS].sort((a, b) => b.rating - a.rating).slice(0, 3).map((c) => <Link key={c.id} to={`/creator/${c.id}`} className="card flex items-center gap-3 p-4 lift"><Avatar emoji={c.emoji} hue={c.hue} size={52} /><span><b className="block">{c.name}</b><span className="flex items-center gap-1 text-xs text-brown"><Stars value={c.rating} /> {c.rating}</span></span></Link>)}</div>
+            <div className={`grid gap-3 sm:grid-cols-2 ${personal.length ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>{[...CREATORS].sort((a, b) => b.rating - a.rating).slice(0, 3).map((c) => <Link key={c.id} to={`/creator/${c.id}`} className="card flex items-center gap-3 p-4 lift"><Avatar emoji={c.emoji} hue={c.hue} size={52} /><span><b className="block">{c.name}</b><span className="flex items-center gap-1 text-xs text-brown"><Stars value={c.rating} /> {c.rating}</span></span></Link>)}</div>
           </Section>
+          </div>
         </>
       )}
       <div className="card mt-6 grid gap-6 p-6 md:grid-cols-3">

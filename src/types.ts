@@ -62,7 +62,7 @@ export interface Purchase {
   unitPrices?: Record<string, number>; refundedIds?: string[]; refund?: RefundRecord;
 }
 
-export type ReportCategory = "unsafe" | "illness" | "scam" | "misleading" | "stolen" | "spam" | "harassment" | "other";
+export type ReportCategory = "unsafe" | "illness" | "scam" | "inappropriate" | "misleading" | "stolen" | "spam" | "harassment" | "other";
 export interface Report {
   id: string; kind: "listing" | "creator" | "post" | "copyright"; targetId: string; reason: string; at: string; status: "open" | "actioned" | "dismissed";
   reporterId?: string; category?: ReportCategory; weight?: number; suspicious?: boolean;
