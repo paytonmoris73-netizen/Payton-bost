@@ -75,6 +75,65 @@ export function AskHost() {
   );
 }
 
+/* ---------- micro-animations (transform/opacity only, skipped on reduced motion / lite mode) ---------- */
+const calm = () => typeof matchMedia === "function" && (matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("fx-lite"));
+
+/** Briefly flips a button into its "done" state (e.g. "✓ Added"). Returns [done, fire]. */
+export function useDone(ms = 1500) {
+  const [done, setDone] = useState(false); const t = useRef<number>();
+  useEffect(() => () => window.clearTimeout(t.current), []);
+  const fire = () => { setDone(true); window.clearTimeout(t.current); t.current = window.setTimeout(() => setDone(false), ms); };
+  return [done, fire] as const;
+}
+/** Both labels are stacked in the same grid cell, so the button keeps its width: no layout jump, no flicker. */
+export function DoneLabel({ done, idle, doneText }: { done: boolean; idle: ReactNode; doneText: ReactNode }) {
+  return (
+    <span className="grid place-items-center [&>*]:col-start-1 [&>*]:row-start-1" aria-live="polite">
+      <span className={`inline-flex items-center gap-2 transition-[opacity,transform] duration-300 [transition-timing-function:var(--ease-spring)] ${done ? "-translate-y-2 opacity-0" : ""}`} aria-hidden={done}>{idle}</span>
+      <span className={`inline-flex items-center gap-1.5 transition-[opacity,transform] duration-300 [transition-timing-function:var(--ease-spring)] ${done ? "" : "translate-y-2 opacity-0"}`} aria-hidden={!done}>
+        {done && <svg className="draw-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}{doneText}
+      </span>
+    </span>
+  );
+}
+
+/** A little glyph arcs from the tapped button to a target (the cart), then the target bounces. One element, composited. */
+export function flyTo(from: Element | null | undefined, targetSelector: string, glyph: string) {
+  const to = [...document.querySelectorAll<HTMLElement>(targetSelector)].find((el) => el.offsetParent !== null);
+  const bump = () => to?.animate([{ transform: "scale(1)" }, { transform: "scale(1.22)" }, { transform: "scale(0.94)" }, { transform: "scale(1)" }], { duration: 420, easing: "cubic-bezier(.34,1.56,.64,1)" });
+  if (!from || !to || calm()) { bump(); return; }
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+  const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+  const el = document.createElement("div"); el.className = "fly-glyph"; el.textContent = glyph; el.setAttribute("aria-hidden", "true");
+  el.style.left = `${a.left + a.width / 2}px`; el.style.top = `${a.top + a.height / 2}px`; document.body.appendChild(el);
+  const lift = Math.min(-60, dy * 0.3 - 80);
+  el.animate([
+    { transform: "translate3d(-50%,-50%,0) scale(0.6)", opacity: 0 },
+    { transform: "translate3d(-50%,-50%,0) scale(1.15)", opacity: 1, offset: 0.12 },
+    { transform: `translate3d(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 + lift}px), 0) scale(1)`, opacity: 1, offset: 0.55 },
+    { transform: `translate3d(calc(-50% + ${dx}px), calc(-50% + ${dy}px), 0) scale(0.35)`, opacity: 0.2 },
+  ], { duration: 700, easing: "cubic-bezier(.45,0,.4,1)" }).onfinish = () => { el.remove(); bump(); };
+}
+
+/** Pops its content when `on` changes. Never on first render, so a page full of buttons doesn't bounce on load. */
+export function Bump({ on, children, className = "" }: { on: unknown; children: ReactNode; className?: string }) {
+  const first = useRef(true); const [k, setK] = useState(0);
+  useEffect(() => { if (first.current) { first.current = false; return; } setK((n) => n + 1); }, [on]);
+  return <span key={k} className={`inline-block ${k ? "pop" : ""} ${className}`}>{children}</span>;
+}
+
+/** Removes a row smoothly using only transform/opacity (no height animation, so no per-frame layout):
+ *  the row slides out, then the rows below it glide up into the gap (FLIP). */
+export function animateOut(el: Element | null | undefined, then: () => void) {
+  if (!el || calm()) return then();
+  const h = (el as HTMLElement).getBoundingClientRect().height;
+  const below: HTMLElement[] = []; for (let n = el.nextElementSibling; n; n = n.nextElementSibling) below.push(n as HTMLElement);
+  el.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translate3d(28px,0,0)" }], { duration: 200, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" }).onfinish = () => {
+    then();
+    requestAnimationFrame(() => below.forEach((n) => n.isConnected && n.animate([{ transform: `translate3d(0,${h}px,0)` }, { transform: "none" }], { duration: 280, easing: "cubic-bezier(.32,.72,0,1)" })));
+  };
+}
+
 /* ---------- primitives ---------- */
 /** Keeps a component mounted for its exit animation. */
 export function usePresence(open: boolean, ms = 300) {

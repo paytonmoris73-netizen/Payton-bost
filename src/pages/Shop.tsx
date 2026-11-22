@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { CATEGORIES } from "../data";
 import { DISCLAIMER_ALLERGEN, DISCLAIMER_NUTRITION, matchScore } from "../engine";
 import { useCatalogue, useIngredients, useOwnedIds, useStore } from "../store";
-import { Empty, Meter, PageHeader, RecipeCard, Tabs, toast } from "../ui";
+import { Empty, Meter, PageHeader, RecipeCard, Tabs, toast, useDone, DoneLabel } from "../ui";
 import type { Category } from "../types";
 import { Select } from "../glass";
 
@@ -25,7 +25,7 @@ export default function Shop() {
 
 function Detail({ id }: { id: string }) {
   const ings = useIngredients(); const i = ings.find((x) => x.id === id); const cat = useCatalogue(); const owned = useOwnedIds(); const { lists, addToList, createList } = useStore();
-  const [listId, setListId] = useState(lists[0]?.id ?? "");
+  const [listId, setListId] = useState(lists[0]?.id ?? ""); const [addDone, fireAdd] = useDone();
   if (!i) return <Empty emoji="🔍" title="Ingredient not found" action={<Link to="/shop" className="btn-primary">Ingredient Shop</Link>} />;
   const related = cat.filter((r) => r.status === "published" && !r.bundleOf && r.ingredients.some((x) => x.name.toLowerCase().includes(i.name.toLowerCase()))).slice(0, 4);
   const n = i.per100g;
@@ -35,7 +35,7 @@ function Detail({ id }: { id: string }) {
       <div className="mt-3 grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="card grid place-items-center p-8 text-center"><div className="text-[8rem] leading-none">{i.emoji}</div><h1 className="h-display mt-2 text-3xl">{i.name}</h1><span className="chip mt-1">{i.category}</span>
           <div className="mt-5 w-full"><div className="mb-2"><Select label="Shopping list" value={listId} onChange={setListId} options={lists.map((l) => ({ value: l.id, label: l.name }))} /></div>
-            <button className="btn-primary w-full" onClick={() => { const lid = listId || createList("Groceries"); addToList(lid, [{ name: i.name, category: i.category }]); toast(`${i.name} added to your list`); }}><G g="＋" /> Add to shopping list</button></div></div>
+            <button className="btn-primary w-full" onClick={() => { const lid = listId || createList("Groceries"); addToList(lid, [{ name: i.name, category: i.category }]); toast(`${i.name} added to your list`); fireAdd(); }}><DoneLabel done={addDone} idle={<><G g="＋" /> Add to shopping list</>} doneText={`${i.name} added`} /></button></div></div>
         <div className="space-y-5">
           <div className="card p-5"><p>{i.description}</p><h2 className="mt-4 font-semibold">Common uses</h2><div className="mt-1 flex flex-wrap gap-1.5">{i.uses.map((u) => <span key={u} className="chip">{u}</span>)}</div></div>
           <div className="grid gap-5 md:grid-cols-2">

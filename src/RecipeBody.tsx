@@ -6,7 +6,7 @@ import { DISCLAIMER_TASTE, totalMin } from "./engine";
 import type { GenRecipe } from "./engine";
 import { creditFor } from "./photos";
 import { creatorOf, useMe, useStore, uid } from "./store";
-import { AllergenNote, Cover, Modal, NutritionPanel, SaveButton, StarPicker, Stars, toast, UserFace } from "./ui";
+import { AllergenNote, Cover, Modal, NutritionPanel, SaveButton, StarPicker, Stars, toast, UserFace, useDone, DoneLabel } from "./ui";
 import type { CookStatus, Recipe } from "./types";
 import { Select } from "./glass";
 
@@ -33,10 +33,11 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
   const [rating, setRating] = useState(5); const [text, setText] = useState("");
   const c = creatorOf(r.creatorId, accounts); const factor = servings / Math.max(1, r.servings);
   const mine = r.creatorId === me?.id; const rs = reviews.filter((x) => x.recipeId === r.id);
+  const [listDone, fireList] = useDone();
   const addAll = () => {
     const id = lists[0]?.id ?? createList("Groceries");
     addToList(id, r.ingredients.map((i) => ({ name: i.name, qty: scaleAmount(i.amount, factor) })));
-    toast("Ingredients added to your shopping list");
+    toast(`${r.ingredients.length} ingredients added to your shopping list`); fireList();
   };
   return (
     <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
@@ -52,7 +53,7 @@ export function RecipeBody({ r, preview }: { r: Recipe; preview?: boolean }) {
         {r.ai && <p className="mt-2 text-xs text-brown">{DISCLAIMER_TASTE}</p>}
         <div className="mt-5 flex flex-wrap gap-2">
           {!preview && <button className="btn-primary" onClick={() => nav(`/cook/${r.id}`)}><G g="▶" /> Start cooking</button>}
-          <button className="btn-ghost" onClick={addAll}><G g="🛒" /> Add to shopping list</button>
+          <button className={`btn-ghost ${listDone ? "!text-orange-dark" : ""}`} onClick={addAll}><DoneLabel done={listDone} idle={<><G g="🛒" /> Add to shopping list</>} doneText="Added to list" /></button>
           <button className="btn-ghost" onClick={() => toggleFav(r.id)}>{favorites.includes(r.id) ? <><G g="★" /> Favourite</> : <><G g="☆" /> Favourite</>}</button>
           <button className="btn-ghost" onClick={() => setFolderOpen(true)}><G g="📁" /> Add to folder</button>
           {!preview && <button className="btn-ghost" onClick={() => { markCooked(r.id); toast("Marked as cooked (+XP)"); }}><G g="✅" /> I cooked this{cooked.filter((x) => x.id === r.id).length ? ` (${cooked.filter((x) => x.id === r.id).length})` : ""}</button>}

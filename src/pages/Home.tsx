@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { CHALLENGES, CREATORS, FOOD_FACTS, ING, TRENDING_COMBOS } from "../data";
 import { useCatalogue, useMe, useOwnedIds, useStore } from "../store";
-import { Avatar, CardSkeletons, RecipeCard, Section, useLoading } from "../ui";
+import { Avatar, Bump, CardSkeletons, RecipeCard, Section, useLoading } from "../ui";
 
 export default function Home() {
   const me = useMe()!; const cat = useCatalogue(); const owned = useOwnedIds(); const loading = useLoading(300);
@@ -75,7 +75,7 @@ export default function Home() {
             <div key={c.id} className="card flex items-center gap-3 p-4">
               <Link to={`/creator/${c.id}`}><Avatar emoji={c.emoji} hue={c.hue} size={52} /></Link>
               <Link to={`/creator/${c.id}`} className="min-w-0 flex-1"><b className="block truncate">{c.name}</b><span className="text-xs text-brown">{(c.followers / 1000).toFixed(1)}k followers · {c.badges[0]}</span></Link>
-              <button onClick={() => toggleFollow(c.id)} className={following.includes(c.id) ? "btn-ghost !px-3 !py-1.5" : "btn-dark !px-3 !py-1.5"}>{following.includes(c.id) ? "Following" : "Follow"}</button>
+              <button onClick={() => toggleFollow(c.id)} className={following.includes(c.id) ? "btn-ghost !px-3 !py-1.5" : "btn-dark !px-3 !py-1.5"}><Bump on={following.includes(c.id)}>{following.includes(c.id) ? "Following" : "Follow"}</Bump></button>
             </div>
           ))}
         </div>
