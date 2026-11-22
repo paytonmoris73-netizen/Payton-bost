@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { G } from "../icons";
 import { money } from "../engine";
 import { MIN_AGE_COMMERCE, ageOf, useCatalogue, useMe, useStore } from "../store";
-import { Cover, Empty, PageHeader, toast } from "../ui";
+import { Cover, Empty, PageHeader, toast, animateOut } from "../ui";
 
 export default function Cart() {
   const nav = useNavigate(); const me = useMe()!; const cat = useCatalogue(); const { cart, removeCart, checkout, purchases, stripeConfigured } = useStore();
@@ -16,7 +16,7 @@ export default function Cart() {
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div>
           {items.length === 0 ? <Empty emoji="🛍️" title="Your cart is empty" action={<Link to="/marketplace" className="btn-primary">Browse marketplace</Link>} /> : (
-            <div className="card divide-y divide-cream">{items.map((r) => <div key={r.id} className="flex items-center gap-4 p-4"><Cover id={r.id} photo={r.photo} emoji={r.emoji} hue={r.hue} className="h-16 w-16 rounded-xl" size="text-3xl" /><div className="flex-1"><Link to={`/marketplace/${r.id}`} className="font-semibold">{r.title}</Link><div className="text-xs text-brown">{r.bundleOf ? `${r.bundleOf.length}-recipe collection` : r.cuisine}</div></div><b>{money(r.price)}</b><button onClick={() => removeCart(r.id)} className="text-brown-light hover:text-red-600" aria-label={`Remove ${r.title}`}><G g="✕" /></button></div>)}</div>
+            <div className="card divide-y divide-cream">{items.map((r) => <div key={r.id} className="flex items-center gap-4 overflow-hidden p-4"><Cover id={r.id} photo={r.photo} emoji={r.emoji} hue={r.hue} className="h-16 w-16 rounded-xl" size="text-3xl" /><div className="flex-1"><Link to={`/marketplace/${r.id}`} className="font-semibold">{r.title}</Link><div className="text-xs text-brown">{r.bundleOf ? `${r.bundleOf.length}-recipe collection` : r.cuisine}</div></div><b>{money(r.price)}</b><button onClick={(e) => animateOut(e.currentTarget.parentElement, () => removeCart(r.id))} className="text-brown-light hover:text-red-600" aria-label={`Remove ${r.title}`}><G g="✕" /></button></div>)}</div>
           )}
           <h2 className="h-display mb-3 mt-8 text-2xl">Purchase history</h2>
           {purchases.length === 0 ? <p className="text-sm text-brown">No purchases yet.</p> : (

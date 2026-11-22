@@ -5,7 +5,7 @@ import { CATEGORIES, COOKING_STYLES, MEALS } from "../data";
 import { DISCLAIMER_TASTE, UNITS, analyze, comboToItems, generateRecipes, matchScore, type ComboItem, type GenRecipe } from "../engine";
 import { genToRecipe } from "../RecipeBody";
 import { uid, useIngredients, useMe, useStore } from "../store";
-import { Empty, Meter, Modal, NutritionPanel, Tabs, toast } from "../ui";
+import { Empty, Meter, Modal, NutritionPanel, Tabs, toast, ask } from "../ui";
 import { Picks, Segmented, Select, Stepper } from "../glass";
 import type { Category, Combo, Ingredient } from "../types";
 
@@ -198,7 +198,7 @@ export default function Combiner() {
             <div key={c.id} className="tile lift p-4">
               {c.photo && <img src={c.photo} alt="" className="mb-2 h-28 w-full rounded-xl object-cover" />}
               <b>{c.name}</b><p className="text-xs text-brown">{comboToItems(c, ings).map((i) => i.ing.emoji + i.ing.name).join(" · ")}</p>{c.notes && <p className="mt-1 line-clamp-2 text-xs">{c.notes}</p>}
-              <div className="mt-3 flex gap-2"><button className="btn-dark !px-3 !py-1.5" onClick={() => { loadCombo(c); setListOpen(false); }}>Open &amp; edit</button><button className="btn-ghost !px-3 !py-1.5" onClick={() => { if (confirm("Delete this combination?")) deleteCombo(c.id); }}>Delete</button></div>
+              <div className="mt-3 flex gap-2"><button className="btn-dark !px-3 !py-1.5" onClick={() => { loadCombo(c); setListOpen(false); }}>Open &amp; edit</button><button className="btn-ghost !px-3 !py-1.5" onClick={async () => { if (await ask(`Delete "${c.name}"?`, "Delete", true)) deleteCombo(c.id); }}>Delete</button></div>
             </div>))}</div>
         )}
       </Modal>

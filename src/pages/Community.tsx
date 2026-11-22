@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { CHALLENGES, CREATORS } from "../data";
 import { matchScore } from "../engine";
 import { useCatalogue, useIngredients, useMe, useStore } from "../store";
-import { Avatar, Cover, Empty, Modal, PageHeader, Tabs, toast, UserFace } from "../ui";
+import { Avatar, Bump, Cover, Empty, Modal, PageHeader, Tabs, toast, UserFace } from "../ui";
 import type { Post } from "../types";
 import { Select } from "../glass";
 
@@ -16,7 +16,7 @@ function PostCard({ p }: { p: Post }) {
   const [open, setOpen] = useState(false); const [c, setC] = useState(""); const [rep, setRep] = useState(false);
   const r = p.recipeId ? cat.find((x) => x.id === p.recipeId) : undefined; const ch = CHALLENGES.find((x) => x.id === p.challengeId);
   const share = async () => { const t = `${p.userName} on CRUNCH: ${p.text}`; try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); toast("Copied to clipboard"); } } catch { /* cancelled */ } };
-  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} className="pick" aria-pressed={on} aria-label={label.length <= 2 ? `${({ "♥": "Liked", "♡": "Like", "💬": "Comments", "🔖": "Save", "🔁": "Repost" } as Record<string, string>)[label] ?? "Action"}${count !== undefined ? `, ${count}` : ""}` : undefined}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <G g={label} size={16} /> : label}{count !== undefined ? count : ""}</span></button>;
+  const Btn = ({ on, onClick, label, count }: { on?: boolean; onClick: () => void; label: string; count?: number }) => <button onClick={onClick} className="pick" aria-pressed={on} aria-label={label.length <= 2 ? `${({ "♥": "Liked", "♡": "Like", "💬": "Comments", "🔖": "Save", "🔁": "Repost" } as Record<string, string>)[label] ?? "Action"}${count !== undefined ? `, ${count}` : ""}` : undefined}><span className="inline-flex items-center gap-1.5">{label.length <= 2 ? <Bump on={on} className={on ? "text-orange-dark" : ""}><G g={label} size={16} /></Bump> : label}{count !== undefined ? count : ""}</span></button>;
   return (
     <article className="card overflow-hidden">
       <div className="flex items-center gap-3 p-4"><Link to={`/creator/${p.userId}`}><Avatar emoji={p.userEmoji} size={40} /></Link><div className="flex-1"><Link to={`/creator/${p.userId}`} className="font-semibold">{p.userName}</Link><div className="text-xs text-brown">{p.createdAt}{ch && ` · Challenge: ${ch.title}`}</div></div><button className="text-xs text-brown underline" onClick={() => setRep(true)}>Report</button></div>
@@ -84,7 +84,7 @@ export default function Community() {
                 <li key={c.id} className="flex items-center gap-3">
                   <Link to={`/creator/${c.id}`}><Avatar emoji={c.emoji} hue={c.hue} size={40} /></Link>
                   <Link to={`/creator/${c.id}`} className="min-w-0 flex-1"><b className="block truncate text-sm">{c.name}</b><span className="text-xs text-brown">{(c.followers / 1000).toFixed(1)}k followers</span></Link>
-                  <button className="btn-dark !px-3 !py-1.5 !text-xs" onClick={() => toggleFollow(c.id)}>Follow</button>
+                  <button className="btn-dark !px-3 !py-1.5 !text-xs" onClick={() => { toggleFollow(c.id); toast(`Following ${c.name}`); }}>Follow</button>
                 </li>))}
                 {CREATORS.every((c) => following.includes(c.id)) && <li className="text-sm text-brown">You follow everyone. Nice.</li>}
               </ul>

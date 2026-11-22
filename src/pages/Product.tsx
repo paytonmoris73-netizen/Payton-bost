@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { RecipeBody } from "../RecipeBody";
 import { money, totalMin } from "../engine";
 import { canAccess, creatorOf, useCatalogue, useMe, useOwnedIds, useStore } from "../store";
-import { Avatar, Cover, Empty, RecipeCard, SaveButton, Stars, toast, UserFace } from "../ui";
+import { Avatar, Cover, Empty, RecipeCard, SaveButton, Stars, toast, UserFace, flyTo } from "../ui";
 
 export default function Product() {
   const { id } = useParams(); const nav = useNavigate(); const cat = useCatalogue(); const owned = useOwnedIds(); const me = useMe();
@@ -37,7 +37,7 @@ export default function Product() {
             {access ? <p className="mt-3 rounded-xl bg-sage-light p-3 text-sm font-semibold"><G g="✓" /> You own this {r.bundleOf ? "collection" : "recipe"}. Find it in My Cookbook.</p> : (
               <div className="mt-3 flex gap-2">
                 <button className="btn-primary flex-1" onClick={() => { addCart(r.id); nav("/marketplace/cart"); }}>Buy now</button>
-                <button className="btn-ghost" disabled={inCart} onClick={() => { addCart(r.id); toast("Added to cart"); }}>{inCart ? "In cart" : "Add to cart"}</button>
+                <button className="btn-ghost" disabled={inCart} onClick={(e) => { flyTo(e.currentTarget, 'a[aria-label^="Cart"]', r.emoji); addCart(r.id); toast("Added to cart"); }}>{inCart ? <span className="inline-flex items-center gap-1.5"><svg className="draw-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>In cart</span> : "Add to cart"}</button>
               </div>
             )}
             <p className="mt-3 text-xs text-brown">Refunds can be requested from your order history. Full recipe content is only shown after purchase.</p>

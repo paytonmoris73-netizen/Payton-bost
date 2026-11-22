@@ -4,7 +4,9 @@ import { INGREDIENTS } from "../data";
 import { matchScore } from "../engine";
 import { scaleAmount } from "../RecipeBody";
 import { canAccess, useCatalogue, useMe, useOwnedIds, useStore } from "../store";
-import { Empty, Modal, PageHeader, toast, saveText } from "../ui";
+import { Empty, Modal, PageHeader, toast, saveText, ask, animateOut } from "../ui";
+
+const SHARED_LINK = !!import.meta.env.VITE_HASH_ROUTER; // printing is blocked inside the shared link
 
 export default function Lists() {
   const me = useMe()!; const { lists, createList, deleteList, addToList, toggleItem, removeItem, setItemQty, clearChecked } = useStore(); const cat = useCatalogue(); const owned = useOwnedIds();
@@ -27,7 +29,7 @@ export default function Lists() {
         {!list ? <Empty emoji="🛒" title="No lists yet" text="Create your first list." /> : (
           <div className="card p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h2 className="h-display text-2xl">{list.name}</h2>
-              <div className="flex flex-wrap gap-2"><button className="btn-ghost !py-1.5" onClick={() => setImp(true)}>Import from recipe</button><button className="btn-ghost !py-1.5" onClick={share}>Share</button><button className="btn-ghost !py-1.5" onClick={exportCsv} disabled={!list.items.length}>Export CSV</button><button className="btn-ghost !py-1.5" onClick={() => window.print()}>Print</button></div></div>
+              <div className="flex flex-wrap gap-2"><button className="btn-ghost !py-1.5" onClick={() => setImp(true)}>Import from recipe</button><button className="btn-ghost !py-1.5" onClick={share}>Share</button><button className="btn-ghost !py-1.5" onClick={exportCsv} disabled={!list.items.length}>Export CSV</button>{!SHARED_LINK && <button className="btn-ghost !py-1.5" onClick={() => window.print()}>Print</button>}</div></div>
             <form className="relative mb-4" onSubmit={(e) => { e.preventDefault(); const t = item.trim(); if (!t) return; addToList(list.id, [{ name: t.slice(0, 60) }]); setItem(""); }}>
               <div className="flex gap-2"><input className="input" placeholder="Add an item…" value={item} onChange={(e) => setItem(e.target.value)} aria-label="Add item" /><button className="btn-primary">Add</button></div>
               {sugg.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{sugg.map((s) => <button type="button" key={s.id} className="chip hover:bg-orange-light" onClick={() => { addToList(list.id, [{ name: s.name, category: s.category }]); setItem(""); }}><G g="＋" /> {s.emoji} {s.name}</button>)}</div>}
@@ -35,8 +37,8 @@ export default function Lists() {
             {list.items.length === 0 ? <p className="py-8 text-center text-sm text-brown">This list is empty.</p> : groups.map(([g, items]) => (
               <div key={g} className="mb-4"><h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-brown">{g}</h3>
                 <ul className="divide-y divide-cream">{items.map((i) => (
-                  <li key={i.id} className="flex items-center gap-3 py-2.5"><input type="checkbox" className="h-5 w-5 accent-orange transition" checked={i.checked} onChange={() => toggleItem(list.id, i.id)} aria-label={`Mark ${i.name} done`} /><span className={`flex-1 text-sm transition-all duration-300 ${i.checked ? "text-brown-light line-through" : ""}`}>{i.name}</span><input className="w-20 rounded-lg border border-cream-dark px-2 py-1 text-xs" value={i.qty} onChange={(e) => setItemQty(list.id, i.id, e.target.value.slice(0, 20))} aria-label={`${i.name} quantity`} /><button className="text-brown-light hover:text-red-600" onClick={() => removeItem(list.id, i.id)} aria-label={`Remove ${i.name}`}><G g="✕" /></button></li>))}</ul></div>))}
-            <div className="mt-4 flex justify-between border-t border-cream pt-3 text-sm"><button className="font-semibold text-brown" onClick={() => clearChecked(list.id)} disabled={!list.items.some((i) => i.checked)}>Clear checked</button>{lists.length > 1 && <button className="text-brown underline" onClick={() => { if (confirm(`Delete “${list.name}”?`)) { deleteList(list.id); setSel(""); } }}>Delete list</button>}</div>
+                  <li key={i.id} className="row-in flex items-center gap-3 overflow-hidden py-2.5"><input type="checkbox" className="h-5 w-5 accent-orange transition" checked={i.checked} onChange={() => toggleItem(list.id, i.id)} aria-label={`Mark ${i.name} done`} /><span className="min-w-0 flex-1 text-sm"><span className={`strike ${i.checked ? "on" : ""}`}>{i.name}</span></span><input className="w-20 rounded-lg border border-cream-dark px-2 py-1 text-xs" value={i.qty} onChange={(e) => setItemQty(list.id, i.id, e.target.value.slice(0, 20))} aria-label={`${i.name} quantity`} /><button className="text-brown-light hover:text-red-600" onClick={(e) => animateOut(e.currentTarget.closest("li"), () => removeItem(list.id, i.id))} aria-label={`Remove ${i.name}`}><G g="✕" /></button></li>))}</ul></div>))}
+            <div className="mt-4 flex justify-between border-t border-cream pt-3 text-sm"><button className="font-semibold text-brown" onClick={() => clearChecked(list.id)} disabled={!list.items.some((i) => i.checked)}>Clear checked</button>{lists.length > 1 && <button className="text-brown underline" onClick={async () => { if (await ask(`Delete the list “${list.name}” and everything on it?`, "Delete list", true)) { deleteList(list.id); setSel(""); toast("List deleted"); } }}>Delete list</button>}</div>
           </div>
         )}
       </div>

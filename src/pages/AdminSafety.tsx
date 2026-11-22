@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useCatalogue, useStore } from "../store";
-import { Empty, toast } from "../ui";
+import { Empty, toast, ask } from "../ui";
 import { activeStrikes, reporterWeight, daysSince } from "../safety";
 
 /** Admin "Safety" tab: held items, appeals, strikes, and how trustworthy each reporter has been. */
@@ -26,7 +26,7 @@ export function AdminSafety() {
             <button className="btn-dark !py-1.5" onClick={() => { approveHold(h.targetId); toast("Approved and live"); }}>Approve</button>
             <button className="btn-outline !py-1.5" onClick={() => { rejectHold(h.targetId, "none"); toast("Removed"); }}>Remove</button>
             <button className="btn-outline !py-1.5" onClick={() => { rejectHold(h.targetId, "strike"); toast("Removed + strike"); }}>Remove + strike</button>
-            <button className="btn-dark !py-1.5" onClick={() => { if (confirm("Confirm this is a scam? The account will be PERMANENTLY banned.")) { rejectHold(h.targetId, "ban"); toast("Removed. Account permanently banned."); } }}>Scam: remove + permanent ban</button>
+            <button className="btn-dark !py-1.5" onClick={async () => { if (await ask("Confirm this is a scam? The account will be PERMANENTLY banned.", "Ban permanently", true)) { rejectHold(h.targetId, "ban"); toast("Removed. Account permanently banned."); } }}>Scam: remove + permanent ban</button>
           </div></div>))}</div>}
 
       {H("Appeals", openAppeals.length)}
