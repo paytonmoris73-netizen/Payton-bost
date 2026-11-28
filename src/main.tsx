@@ -9,14 +9,13 @@ import "@fontsource/dm-sans/latin-700.css";
 import "@fontsource/nunito/latin-700.css";
 import "@fontsource/nunito/latin-800.css";
 import "./index.css";
-import { applyFx, installSpecular, probeFrameRate } from "./fx";
+import { initFx, installSpecular } from "./fx";
 import { initAppearance } from "./theme";
 import { initInstall } from "./pwa";
 
 initAppearance();
 initInstall();
-applyFx();
-probeFrameRate();
+initFx();
 installSpecular();
 // iOS Safari only shows :active (our press/squish feedback) once a touch listener exists.
 document.addEventListener("touchstart", () => {}, { passive: true });

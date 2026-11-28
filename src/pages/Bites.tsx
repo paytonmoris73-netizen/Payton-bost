@@ -9,6 +9,8 @@ import { useCatalogue, useMe, useStore } from "../store";
 import { Avatar, Bump, Empty, Modal, toast, useDone, UserFace } from "../ui";
 import { ReportDialog } from "../safetyUi";
 import { Composer } from "../Composer";
+import { usePerf } from "../fx";
+import { useShallow } from "zustand/react/shallow";
 import type { Post, Recipe } from "../types";
 
 /* Bites: Crunch's take on Shorts. One dish per screen, swipe up for the next.
@@ -21,11 +23,11 @@ const ingId = (name: string) => INGREDIENTS.find((i) => i.name.toLowerCase() ===
 function Media({ p, recipe, active, near, muted, onTime }: { p: Post; recipe?: Recipe; active: boolean; near: boolean; muted: boolean; onTime: (f: number) => void }) {
   const stored = useMediaUrl(near ? p.media?.id : undefined);
   const still = photoFor(p.id) ?? (recipe ? photoFor(recipe.id, recipe.photo) : undefined);
-  const vid = useRef<HTMLVideoElement>(null);
+  const vid = useRef<HTMLVideoElement>(null); const autoplay = usePerf((s) => s.autoplay);
   useEffect(() => {
     const v = vid.current; if (!v) return;
-    if (active) { v.play().catch(() => undefined); } else { v.pause(); v.currentTime = 0; onTime(0); }
-  }, [active, stored, onTime]);
+    if (active) { if (autoplay) v.play().catch(() => undefined); } else { v.pause(); v.currentTime = 0; onTime(0); }
+  }, [active, stored, onTime, autoplay]);
   if (!near) return <div className="absolute inset-0 bite-ph" style={{ "--h": p.hue } as CSSProperties} />;
   if (p.media?.kind === "video") {
     return stored
@@ -67,9 +69,11 @@ function Rail({ p, onComments, onShare, onGrab, grabbed, onRemix, onReport, like
 
 function Bite({ p, index, total, active, near, muted, setMuted }: { p: Post; index: number; total: number; active: boolean; near: boolean; muted: boolean; setMuted: (m: boolean) => void }) {
   const nav = useNavigate(); const cat = useCatalogue();
-  const { likedPosts, savedPosts, toggleLike, toggleSavePost, lists, addToList, createList, following, toggleFollow } = useStore(); const me = useMe()!;
+  // Per-slide selectors: liking one Bite re-renders that slide only, not the whole feed.
+  const { toggleLike, toggleSavePost, addToList, createList, toggleFollow } = useStore(useShallow((s) => ({ toggleLike: s.toggleLike, toggleSavePost: s.toggleSavePost, addToList: s.addToList, createList: s.createList, toggleFollow: s.toggleFollow })));
+  const liked = useStore((s) => s.likedPosts.includes(p.id)); const saved = useStore((s) => s.savedPosts.includes(p.id));
+  const follows = useStore((s) => s.following.includes(p.userId)); const me = useMe()!;
   const recipe = p.recipeId ? cat.find((r) => r.id === p.recipeId) : undefined;
-  const liked = likedPosts.includes(p.id), saved = savedPosts.includes(p.id);
   const [comments, setComments] = useState(false); const [rep, setRep] = useState(false); const [more, setMore] = useState(false);
   const [grabbed, fireGrab] = useDone(2200); const [progress, setProgress] = useState(0); const [paused, setPaused] = useState(false);
   const [yum, setYum] = useState(0); const lastTap = useRef(0);
@@ -84,16 +88,17 @@ function Bite({ p, index, total, active, near, muted, setMuted }: { p: Post; ind
     lastTap.current = now;
     if (isVideo) { const v = (e.currentTarget as HTMLElement).querySelector("video"); if (v) { if (v.paused) { v.play().catch(() => undefined); setPaused(false); } else { v.pause(); setPaused(true); } } }
   };
-  useEffect(() => { if (!active) setPaused(false); }, [active]);
+  const autoplay = usePerf((s) => s.autoplay);
+  useEffect(() => { setPaused(active && isVideo && !autoplay); }, [active, autoplay, isVideo]);
   const grab = () => {
-    const id = lists[0]?.id ?? createList("Groceries");
+    const id = useStore.getState().lists[0]?.id ?? createList("Groceries");
     addToList(id, p.ingredients.map((name) => ({ name, category: INGREDIENTS.find((i) => i.name === name)?.category })));
     fireGrab(); toast(`${p.ingredients.length} ingredient${p.ingredients.length === 1 ? "" : "s"} added to your shopping list`);
   };
   const remix = () => nav(`/combiner?ing=${p.ingredients.map(ingId).filter(Boolean).join(",")}`);
   const share = async () => { const t = `${p.userName} on Crunch: ${p.text}`; try { if (navigator.share) await navigator.share({ text: t }); else { await navigator.clipboard.writeText(t); toast("Copied to clipboard"); } } catch { /* cancelled */ } };
   const rail = { p, liked, saved, grabbed, onLike: like, onSave: () => { toggleSavePost(p.id); toast(saved ? "Removed from saved" : "Saved"); }, onComments: () => setComments(true), onShare: share, onGrab: grab, onRemix: remix, onReport: () => setRep(true) };
-  const mine = p.userId === me.id; const follows = following.includes(p.userId);
+  const mine = p.userId === me.id;
 
   return (
     <section data-i={index} className="bite-slide relative flex h-full snap-start snap-always items-center justify-center md:gap-5" aria-label={`Bite ${index + 1} of ${total} by ${p.userName}`}>
@@ -109,10 +114,10 @@ function Bite({ p, index, total, active, near, muted, setMuted }: { p: Post; ind
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex items-center gap-2.5">
               <Link to={`/creator/${p.userId}`} className="rounded-full ring-2 ring-[#fff]/80"><Avatar emoji={p.userEmoji} size={38} /></Link>
-              <Link to={`/creator/${p.userId}`} className="flex min-h-8 min-w-0 items-center truncate font-bold drop-shadow">{p.userName}</Link>
+              <Link to={`/creator/${p.userId}`} className="flex min-h-8 min-w-0 items-center truncate font-bold bite-text">{p.userName}</Link>
               {!mine && <button type="button" onClick={() => toggleFollow(p.userId)} className={`press min-h-8 rounded-full px-3 py-1 text-xs font-bold ${follows ? "bg-[#fff]/20 text-[#fff]" : "bg-[#fff] text-[#25231F]"}`}><Bump on={follows}>{follows ? "Following" : "Follow"}</Bump></button>}
             </div>
-            <p className={`text-sm leading-snug drop-shadow ${more ? "" : "line-clamp-2"}`} onClick={() => setMore(!more)}>{p.text}</p>
+            <p className={`text-sm leading-snug bite-text ${more ? "" : "line-clamp-2"}`} onClick={() => setMore(!more)}>{p.text}</p>
             {p.ingredients.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{p.ingredients.slice(0, 5).map((i) => <span key={i} className="shrink-0 rounded-full bg-[#fff]/20 px-2.5 py-1 text-[11px] font-semibold backdrop-blur-0 bite-chip">{i}</span>)}</div>}
             {recipe && <Link to={recipe.price > 0 || recipe.bundleOf ? `/marketplace/${recipe.id}` : `/recipe/${recipe.id}`} className="press mt-3 inline-flex items-center gap-2 rounded-full accent-fill px-4 py-2 text-sm font-bold"><Icon n="chefhat" size={17} /> Cook this · {recipe.title.length > 22 ? recipe.title.slice(0, 21) + "…" : recipe.title}</Link>}
           </div>
@@ -186,7 +191,7 @@ export default function Bites() {
       {/* top bar (phone) */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-2 p-3 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] text-[#fff] md:hidden">
         <button type="button" onClick={() => (history.length > 1 ? nav(-1) : nav("/community"))} className="press pointer-events-auto grid h-10 w-10 place-items-center rounded-full glass-dark" aria-label="Back"><Icon n="back" size={20} /></button>
-        <h1 className="h-display text-2xl drop-shadow">Bites</h1>
+        <h1 className="h-display text-2xl bite-text">Bites</h1>
         <button type="button" onClick={() => setSp({ new: "1" })} className="press pointer-events-auto ml-auto inline-flex items-center gap-1.5 rounded-full accent-fill px-4 py-2 text-sm font-bold"><Icon n="plus" size={17} /> Post</button>
       </div>
       {/* header (PC) */}

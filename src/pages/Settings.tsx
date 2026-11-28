@@ -4,7 +4,7 @@ import { ALLERGENS, DIETS } from "../data";
 import { useMe, useStore } from "../store";
 import { PageHeader, Tabs, toast, ask, reloadAt, saveText } from "../ui";
 import { Segmented, Switch as GSwitch } from "../glass";
-import { getFxMode, isLite, setFxMode, type FxMode } from "../fx";
+import { usePerf } from "../fx";
 import { ACCENTS, THEMES, useAppearance, useResolvedTheme } from "../theme";
 import { InstallCard } from "../InstallApp";
 import { clearAllMedia } from "../media";
@@ -48,13 +48,12 @@ export default function Settings() {
   const Switch = ({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) => <div className="flex items-center justify-between gap-4 py-3 text-sm"><span>{label}</span><GSwitch on={on} onChange={set} label={label} /></div>;
   const { state: profileState, flush: flushProfile } = useAutosave(p, profileOk, sameProfile, (v) => updateAccount({ name: v.name.trim(), handle: v.handle, bio: v.bio.slice(0, 280), emoji: v.emoji }));
   const { state: aiState, flush: flushAi } = useAutosave(aiF, (v) => !v.endpoint || /^https:\/\//.test(v.endpoint), (v) => { const c = useStore.getState().ai; return c.endpoint === v.endpoint && c.model === v.model && c.key === v.key; }, (v) => setAI(v));
-  const [fx, setFx] = useState<FxMode>(getFxMode()); const [, rerender] = useState(0);
   const appearance = useAppearance(); const resolved = useResolvedTheme();
   return (
     <div>
       <PageHeader title="Settings" />
       <Tabs tabs={TABS} value={tab} onChange={(t) => { flushProfile(); flushAi(); setTab(t); }} />
-      <div className="card max-w-2xl p-6">
+      <div className="card max-w-2xl p-4 sm:p-6">
         {tab === "Profile" && (
           <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (p.name.trim().length < 2) return toast("Enter a name.", "err"); if (!/^@[a-z0-9_]{3,20}$/i.test(p.handle)) return toast("Handle must look like @name (3–20 letters, numbers or _).", "err"); updateAccount({ name: p.name.trim(), handle: p.handle, bio: p.bio.slice(0, 280), emoji: p.emoji }); toast("Profile saved"); }}>
             <div><span className="label">Avatar</span><div className="flex flex-wrap gap-1.5">{AVATARS.map((e) => <button type="button" key={e} onClick={() => setP({ ...p, emoji: e })} aria-pressed={p.emoji === e} aria-label={`Avatar ${e}`} className={`press grid h-12 w-12 place-items-center rounded-full text-2xl transition-[background,box-shadow] duration-300 ${p.emoji === e ? "sel-fill" : "tile"}`}>{e}</button>)}</div></div>
@@ -120,17 +119,13 @@ export default function Settings() {
             </section>
             <section className="space-y-3">
               <div><h2 className="h-display text-xl">Text size</h2><p className="mt-1 text-sm text-brown">Makes all text and buttons bigger or smaller.</p></div>
-              <Segmented label="Text size" options={[{ value: "sm", label: "Small" }, { value: "md", label: "Standard" }, { value: "lg", label: "Large" }, { value: "xl", label: "Extra large" }] as const} value={appearance.text} onChange={appearance.setText} />
+              <Segmented label="Text size" options={[{ value: "sm", label: "Small" }, { value: "md", label: "Standard" }, { value: "lg", label: "Large" }, { value: "xl", label: "XL" }] as const} value={appearance.text} onChange={appearance.setText} />
             </section>
             <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl tile p-4">
               <p className="text-sm text-brown">Undo all appearance changes?</p>
               <button type="button" className="btn-ghost" onClick={() => { appearance.reset(); toast("Appearance reset to default"); }}>Reset appearance</button>
             </section>
-            <section className="space-y-3">
-            <div><h2 className="h-display text-xl">Visual effects</h2><p className="mt-1 text-sm text-brown">CRUNCH uses frosted Liquid Glass. On older or slower devices it automatically switches to a lighter look with the same design but no live blur, so everything stays smooth.</p></div>
-            <Segmented label="Visual effects" options={[{ value: "auto", label: "Automatic" }, { value: "full", label: "Full glass" }, { value: "lite", label: "Reduced" }] as const} value={fx} onChange={(m) => { setFx(m); setFxMode(m); rerender((n) => n + 1); toast(m === "auto" ? "Effects set to automatic" : m === "full" ? "Full glass effects on" : "Reduced effects on"); }} />
-            <p className="text-xs text-brown">Currently using: <b>{isLite() ? "reduced effects" : "full glass"}</b>{fx === "auto" ? " (chosen automatically for this device)" : ""}. Your system's Reduce Motion and Reduce Transparency settings are always respected.</p>
-            </section>
+            <MotionPerformance />
           </div>
         )}
         {tab === "Notifications" && <div className="divide-y divide-cream">{NOTIFY.map(([k, l]) => <Switch key={k} label={l} on={me.notify[k] !== false} set={(v) => updateAccount({ notify: { ...me.notify, [k]: v } as Account["notify"] })} />)}</div>}
@@ -167,3 +162,47 @@ export default function Settings() {
   );
 }
 const Row = ({ name, status }: { name: string; status: string }) => <div className="flex justify-between gap-4 rounded-xl bg-cream px-4 py-3"><b>{name}</b><span className="text-right text-xs text-brown">{status}</span></div>;
+
+/** Settings → Appearance → Motion & performance. Every option applies instantly and is remembered on this device. */
+function MotionPerformance() {
+  const perf = usePerf();
+  const Opt = ({ title, desc, on, set }: { title: string; desc: string; on: boolean; set: (v: boolean) => void }) => (
+    <div className="flex items-center justify-between gap-4 py-3.5">
+      <div className="min-w-0"><p className="text-sm font-semibold">{title}</p><p className="mt-0.5 text-xs text-brown">{desc}</p></div>
+      <GSwitch on={on} onChange={set} label={title} />
+    </div>
+  );
+  return (
+    <section className="space-y-4" aria-labelledby="perf-h">
+      <div><h2 id="perf-h" className="h-display text-xl">Motion &amp; performance</h2><p className="mt-1 text-sm text-brown">Keep CRUNCH smooth on any phone. Changes apply instantly.</p></div>
+
+      <div className="space-y-2">
+        <span className="label">Graphics quality</span>
+        <Segmented label="Graphics quality" options={[{ value: "auto", label: "Auto" }, { value: "full", label: "Quality" }, { value: "lite", label: "Smooth" }] as const}
+          value={perf.fx} onChange={(m) => { perf.setFx(m); toast(m === "auto" ? "Graphics set to automatic" : m === "full" ? "Quality graphics on" : "Smooth graphics on"); }} />
+        <p className="text-xs text-brown">
+          Now using <b>{perf.lite ? "Smooth" : "Quality"}</b>{perf.fx === "auto" ? " (picked for this device)" : ""}.
+          {" "}Smooth keeps the same design and animations but skips live blur and heavy shadows, so older phones like iPhone 8 stay at 60 fps.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <span className="label">Motion</span>
+        <Segmented label="Motion" options={[{ value: "system", label: "System" }, { value: "full", label: "Full" }, { value: "reduced", label: "Reduced" }] as const}
+          value={perf.motion} onChange={(m) => { perf.set({ motion: m }); toast(m === "reduced" ? "Reduce motion on" : m === "full" ? "Full motion on" : "Motion follows your system"); }} />
+        <p className="text-xs text-brown">Reduced swaps slides, bounces and zooms for quick fades, and turns off the slow zoom on Bites photos.</p>
+      </div>
+
+      <div className="divide-y divide-cream">
+        <Opt title="Reduce transparency" desc="Solid panels and bars instead of see-through glass. Easier to read and lighter on the GPU." on={perf.transparency} set={(v) => perf.set({ transparency: v })} />
+        <Opt title="Autoplay videos in Bites" desc="Turn off to save battery and data. Tap a video to play it." on={perf.autoplay} set={(v) => perf.set({ autoplay: v })} />
+        <Opt title="Show frame rate" desc="A small counter in the corner showing frames per second, to check how smooth the app runs on this device." on={perf.fps} set={(v) => perf.set({ fps: v })} />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl tile p-4">
+        <p className="text-sm text-brown">Back to the recommended settings for this device?</p>
+        <button type="button" className="btn-ghost" onClick={() => { perf.reset(); toast("Motion & performance reset"); }}>Reset</button>
+      </div>
+    </section>
+  );
+}

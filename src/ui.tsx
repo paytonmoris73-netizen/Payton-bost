@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { createPortal } from "react-dom";
 import { Segmented } from "./glass";
 import { photoFor } from "./photos";
+import { motionReduced } from "./fx";
 import { G } from "./icons";
 import { Link } from "react-router-dom";
 import { create } from "zustand";
@@ -76,7 +77,8 @@ export function AskHost() {
 }
 
 /* ---------- micro-animations (transform/opacity only, skipped on reduced motion / lite mode) ---------- */
-const calm = () => typeof matchMedia === "function" && (matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("fx-lite"));
+// Cheap transform/opacity motion stays on even in lite (slow-device) mode; only Reduce Motion calms it.
+const calm = () => motionReduced();
 
 /** Briefly flips a button into its "done" state (e.g. "✓ Added"). Returns [done, fire]. */
 export function useDone(ms = 1500) {

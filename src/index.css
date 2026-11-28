@@ -312,7 +312,6 @@ html.fx-lite {
     animation: textShine 2.4s var(--ease-out) 0.5s 1 both;
   }
   @keyframes textShine { from { background-position: 100% 0; } to { background-position: -50% 0; } }
-  html.fx-lite .text-shine { animation: none; }
 
   /* ---------- controls ---------- */
   .press { transition: transform var(--dur-1) var(--ease-out); }
@@ -586,14 +585,20 @@ html.standalone body { overscroll-behavior: none; }
 .lights i { width: 7px; height: 9px; border-radius: 50% 50% 45% 45%; animation: twinkle 1.8s ease-in-out infinite; box-shadow: 0 0 8px 2px currentColor; background: currentColor; }
 html.fx-lite .decor, html.fx-lite .lights i { display: none; }
 
-/* Weak devices: keep the look, drop the decorative motion. */
-html.fx-lite .animate-float, html.fx-lite .stagger > * { animation: none; }
-html.fx-lite .page-enter { animation-duration: 200ms; }
+/* Weak devices keep every animation: they only move transform/opacity, which the GPU composites for free. */
 
+/* Reduce Motion (system setting, unless the user picked "Full" in Settings; or the user's own choice):
+   no slides, bounces, zooms or loops. Things that appear still fade in quickly so changes aren't abrupt. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  html:not(.motion-full) *, html:not(.motion-full) *::before, html:not(.motion-full) *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   .decor { display: none; }
 }
+html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+html.reduce-motion :is(.page-enter, .sheet-in, .pop-in, .rise-in, .toast-in, .drawer-in, .backdrop-in, .row-in) { animation-name: fadeIn !important; animation-duration: 160ms !important; animation-timing-function: ease !important; }
+html.reduce-motion :is(.sheet-out, .backdrop-out) { animation-name: fadeOut !important; animation-duration: 140ms !important; }
+html.reduce-motion :is(.stagger > *, .kenburns, .pop, .text-shine), html.reduce-motion .pop-ring::after { animation: none !important; }
+html.reduce-motion .fly-glyph, html.reduce-motion .yum-burst i { display: none; }
+html.reduce-motion .seg-item:active, html.reduce-motion .press:active, html.reduce-motion .btn:active, html.reduce-motion .lift:active { transform: none; }
 
 /* ==========================================================================
    GLOSS LAYER: the glassy, golden "liquid glass" finish.
@@ -612,11 +617,7 @@ html.dark { --gloss: 0.1; --gloss-soft: 0.04; --edge-glow: 0.35; --swirl-a: 0.22
 html.fx-lite { --swirl-a: 0.6; }
 
 @layer base {
-  /* golden glass ribbons drifting behind everything (static image, composited once) */
-  body::after {
-    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--swirl-a);
-    background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1600 1000%22 preserveAspectRatio=%22xMidYMid slice%22 fill=%22none%22%3E%3Cdefs%3E%3ClinearGradient id=%22g1%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%220%22%3E%3Cstop offset=%220%22 stop-color=%22%23fff%22 stop-opacity=%220%22/%3E%3Cstop offset=%22.25%22 stop-color=%22%23fff%22 stop-opacity=%22.95%22/%3E%3Cstop offset=%22.6%22 stop-color=%22%23FFC878%22 stop-opacity=%22.9%22/%3E%3Cstop offset=%221%22 stop-color=%22%23fff%22 stop-opacity=%220%22/%3E%3C/linearGradient%3E%3ClinearGradient id=%22g2%22 x1=%221%22 y1=%220%22 x2=%220%22 y2=%220%22%3E%3Cstop offset=%220%22 stop-color=%22%23fff%22 stop-opacity=%220%22/%3E%3Cstop offset=%22.35%22 stop-color=%22%23FFD9A0%22 stop-opacity=%22.9%22/%3E%3Cstop offset=%22.75%22 stop-color=%22%23fff%22 stop-opacity=%22.95%22/%3E%3Cstop offset=%221%22 stop-color=%22%23fff%22 stop-opacity=%220%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg stroke-linecap=%22round%22%3E%3Cpath d=%22M-120 230C260-50 640 30 880 170S1400 330 1740 110%22 stroke=%22url%28%23g1%29%22 stroke-opacity=%22.28%22 stroke-width=%2240%22/%3E%3Cpath d=%22M-120 230C260-50 640 30 880 170S1400 330 1740 110%22 stroke=%22url%28%23g1%29%22 stroke-width=%223.5%22/%3E%3Cpath d=%22M-120 252C260-30 640 52 880 192S1400 352 1740 132%22 stroke=%22url%28%23g1%29%22 stroke-opacity=%22.6%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M-80 905C280 690 800 1030 1120 830S1520 610 1760 720%22 stroke=%22url%28%23g2%29%22 stroke-opacity=%22.26%22 stroke-width=%2246%22/%3E%3Cpath d=%22M-80 905C280 690 800 1030 1120 830S1520 610 1760 720%22 stroke=%22url%28%23g2%29%22 stroke-width=%223.5%22/%3E%3Cpath d=%22M-80 928C280 713 800 1053 1120 853S1520 633 1760 743%22 stroke=%22url%28%23g2%29%22 stroke-opacity=%22.6%22 stroke-width=%221.5%22/%3E%3Cellipse cx=%22800%22 cy=%22540%22 rx=%22760%22 ry=%22250%22 transform=%22rotate%28-7 800 540%29%22 stroke=%22url%28%23g1%29%22 stroke-opacity=%22.5%22 stroke-width=%222%22/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat;
-  }
+  /* (decorative ribbon swirls removed: a calm, grain-textured backdrop reads as a real product) */
 }
 
 @layer components {
@@ -828,21 +829,12 @@ html:not(.dark):not([data-crunch-theme]) .bg-charcoal { background-color: #4A2C1
    keeps the transparent look but drops the blur, so frame rate is protected.
    ========================================================================== */
 @layer base {
-  /* warm backdrop with bokeh light, so the glass has something beautiful to show through */
+  /* warm paper backdrop: two soft light pools, no bokeh dots */
   html:not(.dark) body::before {
     background:
-      radial-gradient(5vmax 5vmax at 12% 18%, rgb(255 255 255 / 0.9), rgb(255 230 200 / 0.4) 40%, transparent 70%),
-      radial-gradient(3.2vmax 3.2vmax at 86% 12%, rgb(255 248 235 / 0.95), transparent 70%),
-      radial-gradient(7vmax 7vmax at 78% 46%, rgb(255 205 150 / 0.75), transparent 70%),
-      radial-gradient(4vmax 4vmax at 22% 62%, rgb(255 240 220 / 0.9), transparent 70%),
-      radial-gradient(9vmax 9vmax at 52% 88%, rgb(255 180 110 / 0.55), transparent 70%),
-      radial-gradient(2.6vmax 2.6vmax at 64% 28%, rgb(255 255 255 / 0.95), transparent 70%),
-      radial-gradient(3.4vmax 3.4vmax at 6% 84%, rgb(255 236 210 / 0.95), transparent 70%),
-      radial-gradient(60vmax 48vmax at -5% -10%, rgb(var(--glow-1) / var(--glow-1a)), transparent 62%),
-      radial-gradient(52vmax 44vmax at 105% 0%, rgb(var(--glow-2) / var(--glow-2a)), transparent 60%),
-      radial-gradient(58vmax 50vmax at 80% 105%, rgb(var(--glow-3) / var(--glow-3a)), transparent 62%),
-      radial-gradient(40vmax 40vmax at 30% 45%, rgb(var(--glow-4) / var(--glow-4a)), transparent 70%),
-      linear-gradient(160deg, rgb(253 236 218), rgb(248 222 196));
+      radial-gradient(70vmax 50vmax at 0% 0%, rgb(var(--glow-1) / 0.45), transparent 60%),
+      radial-gradient(60vmax 50vmax at 100% 100%, rgb(var(--glow-3) / 0.16), transparent 62%),
+      linear-gradient(180deg, rgb(var(--bg)), rgb(var(--cream)));
   }
 }
 
@@ -944,8 +936,8 @@ html[data-glass="solid"]:not(.dark) .glass-thick, html[data-glass="solid"]:not(.
 @keyframes ring { from { transform: scale(0.4); opacity: 0.7; } to { transform: scale(1.9); opacity: 0; } }
 .pop-ring { position: relative; }
 .pop-ring::after { content: ""; position: absolute; inset: 0; border-radius: 999px; border: 2px solid rgb(var(--orange)); animation: ring 480ms var(--ease-out) both; pointer-events: none; }
-html.fx-lite .pop-ring::after, html.fx-lite .fly-glyph { display: none; }
-@media (prefers-reduced-motion: reduce) { .strike { transition: none; } }
+html.fx-lite .fly-glyph { filter: none; }
+@media (prefers-reduced-motion: reduce) { html:not(.motion-full) .strike { transition: none; } }
 
 /* Bars: frosted enough that text scrolling underneath becomes soft colour, never readable "ghost" text. */
 :root { --bar-blur: blur(26px) saturate(180%); }
@@ -975,9 +967,157 @@ html.dark .glass-thick { --glass-strong: rgb(var(--surface) / 0.75); }
 .yum-burst { width: 0; height: 0; }
 .yum-burst .yum-face { position: absolute; left: 0; top: 0; font-size: 96px; line-height: 1; animation: yumFace 900ms var(--ease-out) both; filter: drop-shadow(0 8px 16px rgb(0 0 0 / 0.35)); }
 .yum-burst i { position: absolute; left: -12px; top: -12px; font-size: 24px; font-style: normal; animation: yumBit 800ms var(--ease-out) 80ms both; }
-html.fx-lite .kenburns { animation: none; }
-@media (prefers-reduced-motion: reduce) { .kenburns, .yum-burst i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { html:not(.motion-full) :is(.kenburns, .yum-burst i) { animation: none; } }
 .cover-plate.bite-plate { left: 50%; top: 50%; width: 100%; height: 100%; }
 .bite-frame .bite-btn { background: linear-gradient(180deg, rgb(30 18 10 / 0.5), rgb(30 18 10 / 0.38)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 0 0 1px rgb(255 255 255 / 0.12), 0 4px 12px rgb(0 0 0 / 0.3); }
 .bite-frame .bite-btn.on { color: rgb(var(--on-accent)); background: radial-gradient(110% 80% at 50% -25%, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0) 58%), linear-gradient(180deg, rgb(var(--accent-hi)), rgb(var(--accent-lo))); }
 .bite-frame .bite-rail > button { text-shadow: 0 1px 3px rgb(0 0 0 / 0.6); }
+
+/* ==========================================================================
+   REFINED FINISH (final layer — wins over everything above)
+   Same palette, shapes, layout and motion. What changes is the material:
+   - surfaces: one fill + a hairline edge + a tight contact shadow and a soft ambient one, the way real
+     objects sit on paper; no diagonal glare streaks, inner glows or orange halos.
+   - buttons: a gentle top-to-bottom tone with a thin dark edge; no hard "gel" line through the middle.
+   - backdrop: warm paper with a fine grain instead of ribbons and bokeh.
+   Performance: every value is a token, so lite mode (slow phones) and Reduce Transparency swap
+   materials by changing variables only. Lite drops live blur, CSS filters and wide shadow radii (the
+   things that cost GPU memory and raster time on an iPhone 8) and keeps every animation.
+   `html:not(#_)` lifts specificity above the earlier layers without !important.
+   ========================================================================== */
+html {
+  --card-rgb: 255 255 255;
+  --card-a: 0.8;  --tile-a: 0.7;  --float-a: 0.74;  --bar-a: 0.82;
+  --float-blur: blur(20px) saturate(160%);
+  --hair: rgb(var(--charcoal) / 0.075);
+  --hair-strong: rgb(var(--charcoal) / 0.13);
+  --hi: inset 0 1px 0 rgb(255 255 255 / 0.7);
+  --sh-1: 0 1px 2px rgb(var(--shade) / 0.07);
+  --sh-card: 0 1px 2px rgb(var(--shade) / 0.06), 0 3px 8px -3px rgb(var(--shade) / 0.07), 0 14px 30px -18px rgb(var(--shade) / 0.22);
+  --sh-float: 0 1px 3px rgb(var(--shade) / 0.08), 0 16px 36px -14px rgb(var(--shade) / 0.28);
+  --accent-sh: 0 0 0 0.5px rgb(var(--orange-dark) / 0.55), 0 1px 2px rgb(var(--orange-dark) / 0.22), 0 6px 14px -8px rgb(var(--orange-dark) / 0.55);
+}
+html:not(.dark):not([data-crunch-theme]) { --card-rgb: 255 252 247; }
+html.dark {
+  --card-rgb: var(--white);
+  --hair: rgb(255 255 255 / 0.07);
+  --hair-strong: rgb(255 255 255 / 0.12);
+  --hi: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --sh-1: 0 1px 2px rgb(0 0 0 / 0.3);
+  --sh-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 14px 30px -18px rgb(0 0 0 / 0.7);
+  --sh-float: 0 1px 3px rgb(0 0 0 / 0.4), 0 18px 40px -14px rgb(0 0 0 / 0.75);
+  --accent-sh: 0 0 0 0.5px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 14px -8px rgb(0 0 0 / 0.6);
+}
+html[data-glass="frosted"] { --card-a: 0.9; --tile-a: 0.84; --float-a: 0.84; --bar-a: 0.9; }
+html[data-glass="solid"] { --card-a: 1; --tile-a: 1; --float-a: 0.97; --bar-a: 0.97; }
+/* slow devices: same look, cheap paint */
+html.fx-lite {
+  --float-a: 0.97; --bar-a: 0.97; --float-blur: none;
+  --sh-card: 0 1px 2px rgb(var(--shade) / 0.08), 0 4px 12px -6px rgb(var(--shade) / 0.2);
+  --sh-float: 0 1px 3px rgb(var(--shade) / 0.1), 0 8px 18px -8px rgb(var(--shade) / 0.3);
+}
+html.fx-lite.dark {
+  --sh-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px -6px rgb(0 0 0 / 0.6);
+  --sh-float: 0 1px 3px rgb(0 0 0 / 0.45), 0 8px 18px -8px rgb(0 0 0 / 0.7);
+}
+html.reduce-transparency { --card-a: 1; --tile-a: 1; --float-a: 1; --bar-a: 1; --float-blur: none; }
+
+/* backdrop: warm paper grain (static tile, composited once; skipped on slow devices and in dark mode) */
+html:not(.dark):not(.fx-lite):not(.reduce-transparency) body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .28 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html.fx-lite body::before, html.reduce-transparency body::before { background: linear-gradient(180deg, rgb(var(--bg)), rgb(var(--cream))); }
+
+/* ---------- surfaces ---------- */
+html:not(#_) .card { background: rgb(var(--card-rgb) / var(--card-a)); border: 1px solid var(--hair); box-shadow: var(--hi), var(--sh-card); }
+html:not(#_) :is(.tile, .glass) { background: rgb(var(--card-rgb) / var(--tile-a)); border: 1px solid var(--hair); box-shadow: var(--hi), var(--sh-1); }
+html:not(#_) :is(.glass-thick, .menu) {
+  background: rgb(var(--card-rgb) / var(--float-a)); border: 1px solid var(--hair-strong); box-shadow: var(--hi), var(--sh-float);
+  -webkit-backdrop-filter: var(--float-blur); backdrop-filter: var(--float-blur);
+}
+html:not(#_) .glass-bar { background: rgb(var(--bg) / var(--bar-a)); -webkit-backdrop-filter: var(--float-blur); backdrop-filter: var(--float-blur); }
+html:not(#_) .sheet { background: rgb(var(--card-rgb)); border: 1px solid var(--hair-strong); box-shadow: var(--hi), var(--sh-float); }
+html:not(#_).dark .sheet { background: rgb(var(--surface)); }
+html:not(#_) .lift::after { background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.18), transparent 60%); }
+html:not(#_).dark .lift::after { background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.06), transparent 60%); }
+@media (hover: hover) { html:not(#_) .lift:hover { transform: translateY(-2px); box-shadow: var(--hi), var(--sh-float); } }
+
+/* ---------- buttons ---------- */
+html:not(#_) :is(.btn-primary, .btn-dark, .accent-sheen)::after { content: none; }
+html:not(#_) :is(.btn-primary, .accent-fill) {
+  background: linear-gradient(180deg, rgb(var(--accent-hi)), rgb(var(--accent-lo)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), inset 0 -1px 0 rgb(0 0 0 / 0.05), var(--accent-sh);
+}
+html:not(#_) :is(.btn-dark, .ink-fill, .seg-thumb.dark) {
+  background: linear-gradient(180deg, rgb(var(--ink-hi)), rgb(var(--charcoal)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(0 0 0 / 0.2), 0 6px 14px -8px rgb(var(--shade) / 0.5);
+}
+html:not(#_):not(.dark):not([data-crunch-theme]) :is(.btn-dark, .ink-fill, .seg-thumb.dark) { background: linear-gradient(180deg, #5C3A25, #3B2417); color: #FFF6EA; }
+html:not(#_) .btn-ghost { background: rgb(var(--card-rgb) / 0.92); border: 1px solid var(--hair-strong); box-shadow: var(--hi), var(--sh-1); }
+html:not(#_) .btn-outline { background: transparent; border-color: var(--hair-strong); box-shadow: none; }
+@media (hover: hover) {
+  html:not(#_) .btn-ghost:hover { background: rgb(var(--card-rgb)); }
+  html:not(#_) .btn-outline:hover { background: rgb(var(--card-rgb) / 0.6); }
+}
+
+/* ---------- fields, chips, selections ---------- */
+html:not(#_) .input { background: rgb(var(--card-rgb) / 0.92); border: 1px solid var(--hair-strong); box-shadow: inset 0 1px 2px rgb(var(--shade) / 0.05); }
+html:not(#_) .input:focus { background: rgb(var(--card-rgb)); border-color: rgb(var(--orange)); box-shadow: 0 0 0 3px rgb(var(--orange) / 0.22); }
+html:not(#_) select.input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23998877' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+html:not(#_) :is(.chip, .pick):not([class*="bg-"]) { background: rgb(var(--card-rgb) / 0.86); border: 1px solid var(--hair); box-shadow: 0 1px 1px rgb(var(--shade) / 0.04); }
+html:not(#_) :is(.chip, .pick)[class*="bg-"] { background-image: none; border-color: var(--hair); box-shadow: none; }
+html:not(#_) .chip { font-variant-numeric: tabular-nums; }
+html:not(#_) .pick:is([aria-pressed="true"], [aria-checked="true"]) { color: rgb(var(--on-accent)); background: linear-gradient(180deg, rgb(var(--accent-hi)), rgb(var(--accent-lo))); border-color: transparent; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), var(--accent-sh); }
+html:not(#_) .pick.sage:is([aria-pressed="true"], [aria-checked="true"]) { background: linear-gradient(180deg, rgb(var(--sage-hi)), rgb(var(--sage-dark))); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 1px 2px rgb(var(--sage-dark) / 0.35); }
+@media (hover: hover) { html:not(#_) .pick:not([aria-pressed="true"]):not([aria-checked="true"]):not([class*="bg-"]):hover { background: rgb(var(--card-rgb)); } }
+html:not(#_) .sel-fill { background: rgb(var(--orange-light) / 0.75); box-shadow: 0 0 0 2px rgb(var(--orange)); }
+html:not(#_):not(.dark) .seg-thumb:not(.dark) { background: rgb(var(--card-rgb)); box-shadow: 0 0 0 0.5px rgb(var(--shade) / 0.1), 0 1px 2px rgb(var(--shade) / 0.12), 0 3px 8px -3px rgb(var(--shade) / 0.14); }
+html:not(#_):not(.dark) .stepper button { background: rgb(var(--card-rgb)); box-shadow: 0 0 0 0.5px rgb(var(--shade) / 0.1), 0 1px 2px rgb(var(--shade) / 0.12); }
+html:not(#_) :is(.nav-pill, .chip.nav-pill) { background: linear-gradient(180deg, rgb(var(--accent-hi)), rgb(var(--accent-lo))); color: rgb(var(--on-accent)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), var(--accent-sh); }
+html:not(#_):not(.dark) .tab-pill { background: rgb(var(--orange-light) / 0.7); box-shadow: inset 0 0 0 1px rgb(var(--orange) / 0.12); }
+html:not(#_) input[type="checkbox"]:checked { background: rgb(var(--accent-lo)); }
+
+/* ---------- brand + hero ---------- */
+html:not(#_) .wordmark { background: none; color: #A0541C; filter: none; }
+html:not(#_) .wordmark.on-dark { color: #FFD7AA; }
+html:not(#_).dark .wordmark { color: #FFD7AA; }
+html:not(#_) .brand-tile {
+  background: radial-gradient(100% 70% at 30% 0%, rgb(255 255 255 / 0.5), transparent 60%), linear-gradient(165deg, #FFD6AA 0%, #F2A35F 55%, #DF803C 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 0 0 0.5px rgb(170 85 30 / 0.55), 0 2px 6px -2px rgb(170 85 30 / 0.45);
+}
+html:not(#_):not([data-crunch-theme]) .hero-fill {
+  background: radial-gradient(80% 90% at 100% 0%, rgb(240 150 80 / 0.42), transparent 62%), linear-gradient(140deg, #5A3823 0%, #3A2316 60%, #26170E 100%);
+  box-shadow: inset 0 1px 0 rgb(255 225 190 / 0.16), 0 1px 2px rgb(60 30 10 / 0.2), 0 18px 40px -22px rgb(90 45 15 / 0.6);
+}
+
+/* ---------- food covers: muted, food-magazine colour instead of candy; no glare streak ---------- */
+html:not(#_):not(.dark) .cover-gloss { background: radial-gradient(75% 65% at 50% 45%, hsl(var(--h) 60% 96%), transparent 72%), linear-gradient(150deg, hsl(var(--h) 52% 89%), hsl(calc(var(--h) + 20) 40% 81%)); }
+html:not(#_) .cover-gloss::after { background: none; box-shadow: inset 0 0 0 1px rgb(var(--charcoal) / 0.05); }
+html:not(#_) .cover-plate { box-shadow: 0 10px 18px -10px hsl(var(--h) 45% 25% / 0.45), 0 2px 4px -1px hsl(var(--h) 40% 30% / 0.18), inset 0 -2px 4px hsl(var(--h) 35% 70% / 0.3), inset 0 1px 1px rgb(255 255 255); }
+html:not(#_).dark .cover-plate { box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.6); }
+html:not(#_) .cover-food { filter: drop-shadow(0 4px 3px rgb(70 35 10 / 0.25)); }
+/* filters force an extra off-screen pass per element: off on slow devices */
+html.fx-lite:not(#_) :is(.cover-food, .yum-burst .yum-face) { filter: none; }
+
+/* ---------- skeleton: a moving highlight (transform, GPU) instead of repainting a gradient every frame ---------- */
+.skeleton { position: relative; overflow: hidden; background: rgb(var(--charcoal) / 0.06); animation: none; }
+.skeleton::after { content: ""; position: absolute; inset: 0; transform: translate3d(-100%, 0, 0); background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.45), transparent); animation: skelSweep 1.4s ease-in-out infinite; }
+html.dark .skeleton::after { background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent); }
+@keyframes skelSweep { to { transform: translate3d(100%, 0, 0); } }
+
+/* ---------- Bites: text over video uses text-shadow (cheap) instead of a filter ---------- */
+.bite-text { text-shadow: 0 1px 2px rgb(0 0 0 / 0.55), 0 0 14px rgb(0 0 0 / 0.25); }
+
+/* ---------- FPS meter (Settings → Appearance → Show frame rate) ---------- */
+.fps-meter {
+  position: fixed; z-index: 9999; left: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 6.25rem); pointer-events: none;
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 999px;
+  font: 600 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums;
+  color: #fff; background: rgb(0 0 0 / 0.72); contain: layout paint;
+}
+@media (min-width: 768px) { .fps-meter { bottom: 12px; left: auto; right: 12px; } }
+.fps-meter::before { content: ""; width: 7px; height: 7px; border-radius: 99px; background: #9CA3AF; }
+.fps-meter[data-state="good"]::before { background: #34C759; }
+.fps-meter[data-state="ok"]::before { background: #FFCC00; }
+.fps-meter[data-state="bad"]::before { background: #FF3B30; }
